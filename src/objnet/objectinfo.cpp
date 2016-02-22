@@ -144,6 +144,15 @@ bool ObjectInfo::fromVariant(QVariant &v)
 {
     if (mDesc.type != v.type())
         return false;
+    if (mDesc.type == Common)
+    {
+        ByteArray ba = v.toByteArray();
+        int sz = ba.size();
+        sz = sz > mDesc.readSize? mDesc.readSize: sz;
+        for (int i=0; i<sz; i++)
+            reinterpret_cast<unsigned char*>(mReadPtr)[i] = ba[i];
+        return true;
+    }
     for (int i=0; i<mDesc.readSize; i++)
         reinterpret_cast<unsigned char*>(mReadPtr)[i] = reinterpret_cast<unsigned char*>(v.data())[i];
     return true;
