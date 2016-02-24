@@ -38,9 +38,14 @@ I2S::I2S(Gpio::Config clkPin, Gpio::Config doPin) :
     config.I2S_MCLKOutput = I2S_MCLKOutput_Disable;
     I2S_Init(mSpi, &config);
     
+#if defined (STM32F427_437xx) || defined (STM32F429_439xx)
+    throw Exception::badSoBad;
+    #warning ne rabotaet for stm32f427 or 437 or 429 or 439
+#else
     unsigned long pr = config.I2S_MCLKOutput;
     if (config.I2S_DataFormat == I2S_DataFormat_16b)
     {
+
         // blabla
 #warning nado zapilit baudrate calculation, a poka:
         if (config.I2S_AudioFreq == 8000)
@@ -85,11 +90,13 @@ I2S::I2S(Gpio::Config clkPin, Gpio::Config doPin) :
             throw Exception::badSoBad;
         }
     }
+
     
     RCC_I2SCLKConfig(RCC_I2S2CLKSource_PLLI2S);
     RCC_PLLI2SCmd(ENABLE);
     
-    mSpi->I2SPR = pr;   
+    mSpi->I2SPR = pr; 
+#endif
 }
 
 SPI_TypeDef *I2S::getSpiByPin(Gpio::Config pinConfig)

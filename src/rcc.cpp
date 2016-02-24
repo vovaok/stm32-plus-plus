@@ -45,31 +45,104 @@ void Rcc::configPll(unsigned long hseValue, unsigned long sysClk)
 
     if (HSEStatus == (uint32_t)0x01)
     {
-        RCC->CFGR |= RCC_CFGR_HPRE_DIV1;  // HCLK = SYSCLK / 1
+        /* Select regulator voltage output Scale 1 mode */
+        RCC->APB1ENR |= RCC_APB1ENR_PWREN;
+        PWR->CR |= PWR_CR_VOS;
+
+        /* HCLK = SYSCLK / 1*/
+        RCC->CFGR |= RCC_CFGR_HPRE_DIV1;
         mAHBClk = mSysClk >> 0;
-        RCC->CFGR |= RCC_CFGR_PPRE2_DIV2; // PCLK2 = HCLK / 2
+
+    #if defined (STM32F40_41xxx) || defined (STM32F427_437xx) || defined (STM32F429_439xx)      
+        /* PCLK2 = HCLK / 2*/
+        RCC->CFGR |= RCC_CFGR_PPRE2_DIV2;
         mAPB2Clk = mAHBClk >> 1;
-        RCC->CFGR |= RCC_CFGR_PPRE1_DIV4; // PCLK1 = HCLK / 4
-        mAPB1Clk = mAHBClk >> 2;
         
-        // Configure the main PLL
+        /* PCLK1 = HCLK / 4*/
+        RCC->CFGR |= RCC_CFGR_PPRE1_DIV4;
+        mAPB1Clk = mAHBClk >> 2;
+    #endif /* STM32F40_41xxx || STM32F427_437x || STM32F429_439xx */
+
+    #if defined (STM32F401xx)
+        /* PCLK2 = HCLK / 2*/
+        RCC->CFGR |= RCC_CFGR_PPRE2_DIV1;
+        mAPB2Clk = mAHBClk;
+        
+        /* PCLK1 = HCLK / 4*/
+        RCC->CFGR |= RCC_CFGR_PPRE1_DIV2;
+        mAPB1Clk = mAHBClk >> 1;
+    #endif /* STM32F401xx */
+       
+        /* Configure the main PLL */
         RCC->PLLCFGR = mPllM | (mPllN << 6) | (((mPllP >> 1) -1) << 16) |
                        (RCC_PLLCFGR_PLLSRC_HSE) | (mPllQ << 24);
 
-        // Enable the main PLL 
+        /* Enable the main PLL */
         RCC->CR |= RCC_CR_PLLON;
-        // Wait till the main PLL is ready 
-        while((RCC->CR & RCC_CR_PLLRDY) == 0);
 
-        // Configure Flash prefetch, Instruction cache, Data cache and wait state 
-        FLASH->ACR = FLASH_ACR_PRFTEN | FLASH_ACR_ICEN | FLASH_ACR_DCEN | FLASH_ACR_LATENCY_5WS;
+        /* Wait till the main PLL is ready */
+        while((RCC->CR & RCC_CR_PLLRDY) == 0)
+        {
+        }
+       
+    #if defined (STM32F427_437xx) || defined (STM32F429_439xx)
+        /* Enable the Over-drive to extend the clock frequency to 180 Mhz */
+        PWR->CR |= PWR_CR_ODEN;
+        while((PWR->CSR & PWR_CSR_ODRDY) == 0)
+        {
+        }
+        PWR->CR |= PWR_CR_ODSWEN;
+        while((PWR->CSR & PWR_CSR_ODSWRDY) == 0)
+        {
+        }      
+        /* Configure Flash prefetch, Instruction cache, Data cache and wait state */
+        FLASH->ACR = FLASH_ACR_PRFTEN | FLASH_ACR_ICEN |FLASH_ACR_DCEN |FLASH_ACR_LATENCY_5WS;
+    #endif /* STM32F427_437x || STM32F429_439xx  */
 
-        // Select the main PLL as system clock source 
+    #if defined (STM32F40_41xxx)     
+        /* Configure Flash prefetch, Instruction cache, Data cache and wait state */
+        FLASH->ACR = FLASH_ACR_PRFTEN | FLASH_ACR_ICEN |FLASH_ACR_DCEN |FLASH_ACR_LATENCY_5WS;
+    #endif /* STM32F40_41xxx  */
+
+    #if defined (STM32F401xx)
+        /* Configure Flash prefetch, Instruction cache, Data cache and wait state */
+        FLASH->ACR = FLASH_ACR_PRFTEN | FLASH_ACR_ICEN |FLASH_ACR_DCEN |FLASH_ACR_LATENCY_2WS;
+    #endif /* STM32F401xx */
+
+        /* Select the main PLL as system clock source */
         RCC->CFGR &= (uint32_t)((uint32_t)~(RCC_CFGR_SW));
         RCC->CFGR |= RCC_CFGR_SW_PLL;
 
-        // Wait till the main PLL is used as system clock source 
+        /* Wait till the main PLL is used as system clock source */
         while ((RCC->CFGR & (uint32_t)RCC_CFGR_SWS ) != RCC_CFGR_SWS_PLL);
+        {
+        }
+      
+//        RCC->CFGR |= RCC_CFGR_HPRE_DIV1;  // HCLK = SYSCLK / 1
+//        mAHBClk = mSysClk >> 0;
+//        RCC->CFGR |= RCC_CFGR_PPRE2_DIV2; // PCLK2 = HCLK / 2
+//        mAPB2Clk = mAHBClk >> 1;
+//        RCC->CFGR |= RCC_CFGR_PPRE1_DIV4; // PCLK1 = HCLK / 4
+//        mAPB1Clk = mAHBClk >> 2;
+//        
+//        // Configure the main PLL
+//        RCC->PLLCFGR = mPllM | (mPllN << 6) | (((mPllP >> 1) -1) << 16) |
+//                       (RCC_PLLCFGR_PLLSRC_HSE) | (mPllQ << 24);
+//
+//        // Enable the main PLL 
+//        RCC->CR |= RCC_CR_PLLON;
+//        // Wait till the main PLL is ready 
+//        while((RCC->CR & RCC_CR_PLLRDY) == 0);
+//
+//        // Configure Flash prefetch, Instruction cache, Data cache and wait state 
+//        FLASH->ACR = FLASH_ACR_PRFTEN | FLASH_ACR_ICEN | FLASH_ACR_DCEN | FLASH_ACR_LATENCY_5WS;
+//
+//        // Select the main PLL as system clock source 
+//        RCC->CFGR &= (uint32_t)((uint32_t)~(RCC_CFGR_SW));
+//        RCC->CFGR |= RCC_CFGR_SW_PLL;
+//
+//        // Wait till the main PLL is used as system clock source 
+//        while ((RCC->CFGR & (uint32_t)RCC_CFGR_SWS ) != RCC_CFGR_SWS_PLL);
     }
     else
     { 

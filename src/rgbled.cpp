@@ -12,7 +12,7 @@ RgbLed::RgbLed(Gpio::Config pinR, Gpio::Config pinG, Gpio::Config pinB, int pwmF
     if (chR == ChNone || chG == ChNone || chB == ChNone)
         throw Exception::invalidPin;
   
-    pwm = new PwmOutput(Tim8, 1_kHz);
+    pwm = new PwmOutput(tim, 1_kHz);
     pwm->configChannel(chR, pinR); 
     pwm->configChannel(chG, pinG);
     pwm->configChannel(chB, pinB);

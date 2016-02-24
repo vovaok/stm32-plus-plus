@@ -8,56 +8,87 @@ namespace Objnet
 
 class ObjnetNode : public ObjnetCommonNode
 {
+#ifndef __ICCARM__
+    Q_OBJECT
+#endif
 private:
     typedef enum
     {
-        netnStart = 0,      //!< исходное состояние, посылка сообщения Hello
-        netnConnecting,     //!< ожидание ответа мастера в течение ххх мс
-        netnAccepted,       //!< ответ от мастера принят
-        //netnEnumeration,    //!< присвоение логического адреса
-        netnReady           //!< узел готов
+        netnStart = 0,      //!< РёСЃС…РѕРґРЅРѕРµ СЃРѕСЃС‚РѕСЏРЅРёРµ, РїРѕСЃС‹Р»РєР° СЃРѕРѕР±С‰РµРЅРёСЏ Hello
+        netnConnecting,     //!< РѕР¶РёРґР°РЅРёРµ РѕС‚РІРµС‚Р° РјР°СЃС‚РµСЂР° РІ С‚РµС‡РµРЅРёРµ С…С…С… РјСЃ
+        netnDisconnecting,  //!< СѓР·РµР» РїРѕРЅСЏР», С‡С‚Рѕ РµРіРѕ РЅРёРєС‚Рѕ РЅРµ Р¶РґС‘С‚ Рё РѕС‚РєР»СЋС‡Р°РµС‚СЃСЏ
+        netnAccepted,       //!< РѕС‚РІРµС‚ РѕС‚ РјР°СЃС‚РµСЂР° РїСЂРёРЅСЏС‚
+        //netnEnumeration,    //!< РїСЂРёСЃРІРѕРµРЅРёРµ Р»РѕРіРёС‡РµСЃРєРѕРіРѕ Р°РґСЂРµСЃР°
+        netnReady           //!< СѓР·РµР» РіРѕС‚РѕРІ
     } NetState;
-    
+
     NetState mNetState; // current node net state
-    
+    int mNetTimeout;
+
     // objnet related parameters:
     unsigned long mClass;
     string mName;
     string mFullName;
     unsigned long mSerial;
-    
-    // словарь сервисных объектов:
+    unsigned short mVersion;
+    string mBuildDate;
+    string mCpuInfo;
+    unsigned long mBurnCount;
+
+    // СЃР»РѕРІР°СЂСЊ СЃРµСЂРІРёСЃРЅС‹С… РѕР±СЉРµРєС‚РѕРІ:
     std::vector<ObjectInfo> mSvcObjects;
-    // словарь объектов
+    // СЃР»РѕРІР°СЂСЊ РѕР±СЉРµРєС‚РѕРІ
     std::vector<ObjectInfo> mObjects;
-  
-protected:  
+
+#ifdef __ICCARM__
+protected:
+#else
+protected slots:
+#endif
     void task();
-    void acceptServiceMessage(SvcOID oid, ByteArray *ba=0L);
+
+protected:
+    void acceptServiceMessage(unsigned char sender, SvcOID oid, ByteArray *ba=0L);
     void parseServiceMessage(CommonMessage &msg);
-    
+
     void parseMessage(CommonMessage &msg);
-    
+
     unsigned char route(unsigned char netAddress) {(void)netAddress; return 0;}
-    
+
     void setClassId(unsigned long classId) {mClass = classId;}
     void setSerial(unsigned long serial) {mSerial = serial;}
-    
+
     void registerSvcObject(const ObjectInfo &info) {mSvcObjects.push_back(info);}
-  
+
+#ifndef __ICCARM__
+protected slots:
+#endif
+    void onTimer();
+
 public:
     ObjnetNode(ObjnetInterface *iface);
     
     void setName(string name) {mName = name.substr(0, 8);}
-    string name() const {return mName;}
     void setFullName(string name) {mFullName = name;}
+    void setVersion(unsigned short version) {mVersion = version;}
+    void setBurnCount(int burnCount) {mBurnCount = burnCount;}
+    
+    string name() const {return mName;}
     string fullName() const {return mFullName;}
     unsigned long classId() const {return mClass;}
     unsigned long serial() const {return mSerial;}
-    
+    unsigned short version() const {return mVersion;}
+    int burnCount() const {return mBurnCount;}
+
     bool isConnected() const {return mNetState > netnConnecting;}
+
+    void bindObject(const ObjectInfo &info) {mObjects.push_back(info); mObjects.back().mDesc.id = mObjects.size() - 1;}
+    #define BindObject(obj) bindObject(ObjectInfo(#obj, obj)); // convenient macro
+    #define BindObjectEx(obj, flags) bindObject(ObjectInfo(#obj, obj, flags)); // convenient macro
     
-    void registerObject(const ObjectInfo &info) {mObjects.push_back(info);}
+#ifdef __ICCARM__
+    NotifyEvent onPolling;
+#endif
 };
 
 }

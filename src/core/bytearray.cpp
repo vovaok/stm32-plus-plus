@@ -144,6 +144,7 @@ ByteArray &ByteArray::remove(int index, int count)
             const char *srcptr = mData + index + count;
             char *destptr = mData + index;
             mSize -= count;
+            count = mSize;
             while (count--)
                 *destptr++ = *srcptr++;
         }

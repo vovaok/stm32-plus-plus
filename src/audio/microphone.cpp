@@ -12,7 +12,7 @@ Microphone::Microphone(const AudioFormat &format, int interface1, ...) :
     mInterfaces = new Adc::Channel[count];
     mInterfaces[0] = (Adc::Channel)interface1;
     va_list vl;
-  //  va_start(vl, count);  // какаято хрень
+    va_start(vl, interface1);
     for (int i=1; i<count; i++)
     {
         mInterfaces[i] = (Adc::Channel)va_arg(vl, int);

@@ -9,8 +9,10 @@ ObjnetMaster::ObjnetMaster(ObjnetInterface *iface) :
     mAssignNetAddress(1),
     mAdjIfConnected(false)
 {
-    setBusAddress(0xFF);
-    mNetAddress = 0;
+    for (int i=0; i<16; i++)
+        mLocalnetDevices[i] = 0L;
+    setBusAddress(0);
+    mNetAddress = 0x00;
     #ifdef __ICCARM__
     mTimer.setTimeoutEvent(EVENT(&ObjnetMaster::onTimer));
     #else
@@ -31,7 +33,7 @@ void ObjnetMaster::reset()
         delete it->second;
     mDevices.clear();
     mRouteTable.clear();
-    mRouteTable[0x00] = 0; // сразу записываем, как достучаться до верхнего уровня
+    mRouteTable[0x00] = 0; // СЃСЂР°Р·Сѓ Р·Р°РїРёСЃС‹РІР°РµРј, РєР°Рє РґРѕСЃС‚СѓС‡Р°С‚СЊСЃСЏ РґРѕ РІРµСЂС…РЅРµРіРѕ СѓСЂРѕРІРЅСЏ
 }
 //---------------------------------------------------------------------------
 
@@ -45,12 +47,12 @@ void ObjnetMaster::task()
             sendGlobalServiceMessage(aidConnReset); // reset subnet state on adjacent node connection
         mAdjIfConnected = mAdjacentNode->isConnected(); // store previous value of connection state
     }
-    
-    if (mRouteTable.size() >= 127) // если вся таблица маршрутизации заполнена, значит что-то пошло не так, и...
+
+    if (mRouteTable.size() >= 127) // РµСЃР»Рё РІСЃСЏ С‚Р°Р±Р»РёС†Р° РјР°СЂС€СЂСѓС‚РёР·Р°С†РёРё Р·Р°РїРѕР»РЅРµРЅР°, Р·РЅР°С‡РёС‚ С‡С‚Рѕ-С‚Рѕ РїРѕС€Р»Рѕ РЅРµ С‚Р°Рє, Рё...
     {
-        mRouteTable.clear();                    // чистим таблицу маршрутизации
-        mRouteTable[0x00] = 0;                  // сразу записываем, как достучаться до верхнего уровня
-        sendGlobalServiceMessage(aidConnReset); // выполняем перенумерацию
+        mRouteTable.clear();                    // С‡РёСЃС‚РёРј С‚Р°Р±Р»РёС†Сѓ РјР°СЂС€СЂСѓС‚РёР·Р°С†РёРё
+        mRouteTable[0x00] = 0;                  // СЃСЂР°Р·Сѓ Р·Р°РїРёСЃС‹РІР°РµРј, РєР°Рє РґРѕСЃС‚СѓС‡Р°С‚СЊСЃСЏ РґРѕ РІРµСЂС…РЅРµРіРѕ СѓСЂРѕРІРЅСЏ
+        sendGlobalServiceMessage(aidConnReset); // РІС‹РїРѕР»РЅСЏРµРј РїРµСЂРµРЅСѓРјРµСЂР°С†РёСЋ
     }
 }
 
@@ -71,12 +73,12 @@ void ObjnetMaster::onTimer()
                 macsToRemove.push_back(it->first);
             }
             else
-            {   
+            {
                 if (mAdjacentNode)
                 {
                     ByteArray ba;
                     ba.append(dev->mNetAddress);
-                    mAdjacentNode->acceptServiceMessage(svcDisconnected, &ba);
+                    mAdjacentNode->acceptServiceMessage(0, svcDisconnected, &ba);
                 }
                 #ifndef __ICCARM__
                 emit devDisconnected(dev->mNetAddress);
@@ -84,15 +86,17 @@ void ObjnetMaster::onTimer()
             }
         }
     }
-    // удаляем отсутствующие девайсы, если у них включено автоудаление
+    // СѓРґР°Р»СЏРµРј РѕС‚СЃСѓС‚СЃС‚РІСѓСЋС‰РёРµ РґРµРІР°Р№СЃС‹, РµСЃР»Рё Сѓ РЅРёС… РІРєР»СЋС‡РµРЅРѕ Р°РІС‚РѕСѓРґР°Р»РµРЅРёРµ
     for (std::vector<unsigned char>::iterator it=macsToRemove.begin(); it!=macsToRemove.end(); it++)
     {
         ObjnetDevice *dev = mDevices[*it];
         if (mAdjacentNode)
         {
+            unsigned char supernetaddr = mAdjacentNode->natRoute(dev->mNetAddress);
             ByteArray ba;
-            ba.append(dev->mNetAddress);
-            mAdjacentNode->acceptServiceMessage(svcKill, &ba);
+            ba.append(supernetaddr);
+            mAdjacentNode->acceptServiceMessage(0, svcKill, &ba);
+            removeNatPair(supernetaddr, dev->mNetAddress);
         }
         #ifndef __ICCARM__
         emit devRemoved(dev->mNetAddress);
@@ -104,50 +108,76 @@ void ObjnetMaster::onTimer()
 }
 //---------------------------------------------------------------------------
 
-void ObjnetMaster::acceptServiceMessage(SvcOID oid, ByteArray *ba)
+void ObjnetMaster::acceptServiceMessage(unsigned char sender, SvcOID oid, ByteArray *ba)
 {
-//    switch (oid)
-//    {
-//      case svcWelcome:
-//      {
-//        unsigned char netaddr = ba->data()[0];
-//        unsigned char mac = ba->data()[ba->size()-1];
-//        ObjnetDevice *dev = mDevices.count(mac)? mDevices[mac]: 0L;
-//        if (dev)
-//        {
-//            dev->mNetAddress = netaddr;
-//            mRouteTable[netaddr] = mac;
-//        }
-//        ByteArray ba2(ba->data(), ba->size()-1);
-//        sendServiceMessage(oid, mac, ba2);
-//        break;
-//      }
-//
-//      default:; // warning elimination
-//    }
+//    #ifndef __ICCARM__
+//    qDebug() << "master" << QString::fromStdString(mName) << "accept" << oid;
+//    #endif
+
+    switch (oid)
+    {
+      case svcWelcome:
+//      case svcWelcomeAgain:
+      {
+        unsigned char supernetaddr = ba->data()[0];
+        unsigned char netaddr = ba->data()[1];
+        addNatPair(supernetaddr, netaddr);        // РґРѕР±Р°РІР»СЏРµРј РІ С‚Р°Р±Р»РёС†Сѓ NAT
+        ObjnetDevice *dev = mDevices.count(netaddr)? mDevices[netaddr]: 0L;
+        if (dev)
+        {
+//            if (dev->mPresent) // && dev->isValid())
+//            {
+                ByteArray ba;
+                ba.append(supernetaddr);
+                mAdjacentNode->sendServiceMessage(sender, svcConnected, ba);
+//            }
+        }
+        break;
+      }
+
+      default:; // warning elimination
+    }
 }
 
 void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
 {
     SvcOID oid = (SvcOID)msg.localId().oid;
-    unsigned char mac = msg.localId().mac;
-    ObjnetDevice *dev = mDevices.count(mac)? mDevices[mac]: 0L;
+
+//    #ifndef __ICCARM__
+//    qDebug() << "master" << QString::fromStdString(mName) << "parse" << oid;
+//    #endif
+
+    unsigned char netaddr = msg.localId().sender;
+    ObjnetDevice *dev = mDevices.count(netaddr)? mDevices[netaddr]: 0L;
     switch (oid)
     {
-#warning #error tut ne universal
       case svcEcho:
+//        #ifndef __ICCARM__
+//        qDebug() << "master" << QString::fromStdString(mName) << "parse echo from" << netaddr;
+//        #endif
         if (!dev)
-            sendServiceMessage(netAddrUniversal, svcHello); // reset node's connection state
+        {
+            sendServiceMessage(netaddr, svcHello); // reset node's connection state
+        }
         else
         {
             if (!dev->mPresent)
             {
                 if (mAdjacentNode)
                 {
-                    ByteArray ba;
-                    ba.append(dev->mNetAddress);
-                    mAdjacentNode->acceptServiceMessage(svcConnected, &ba);
+                    unsigned char addr = mAdjacentNode->natRoute(dev->mNetAddress);
+                    if (addr != 0x7F)
+                    {
+                        ByteArray ba;
+                        ba.append(addr);
+                        mAdjacentNode->acceptServiceMessage(netaddr, svcConnected, &ba);
+                    }
                 }
+                //unsigned char mac = msg.localId().mac;
+//                if (mLocalnetDevices[mac] == dev) // if device is in local network
+                dev->mInfoValidCnt = 0;
+                sendServiceMessage(netaddr, svcRequestAllInfo);
+                sendServiceMessage(netaddr, svcRequestObjInfo);
                 #ifndef __ICCARM__
                 emit devConnected(dev->mNetAddress);
                 #endif
@@ -156,103 +186,222 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
             dev->mTimeout = 5;
         }
         break;
-      
+
       case svcHello:
       {
-        SvcOID welcomeCmd = svcWelcomeAgain;             // если девайс уже добавлен, команда будет svcWelcomeAgain
-        if (!dev)                                        // сначала добавляем девайс с маком, который в id-шнике, если он ещё не добавлен
+        SvcOID welcomeCmd = svcWelcomeAgain;             // РµСЃР»Рё РґРµРІР°Р№СЃ СѓР¶Рµ РґРѕР±Р°РІР»РµРЅ, РєРѕРјР°РЅРґР° Р±СѓРґРµС‚ svcWelcomeAgain
+        ByteArray ba = msg.data();
+        unsigned char mac = ba[0];
+        bool localnet = (ba.size() == 1);
+        if (localnet)
+            dev = mLocalnetDevices[mac];
+        unsigned char tempaddr = netaddr;
+        if (!dev || !localnet)                           // СЃРЅР°С‡Р°Р»Р° РґРѕР±Р°РІР»СЏРµРј РґРµРІР°Р№СЃ СЃ РјР°РєРѕРј, РєРѕС‚РѕСЂС‹Р№ РІ id-С€РЅРёРєРµ, РµСЃР»Рё РѕРЅ РµС‰С‘ РЅРµ РґРѕР±Р°РІР»РµРЅ
         {
-            dev = new ObjnetDevice(createNetAddress(mac)); // создаём объект с новым адресом  
-            dev->mAutoDelete = true;                     // раз автоматически создали - автоматически и удалим)
-            mDevices[mac] = dev;                         // запоминаем для поиска по маку
-            welcomeCmd = svcWelcome;                     // меняем команду на svcWelcome
+            if (!localnet)
+                mac = route(tempaddr);
+            netaddr = createNetAddress(mac);             // СЃРѕР·РґР°С‘Рј РЅРѕРІС‹Р№ Р°РґСЂРµСЃ
+            dev = new ObjnetDevice(netaddr);             // СЃРѕР·РґР°С‘Рј РѕР±СЉРµРєС‚ СЃ РЅРѕРІС‹Рј Р°РґСЂРµСЃРѕРј
+            dev->mAutoDelete = true;                     // СЂР°Р· Р°РІС‚РѕРјР°С‚РёС‡РµСЃРєРё СЃРѕР·РґР°Р»Рё - Р°РІС‚РѕРјР°С‚РёС‡РµСЃРєРё Рё СѓРґР°Р»РёРј)
+            if (localnet)                                // РµСЃР»Рё РґРµРІР°Р№СЃ РІ С‚РµРєС†С‰РµР№ РїРѕРґСЃРµС‚Рё...
+                mLocalnetDevices[mac] = dev;             // ...Р·Р°РїРѕРјРёРЅР°РµРј РґР»СЏ РїРѕРёСЃРєР° РїРѕ РјР°РєСѓ
+#warning NEED TO IMPLEMENT: kill mLocalnetDevices[mac] on svcKill. A mb i ne nado!!
+            mDevices[netaddr] = dev;                     // Р·Р°РїРѕРјРёРЅР°РµРј РґР»СЏ РїРѕРёСЃРєР° РїРѕ Р°РґСЂРµСЃСѓ
+            welcomeCmd = svcWelcome;                     // РјРµРЅСЏРµРј РєРѕРјР°РЅРґСѓ РЅР° svcWelcome
+
             #ifndef __ICCARM__
-            emit devAdded(dev->mNetAddress, ByteArray().append(mac));
+            QObject::connect(dev, SIGNAL(requestObject(unsigned char,unsigned char)), SLOT(requestObject(unsigned char,unsigned char)));
+            QObject::connect(dev, SIGNAL(sendObject(unsigned char,unsigned char,QByteArray)), SLOT(sendObject(unsigned char,unsigned char,QByteArray)));
             #endif
         }
-        
-        if (mAdjacentNode)                               // если мастер связан с узлом, то он не верхний
+
+        if (dev)
+            netaddr = dev->netAddress();
+
+        if (localnet)                          // РµСЃР»Рё СЌС‚Рѕ РґРµРІР°Р№СЃ С‚РµРєСѓС‰РµР№ РїРѕРґСЃРµС‚Рё...
         {
-            if (mAdjacentNode->isConnected() && !dev->mPresent) // и если смежный узел подключён к своему мастеру и девайс ещё не получил свой адрес
-                mAdjacentNode->acceptServiceMessage(svcHello, &msg.data()); // отдаём ему сообщение на обработку
-        }
-        else if (msg.data().size() > 1)                  // иначе мастер является верхним устройством в цепочке (тут может быть другая логика, но пока так)
-        {                                                // если размер данных > 1, значит, это ретранслированный запрос
-            ByteArray ba;
-            unsigned char netaddr = createNetAddress(mac);
-            ba.append(netaddr);                          // присваиваем новый сетевой адрес тому далёкому узлу
-            ba.append(msg.data().data(), msg.data().size()-1); // добавляем остатки сообщения, отняв ненужную инфу (мак-адрес текущего получателя)
-            sendServiceMessage(netaddr, svcWelcome, ba);     // отправляем сообщение с присвоенным адресом
-            #ifndef __ICCARM__
-            emit devAdded(netaddr, msg.data());
-            #endif
+            ByteArray outBa;
+            outBa.append(netaddr);
+            sendServiceMessage(netaddr, welcomeCmd, outBa);     // С‚СѓРїРѕ РѕС‚РїСЂР°РІР»СЏРµРј СЃРѕРѕР±С‰РµРЅРёРµ СЃ РїСЂРёСЃРІРѕРµРЅРЅС‹Рј Р°РґСЂРµСЃРѕРј
+            ba.append(netaddr);                             // РґРѕР±Р°РІР»СЏРµРј РІ РєРѕРЅРµС† СЃРѕР·РґР°РЅРЅС‹Р№ Р»РѕРіРёС‡РµСЃРєРёР№ Р°РґСЂРµСЃ СѓР·Р»Р°
         }
         else
         {
-            unsigned char netaddr = dev->mNetAddress;    // просто берём сетевой адрес из объекта
-            ByteArray ba;
-            ba.append(netaddr);
-            sendServiceMessage(netaddr, welcomeCmd, ba);     // отправляем сообщение с присвоенным адресом
+            ByteArray outBa;
+            outBa.append(netaddr);
+            unsigned char subnetaddr = ba[1];       // СѓР·РЅР°С‘Рј РµРіРѕ Р°РґСЂРµСЃ РІ С‚РѕР№ РїРѕРґСЃРµС‚Рё
+            outBa.append(subnetaddr);
+            sendServiceMessage(tempaddr, welcomeCmd, outBa);     // С‚СѓРїРѕ РѕС‚РїСЂР°РІР»СЏРµРј СЃРѕРѕР±С‰РµРЅРёРµ СЃ РїСЂРёСЃРІРѕРµРЅРЅС‹РјРё Р°РґСЂРµСЃР°РјРё
+            ba[1] = netaddr;                        // С‚РµРїРµСЂСЊ Р·РґРµСЃСЊ Р°РґСЂРµСЃ РІ СЌС‚РѕР№ РїРѕРґСЃРµС‚Рё
+            ba.append(tempaddr);
+            if (mAdjacentNode)
+            {
+                for (int i=2; i<ba.size(); i++)
+                    ba[i] = mAdjacentNode->natRoute(ba[i]);
+            }
         }
-        
+
+//        if (mAdjacentNode)
+//        {
+//            for (int i=1; i<ba.count(); i++)
+//                ba[i] = mAdjacentNode->natRoute(tempaddr);                // РјРµРЅСЏРµРј Р°РґСЂРµСЃ РІ С‚РѕР№ РїРѕРґСЃРµС‚Рё РЅР° Р°РґСЂРµСЃ РІ СЌС‚РѕР№ РїРѕРґСЃРµС‚Рё
+//        }
+
+//        ba.append(netaddr);                         // РґРѕР±Р°РІР»СЏРµРј РІ РєРѕРЅРµС† СЃРѕР·РґР°РЅРЅС‹Р№ Р»РѕРіРёС‡РµСЃРєРёР№ Р°РґСЂРµСЃ С‚РµРєСѓС‰РµРіРѕ СѓР·Р»Р°
+
+        #ifndef __ICCARM__
+        emit devAdded(netaddr, ba);                 // СѓСЃС‚СЂРѕР№СЃС‚РІРѕ РґРѕР±Р°РІР»РµРЅРѕ
+        #endif
+
+        if (mAdjacentNode)                               // РµСЃР»Рё РјР°СЃС‚РµСЂ СЃРІСЏР·Р°РЅ СЃ СѓР·Р»РѕРј, С‚Рѕ РѕРЅ РЅРµ РІРµСЂС…РЅРёР№
+        {
+            if (mAdjacentNode->isConnected())            // Рё РµСЃР»Рё СЃРјРµР¶РЅС‹Р№ СѓР·РµР» РїРѕРґРєР»СЋС‡С‘РЅ Рє СЃРІРѕРµРјСѓ РјР°СЃС‚РµСЂСѓ
+            {
+                //ba[0] = mAdjacentNode->mBusAddress;                                // РјРµРЅСЏРµРј С„РёР·РёС‡РµСЃРєРёР№ Р°РґСЂРµСЃ РЅР° СЃРІРѕР№
+                mAdjacentNode->sendServiceMessage(svcHello, ba);    // Рё РѕС‚РїСЂР°РІР»СЏРµРј РґР°Р»СЊС€Рµ
+            }
+        }
+
         break;
       }
-        
-      case svcConnected:  
+
+      case svcConnected:
       {
-        unsigned char netaddr = msg.data()[0];
+        unsigned char netaddr2 = msg.data()[0];
         if (mAdjacentNode)
-            mAdjacentNode->acceptServiceMessage(svcConnected, &msg.data());
+        {
+            unsigned char addr = mAdjacentNode->natRoute(netaddr2);
+            if (addr != 0x7F)
+            {
+                ByteArray ba;
+                ba.append(addr);
+                mAdjacentNode->acceptServiceMessage(0, svcConnected, &ba);
+            }
+        }
+//#warning if (localnet) '// nado dobavit!'
+//        sendServiceMessage(netaddr, svcRequestAllInfo);
         #ifndef __ICCARM__
-        emit devConnected(netaddr);
+        emit devConnected(netaddr2);
         #endif
         break;
       }
-        
+
       case svcDisconnected:
       {
         unsigned char netaddr = msg.data()[0];
         if (mAdjacentNode)
-            mAdjacentNode->acceptServiceMessage(svcDisconnected, &msg.data());
+        {
+            unsigned char addr = mAdjacentNode->natRoute(netaddr);
+            if (addr != 0x7F)
+            {
+                ByteArray ba;
+                ba.append(addr);
+                mAdjacentNode->acceptServiceMessage(0, svcDisconnected, &ba);
+                removeNatPair(addr, netaddr);
+            }
+        }
         #ifndef __ICCARM__
         emit devDisconnected(netaddr);
         #endif
         break;
       }
-        
+
       case svcKill:
       {
         unsigned char netaddr = msg.data()[0];
         mRouteTable.erase(netaddr);
         if (mAdjacentNode)
-            mAdjacentNode->acceptServiceMessage(svcKill, &msg.data());
+        {
+            unsigned char addr = mAdjacentNode->natRoute(netaddr);
+            if (addr != 0x7F)
+            {
+                ByteArray ba;
+                ba.append(addr);
+                mAdjacentNode->acceptServiceMessage(0, svcKill, &ba);
+                removeNatPair(addr, netaddr);
+            }
+        }
         #ifndef __ICCARM__
         emit devRemoved(netaddr);
         #endif
         break;
       }
-      
+
       case svcClass:
         if (dev)
-            mDevices[mac]->setClassId(*reinterpret_cast<const unsigned long*>(msg.data().data()));
+            mDevices[netaddr]->setClassId(*reinterpret_cast<const unsigned long*>(msg.data().data()));
 
       case svcName:
         if (dev)
-            mDevices[mac]->setName(string(msg.data().data(), msg.data().size()));
+            mDevices[netaddr]->setName(string(msg.data().data(), msg.data().size()));
         break;
 
       case svcFullName:
         if (dev)
-            mDevices[mac]->mFullName = string(msg.data().data(), msg.data().size());
+        {
+            dev->mFullName = string(msg.data().data(), msg.data().size());
+            dev->mInfoValidCnt++;
+        }
+        break;
+
+      case svcSerial:
+        if (dev)
+        {
+            dev->mSerial = *reinterpret_cast<const unsigned long*>(msg.data().data());
+            dev->mInfoValidCnt++;
+        }
+        break;
+
+      case svcVersion:
+        if (dev)
+        {
+            dev->mVersion = *reinterpret_cast<const unsigned short*>(msg.data().data());
+            dev->mInfoValidCnt++;
+        }
+        break;
+
+      case svcBuildDate:
+        if (dev)
+        {
+            dev->mBuildDate = string(msg.data().data(), msg.data().size());
+            dev->mInfoValidCnt++;
+        }
+        break;
+
+      case svcCpuInfo:
+        if (dev)
+        {
+            dev->mCpuInfo = string(msg.data().data(), msg.data().size());
+            dev->mInfoValidCnt++;
+        }
+        break;
+
+      case svcBurnCount:
+        if (dev)
+        {
+            dev->mBurnCount = *reinterpret_cast<const unsigned long*>(msg.data().data());
+            dev->mInfoValidCnt++;
+        }
+        break;
+
+//      case svcObjectCount:
+//        sendServiceMessage(netaddr, svcObjectInfo);
+//        break;
+
+      case svcObjectInfo:
+        if (dev)
+        {
+            dev->prepareObject(msg.data());
+        }
         break;
 
       default:; // warning elimination
     }
-    
+
     if (oid < svcEcho)
     {
         #ifndef __ICCARM__
-        emit serviceMessageAccepted(msg.localId().sender, oid, msg.data());
+        emit serviceMessageAccepted(netaddr, oid, msg.data());
         #endif
     }
 }
@@ -266,15 +415,33 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
 
 void ObjnetMaster::parseMessage(CommonMessage &msg)
 {
-  
+    if (msg.isGlobal())
+    {
+        return;
+    }
+
+    unsigned char oid = msg.localId().oid;
+    unsigned char remoteAddr = msg.localId().sender;
+    ObjnetDevice *dev = mDevices.count(remoteAddr)? mDevices[remoteAddr]: 0L;
+
+    if (dev)
+    {
+        dev->receiveObject(oid, msg.data());
+    }
+    else
+    {
+        #ifndef __ICCARM__
+        qDebug() << "object received from unknown device!!";
+        #endif
+    }
 }
 //---------------------------------------------------------------------------
 
 unsigned char ObjnetMaster::createNetAddress(unsigned char mac)
 {
-    if (mRouteTable.size() >= 127) // сразу избегаем бесконечного цикла
+    if (mRouteTable.size() >= 127) // СЃСЂР°Р·Сѓ РёР·Р±РµРіР°РµРј Р±РµСЃРєРѕРЅРµС‡РЅРѕРіРѕ С†РёРєР»Р°
         return 0x7F;
-    while (mRouteTable.count(mAssignNetAddress)) // если в таблице маршрутизации данный адрес занят, ищем дальше
+    while (mRouteTable.count(mAssignNetAddress)) // РµСЃР»Рё РІ С‚Р°Р±Р»РёС†Рµ РјР°СЂС€СЂСѓС‚РёР·Р°С†РёРё РґР°РЅРЅС‹Р№ Р°РґСЂРµСЃ Р·Р°РЅСЏС‚, РёС‰РµРј РґР°Р»СЊС€Рµ
     {
         mAssignNetAddress++;
         if (mAssignNetAddress >= 127)
@@ -290,11 +457,22 @@ unsigned char ObjnetMaster::createNetAddress(unsigned char mac)
 
 void ObjnetMaster::addDevice(unsigned char mac, ObjnetDevice *dev)
 {
-    dev->mNetAddress = createNetAddress(mac);   // создаём объект с новым адресом  
-    dev->mAutoDelete = false;                   // автоматически не удаляется, т.к. создан внешним объектом
-    mDevices[mac] = dev;                        // запоминаем для поиска по маку
+    dev->mNetAddress = createNetAddress(mac);   // СЃРѕР·РґР°С‘Рј РѕР±СЉРµРєС‚ СЃ РЅРѕРІС‹Рј Р°РґСЂРµСЃРѕРј
+    dev->mAutoDelete = false;                   // Р°РІС‚РѕРјР°С‚РёС‡РµСЃРєРё РЅРµ СѓРґР°Р»СЏРµС‚СЃСЏ, С‚.Рє. СЃРѕР·РґР°РЅ РІРЅРµС€РЅРёРј РѕР±СЉРµРєС‚РѕРј
+    mDevices[mac] = dev;                        // Р·Р°РїРѕРјРёРЅР°РµРј РґР»СЏ РїРѕРёСЃРєР° РїРѕ РјР°РєСѓ
     #ifndef __ICCARM__
     emit devAdded(dev->mNetAddress, ByteArray().append(mac));
     #endif
+}
+//---------------------------------------------------------------------------
+
+void ObjnetMaster::requestObject(unsigned char netAddress, unsigned char oid)
+{
+    sendMessage(netAddress, oid);
+}
+
+void ObjnetMaster::sendObject(unsigned char netAddress, unsigned char oid, const ByteArray &ba)
+{
+    sendMessage(netAddress, oid, ba);
 }
 //---------------------------------------------------------------------------

@@ -81,11 +81,11 @@ void Gpio::updateConfig()
 void Gpio::config(int count, Config conf1, ...)
 {
     va_list vl;
-    va_start(vl, count);
+    va_start(vl, conf1);
     config(conf1);
     for (int i=1; i<count; i++)
     {
-        config(va_arg(vl, Config));
+        config(static_cast<Config>(va_arg(vl, int)));
     }
     va_end(vl);
 }
@@ -162,17 +162,6 @@ bool Gpio::read() const
         return GPIO_ReadOutputDataBit(mPort, mPin) == Bit_SET;
     else
         return GPIO_ReadInputDataBit(mPort, mPin) == Bit_SET;  
-}
-
-void Gpio::writePort(short value)
-{
-  mPort->ODR = (uint16_t)value;
-}
- 
-
-short Gpio::readPort()
-{
-  return ((uint16_t)mPort->ODR);
 }
 
 void Gpio::write(bool value)

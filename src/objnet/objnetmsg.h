@@ -2,10 +2,6 @@
 #define _OBJNETMSG_H
 
 #include "objnetcommon.h"
-#ifndef __ICCARM__
-#include <QtCore>
-#define ByteArray QByteArray
-#endif
 
 namespace Objnet
 {
@@ -21,23 +17,23 @@ class CommonMessage
 protected:
     ByteArray mBa;
     unsigned long mId;
-    
+
 public:
     CommonMessage() :
         mId(0)
     {
     }
-    
+
     CommonMessage(const ByteArray &ba) :
         mId(0)
     {
         mBa.append(ba);
     }
-    
+
     virtual ~CommonMessage()
     {
     }
-  
+
     unsigned long rawId() const {return mId;}
     void setId(unsigned long rawId) {mId = rawId;}
     LocalMsgId localId() {return reinterpret_cast<LocalMsgId&>(mId);}
@@ -62,15 +58,15 @@ public:
             unsigned char lastFragment: 1;
         };
     } FragmentSignature;
-  
+
 private:
     unsigned short mParts;
     unsigned short mPartsMask;
     unsigned char mHealthPoints;
-    
+
 public:
     CommonMessageBuffer() : CommonMessage(), mParts(0), mPartsMask(0xFFFF), mHealthPoints(100) {}
-    
+
     void addPart(ByteArray &ba)
     {
         if (!ba.size())
@@ -88,7 +84,7 @@ public:
         if (signature.lastFragment)
             mPartsMask = (1 << (signature.fragmentNumber + 1)) - 1;
     }
-    
+
     bool isReady() const {return (mParts & mPartsMask) == mPartsMask;}
     unsigned char damage(unsigned char points=1) {mHealthPoints -= mHealthPoints > points? points: mHealthPoints; return mHealthPoints;}
 };

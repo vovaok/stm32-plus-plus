@@ -48,7 +48,7 @@ public:
         WordLength8 = 0x0000,
         WordLength9 = 0x0010,
         Mode8N1     = WordLength8 | ParityNone | StopBits1,
-        Mode8E1     = WordLength9 | ParityEven | StopBits1,
+        Mode8E1     = WordLength8 | ParityEven | StopBits1,
     } Config;
   
 private:
@@ -66,6 +66,7 @@ private:
     IRQn mIrq;
     int mRxPos;
     int mRxIrqDataCounter;
+    int mRxBufferSize;
     
     void init();
     
@@ -81,6 +82,8 @@ private:
 public:
     Usart(UsartNo number, int baudrate, Config config, Gpio::Config pinTx, Gpio::Config pinRx);
     ~Usart();
+    
+    void setBufferSize(int size_bytes);
     
     bool open(OpenMode mode = ReadWrite, bool useDma = false);
     void close();

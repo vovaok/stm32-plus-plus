@@ -22,7 +22,7 @@ PwmOutput::PwmOutput(TimerNumber timerNo, unsigned long pwmFreq) :
     }
 }
 
-void PwmOutput::configChannel(ChannelNumber chnum, Gpio::Config pin, Gpio::Config complementaryPin,bool invert)
+void PwmOutput::configChannel(ChannelNumber chnum, Gpio::Config pin, Gpio::Config complementaryPin)
 {
     bool chEnabled = (pin != Gpio::NoConfig);
     bool chnEnabled = (complementaryPin != Gpio::NoConfig);
@@ -35,8 +35,7 @@ void PwmOutput::configChannel(ChannelNumber chnum, Gpio::Config pin, Gpio::Confi
     TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Disable;//(chEnabled)? TIM_OutputState_Enable: TIM_OutputState_Disable;
     TIM_OCInitStructure.TIM_OutputNState = TIM_OutputNState_Disable;//(chnEnabled)? TIM_OutputNState_Enable: TIM_OutputNState_Disable;
     TIM_OCInitStructure.TIM_Pulse = 0;
-    
-    TIM_OCInitStructure.TIM_OCPolarity = invert? TIM_OCPolarity_High : TIM_OCPolarity_Low ;
+    TIM_OCInitStructure.TIM_OCPolarity = TIM_OCPolarity_Low;
     TIM_OCInitStructure.TIM_OCNPolarity = TIM_OCNPolarity_Low;
     TIM_OCInitStructure.TIM_OCIdleState = TIM_OCIdleState_Reset;
     TIM_OCInitStructure.TIM_OCNIdleState = TIM_OCIdleState_Reset;

@@ -1,6 +1,12 @@
 *.user.*
 Thumbs.db
 
+#ignore thumbnails created by windows
+Thumbs.db
+#Ignore files build by Visual Studio
+*.obj
+*.exe
+*.pdb
 *.user
 *.aps
 *.pch
@@ -9,12 +15,15 @@ Thumbs.db
 *_p.c
 *.ncb
 *.suo
+*.tlb
+*.tlh
 *.bak
 *.cache
 *.ilk
 *.log
 [Bb]in
 [Dd]ebug*/
+*.lib
 *.sbr
 obj/
 deploy
@@ -26,4 +35,10 @@ stm32f407vg/
 trash/
 doxygen/html/
 settings/
-EWABB3.tmp
+stm32*/
+*.tmp
+doxygen/html/
+lib/CMSIS/Documentation/
+lib/CMSIS/*.pdf
+lib/CMSIS/*.htm
+lib/CMSIS/DSP_Lib/Examples

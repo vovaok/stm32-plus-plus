@@ -476,13 +476,6 @@ public:
     
     /*! —брос ноги в 0 */
     inline void reset() {mPort->BSRRH = mPin;}
-
-    /*! запись порта*/
-    void writePort(short value);
-
-    /*! чтение порта*/
-    short readPort();
-
 };
 
 #endif

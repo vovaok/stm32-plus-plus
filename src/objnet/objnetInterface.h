@@ -18,17 +18,23 @@ namespace Objnet
 /*! Media access interface.
     Provide access to link layer of the network
 */
+#ifdef __ICCARM__
 class ObjnetInterface
 {
-private:     
-    
+#else
+class ObjnetInterface : public QObject
+{
+    Q_OBJECT
+#endif
+private:
+
 protected:
     int mMaxFrameSize; //!< Maximal data size in frame
-    
-public:    
+
+public:
     virtual ~ObjnetInterface() {}
-    
-    /*! Place message msg into transmit queue.  
+
+    /*! Place message msg into transmit queue.
         Complete fields of msg with message ID (using LocalMsgId or GlobalMsgId),
         pointer to \b existing data and its length if needed;
         then call this function to place the message into specific queue depending on
@@ -39,7 +45,7 @@ public:
         \return true if message was sent with no errors
     */
     virtual bool write(CommonMessage &msg) = 0;
-    
+
     /*! Retrieve next local message msg from receive queue.
         If this function returns true, it means the message msg is valid
         and data is copied to \b existing buffer (user must allocate memory).
@@ -48,9 +54,9 @@ public:
         \return true if message is valid
     */
     virtual bool read(CommonMessage &msg) = 0;
-    
+
 //    /*! Retrieve next global message msg from receive queue.
-//        This function differs from receive(), it retrieves only global messages 
+//        This function differs from receive(), it retrieves only global messages
 //        If this function returns true, it means the message msg is valid
 //        and data is copied to \b existing buffer (user must allocate memory).
 //        This function is pure virtual, you must reimplement it in your interface class.
@@ -58,32 +64,32 @@ public:
 //        \return true if message is valid
 //    */
 //    virtual bool receiveGlobal(GlobalMessage &msg) = 0;
-    
+
     /*! Flush transmit queue.
-        
+
     */
     virtual void flush() = 0;
-    
-    /*! Äîáàâëåíèå ôèëüòðà íà ïðè¸ì ïàêåòîâ.
-        Ïðè ïðè¸ìå ñîîáùåíèå ôèëüòðóåòñÿ ïî ñîâïàäåíèþ ID ñîîáùåíèÿ è ôèëüòðà,
-        ïîñëå ÷åãî íàêëàäûâàåòñÿ ìàñêà. Áèòû èäåíòèôèêàòîðîâ äîëæíû ñîâïàäàòü
-        â òåõ ìåñòàõ, ãäå áèòû ìàñêè óñòàíîâëåíû â 1. \n
-        \b Çàìå÷àíèå: ÷òîáû ïðèíèìàòü ñîîáùåíèÿ, íåîáõîäèìî ñêîíôèãóðèðîâàòü õîòÿ áû îäèí ôèëüòð.
-        \param id èäåíòèôèêàòîð ôèëüòðà.
-        \param mask ìàñêà ôèëüòðà, ïî óìîë÷àíèþ âñå áèòû âûñòàâëåíû â 1, ò.å. èäåíòèôèêàòîð äîëæåí ïîëíîñòüþ ñîâïàäàòü.
-        \return íîìåð ôèëüòðà, êîòîðûé ìîæíî èñïîëüçîâàòü äëÿ óäàëåíèÿ, íàïðèìåð.
+
+    /*! Ð”Ð¾Ð±Ð°Ð²Ð»ÐµÐ½Ð¸Ðµ Ñ„Ð¸Ð»ÑŒÑ‚Ñ€Ð° Ð½Ð° Ð¿Ñ€Ð¸Ñ‘Ð¼ Ð¿Ð°ÐºÐµÑ‚Ð¾Ð².
+        ÐŸÑ€Ð¸ Ð¿Ñ€Ð¸Ñ‘Ð¼Ðµ ÑÐ¾Ð¾Ð±Ñ‰ÐµÐ½Ð¸Ðµ Ñ„Ð¸Ð»ÑŒÑ‚Ñ€ÑƒÐµÑ‚ÑÑ Ð¿Ð¾ ÑÐ¾Ð²Ð¿Ð°Ð´ÐµÐ½Ð¸ÑŽ ID ÑÐ¾Ð¾Ð±Ñ‰ÐµÐ½Ð¸Ñ Ð¸ Ñ„Ð¸Ð»ÑŒÑ‚Ñ€Ð°,
+        Ð¿Ð¾ÑÐ»Ðµ Ñ‡ÐµÐ³Ð¾ Ð½Ð°ÐºÐ»Ð°Ð´Ñ‹Ð²Ð°ÐµÑ‚ÑÑ Ð¼Ð°ÑÐºÐ°. Ð‘Ð¸Ñ‚Ñ‹ Ð¸Ð´ÐµÐ½Ñ‚Ð¸Ñ„Ð¸ÐºÐ°Ñ‚Ð¾Ñ€Ð¾Ð² Ð´Ð¾Ð»Ð¶Ð½Ñ‹ ÑÐ¾Ð²Ð¿Ð°Ð´Ð°Ñ‚ÑŒ
+        Ð² Ñ‚ÐµÑ… Ð¼ÐµÑÑ‚Ð°Ñ…, Ð³Ð´Ðµ Ð±Ð¸Ñ‚Ñ‹ Ð¼Ð°ÑÐºÐ¸ ÑƒÑÑ‚Ð°Ð½Ð¾Ð²Ð»ÐµÐ½Ñ‹ Ð² 1. \n
+        \b Ð—Ð°Ð¼ÐµÑ‡Ð°Ð½Ð¸Ðµ: Ñ‡Ñ‚Ð¾Ð±Ñ‹ Ð¿Ñ€Ð¸Ð½Ð¸Ð¼Ð°Ñ‚ÑŒ ÑÐ¾Ð¾Ð±Ñ‰ÐµÐ½Ð¸Ñ, Ð½ÐµÐ¾Ð±Ñ…Ð¾Ð´Ð¸Ð¼Ð¾ ÑÐºÐ¾Ð½Ñ„Ð¸Ð³ÑƒÑ€Ð¸Ñ€Ð¾Ð²Ð°Ñ‚ÑŒ Ñ…Ð¾Ñ‚Ñ Ð±Ñ‹ Ð¾Ð´Ð¸Ð½ Ñ„Ð¸Ð»ÑŒÑ‚Ñ€.
+        \param id Ð¸Ð´ÐµÐ½Ñ‚Ð¸Ñ„Ð¸ÐºÐ°Ñ‚Ð¾Ñ€ Ñ„Ð¸Ð»ÑŒÑ‚Ñ€Ð°.
+        \param mask Ð¼Ð°ÑÐºÐ° Ñ„Ð¸Ð»ÑŒÑ‚Ñ€Ð°, Ð¿Ð¾ ÑƒÐ¼Ð¾Ð»Ñ‡Ð°Ð½Ð¸ÑŽ Ð²ÑÐµ Ð±Ð¸Ñ‚Ñ‹ Ð²Ñ‹ÑÑ‚Ð°Ð²Ð»ÐµÐ½Ñ‹ Ð² 1, Ñ‚.Ðµ. Ð¸Ð´ÐµÐ½Ñ‚Ð¸Ñ„Ð¸ÐºÐ°Ñ‚Ð¾Ñ€ Ð´Ð¾Ð»Ð¶ÐµÐ½ Ð¿Ð¾Ð»Ð½Ð¾ÑÑ‚ÑŒÑŽ ÑÐ¾Ð²Ð¿Ð°Ð´Ð°Ñ‚ÑŒ.
+        \return Ð½Ð¾Ð¼ÐµÑ€ Ñ„Ð¸Ð»ÑŒÑ‚Ñ€Ð°, ÐºÐ¾Ñ‚Ð¾Ñ€Ñ‹Ð¹ Ð¼Ð¾Ð¶Ð½Ð¾ Ð¸ÑÐ¿Ð¾Ð»ÑŒÐ·Ð¾Ð²Ð°Ñ‚ÑŒ Ð´Ð»Ñ ÑƒÐ´Ð°Ð»ÐµÐ½Ð¸Ñ, Ð½Ð°Ð¿Ñ€Ð¸Ð¼ÐµÑ€.
     */
     virtual int addFilter(unsigned long id, unsigned long mask=0xFFFFFFFF) = 0;
-    
-    /*! Óäàëåíèå ôèëüòðà.
-        \param [in] number íîìåð ôèëüòðà, êîòîðûé áóäåò óäàë¸í.
-        Æåëàòåëüíî ïåðåäàâàòü çíà÷åíèå, ïîëó÷åííîå â ôóíêöèè addFilter().
+
+    /*! Ð£Ð´Ð°Ð»ÐµÐ½Ð¸Ðµ Ñ„Ð¸Ð»ÑŒÑ‚Ñ€Ð°.
+        \param [in] number Ð½Ð¾Ð¼ÐµÑ€ Ñ„Ð¸Ð»ÑŒÑ‚Ñ€Ð°, ÐºÐ¾Ñ‚Ð¾Ñ€Ñ‹Ð¹ Ð±ÑƒÐ´ÐµÑ‚ ÑƒÐ´Ð°Ð»Ñ‘Ð½.
+        Ð–ÐµÐ»Ð°Ñ‚ÐµÐ»ÑŒÐ½Ð¾ Ð¿ÐµÑ€ÐµÐ´Ð°Ð²Ð°Ñ‚ÑŒ Ð·Ð½Ð°Ñ‡ÐµÐ½Ð¸Ðµ, Ð¿Ð¾Ð»ÑƒÑ‡ÐµÐ½Ð½Ð¾Ðµ Ð² Ñ„ÑƒÐ½ÐºÑ†Ð¸Ð¸ addFilter().
     */
     virtual void removeFilter(int number) = 0;
-    
+
     int maxFrameSize() const {return mMaxFrameSize;}
 };
 
-};
+}
 
 #endif

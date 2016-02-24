@@ -11,9 +11,13 @@ ObjnetCommonNode::ObjnetCommonNode(ObjnetInterface *iface) :
     mBusAddress(0xFF),
     mNetAddress(0xFF),
     mConnected(false)
-{   
+{
     #ifdef __ICCARM__
     stmApp()->registerTaskEvent(EVENT(&ObjnetCommonNode::task));
+    #else
+    QTimer *timer = new QTimer(this);
+    QObject::connect(timer, SIGNAL(timeout()), SLOT(task()));
+    timer->start(20);
     #endif
 }
 
@@ -22,16 +26,16 @@ ObjnetCommonNode::~ObjnetCommonNode()
     #ifdef __ICCARM__
     stmApp()->unregisterTaskEvent(EVENT(&ObjnetCommonNode::task));
     #endif
-    delete mInterface; 
+    delete mInterface;
 }
 //---------------------------------------------------------------------------
 
 void ObjnetCommonNode::task()
 {
-    // не выполняем задачу, пока физический адрес неправильный
-    if (mBusAddress == 0xFE)
+    // РЅРµ РІС‹РїРѕР»РЅСЏРµРј Р·Р°РґР°С‡Сѓ, РїРѕРєР° С„РёР·РёС‡РµСЃРєРёР№ Р°РґСЂРµСЃ РЅРµРїСЂР°РІРёР»СЊРЅС‹Р№
+    if (mBusAddress == 0xFF)
         return;
-  
+
     CommonMessage inMsg;
     while (mInterface->read(inMsg))
     {
@@ -45,7 +49,7 @@ void ObjnetCommonNode::task()
                 if (mAdjacentNode)
                     mAdjacentNode->mInterface->write(inMsg);
             }
-            
+
             if (id.svc)
             {
                 parseServiceMessage(inMsg);
@@ -60,7 +64,7 @@ void ObjnetCommonNode::task()
         else
         {
             LocalMsgId id = inMsg.localId();
-            if (id.addr == mNetAddress || id.addr == 0x7F)
+            if (id.addr == mNetAddress || id.addr == 0x7F || mNetAddress == 0xFF) // logical address match OR universal address OR address is not assigned yet
             {
                 if (id.frag) // if message is fragmented
                 {
@@ -86,24 +90,29 @@ void ObjnetCommonNode::task()
                         parseMessage(inMsg);
                 }
             }
-            else // retranslate
+            else if (mAdjacentNode) // retranslate
             {
-//                if (mRetranslateEvent)
-//                    mRetranslateEvent(inMsg);
-                if (mAdjacentNode)
+                if (id.mac) // not a master
                 {
+                    id.addr = mAdjacentNode->natRoute(id.addr);
                     id.mac = mAdjacentNode->route(id.addr);
-                    inMsg.setLocalId(id);
-                    mAdjacentNode->mInterface->write(inMsg);
+                    id.sender++;
                 }
+                else // this is MAASTEEEERRRRR!!
+                {
+                    id.sender = mAdjacentNode->natRoute(id.sender);
+                    --id.addr;
+                }
+                inMsg.setLocalId(id);
+                mAdjacentNode->mInterface->write(inMsg);
             }
-            
+
             std::list<unsigned long> toRemove;
             std::map<unsigned long, CommonMessageBuffer>::iterator it;
             for (it=mFragmentBuffer.begin(); it!=mFragmentBuffer.end(); it++)
                 if (it->second.damage() == 0)
                     toRemove.push_back(it->first);
-            
+
             for (std::list<unsigned long>::iterator it=toRemove.begin(); it!=toRemove.end(); it++)
                 mFragmentBuffer.erase(*it);
             toRemove.clear();
@@ -114,16 +123,16 @@ void ObjnetCommonNode::task()
 
 void ObjnetCommonNode::setBusAddress(unsigned char address)
 {
-    if (address > 0xF && address != 0xFF) // пресекаем попытку установки неправильного адреса
+    if (address > 0xF && address != 0xFF) // РїСЂРµСЃРµРєР°РµРј РїРѕРїС‹С‚РєСѓ СѓСЃС‚Р°РЅРѕРІРєРё РЅРµРїСЂР°РІРёР»СЊРЅРѕРіРѕ Р°РґСЂРµСЃР°
         return;
 
     if (mLocalFilter >= 0)
         mInterface->removeFilter(mLocalFilter);
     if (mGlobalFilter >= 0)
         mInterface->removeFilter(mGlobalFilter);
-    
+
     mBusAddress = address;
-    
+
     LocalMsgId lid, lmask;
     if (address != 0xFF)
     {
@@ -142,10 +151,10 @@ void ObjnetCommonNode::setBusAddressFromPins(int bits, Gpio::PinName a0, ...)
 {
     unsigned long address = 0;
     va_list vl;
-    va_start(vl, bits);
+    va_start(vl, a0);
     for (int i=0; i<bits; i++)
     {
-        Gpio::PinName pinName = i? va_arg(vl, Gpio::PinName): a0;
+        Gpio::PinName pinName = i? (Gpio::PinName)va_arg(vl, int): a0;
         Gpio pin(pinName, Gpio::Flags(Gpio::modeIn | Gpio::pullUp));
         unsigned long bit = pin.read()? 1: 0;
         address |= bit << i;
@@ -269,6 +278,35 @@ void ObjnetCommonNode::sendGlobalServiceMessage(StdAID aid)
     msg.setGlobalId(id);
     //msg.setData(ba);
     mInterface->write(msg);
+}
+//---------------------------------------------------------------------------
+
+void ObjnetCommonNode::addNatPair(unsigned char supernetAddr, unsigned char subnetAddr)
+{
+    if (mAdjacentNode && supernetAddr < 0x80 && subnetAddr < 0x80)
+    {
+        mNatTable[supernetAddr] = subnetAddr;
+        mAdjacentNode->mNatTable[subnetAddr] = supernetAddr;
+    }
+}
+
+void ObjnetCommonNode::removeNatPair(unsigned char supernetAddr, unsigned char subnetAddr)
+{
+    if (mAdjacentNode)
+    {
+        if (mNatTable.count(supernetAddr))
+        {
+            unsigned char addr = mNatTable[supernetAddr];
+            mNatTable.erase(supernetAddr);
+            mAdjacentNode->mNatTable.erase(addr);
+        }
+        if (mAdjacentNode->mNatTable.count(subnetAddr))
+        {
+            unsigned char addr = mAdjacentNode->mNatTable[subnetAddr];
+            mAdjacentNode->mNatTable.erase(subnetAddr);
+            mNatTable.erase(addr);
+        }
+    }
 }
 //---------------------------------------------------------------------------
 

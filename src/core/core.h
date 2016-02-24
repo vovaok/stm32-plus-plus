@@ -9,4 +9,6 @@
 
 #define foreach(type, var, container) for (type##::iterator __it__=container.begin(), type var=*it; __it__!=container.end(); ++__it__, var=*it)
 
+unsigned long upper_power_of_two(unsigned long v);
+
 #endif

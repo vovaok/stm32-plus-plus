@@ -8,7 +8,8 @@ Usart::Usart(UsartNo number, int baudrate, Config config, Gpio::Config pinTx, Gp
     mDmaRx(0L),
     mDmaTx(0L),
     mRxPos(0),
-    mRxIrqDataCounter(0)
+    mRxIrqDataCounter(0),
+    mRxBufferSize(64)
 {  
     Gpio::config(pinRx);
     Gpio::config(pinTx);
@@ -157,7 +158,7 @@ bool Usart::open(OpenMode mode, bool useDma)
     if (mode & Read)
     {
         mConfig.USART_Mode |= USART_Mode_Rx;
-        mRxBuffer.resize(64); ///////////////////////////////!!!!!! power of two only!!!!
+        mRxBuffer.resize(mRxBufferSize); ///////////////////////////////!!!!!! power of two only!!!!
         if (useDma)
         {
             if (!mDmaRx)
@@ -279,6 +280,13 @@ void Usart::setConfig(Config config)
     mConfig.USART_WordLength = (config << 8) & 0x1000;
     init();
 }
+
+void Usart::setBufferSize(int size_bytes)
+{
+    if (mOpenMode & Read)
+        throw Exception::resourceBusy;
+    mRxBufferSize = upper_power_of_two(size_bytes);
+}
 //---------------------------------------------------------------------------
 
 void Usart::handleInterrupt()
@@ -330,7 +338,7 @@ void UART5_IRQHandler()
 void USART6_IRQHandler()
 {
     if (Usart::mUsarts[5])
-        Usart::mUsarts[6]->handleInterrupt();
+        Usart::mUsarts[5]->handleInterrupt();
 }
    
 #ifdef __cplusplus
