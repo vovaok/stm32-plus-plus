@@ -5,74 +5,101 @@ using namespace Objnet;
 ObjnetNode::ObjnetNode(ObjnetInterface *iface) :
     ObjnetCommonNode(iface),
     mNetState(netnStart),
-    mClass(0x00000000),
+    mNetTimeout(0),
+    mClass(0xFFFF0000),
     mName("<node>"),
-    mFullName("<Generic objnet node>")
-{  
-    ObjectInfo obj;
-    obj.bindVariableRO("class", &mClass, sizeof(mClass));
-    registerSvcObject(obj);
-    obj.bindVariableRO("name", const_cast<char*>(mName.c_str()), mName.length());
-    registerSvcObject(obj);
+    mFullName("<Generic objnet node>"),
+    mSerial(0x00000000),
+    mVersion(0x0100),
+    mBurnCount(0)
+{
+    #ifdef __ICCARM__
+    mTimer.setTimeoutEvent(EVENT(&ObjnetNode::onTimer));
+    #else
+    QObject::connect(&mTimer, SIGNAL(timeout()), this, SLOT(onTimer()));
+    #endif
+    mTimer.start(200);
+
+    #ifdef __ICCARM__
+    mVersion = 0x0100;
+    mBuildDate = string(__DATE__" "__TIME__);
+    unsigned long *signature = reinterpret_cast<unsigned long*>(0x1FFF7A10);
+    mSerial = signature[0] ^ signature[1] ^ signature[2];
+    char tempstr[64];
+    int flash = *reinterpret_cast<unsigned short*>(0x1FFF7A22);
+    unsigned long cpuid = *reinterpret_cast<unsigned long*>(0xE0042000);
+    unsigned short cpu = cpuid & 0xFFF;
+    switch (cpu)
+    {
+        case 0x413: mCpuInfo = "STM32F40x"; break;
+        default: mCpuInfo = "STM32 family";
+    }
+    sprintf(tempstr, " @ %d MHz, %dK flash", (int)(SystemCoreClock / 1000000), flash);
+    mCpuInfo += string(tempstr);
+    #endif
+    
+    registerSvcObject(ObjectInfo("class", mClass, ObjectInfo::ReadOnly));
+    registerSvcObject(ObjectInfo("name", mName));
+    registerSvcObject(ObjectInfo("fullName", mFullName));
+    registerSvcObject(ObjectInfo("serial", mSerial, ObjectInfo::ReadOnly));
+    registerSvcObject(ObjectInfo("version", mVersion, ObjectInfo::ReadOnly));
+    registerSvcObject(ObjectInfo("buildDate", mBuildDate, ObjectInfo::ReadOnly));
+    registerSvcObject(ObjectInfo("cpuInfo", mCpuInfo, ObjectInfo::ReadOnly));
+    registerSvcObject(ObjectInfo("burnCount", mBurnCount));
 }
 //---------------------------------------------------------------------------
 
 void ObjnetNode::task()
 {
     ObjnetCommonNode::task();
-    
+
     switch (mNetState)
     {
       case netnStart:
+//        mInterface->flush();
+        mNetAddress = 0xFF;
         mTimer.stop();
-        //mNetState = netnConnecting;
         break;
-        
+
       case netnConnecting:
         if (!mTimer.isActive())
         {
-            sendServiceMessage(svcHello, ByteArray(&mBusAddress, 1));
+            ByteArray ba;
+            ba.append(mBusAddress);
+            sendServiceMessage(svcHello, ba);
             mTimer.start();
         }
-        if (mTimer.time() > 200)
-        {
-            mInterface->flush();
-            mTimer.stop();
-            //mNetState = netnStart;
-        }
         break;
-        
+
+      case netnDisconnecting:
+        //mInterface->flush();
+        mTimer.stop();
+        break;
+
       case netnAccepted:
       {
         mTimer.stop();
-        int len = mName.length();
-        if (len > 8)
-            len = 8;
-        // send different info
-        sendServiceMessage(svcEcho);
-        sendServiceMessage(svcClass, ByteArray(&mClass, sizeof(mClass)));
-        sendServiceMessage(svcName, ByteArray(mName.c_str(), len));
         mNetState = netnReady;
         break;
       }
-      
+
       case netnReady:
-        if (!mTimer.isRunning())
+        if (!mTimer.isActive())
         {
-            mTimer.start(); 
-        }
-        else if (mTimer.time() > 1000)
-        {   
-            mNetState = netnStart;
+            mTimer.start();
         }
         break;
     }
 }
 //---------------------------------------------------------------------------
 
-void ObjnetNode::acceptServiceMessage(SvcOID oid, ByteArray *ba)
+void ObjnetNode::acceptServiceMessage(unsigned char sender, SvcOID oid, ByteArray *ba)
 {
-    CommonMessage msg;
+//    #ifndef __ICCARM__
+//    qDebug() << "node" << QString::fromStdString(mName) << "accept" << oid;
+//    #endif
+
+//    CommonMessage msg;
     switch (oid)
     {
       case svcHello: // translate hello msg
@@ -81,21 +108,27 @@ void ObjnetNode::acceptServiceMessage(SvcOID oid, ByteArray *ba)
         sendServiceMessage(svcHello, *ba);
         break;
       }
-      
+
       case svcConnected:
       case svcDisconnected:
       case svcKill:
         sendServiceMessage(oid, *ba);
         break;
-          
+
+      default:;
     }
 }
 
 void ObjnetNode::parseServiceMessage(CommonMessage &msg)
 {
     if (msg.isGlobal())
-    {
+    {        
         StdAID aid = (StdAID)msg.globalId().aid;
+
+//        #ifndef __ICCARM__
+//        qDebug() << "node" << QString::fromStdString(mName) << "global" << aid;
+//        #endif
+
         switch (aid)
         {
           case aidPollNodes:
@@ -103,28 +136,41 @@ void ObjnetNode::parseServiceMessage(CommonMessage &msg)
             {
                 sendServiceMessage(svcEcho);
                 if (mNetState == netnReady)
-                    mTimer.start();
+                    mNetTimeout = 0;
             }
             else
             {
                 mNetState = netnConnecting;
             }
+            #ifdef __ICCARM__
+            onPolling();
+            #endif
             break;
-            
+
           case aidConnReset:
-            mNetAddress = 0x00;
-            mNetState = netnConnecting;
+//            mNetAddress = 0x00;
+//            mNetState = netnConnecting;
+            mNetState = netnStart;
             break;
+
+          default:;
         }
         return;
     }
-  
-    SvcOID oid = (SvcOID)msg.localId().oid;    
+
+    SvcOID oid = (SvcOID)msg.localId().oid;
     unsigned char remoteAddr = msg.localId().sender;
+
+//    #ifndef __ICCARM__
+//    qDebug() << "node" << QString::fromStdString(mName) << "parse" << oid;
+//    #endif
+
     switch (oid)
-    {     
+    {
       case svcHello:
-        mNetState = netnConnecting;
+//        mNetState = netnConnecting;
+        mNetState = netnStart;
+        mInterface->flush();
         break;
 
       case svcWelcome:
@@ -133,30 +179,47 @@ void ObjnetNode::parseServiceMessage(CommonMessage &msg)
         {
             mNetAddress = msg.data()[0];
             mNetState = netnAccepted;
-            if (mAdjacentNode)
-            {
-                mAdjacentNode->mNetAddress = mNetAddress;
-            }
+            int len = mName.length();
+            if (len > 8)
+                len = 8;
+            // send different info
+            sendServiceMessage(remoteAddr, svcClass, ByteArray(reinterpret_cast<const char*>(&mClass), sizeof(mClass)));
+            sendServiceMessage(remoteAddr, svcName, ByteArray(mName.c_str(), len));
+            sendServiceMessage(remoteAddr, svcEcho); // echo at the end of info
         }
-        else // retranslate
+        else if (mAdjacentNode) // remote addr
         {
-            mAdjacentNode->acceptServiceMessage(svcWelcome, &msg.data());
+            mAdjacentNode->acceptServiceMessage(remoteAddr, oid, &msg.data());
         }
         break;
+
+      case svcRequestAllInfo:
+        for (size_t i=2; i<mSvcObjects.size(); i++)
+            sendServiceMessage(remoteAddr, (SvcOID)i, mSvcObjects[i].read());
+        break;
+        
+      case svcRequestObjInfo:
+        for (size_t i=0; i<mObjects.size(); i++)
+        {
+            ByteArray ba;
+            mObjects[i].mDesc.read(ba);
+            sendServiceMessage(remoteAddr, svcObjectInfo, ba);
+        }
+        break;
+        
+        default:;
     }
-    
+
     if (oid < mSvcObjects.size())
     {
         ObjectInfo &obj = mSvcObjects[oid];
-        if ((obj.mWriteSize > 0) && (msg.data().size() == obj.mWriteSize))
+        if (msg.data().size()) // write
         {
-            for (int i=0; i<obj.mWriteSize; i++)
-                reinterpret_cast<unsigned char*>(obj.mWritePtr)[i] = msg.data()[i];
+            obj.write(msg.data());
         }
-        if (obj.mReadSize > 0)
+        else
         {
-            ByteArray ba(reinterpret_cast<unsigned char*>(obj.mReadPtr), obj.mReadSize);
-            sendServiceMessage(remoteAddr, oid, ba);
+            sendServiceMessage(remoteAddr, oid, obj.read());
         }
     }
 }
@@ -168,22 +231,35 @@ void ObjnetNode::parseMessage(CommonMessage &msg)
     {
         return;
     }
-    
-    SvcOID oid = (SvcOID)msg.localId().oid;    
+
+    unsigned char oid = msg.localId().oid;
     unsigned char remoteAddr = msg.localId().sender;
-    
+
     if (oid < mObjects.size())
     {
         ObjectInfo &obj = mObjects[oid];
-        if ((obj.mWriteSize > 0) && (msg.data().size() == obj.mWriteSize))
+        if (msg.data().size()) // write
         {
-            for (int i=0; i<obj.mWriteSize; i++)
-                reinterpret_cast<unsigned char*>(obj.mWritePtr)[i] = msg.data()[i];
+            obj.write(msg.data());
         }
-        if (obj.mReadSize > 0)
+        else
         {
-            ByteArray ba(reinterpret_cast<unsigned char*>(obj.mReadPtr), obj.mReadSize);
-            sendMessage(remoteAddr, oid, ba);
+            sendMessage(remoteAddr, oid, obj.read());
         }
+    }
+}
+//---------------------------------------------------------
+
+void ObjnetNode::onTimer()
+{
+    if (mNetState == netnConnecting)
+    {
+        mNetState = netnDisconnecting;
+    }
+
+    mNetTimeout += mTimer.interval();
+    if (mNetTimeout >= 1000)
+    {
+        mNetState = netnStart;
     }
 }

@@ -164,6 +164,17 @@ bool Gpio::read() const
         return GPIO_ReadInputDataBit(mPort, mPin) == Bit_SET;  
 }
 
+void Gpio::writePort(short value)
+{
+  mPort->ODR = (uint16_t)value;
+}
+ 
+
+short Gpio::readPort()
+{
+  return ((uint16_t)mPort->ODR);
+}
+
 void Gpio::write(bool value)
 {
     if (value)
