@@ -15,7 +15,7 @@ public:
     
     using HardwareTimer::setEnabled;
     
-    void configChannel(ChannelNumber chnum, Gpio::Config pin, Gpio::Config complementaryPin = Gpio::NoConfig);
+        void configChannel(ChannelNumber chnum, Gpio::Config pin, Gpio::Config complementaryPin = Gpio::NoConfig, bool invert = 0);
     void setChannelEnabled(ChannelNumber chnum, bool enabled, bool complementaryEnabled = false);
     void setAllChannelsEnabled(bool enabled);
     void setDutyCycle(ChannelNumber channel, int dutyCycle); // in 16-bit range
