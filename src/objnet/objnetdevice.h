@@ -101,10 +101,10 @@ public:
     {
         ObjectInfo &info = mObjMap[_fromString(name)];
         ObjectInfo::Type t = typeOfVar(var);
-        if ((t == info.mDesc.type) || !info.mDesc.flags)
+        if ((t == info.mDesc.wType) || !info.mDesc.flags)
         {
             info.mWritePtr = info.mReadPtr = &var;
-            info.mDesc.type = t;
+            info.mDesc.wType = info.mDesc.rType = t;
             return true;
         }
         return false;

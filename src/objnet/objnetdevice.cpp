@@ -20,18 +20,28 @@ ObjnetDevice::ObjnetDevice(unsigned char netaddr) :
 void ObjnetDevice::prepareObject(const ObjectInfo::Description &desc)
 {
     ObjectInfo *obj = &mObjMap[desc.name];
-    unsigned char t = desc.type;
-    if (obj->mWritePtr && desc.type != obj->mDesc.type)
+    unsigned char wt = desc.wType;
+    unsigned char rt = desc.rType;
+    
+    if (obj->mWritePtr && desc.writeSize && desc.wType != obj->mDesc.wType)
     {
-        t = obj->mDesc.type;
-//        obj->mWritePtr = 0L;
+        wt = obj->mDesc.wType;
         #ifndef __ICCARM__
-        qDebug() << "type mismatch!!";
+        qDebug() << "[ObjnetDevice::prepareObject] write type mismatch!!";
+        #endif
+    }
+    
+    if (obj->mReadPtr && desc.readSize && desc.rType != obj->mDesc.rType)
+    {
+        rt = obj->mDesc.rType;
+        #ifndef __ICCARM__
+        qDebug() << "[ObjnetDevice::prepareObject] read type mismatch!!";
         #endif
     }
 
     obj->mDesc = desc;
-    obj->mDesc.type = t;
+    obj->mDesc.wType = wt;
+    obj->mDesc.rType = rt;
     unsigned char id = desc.id;
     if (id >= mObjects.size())
     {
@@ -42,7 +52,7 @@ void ObjnetDevice::prepareObject(const ObjectInfo::Description &desc)
     mObjects[id] = obj;
     if (!obj->mWritePtr)
     {
-        if (desc.type == ObjectInfo::String)
+        if (desc.wType == ObjectInfo::String)
         {
             mObjBuffers[id].resize(sizeof(_String));
             obj->mWritePtr = mObjBuffers[id].data();
@@ -56,9 +66,28 @@ void ObjnetDevice::prepareObject(const ObjectInfo::Description &desc)
             obj->mWritePtr = mObjBuffers[id].data();
         }
     }
-
-    obj->mReadPtr = obj->mWritePtr;
-//  qDebug() << id << ":" << QString::fromStdString(desc.name);
+    
+    if (!obj->mReadPtr)
+    {
+        int sz = (desc.rType == ObjectInfo::String)? sizeof(_String): desc.readSize;
+        if (desc.flags & ObjectInfo::Dual)
+        {
+            int osz = mObjBuffers[id].size();
+            mObjBuffers[id].resize(osz + sz);
+            obj->mReadPtr = mObjBuffers[id].data() + osz;
+        }
+        else
+        {
+            obj->mReadPtr = mObjBuffers[id].data();
+        }
+      
+        if (desc.rType == ObjectInfo::String)
+        {
+            _String x3;
+            for (size_t i=0; i<sizeof(_String); i++)
+                reinterpret_cast<unsigned char*>(obj->mReadPtr)[i] = reinterpret_cast<unsigned char*>(&x3)[i];
+        }
+    }
 }
 //---------------------------------------------------------
 

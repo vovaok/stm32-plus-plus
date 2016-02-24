@@ -30,6 +30,7 @@ public:
         Write   = 0x04,
         Save    = 0x08,
         Hidden  = 0x10,
+        Dual    = 0x20, // read from one location, write to another
         
         Constant    = Read,
         ReadOnly    = Read,
@@ -68,8 +69,9 @@ public:
     struct Description
     {
         unsigned char id;
-        unsigned char type; // Type
         unsigned char flags;
+        unsigned char rType; // Type
+        unsigned char wType;
         unsigned char readSize;
         unsigned char writeSize;
         string name;
@@ -77,26 +79,28 @@ public:
         void read(ByteArray &ba)
         {
             ba.append(id);
-            ba.append(type);
             ba.append(flags);
+            ba.append(rType);
+            ba.append(wType);
             ba.append(readSize);
             ba.append(writeSize);
             ba.append(name.data(), name.size());
         }
 
-        Description() : id(0), type(0), flags(0), readSize(0), writeSize(0) {}
+        Description() : id(0), flags(0), rType(0), wType(0), readSize(0), writeSize(0) {}
         Description(const ByteArray &ba)
         {
             id = ba[0];
-            type = ba[1];
-            flags = ba[2] & ~(Read | Write); // read-write naoborot
-            if (ba[2] & Read)
+            flags = ba[1] & ~(Read | Write); // read-write naoborot
+            if (ba[1] & Read)
                 flags |= Write;
-            if (ba[2] & Write)
+            if (ba[1] & Write)
                 flags |= Read;
-            readSize = ba[4];
-            writeSize = ba[3]; // specialno naoborot read i write, ibo master readit chto node writit
-            name = string(ba.data()+5, ba.size()-5);
+            rType = ba[3];
+            wType = ba[2];
+            readSize = ba[5];
+            writeSize = ba[4]; // specialno naoborot read i write, ibo master readit chto node writit
+            name = string(ba.data()+6, ba.size()-6);
         }
     };
     
@@ -115,19 +119,17 @@ public:
     
     template<typename T>
     ObjectInfo(string name, T &var, Flags flags=ReadWrite);
-
-//    ObjectInfo &bindVariableRO(string name, void *ptr, size_t size);
-//    ObjectInfo &bindVariableWO(string name, void *ptr, size_t size);
-//    ObjectInfo &bindVariableRW(string name, void *ptr, size_t size);
-//    ObjectInfo &bindVariableInOut(string name, void *inPtr, size_t inSize, void *outPtr, size_t outSize);
-//    ObjectInfo &bindString(string name, string *str);
+    template<typename Tr, typename Tw>
+    ObjectInfo(string name, Tr &varRead, Tw &varWrite, Flags flags=ReadWrite);
+    
+//    ObjectInfo(string name, NotifyEvent var, Flags flags=ReadWrite);
 
     ByteArray read();
     bool write(const ByteArray &ba);
 
     _String name() const {return _toString(mDesc.name);}
-    Type type() const {return static_cast<Type>(mDesc.type);}
-//    _String typeName() const {return ...;}
+    Type rType() const {return static_cast<Type>(mDesc.rType);}
+    Type wType() const {return static_cast<Type>(mDesc.wType);}
     Flags flags() const {return static_cast<Flags>(mDesc.flags);}
 
     #ifndef __ICCARM__
@@ -160,21 +162,40 @@ ObjectInfo::ObjectInfo(string name, T &var, Flags flags) :
     mReadPtr(0), mWritePtr(0)
 {
     size_t sz = sizeof(T);
-//        if (typeid(T) == typeid(string))
-//            sz = 1;
+    Type t = typeOfVar(var);
     if (flags & Read)
     {
         mReadPtr = &var;
         mDesc.readSize = sz;
+        mDesc.rType = t;
     }
     if (flags & Write)
     {
         mWritePtr = &var;
         mDesc.writeSize = sz;
+        mDesc.wType = t;
     }
-
-    mDesc.type = typeOfVar(var);
     mDesc.flags = flags;
+    mDesc.name = name;
+}
+
+template<typename Tr, typename Tw>
+ObjectInfo::ObjectInfo(string name, Tr &varRead, Tw &varWrite, Flags flags) :
+    mReadPtr(0), mWritePtr(0)
+{
+    if (flags & Read)
+    {
+        mReadPtr = &varRead;
+        mDesc.readSize = sizeof(Tr);
+        mDesc.rType = typeOfVar(varRead);
+    }
+    if (flags & Write)
+    {
+        mWritePtr = &varWrite;
+        mDesc.writeSize = sizeof(Tw);
+        mDesc.wType = typeOfVar(varWrite);
+    }
+    mDesc.flags = flags | Dual;
     mDesc.name = name;
 }
 

@@ -83,8 +83,9 @@ public:
     bool isConnected() const {return mNetState > netnConnecting;}
 
     void bindObject(const ObjectInfo &info) {mObjects.push_back(info); mObjects.back().mDesc.id = mObjects.size() - 1;}
-    #define BindObject(obj) bindObject(ObjectInfo(#obj, obj)); // convenient macro
-    #define BindObjectEx(obj, flags) bindObject(ObjectInfo(#obj, obj, flags)); // convenient macro
+    #define BindObject(obj) bindObject(ObjectInfo(#obj, obj)) // convenient macro
+    #define BindObjectEx(obj, flags) bindObject(ObjectInfo(#obj, obj, flags)) // convenient macro
+    #define BindDualObject(objRead, objWrite) bindObject(ObjectInfo(#objRead":"#objWrite, objRead, objWrite))
     
 #ifdef __ICCARM__
     NotifyEvent onPolling;
