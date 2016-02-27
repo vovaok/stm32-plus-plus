@@ -337,8 +337,8 @@ public:
         // nedodelano I2S3ext
         // OTG_FS
         OTG_FS_SOF =        PINCONFIG(PA8,  modeAF | speed100MHz, afOtgFs), //!<.
-        OTG_FS_VBUS =       PINCONFIG(PA9,  modeAF | speed100MHz, afOtgFs), //!<.
-        OTG_FS_ID =         PINCONFIG(PA10, modeAF | outOpenDrain | pullUp | speed100MHz, afOtgFs), //!<.
+      //  OTG_FS_VBUS =       PINCONFIG(PA9,  modeAF | speed100MHz, afOtgFs), //!<.
+      //  OTG_FS_ID =         PINCONFIG(PA10, modeAF | outOpenDrain | pullUp | speed100MHz, afOtgFs), //!<.
         OTG_FS_DM =         PINCONFIG(PA11, modeAF | speed100MHz, afOtgFs), //!<.
         OTG_FS_DP =         PINCONFIG(PA12, modeAF | speed100MHz, afOtgFs), //!<.
         // OTG_HS
