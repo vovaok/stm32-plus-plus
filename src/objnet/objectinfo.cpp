@@ -7,26 +7,21 @@ ObjectInfo::ObjectInfo() :
 {
 }
 
-//ObjectInfo::ObjectInfo(string name, NotifyEvent var, ObjectInfo::Flags flags) :
-//    mReadPtr(0), mWritePtr(0)
-//{
-//    size_t sz = 0;
-//
-//    if (flags & Read)
-//    {
-//        mReadPtr = 0;//var;
-//        mDesc.readSize = sz;
-//    }
-//    if (flags & Write)
-//    {
-//        mWritePtr = 0;
-//        mDesc.writeSize = 0;
-//    }
-//
-//    mDesc.type = 0;//typeOfVar(var);
-//    mDesc.flags = flags;
-//    mDesc.name = name;
-//}
+#ifdef __ICCARM__
+template<> ObjectInfo::ObjectInfo<void>(string name, Closure<void(void)> event, ObjectInfo::Flags flags)
+{
+    mDesc.readSize = 0; // no return
+    mDesc.writeSize = 0; // no param
+        
+    // mReadPtr:mWritePtr contains variable of Closure<> type, not the pointer!!!
+    *reinterpret_cast<Closure<void(void)>*>(&mReadPtr) = event;
+    
+    mDesc.rType = Void; // return type
+    mDesc.wType = Void; // param type
+    mDesc.flags = (flags | Function) & ~(Save | Write);
+    mDesc.name = name;
+}
+#endif
 //---------------------------------------------------------
 
 ByteArray ObjectInfo::read()
@@ -68,6 +63,112 @@ bool ObjectInfo::write(const ByteArray &ba)
         return true;
     }
     return false;
+}
+
+ByteArray ObjectInfo::invoke(const ByteArray &ba)
+{
+    if (!(mDesc.flags & Function))
+        return ByteArray();
+   
+    ByteArray ret;
+#ifdef __ICCARM__
+    switch (mDesc.rType)
+    {
+        case Void: // just call the method
+            switch (mDesc.wType)
+            {
+                case Void: (*reinterpret_cast<Closure<void(void)>*>(&mReadPtr))(); break;
+                #define CASE(Tp) case Tp: (*reinterpret_cast<Closure<void(Tp##_t)>*>(&mReadPtr))(*reinterpret_cast<const Tp##_t*>(ba.data())); break
+                CASE(Bool);
+                CASE(Int);
+                CASE(UInt);
+                CASE(LongLong);
+                CASE(ULongLong);
+                CASE(Double);
+                CASE(Long);
+                CASE(Short);
+                CASE(Char);
+                CASE(ULong);
+                CASE(UShort);
+                CASE(UChar);
+                CASE(Float);
+                CASE(SChar);
+                case String: (*reinterpret_cast<Closure<void(string)>*>(&mReadPtr))(string(ba.data(), ba.size())); break;
+                #undef CASE
+            }
+            break;
+    
+        #define CASEw(Tr, Tp)  case Tp: result = (*reinterpret_cast<Closure<Tr##_t(Tp##_t)>*>(&mReadPtr))(*reinterpret_cast<const Tp##_t*>(ba.data())); break        
+        #define CASE(Tr) case Tr: { \
+            Tr##_t result; \
+            switch (mDesc.wType) \
+            { \
+                case Void: result = (*reinterpret_cast<Closure<Tr##_t(void)>*>(&mReadPtr))(); break; \
+                CASEw(Tr, Bool); \
+                CASEw(Tr, Int); \
+                CASEw(Tr, UInt); \
+                CASEw(Tr, LongLong); \
+                CASEw(Tr, ULongLong); \
+                CASEw(Tr, Double); \
+                CASEw(Tr, Long); \
+                CASEw(Tr, Short); \
+                CASEw(Tr, Char); \
+                CASEw(Tr, ULong); \
+                CASEw(Tr, UShort); \
+                CASEw(Tr, UChar); \
+                CASEw(Tr, Float); \
+                CASEw(Tr, SChar); \
+                case String: result = (*reinterpret_cast<Closure<Tr##_t(string)>*>(&mReadPtr))(string(ba.data(), ba.size())); break; \
+            } \
+            ret.append(&result, sizeof(Tr##_t)); \
+        } break
+    
+        CASE(Bool);
+        CASE(Int);
+        CASE(UInt);
+        CASE(LongLong);
+        CASE(ULongLong);
+        CASE(Double);
+        CASE(Long);
+        CASE(Short);
+        CASE(Char);
+        CASE(ULong);
+        CASE(UShort);
+        CASE(UChar);
+        CASE(Float);
+        CASE(SChar);
+        
+        case String:
+          {
+            string result;
+            switch (mDesc.wType)
+            {
+                case Void: result = (*reinterpret_cast<Closure<string(void)>*>(&mReadPtr))(); break;
+                CASEw(String, Bool); \
+                CASEw(String, Int); \
+                CASEw(String, UInt); \
+                CASEw(String, LongLong); \
+                CASEw(String, ULongLong); \
+                CASEw(String, Double); \
+                CASEw(String, Long); \
+                CASEw(String, Short); \
+                CASEw(String, Char); \
+                CASEw(String, ULong); \
+                CASEw(String, UShort); \
+                CASEw(String, UChar); \
+                CASEw(String, Float); \
+                CASEw(String, SChar); \
+                case String: result = (*reinterpret_cast<Closure<string(string)>*>(&mReadPtr))(string(ba.data(), ba.size())); break;
+            }
+            ret.append(result.c_str(), result.length()); 
+          } break;
+//                    Common = 12,
+        
+    }
+    #undef CASE
+    #undef CASEw
+    #endif
+    return ret;
 }
 //---------------------------------------------------------
 

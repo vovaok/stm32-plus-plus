@@ -86,6 +86,8 @@ public:
     #define BindObject(obj) bindObject(ObjectInfo(#obj, obj)) // convenient macro
     #define BindObjectEx(obj, flags) bindObject(ObjectInfo(#obj, obj, flags)) // convenient macro
     #define BindDualObject(objRead, objWrite) bindObject(ObjectInfo(#objRead":"#objWrite, objRead, objWrite))
+    #define BindMethod(method) bindObject(ObjectInfo(#method, CLOSURE(this, &method)))
+    #define BindMethodEx(name, object, method) bindObject(ObjectInfo(name, CLOSURE(object, &method)))
     
 #ifdef __ICCARM__
     NotifyEvent onPolling;

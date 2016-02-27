@@ -50,7 +50,7 @@ void ObjnetDevice::prepareObject(const ObjectInfo::Description &desc)
     }
 
     mObjects[id] = obj;
-    if (!obj->mWritePtr)
+    if (!obj->mWritePtr && desc.writeSize)
     {
         if (desc.wType == ObjectInfo::String)
         {
@@ -67,17 +67,23 @@ void ObjnetDevice::prepareObject(const ObjectInfo::Description &desc)
         }
     }
     
-    if (!obj->mReadPtr)
+    if (!obj->mReadPtr && desc.readSize)
     {
-        int sz = (desc.rType == ObjectInfo::String)? sizeof(_String): desc.readSize;
+        int sz = (desc.rType == ObjectInfo::String)? sizeof(_String): desc.readSize;        
         if (desc.flags & ObjectInfo::Dual)
         {
             int osz = mObjBuffers[id].size();
             mObjBuffers[id].resize(osz + sz);
+            obj->mWritePtr = mObjBuffers[id].data();
             obj->mReadPtr = mObjBuffers[id].data() + osz;
+        }
+        else if (desc.writeSize)
+        {
+            obj->mReadPtr = mObjBuffers[id].data();
         }
         else
         {
+            mObjBuffers[id].resize(desc.readSize);
             obj->mReadPtr = mObjBuffers[id].data();
         }
       
@@ -118,7 +124,7 @@ void ObjnetDevice::receiveObject(unsigned char oid, const ByteArray &ba)
 
 
 void ObjnetDevice::requestObject(_String name)
-{
+{    
     if (mObjMap.count(_fromString(name)))
     {
         unsigned char oid = mObjMap[_fromString(name)].mDesc.id;

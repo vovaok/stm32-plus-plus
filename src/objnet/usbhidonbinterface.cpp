@@ -80,14 +80,11 @@ void UsbHidOnbInterface::fillReportDescriptor(ByteArray &ba)
 }
 //---------------------------------------------------------------------------
 
-static int testo = 0;
-
 void UsbHidOnbInterface::onTimer()
 {
     ByteArray ba;
     ba.append(0x23);
     char qsize = mTxQueue.size();
-    testo = mSeqNo;
     ba.append(qsize);
     ba.append(mSeqNo);
     mHidIf->sendReport(ba);

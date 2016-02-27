@@ -31,6 +31,7 @@ public:
         Save    = 0x08,
         Hidden  = 0x10,
         Dual    = 0x20, // read from one location, write to another
+        Function= 0x40, // function call
         
         Constant    = Read,
         ReadOnly    = Read,
@@ -65,6 +66,22 @@ public:
         String = 10,  // QString B Qt, string B APMe
         Common = 12, // Common - this is (Q)ByteArray
     } Type; // KAK B Qt!!!
+    
+    typedef bool Bool_t;
+    typedef int Int_t;
+    typedef unsigned int UInt_t;
+    typedef long long LongLong_t;
+    typedef unsigned long long ULongLong_t;
+    typedef double Double_t;
+    typedef long Long_t;
+    typedef short Short_t;
+    typedef char Char_t;
+    typedef unsigned long ULong_t;
+    typedef unsigned short UShort_t;
+    typedef unsigned char UChar_t;    
+    typedef float Float_t;
+    typedef signed char SChar_t;
+    typedef string String_t;
     
     struct Description
     {
@@ -103,8 +120,6 @@ public:
             name = string(ba.data()+6, ba.size()-6);
         }
     };
-    
-    //template<typename T> static Type typeOfVar(T &var);
 
 private:
     void *mReadPtr, *mWritePtr;
@@ -122,15 +137,32 @@ public:
     template<typename Tr, typename Tw>
     ObjectInfo(string name, Tr &varRead, Tw &varWrite, Flags flags=ReadWrite);
     
-//    ObjectInfo(string name, NotifyEvent var, Flags flags=ReadWrite);
+    #ifdef __ICCARM__
+    //ObjectInfo(string name, NotifyEvent event, Flags flags=ReadWrite);
+    template<class R>
+    ObjectInfo(string name, Closure<R(void)> event, Flags flags=Read);
+    template<class P0>
+    ObjectInfo(string name, Closure<void(P0)> event, Flags flags=Write);
+    template<class R, class P0>
+    ObjectInfo(string name, Closure<R(P0)> event, Flags flags=ReadWrite);
+    #endif
 
     ByteArray read();
     bool write(const ByteArray &ba);
+    ByteArray invoke(const ByteArray &ba);
 
     _String name() const {return _toString(mDesc.name);}
     Type rType() const {return static_cast<Type>(mDesc.rType);}
     Type wType() const {return static_cast<Type>(mDesc.wType);}
     Flags flags() const {return static_cast<Flags>(mDesc.flags);}
+    
+    inline bool isVolatile() const {return mDesc.flags & Volatile;}
+    inline bool isReadable() const {return mDesc.flags & Read;}
+    inline bool isWritable() const {return mDesc.flags & Write;}
+    inline bool isStorable() const {return mDesc.flags & Save;}
+    inline bool isHidden() const {return mDesc.flags & Hidden;}
+    inline bool isDual() const {return mDesc.flags & Dual;}
+    inline bool isInvokable() const {return mDesc.flags & Function;}
 
     #ifndef __ICCARM__
     QVariant toVariant();
@@ -139,23 +171,23 @@ public:
 };
 
 template<typename T> static ObjectInfo::Type typeOfVar(T &var) {(void)var; return ObjectInfo::Common;}
-#define DeclareTypeOfVar(T, Tp) template<> ObjectInfo::Type typeOfVar<T>(T &var) {(void)var; return ObjectInfo::Tp;}
+#define DeclareTypeOfVar(Tp) template<> ObjectInfo::Type typeOfVar<ObjectInfo::Tp##_t>(ObjectInfo::Tp##_t &var) {(void)var; return ObjectInfo::Tp;}
 //DeclareTypeOfVar(void, Void)
-DeclareTypeOfVar(bool, Bool)
-DeclareTypeOfVar(int, Int)
-DeclareTypeOfVar(unsigned int, UInt)
-DeclareTypeOfVar(long long, LongLong)
-DeclareTypeOfVar(unsigned long long, ULongLong)
-DeclareTypeOfVar(double, Double)
-DeclareTypeOfVar(long, Long)
-DeclareTypeOfVar(short, Short)
-DeclareTypeOfVar(char, Char)
-DeclareTypeOfVar(unsigned long, ULong)
-DeclareTypeOfVar(unsigned short, UShort)
-DeclareTypeOfVar(unsigned char, UChar)
-DeclareTypeOfVar(float, Float)
-DeclareTypeOfVar(signed char, SChar)
-DeclareTypeOfVar(_String, String)
+DeclareTypeOfVar(Bool)
+DeclareTypeOfVar(Int)
+DeclareTypeOfVar(UInt)
+DeclareTypeOfVar(LongLong)
+DeclareTypeOfVar(ULongLong)
+DeclareTypeOfVar(Double)
+DeclareTypeOfVar(Long)
+DeclareTypeOfVar(Short)
+DeclareTypeOfVar(Char)
+DeclareTypeOfVar(ULong)
+DeclareTypeOfVar(UShort)
+DeclareTypeOfVar(UChar)
+DeclareTypeOfVar(Float)
+DeclareTypeOfVar(SChar)
+template<> ObjectInfo::Type typeOfVar<_String>(_String &var) {(void)var; return ObjectInfo::String;}
 
 template<typename T>
 ObjectInfo::ObjectInfo(string name, T &var, Flags flags) :
@@ -198,6 +230,73 @@ ObjectInfo::ObjectInfo(string name, Tr &varRead, Tw &varWrite, Flags flags) :
     mDesc.flags = flags | Dual;
     mDesc.name = name;
 }
+
+#ifdef __ICCARM__
+template<class R>
+ObjectInfo::ObjectInfo(string name, Closure<R(void)> event, ObjectInfo::Flags flags) :
+    mReadPtr(0), mWritePtr(0)
+{
+    mDesc.readSize = sizeof(R);
+    mDesc.writeSize = 0; // no param
+        
+    if (mDesc.readSize)
+        flags = static_cast<ObjectInfo::Flags>(flags | Read);
+
+    // mReadPtr:mWritePtr contains variable of Closure<> type, not the pointer!!!
+    *reinterpret_cast<Closure<R(void)>*>(&mReadPtr) = event;
+    
+    R var;
+    mDesc.rType = typeOfVar(var); // return type
+    mDesc.wType = Void; // param type
+    mDesc.flags = (flags | Function) & ~(Save | Write);
+    mDesc.name = name;
+}
+
+template<> ObjectInfo::ObjectInfo<void>(string name, Closure<void(void)> event, ObjectInfo::Flags flags);
+
+template<class P0>
+ObjectInfo::ObjectInfo(string name, Closure<void(P0)> event, ObjectInfo::Flags flags)
+{
+    mDesc.readSize = 0;
+    mDesc.writeSize = sizeof(P0); // no param
+        
+    if (mDesc.writeSize)
+        flags = static_cast<ObjectInfo::Flags>(flags | Write);
+
+    // mReadPtr:mWritePtr contains variable of Closure<> type, not the pointer!!!
+    *reinterpret_cast<Closure<void(P0)>*>(&mReadPtr) = event;
+    
+    P0 param;
+    mDesc.rType = Void; // return type;
+    mDesc.wType = typeOfVar(param); // param type
+    mDesc.flags = (flags | Function) & ~(Save | Read);
+    mDesc.name = name;
+}
+
+template<class R, class P0>
+ObjectInfo::ObjectInfo(string name, Closure<R(P0)> event, ObjectInfo::Flags flags) :
+    mReadPtr(0), mWritePtr(0)
+{
+    mDesc.readSize = sizeof(R);
+    mDesc.writeSize = sizeof(P0); // no param
+        
+    if (mDesc.readSize)
+        flags = static_cast<ObjectInfo::Flags>(flags | Read);
+    if (mDesc.writeSize)
+        flags = static_cast<ObjectInfo::Flags>(flags | Write);
+
+    // mReadPtr:mWritePtr contains variable of Closure<> type, not the pointer!!!
+    *reinterpret_cast<Closure<R(P0)>*>(&mReadPtr) = event;
+    
+    R ret;
+    P0 param;
+    mDesc.rType = typeOfVar(ret); // return type;
+    mDesc.wType = typeOfVar(param); // param type
+    mDesc.flags = (flags | Function) & ~(Save);
+    mDesc.name = name;
+}
+
+#endif
 
 }
 
