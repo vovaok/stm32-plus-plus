@@ -40,7 +40,7 @@ struct ClosureBase
   void *p_this;
   p_proxy_type p_proxy;
 
-  R operator()(PARAM_FORM_ARG_LIST) { if (p_proxy) return p_proxy(p_this PARAM_ARG_LIST_COMMA); } // added 'if (p_proxy)'
+  R operator()(PARAM_FORM_ARG_LIST) { return p_proxy(p_this PARAM_ARG_LIST_COMMA);}
 };
 
 } //namespace CLOSURE_NUM

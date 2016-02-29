@@ -238,9 +238,17 @@ void ObjnetNode::parseMessage(CommonMessage &msg)
     if (oid < mObjects.size())
     {
         ObjectInfo &obj = mObjects[oid];
-        if (msg.data().size()) // write
+        if (obj.isInvokable())
+        {
+            ByteArray ret = obj.invoke(msg.data());
+            if (ret.size())
+                sendMessage(remoteAddr, oid, ret);
+        }
+        else if (msg.data().size()) // write
         {
             obj.write(msg.data());
+            if (obj.isDual())
+                sendMessage(remoteAddr, oid, obj.read());
         }
         else
         {
