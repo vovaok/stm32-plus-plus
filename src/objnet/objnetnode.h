@@ -19,11 +19,13 @@ private:
         netnDisconnecting,  //!< узел понял, что его никто не ждёт и отключается
         netnAccepted,       //!< ответ от мастера принят
         //netnEnumeration,    //!< присвоение логического адреса
-        netnReady           //!< узел готов
+        netnReady,          //!< узел готов
     } NetState;
 
     NetState mNetState; // current node net state
     int mNetTimeout;
+    unsigned char mCurrentRemoteAddress;
+    int mObjInfoSendCount; // temporary variable for counting of info objects sended
 
     // objnet related parameters:
     unsigned long mClass;

@@ -71,7 +71,6 @@ ByteArray ObjectInfo::invoke(const ByteArray &ba)
         return ByteArray();
    
     ByteArray ret;
-#ifdef __ICCARM__
     switch (mDesc.rType)
     {
         case Void: // just call the method
@@ -120,7 +119,7 @@ ByteArray ObjectInfo::invoke(const ByteArray &ba)
                 CASEw(Tr, SChar); \
                 case String: result = (*reinterpret_cast<Closure<Tr##_t(string)>*>(&mReadPtr))(string(ba.data(), ba.size())); break; \
             } \
-            ret.append(&result, sizeof(Tr##_t)); \
+            ret.append(reinterpret_cast<const char*>(&result), sizeof(Tr##_t)); \
         } break
     
         CASE(Bool);
@@ -167,7 +166,6 @@ ByteArray ObjectInfo::invoke(const ByteArray &ba)
     }
     #undef CASE
     #undef CASEw
-    #endif
     return ret;
 }
 //---------------------------------------------------------

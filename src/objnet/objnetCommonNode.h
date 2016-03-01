@@ -49,7 +49,7 @@ private:
 
     std::map<unsigned char, unsigned char> mNatTable;
 
-    void sendCommonMessage(CommonMessage &msg);
+    bool sendCommonMessage(CommonMessage &msg);
 
 protected:
     ObjnetInterface *mInterface; // pointer to media interface
@@ -64,9 +64,9 @@ protected:
 //    void sendGlobalMessage(StdAID aid);
     virtual void parseMessage(CommonMessage &msg) = 0;
 
-    void sendServiceMessage(unsigned char receiver, SvcOID oid, const ByteArray &ba = ByteArray());
-    void sendServiceMessage(SvcOID oid, const ByteArray &ba = ByteArray());
-    void sendGlobalServiceMessage(StdAID aid);
+    bool sendServiceMessage(unsigned char receiver, SvcOID oid, const ByteArray &ba = ByteArray());
+    bool sendServiceMessage(SvcOID oid, const ByteArray &ba = ByteArray());
+    bool sendGlobalServiceMessage(StdAID aid);
     virtual void parseServiceMessage(CommonMessage &msg) = 0;
 
     virtual unsigned char route(unsigned char netAddress) = 0;
@@ -137,9 +137,10 @@ public:
         \param mac Физический адрес получателя. В режиме узла просто опускается.
         \param oid Идентификатор объекта, к которому идёт обращение.
         \param ba  Данные для передачи. Если объект без данных, то можно опустить этот параметр
+        \return true в случае успешной передачи, если false - не удалось, нужно повторить
     */
-    void sendMessage(unsigned char receiver, unsigned char oid, const ByteArray &ba = ByteArray());
-    void sendGlobalMessage(unsigned char aid);
+    bool sendMessage(unsigned char receiver, unsigned char oid, const ByteArray &ba = ByteArray());
+    bool sendGlobalMessage(unsigned char aid);
 
     ObjnetInterface *objnetInterface() {return mInterface;}
 };

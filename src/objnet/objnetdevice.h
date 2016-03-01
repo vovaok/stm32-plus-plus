@@ -110,6 +110,19 @@ public:
         return false;
     }
 
+    template<class T, class P0>
+    bool bindMethod(_String name, T *objptr, void (T::*method)(P0))
+    {
+        ObjectInfo &info = mObjMap[_fromString(name)];
+        //if ((t == info.mDesc.wType) || !info.mDesc.flags)
+        //{
+            //*reinterpret_cast<Closure<void(P0)>*>(&info.mReadPtr) = detail::CreateClosure(method).Init<void (T::*)(P0)>(objptr);//CLOSURE(objptr, method);
+            //info.mDesc.wType = info.mDesc.rType = t;
+            return true;
+        //}
+        //return false;
+    }
+
     void requestObject(_String name);
     void sendObject(_String name);
 

@@ -7,6 +7,7 @@
 #include "core/core.h"
 #else
 #include <QtCore>
+#include "closure.h"
 #define ByteArray QByteArray
 #endif
 

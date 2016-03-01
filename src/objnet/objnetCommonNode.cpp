@@ -165,12 +165,12 @@ void ObjnetCommonNode::setBusAddressFromPins(int bits, Gpio::PinName a0, ...)
 #endif
 //---------------------------------------------------------------------------
 
-void ObjnetCommonNode::sendCommonMessage(CommonMessage &msg)
+bool ObjnetCommonNode::sendCommonMessage(CommonMessage &msg)
 {
     int maxsize = mInterface->maxFrameSize();
     if (msg.data().size() <= maxsize)
     {
-        mInterface->write(msg);
+        return mInterface->write(msg);
     }
     else
     {
@@ -181,6 +181,8 @@ void ObjnetCommonNode::sendCommonMessage(CommonMessage &msg)
         id.frag = 1;
         outMsg.setId(id);
         int fragments = ((msg.data().size() - 1) / maxsize) + 1;
+        if (mInterface->availableWriteCount() < fragments)
+            return false;
         for (int i=0; i<fragments; i++)
         {
             ByteArray ba;
@@ -194,10 +196,12 @@ void ObjnetCommonNode::sendCommonMessage(CommonMessage &msg)
                 remainsize = maxsize;
             ba.append(msg.data().data() + i*maxsize, remainsize);
             outMsg.setData(ba);
-            mInterface->write(outMsg);
+            if (!mInterface->write(outMsg))
+                return false;
         }
         mFragmentSequenceNumber++;
     }
+    return true;
 }
 //---------------------------------------------------------------------------
 
@@ -214,7 +218,7 @@ void ObjnetCommonNode::sendCommonMessage(CommonMessage &msg)
 //    sendCommonMessage(msg);
 //}
 
-void ObjnetCommonNode::sendMessage(unsigned char receiver, unsigned char oid, const ByteArray &ba)
+bool ObjnetCommonNode::sendMessage(unsigned char receiver, unsigned char oid, const ByteArray &ba)
 {
     CommonMessage msg;
     LocalMsgId id;
@@ -224,10 +228,10 @@ void ObjnetCommonNode::sendMessage(unsigned char receiver, unsigned char oid, co
     id.oid = oid;
     msg.setLocalId(id);
     msg.setData(ba);
-    sendCommonMessage(msg);
+    return sendCommonMessage(msg);
 }
 
-void ObjnetCommonNode::sendServiceMessage(unsigned char receiver, SvcOID oid, const ByteArray &ba)
+bool ObjnetCommonNode::sendServiceMessage(unsigned char receiver, SvcOID oid, const ByteArray &ba)
 {
     CommonMessage msg;
     LocalMsgId id;
@@ -238,10 +242,10 @@ void ObjnetCommonNode::sendServiceMessage(unsigned char receiver, SvcOID oid, co
     id.oid = oid;
     msg.setLocalId(id);
     msg.setData(ba);
-    sendCommonMessage(msg);
+    return sendCommonMessage(msg);
 }
 
-void ObjnetCommonNode::sendServiceMessage(SvcOID oid, const ByteArray &ba)
+bool ObjnetCommonNode::sendServiceMessage(SvcOID oid, const ByteArray &ba)
 {
     CommonMessage msg;
     LocalMsgId id;
@@ -252,10 +256,10 @@ void ObjnetCommonNode::sendServiceMessage(SvcOID oid, const ByteArray &ba)
     id.oid = oid;
     msg.setLocalId(id);
     msg.setData(ba);
-    sendCommonMessage(msg);
+    return sendCommonMessage(msg);
 }
 
-void ObjnetCommonNode::sendGlobalMessage(unsigned char aid)
+bool ObjnetCommonNode::sendGlobalMessage(unsigned char aid)
 {
     CommonMessage msg;
     GlobalMsgId id;
@@ -264,10 +268,10 @@ void ObjnetCommonNode::sendGlobalMessage(unsigned char aid)
     id.aid = aid;
     msg.setGlobalId(id);
     //msg.setData(ba);
-    mInterface->write(msg);
+    return mInterface->write(msg);
 }
 
-void ObjnetCommonNode::sendGlobalServiceMessage(StdAID aid)
+bool ObjnetCommonNode::sendGlobalServiceMessage(StdAID aid)
 {
     CommonMessage msg;
     GlobalMsgId id;
@@ -277,7 +281,7 @@ void ObjnetCommonNode::sendGlobalServiceMessage(StdAID aid)
     id.aid = aid;
     msg.setGlobalId(id);
     //msg.setData(ba);
-    mInterface->write(msg);
+    return mInterface->write(msg);
 }
 //---------------------------------------------------------------------------
 

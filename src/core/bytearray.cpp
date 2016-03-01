@@ -69,7 +69,9 @@ void ByteArray::allocMore(int size)
     if (mData)
     {
         memcpy(temp, mData, mSize); // copy old data
+        __disable_irq();
         delete mData;               // delete old buffer
+        __enable_irq();
     }
     mData = temp; 
 }

@@ -6,6 +6,8 @@ ObjnetNode::ObjnetNode(ObjnetInterface *iface) :
     ObjnetCommonNode(iface),
     mNetState(netnStart),
     mNetTimeout(0),
+    mCurrentRemoteAddress(0x00),
+    mObjInfoSendCount(-1),
     mClass(0xFFFF0000),
     mName("<node>"),
     mFullName("<Generic objnet node>"),
@@ -88,7 +90,17 @@ void ObjnetNode::task()
         {
             mTimer.start();
         }
-        break;
+        while (mObjInfoSendCount >= 0 && mObjInfoSendCount < mObjects.size())
+        {
+            ByteArray ba;
+            mObjects[mObjInfoSendCount].mDesc.read(ba);
+            bool success = sendServiceMessage(mCurrentRemoteAddress, svcObjectInfo, ba);
+            if (success)
+                mObjInfoSendCount++;
+            else
+                break;
+        }
+        break;      
     }
 }
 //---------------------------------------------------------------------------
@@ -199,12 +211,8 @@ void ObjnetNode::parseServiceMessage(CommonMessage &msg)
         break;
         
       case svcRequestObjInfo:
-        for (size_t i=0; i<mObjects.size(); i++)
-        {
-            ByteArray ba;
-            mObjects[i].mDesc.read(ba);
-            sendServiceMessage(remoteAddr, svcObjectInfo, ba);
-        }
+        mCurrentRemoteAddress = remoteAddr;
+        mObjInfoSendCount = 0; // initiate object info sending task
         break;
         
         default:;

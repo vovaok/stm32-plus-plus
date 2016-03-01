@@ -120,7 +120,7 @@ bool UsbHidOnbInterface::readRx(UsbHidOnbMessage &msg)
     if (!mRxQueue.empty())
     {
         msg = mRxQueue.front();
-        mRxQueue.pop();
+        mRxQueue.pop_front();
         return true;
     }
 //    else if (mCan->receive(0, msg))
@@ -134,7 +134,7 @@ bool UsbHidOnbInterface::writeRx(UsbHidOnbMessage &msg)
 {      
     if (mRxQueue.size() < mRxQueueSize) 
     {
-        mRxQueue.push(msg);
+        mRxQueue.push_back(msg);
         return true;
     }
     return false;
@@ -145,7 +145,7 @@ bool UsbHidOnbInterface::readTx(UsbHidOnbMessage &msg)
     if (!mTxQueue.empty())
     {
         msg = mTxQueue.front();
-        mTxQueue.pop();
+        mTxQueue.pop_front();
         return true;
     }
     return false;
@@ -162,7 +162,7 @@ bool UsbHidOnbInterface::writeTx(UsbHidOnbMessage &msg)
 //    }
     if (mTxQueue.size() < mTxQueueSize) 
     {
-        mTxQueue.push(msg);
+        mTxQueue.push_back(msg);
         mSeqNo++;
         return true;
     }
@@ -227,9 +227,13 @@ bool UsbHidOnbInterface::read(Objnet::CommonMessage &msg)
 
 void UsbHidOnbInterface::flush()
 {
-    while (!mTxQueue.empty())
-        mTxQueue.pop();
+    mTxQueue.clear();
 //    mSeqNo = 0;
+}
+
+int UsbHidOnbInterface::availableWriteCount()
+{
+    return mTxQueueSize - mTxQueue.size();
 }
 
 int UsbHidOnbInterface::addFilter(unsigned long id, unsigned long mask)

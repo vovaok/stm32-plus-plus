@@ -64,6 +64,12 @@ public:
 //        \return true if message is valid
 //    */
 //    virtual bool receiveGlobal(GlobalMessage &msg) = 0;
+    
+    /*! Запрос количества свободных мест в буфере передачи.
+        Необходимо для проверки возможности отправки фрагментированных сообщений
+        \return число пакетов, доступных для записи.
+    */
+    virtual int availableWriteCount() = 0;
 
     /*! Flush transmit queue.
 

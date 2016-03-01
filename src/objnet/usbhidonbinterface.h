@@ -1,6 +1,7 @@
 #ifndef _USBHIDONBINTERFACE_H
 #define _USBHIDONBINTERFACE_H
 
+#include <deque>
 #include "objnetInterface.h"
 #include "usb/usbhid/usbhid.h"
 #include "timer.h"
@@ -33,8 +34,8 @@ private:
     ByteArray createFeatureReportDescriptor(unsigned char id, unsigned char size);
     void fillReportDescriptor(ByteArray &ba);
     
-    std::queue<UsbHidOnbMessage> mTxQueue;
-    std::queue<UsbHidOnbMessage> mRxQueue;
+    std::deque<UsbHidOnbMessage> mTxQueue;
+    std::deque<UsbHidOnbMessage> mRxQueue;
     const static int mTxQueueSize = 32;
     const static int mRxQueueSize = 32;
     unsigned char mSeqNo;
@@ -55,6 +56,8 @@ public:
     bool write(CommonMessage &msg);
     bool read(CommonMessage &msg);
     void flush();
+    
+    int availableWriteCount();
 
     int addFilter(unsigned long id, unsigned long mask=0xFFFFFFFF);
     void removeFilter(int number);
