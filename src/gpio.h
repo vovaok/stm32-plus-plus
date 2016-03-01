@@ -289,11 +289,11 @@ public:
         // SPI (I2S)
         SPI1_NSS_PA4 =      PINCONFIG(PA4,  modeAF | speed50MHz, afSpi1), //!.
         SPI1_SCK_PA5 =      PINCONFIG(PA5,  modeAF | speed50MHz, afSpi1), //!.
-        SPI1_MISO_PA6 =     PINCONFIG(PA6,  modeAF | speed50MHz, afSpi1), //!.
+        SPI1_MISO_PA6 =     PINCONFIG(PA6,  modeAF | speed50MHz | pullUp , afSpi1), //!.
         SPI1_MOSI_PA7 =     PINCONFIG(PA7,  modeAF | speed50MHz, afSpi1), //!.
         SPI1_NSS_PA15 =     PINCONFIG(PA15, modeAF | speed50MHz, afSpi1), //!.
         SPI1_SCK_PB3 =      PINCONFIG(PB3,  modeAF | speed50MHz, afSpi1), //!.
-        SPI1_MISO_PB4 =     PINCONFIG(PB4,  modeAF | speed50MHz, afSpi1), //!.
+        SPI1_MISO_PB4 =     PINCONFIG(PB4,  modeAF | speed50MHz | pullUp, afSpi1), //!.
         SPI1_MOSI_PB5 =     PINCONFIG(PB5,  modeAF | speed50MHz, afSpi1), //!.
         SPI2_NSS_PB9 =      PINCONFIG(PB9,  modeAF | speed50MHz, afSpi2), //!.
         I2S2_WS_PB9 =       PINCONFIG(PB9,  modeAF | speed50MHz, afSpi2), //!.
@@ -303,10 +303,10 @@ public:
         I2S2_WS_PB12 =      PINCONFIG(PB12, modeAF | speed50MHz, afSpi2), //!.
         SPI2_SCK_PB13 =     PINCONFIG(PB13, modeAF | speed50MHz, afSpi2), //!.
         I2S2_CK_PB13 =      PINCONFIG(PB13, modeAF | speed50MHz, afSpi2), //!.
-        SPI2_MISO_PB14 =    PINCONFIG(PB14, modeAF | speed50MHz, afSpi2), //!.
+        SPI2_MISO_PB14 =    PINCONFIG(PB14, modeAF | speed50MHz | pullDown, afSpi2), //!.
         SPI2_MOSI_PB15 =    PINCONFIG(PB15, modeAF | speed50MHz, afSpi2), //!.
         I2S2_SD_PB15 =      PINCONFIG(PB15, modeAF | speed50MHz, afSpi2), //!.
-        SPI2_MISO_PC2 =     PINCONFIG(PC2,  modeAF | speed50MHz, afSpi2), //!.
+        SPI2_MISO_PC2 =     PINCONFIG(PC2,  modeAF | speed50MHz | pullUp, afSpi2), //!.
         SPI2_MOSI_PC3 =     PINCONFIG(PC3,  modeAF | speed50MHz, afSpi2), //!.
         I2S2_SD_PC3 =       PINCONFIG(PC3,  modeAF | speed50MHz, afSpi2), //!.
         I2S2_MCK_PC6 =      PINCONFIG(PC6,  modeAF | speed50MHz, afSpi2), //!.
@@ -315,7 +315,7 @@ public:
         I2S2_WS_PI0 =       PINCONFIG(PI0,  modeAF | speed50MHz, afSpi2), //!.
         SPI2_SCK_PI1 =      PINCONFIG(PI1,  modeAF | speed50MHz, afSpi2), //!.
         I2S2_CK_PI1 =       PINCONFIG(PI1,  modeAF | speed50MHz, afSpi2), //!.
-        SPI2_MISO_PI2 =     PINCONFIG(PI2,  modeAF | speed50MHz, afSpi2), //!.
+        SPI2_MISO_PI2 =     PINCONFIG(PI2,  modeAF | speed50MHz | pullUp, afSpi2), //!.
         SPI2_MOSI_PI3 =     PINCONFIG(PI3,  modeAF | speed50MHz, afSpi2), //!.
         I2S2_SD_PI3 =       PINCONFIG(PI3,  modeAF | speed50MHz, afSpi2), //!.
         // nedodelano I2S2ext!!!!!
@@ -325,13 +325,13 @@ public:
         I2S3_WS_PA15 =      PINCONFIG(PA15, modeAF | speed50MHz, afSpi3), //!.
         SPI3_SCK_PB3 =      PINCONFIG(PB3,  modeAF | speed50MHz, afSpi3), //!.
         I2S3_CK_PB3 =       PINCONFIG(PB3,  modeAF | speed50MHz, afSpi3), //!.
-        SPI3_MISO_PB4 =     PINCONFIG(PB4,  modeAF | speed50MHz, afSpi3), //!.
+        SPI3_MISO_PB4 =     PINCONFIG(PB4,  modeAF | speed50MHz | pullUp, afSpi3), //!.
         SPI3_MOSI_PB5 =     PINCONFIG(PB5,  modeAF | speed50MHz, afSpi3), //!.
         I2S3_SD_PB5 =       PINCONFIG(PB5,  modeAF | speed50MHz, afSpi3), //!.
         I2S3_MCK_PC7 =      PINCONFIG(PC7,  modeAF | speed50MHz, afSpi3), //!.
         SPI3_SCK_PC10 =     PINCONFIG(PC10, modeAF | speed50MHz, afSpi3), //!.
         I2S3_CK_PC10 =      PINCONFIG(PC10, modeAF | speed50MHz, afSpi3), //!.
-        SPI3_MISO_PC11 =    PINCONFIG(PC11, modeAF | speed50MHz, afSpi3), //!.
+        SPI3_MISO_PC11 =    PINCONFIG(PC11, modeAF | speed50MHz | pullUp, afSpi3), //!.
         SPI3_MOSI_PC12 =    PINCONFIG(PC12, modeAF | speed50MHz, afSpi3), //!.
         I2S3_SD_PC12 =      PINCONFIG(PC12, modeAF | speed50MHz, afSpi3), //!.
         // nedodelano I2S3ext
