@@ -78,6 +78,10 @@ public slots:
 #endif
     void requestObject(unsigned char netAddress, unsigned char oid);
     void sendObject(unsigned char netAddress, unsigned char oid, const ByteArray &ba);
+    void sendServiceRequest(unsigned char netAddress, SvcOID oid, const ByteArray &ba)
+    {
+        sendServiceMessage(netAddress, oid, ba);
+    }
 
 //    void sendRemoteMessage(unsigned char receiver, unsigned char oid, const ByteArray &ba = ByteArray());
 };

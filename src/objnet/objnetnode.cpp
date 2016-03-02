@@ -42,7 +42,7 @@ ObjnetNode::ObjnetNode(ObjnetInterface *iface) :
     sprintf(tempstr, " @ %d MHz, %dK flash", (int)(SystemCoreClock / 1000000), flash);
     mCpuInfo += string(tempstr);
     #endif
-    
+
     registerSvcObject(ObjectInfo("class", mClass, ObjectInfo::ReadOnly));
     registerSvcObject(ObjectInfo("name", mName));
     registerSvcObject(ObjectInfo("fullName", mFullName));
@@ -51,6 +51,7 @@ ObjnetNode::ObjnetNode(ObjnetInterface *iface) :
     registerSvcObject(ObjectInfo("buildDate", mBuildDate, ObjectInfo::ReadOnly));
     registerSvcObject(ObjectInfo("cpuInfo", mCpuInfo, ObjectInfo::ReadOnly));
     registerSvcObject(ObjectInfo("burnCount", mBurnCount));
+    registerSvcObject(ObjectInfo("objCount", EVENT(&ObjnetNode::objectCount), ObjectInfo::ReadOnly));
 }
 //---------------------------------------------------------------------------
 
@@ -103,7 +104,7 @@ void ObjnetNode::task()
             else
                 break;
         }
-        break;      
+        break;
     }
 }
 //---------------------------------------------------------------------------
@@ -137,7 +138,7 @@ void ObjnetNode::acceptServiceMessage(unsigned char sender, SvcOID oid, ByteArra
 void ObjnetNode::parseServiceMessage(CommonMessage &msg)
 {
     if (msg.isGlobal())
-    {        
+    {
         StdAID aid = (StdAID)msg.globalId().aid;
 
 //        #ifndef __ICCARM__
@@ -191,6 +192,11 @@ void ObjnetNode::parseServiceMessage(CommonMessage &msg)
 
       case svcWelcome:
       case svcWelcomeAgain:
+        for (int oid=0; oid<mObjects.size(); oid++)
+        {
+            ObjectInfo &obj = mObjects[oid];
+            obj.mAutoPeriod = 0;
+        }
         if (msg.data().size() == 1)
         {
             mNetAddress = msg.data()[0];
@@ -213,12 +219,23 @@ void ObjnetNode::parseServiceMessage(CommonMessage &msg)
         for (size_t i=2; i<mSvcObjects.size(); i++)
             sendServiceMessage(remoteAddr, (SvcOID)i, mSvcObjects[i].read());
         break;
-        
+
       case svcRequestObjInfo:
         mCurrentRemoteAddress = remoteAddr;
         mObjInfoSendCount = 0; // initiate object info sending task
         break;
-        
+
+      case svcAutoRequest:
+        {
+            int period = *reinterpret_cast<int*>(msg.data().data());
+            unsigned char oid = msg.data()[4];
+            if (oid < mObjects.size())
+            {
+                mObjects[oid].mAutoPeriod = period;
+            }
+        }
+        break;
+
         default:;
     }
 
@@ -287,6 +304,18 @@ void ObjnetNode::onTimeoutTimer()
 
 void ObjnetNode::onSendTimer()
 {
-    
+    for (int oid=0; oid<mObjects.size(); oid++)
+    {
+        ObjectInfo &obj = mObjects[oid];
+        if (obj.mAutoPeriod)
+        {
+            obj.mAutoTime++;
+            if (obj.mAutoTime >= obj.mAutoPeriod)
+            {
+                obj.mAutoTime = 0;
+                sendMessage(0x00, oid, obj.read());
+            }
+        }
+    }
 }
 //---------------------------------------------------------
