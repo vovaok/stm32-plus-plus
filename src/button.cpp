@@ -25,9 +25,9 @@ void Button::task()
     {
         mTime = 0;
         bool s = state();
-        if (s && !mState)
+        if (s && !mState&&mPressEvent)
             mPressEvent();
-        else if (!s && mState)
+        else if (!s && mState&&mReleaseEvent)
             mReleaseEvent();
         mState = s;
     }

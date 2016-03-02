@@ -42,3 +42,4 @@ lib/CMSIS/Documentation/
 lib/CMSIS/*.pdf
 lib/CMSIS/*.htm
 lib/CMSIS/DSP_Lib/Examples
+stm32++.dep
