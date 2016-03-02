@@ -22,10 +22,11 @@ private:
         netnReady,          //!< узел готов
     } NetState;
 
+    Timer mSendTimer;
     NetState mNetState; // current node net state
     int mNetTimeout;
     unsigned char mCurrentRemoteAddress;
-    int mObjInfoSendCount; // temporary variable for counting of info objects sended
+    int mObjInfoSendCount; // variable for counting of info objects sended
 
     // objnet related parameters:
     unsigned long mClass;
@@ -65,7 +66,8 @@ protected:
 #ifndef __ICCARM__
 protected slots:
 #endif
-    void onTimer();
+    void onTimeoutTimer();
+    void onSendTimer();
 
 public:
     ObjnetNode(ObjnetInterface *iface);

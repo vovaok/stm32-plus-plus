@@ -16,11 +16,14 @@ ObjnetNode::ObjnetNode(ObjnetInterface *iface) :
     mBurnCount(0)
 {
     #ifdef __ICCARM__
-    mTimer.setTimeoutEvent(EVENT(&ObjnetNode::onTimer));
+    mTimer.setTimeoutEvent(EVENT(&ObjnetNode::onTimeoutTimer));
+    mSendTimer.setTimeoutEvent(EVENT(&ObjnetNode::onSendTimer));
     #else
-    QObject::connect(&mTimer, SIGNAL(timeout()), this, SLOT(onTimer()));
+    QObject::connect(&mTimer, SIGNAL(timeout()), this, SLOT(onTimeoutTimer()));
+    QObject::connect(&mSendTimer, SIGNAL(timeout()), this, SLOT(onSendTimer()));
     #endif
     mTimer.start(200);
+    mSendTimer.start(1);
 
     #ifdef __ICCARM__
     mVersion = 0x0100;
@@ -155,7 +158,8 @@ void ObjnetNode::parseServiceMessage(CommonMessage &msg)
                 mNetState = netnConnecting;
             }
             #ifdef __ICCARM__
-            onPolling();
+            if (onPolling)
+                onPolling();
             #endif
             break;
 
@@ -266,7 +270,7 @@ void ObjnetNode::parseMessage(CommonMessage &msg)
 }
 //---------------------------------------------------------
 
-void ObjnetNode::onTimer()
+void ObjnetNode::onTimeoutTimer()
 {
     if (mNetState == netnConnecting)
     {
@@ -279,3 +283,10 @@ void ObjnetNode::onTimer()
         mNetState = netnStart;
     }
 }
+//---------------------------------------------------------
+
+void ObjnetNode::onSendTimer()
+{
+    
+}
+//---------------------------------------------------------
