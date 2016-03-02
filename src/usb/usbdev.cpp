@@ -710,7 +710,7 @@ void UsbDevice::bspInit()
 {
     if (mUsbCore == OtgFs)
     {
-        Gpio::config(3, Gpio::OTG_FS_DM, Gpio::OTG_FS_DP,  Gpio::OTG_FS_SOF);
+        Gpio::config(2, Gpio::OTG_FS_DM, Gpio::OTG_FS_DP);//,  Gpio::OTG_FS_SOF);
         RCC_APB2PeriphClockCmd(RCC_APB2Periph_SYSCFG, ENABLE);
         RCC_AHB2PeriphClockCmd(RCC_AHB2Periph_OTG_FS, ENABLE) ; 
     }

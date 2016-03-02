@@ -52,6 +52,7 @@ protected:
     string mBuildDate;
     string mCpuInfo;
     unsigned long mBurnCount;
+    unsigned char mObjectCount;
 
     vector<ObjectInfo*> mObjects;
     map<string, ObjectInfo> mObjMap;
@@ -71,7 +72,7 @@ public:
 
     bool isPresent() const {return mPresent;}
     bool isValid() const {return mClassValid && mNameValid;}
-    bool isInfoValid() const {return mInfoValidCnt >= 6;}
+    bool isInfoValid() const {return mInfoValidCnt >= 7;}
 
     unsigned char netAddress() const {return mNetAddress;}
 
@@ -87,7 +88,7 @@ public:
     _String cpuInfo() const {return _toString(mCpuInfo);}
     int burnCount() const {return mBurnCount;}
 
-    int objectCount() const {return mObjects.size();}
+    int objectCount() const {return mObjectCount;}
     ObjectInfo *objectInfo(unsigned char oid) {if (oid < mObjects.size()) return mObjects[oid]; return 0L;}
 
     #ifdef __ICCARM__
@@ -125,13 +126,17 @@ public:
 
     void requestObject(_String name);
     void sendObject(_String name);
+    void autoRequest(_String name, int periodMs);
 
 #ifndef __ICCARM__
 signals:
     void requestObject(unsigned char netAddress, unsigned char oid);
     void sendObject(unsigned char netAddress, unsigned char oid, const QByteArray &ba);
+    void serviceRequest(unsigned char netAddress, SvcOID oid, const QByteArray &ba);
 
     void objectReceived(QString name, QVariant value);
+
+    void ready();
 #endif
 };
 

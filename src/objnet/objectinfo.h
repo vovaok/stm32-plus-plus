@@ -123,7 +123,9 @@ public:
 
 private:
     void *mReadPtr, *mWritePtr;
+    int mAutoPeriod, mAutoTime; // automatic transmission period
     Description mDesc;
+    bool mIsDevice;
 
     friend class ObjnetNode;
     friend class ObjnetMaster;
@@ -132,20 +134,19 @@ private:
 public:
     ObjectInfo();
     
+    // vars binding:
     template<typename T>
     ObjectInfo(string name, T &var, Flags flags=ReadWrite);
     template<typename Tr, typename Tw>
     ObjectInfo(string name, Tr &varRead, Tw &varWrite, Flags flags=ReadWrite);
-    
-    #ifdef __ICCARM__
-    //ObjectInfo(string name, NotifyEvent event, Flags flags=ReadWrite);
+
+    // methods binding:
     template<class R>
     ObjectInfo(string name, Closure<R(void)> event, Flags flags=Read);
     template<class P0>
     ObjectInfo(string name, Closure<void(P0)> event, Flags flags=Write);
     template<class R, class P0>
     ObjectInfo(string name, Closure<R(P0)> event, Flags flags=ReadWrite);
-    #endif
 
     ByteArray read();
     bool write(const ByteArray &ba);
@@ -191,7 +192,9 @@ template<> ObjectInfo::Type typeOfVar<_String>(_String &var) {(void)var; return 
 
 template<typename T>
 ObjectInfo::ObjectInfo(string name, T &var, Flags flags) :
-    mReadPtr(0), mWritePtr(0)
+    mReadPtr(0), mWritePtr(0),
+    mAutoPeriod(0), mAutoTime(0),
+    mIsDevice(false)
 {
     size_t sz = sizeof(T);
     Type t = typeOfVar(var);
@@ -213,7 +216,9 @@ ObjectInfo::ObjectInfo(string name, T &var, Flags flags) :
 
 template<typename Tr, typename Tw>
 ObjectInfo::ObjectInfo(string name, Tr &varRead, Tw &varWrite, Flags flags) :
-    mReadPtr(0), mWritePtr(0)
+    mReadPtr(0), mWritePtr(0),
+    mAutoPeriod(0), mAutoTime(0),
+    mIsDevice(false)
 {
     if (flags & Read)
     {
@@ -231,10 +236,12 @@ ObjectInfo::ObjectInfo(string name, Tr &varRead, Tw &varWrite, Flags flags) :
     mDesc.name = name;
 }
 
-#ifdef __ICCARM__
+
 template<class R>
 ObjectInfo::ObjectInfo(string name, Closure<R(void)> event, ObjectInfo::Flags flags) :
-    mReadPtr(0), mWritePtr(0)
+    mReadPtr(0), mWritePtr(0),
+    mAutoPeriod(0), mAutoTime(0),
+    mIsDevice(false)
 {
     mDesc.readSize = sizeof(R);
     mDesc.writeSize = 0; // no param
@@ -255,7 +262,9 @@ ObjectInfo::ObjectInfo(string name, Closure<R(void)> event, ObjectInfo::Flags fl
 template<> ObjectInfo::ObjectInfo<void>(string name, Closure<void(void)> event, ObjectInfo::Flags flags);
 
 template<class P0>
-ObjectInfo::ObjectInfo(string name, Closure<void(P0)> event, ObjectInfo::Flags flags)
+ObjectInfo::ObjectInfo(string name, Closure<void(P0)> event, ObjectInfo::Flags flags) :
+    mAutoPeriod(0), mAutoTime(0),
+    mIsDevice(false)
 {
     mDesc.readSize = 0;
     mDesc.writeSize = sizeof(P0); // no param
@@ -275,7 +284,9 @@ ObjectInfo::ObjectInfo(string name, Closure<void(P0)> event, ObjectInfo::Flags f
 
 template<class R, class P0>
 ObjectInfo::ObjectInfo(string name, Closure<R(P0)> event, ObjectInfo::Flags flags) :
-    mReadPtr(0), mWritePtr(0)
+    mReadPtr(0), mWritePtr(0),
+    mAutoPeriod(0), mAutoTime(0),
+    mIsDevice(false)
 {
     mDesc.readSize = sizeof(R);
     mDesc.writeSize = sizeof(P0); // no param
@@ -295,8 +306,6 @@ ObjectInfo::ObjectInfo(string name, Closure<R(P0)> event, ObjectInfo::Flags flag
     mDesc.flags = (flags | Function) & ~(Save);
     mDesc.name = name;
 }
-
-#endif
 
 }
 

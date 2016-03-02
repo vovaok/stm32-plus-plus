@@ -68,6 +68,7 @@ void ObjnetMaster::onTimer()
         if (dev->mPresent && !dev->mTimeout)
         {
             dev->mPresent = false;
+            dev->mObjectCount = 0;
             if (dev->mAutoDelete)
             {
                 macsToRemove.push_back(it->first);
@@ -212,6 +213,7 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
             #ifndef __ICCARM__
             QObject::connect(dev, SIGNAL(requestObject(unsigned char,unsigned char)), SLOT(requestObject(unsigned char,unsigned char)));
             QObject::connect(dev, SIGNAL(sendObject(unsigned char,unsigned char,QByteArray)), SLOT(sendObject(unsigned char,unsigned char,QByteArray)));
+            QObject::connect(dev, SIGNAL(serviceRequest(unsigned char,SvcOID,QByteArray)), SLOT(sendServiceRequest(unsigned char,SvcOID,QByteArray)));
             #endif
         }
 
@@ -384,9 +386,10 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
         }
         break;
 
-//      case svcObjectCount:
-//        sendServiceMessage(netaddr, svcObjectInfo);
-//        break;
+      case svcObjectCount:
+        dev->mObjectCount = msg.data()[0];
+        //sendServiceMessage(netaddr, svcObjectInfo);
+        break;
 
       case svcObjectInfo:
         if (dev)

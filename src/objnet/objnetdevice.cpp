@@ -8,7 +8,8 @@ ObjnetDevice::ObjnetDevice(unsigned char netaddr) :
     mNetAddress(netaddr),
     mPresent(false),
     mTimeout(5),
-    mAutoDelete(false)
+    mAutoDelete(false),
+    mObjectCount(0)
 //    mStateChanged(false),
 //    mOrphanCount(0),
 //    mChildrenCount(0)
@@ -20,6 +21,8 @@ ObjnetDevice::ObjnetDevice(unsigned char netaddr) :
 void ObjnetDevice::prepareObject(const ObjectInfo::Description &desc)
 {
     ObjectInfo *obj = &mObjMap[desc.name];
+    obj->mIsDevice = true;
+
     unsigned char wt = desc.wType;
     unsigned char rt = desc.rType;
     
@@ -94,6 +97,13 @@ void ObjnetDevice::prepareObject(const ObjectInfo::Description &desc)
                 reinterpret_cast<unsigned char*>(obj->mReadPtr)[i] = reinterpret_cast<unsigned char*>(&x3)[i];
         }
     }
+
+    #ifndef __ICCARM__
+    if (desc.id == mObjectCount - 1)
+        emit ready();
+    #else
+        #warning device ready signal not implemented!
+    #endif
 }
 //---------------------------------------------------------
 
@@ -146,6 +156,20 @@ void ObjnetDevice::sendObject(_String name)
             emit sendObject(mNetAddress, oid, obj->read());
             #endif
         }
+    }
+}
+
+void ObjnetDevice::autoRequest(_String name, int periodMs)
+{
+    if (mObjMap.count(_fromString(name)))
+    {
+        unsigned char oid = mObjMap[_fromString(name)].mDesc.id;
+        ByteArray ba;
+        ba.append(reinterpret_cast<const char*>(&periodMs), sizeof(int));
+        ba.append(oid);
+        #ifndef __ICCARM__
+        emit serviceRequest(mNetAddress, svcAutoRequest, ba);
+        #endif
     }
 }
 //---------------------------------------------------------

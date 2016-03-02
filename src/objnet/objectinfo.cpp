@@ -3,12 +3,16 @@
 using namespace Objnet;
 
 ObjectInfo::ObjectInfo() :
-    mReadPtr(0L), mWritePtr(0L)
+    mReadPtr(0L), mWritePtr(0L),
+    mAutoPeriod(0), mAutoTime(0),
+    mIsDevice(false)
 {
 }
 
 #ifdef __ICCARM__
-template<> ObjectInfo::ObjectInfo<void>(string name, Closure<void(void)> event, ObjectInfo::Flags flags)
+template<> ObjectInfo::ObjectInfo<void>(string name, Closure<void(void)> event, ObjectInfo::Flags flags) :
+    mAutoPeriod(0), mAutoTime(0),
+    mIsDevice(false)
 {
     mDesc.readSize = 0; // no return
     mDesc.writeSize = 0; // no param
@@ -26,6 +30,9 @@ template<> ObjectInfo::ObjectInfo<void>(string name, Closure<void(void)> event, 
 
 ByteArray ObjectInfo::read()
 {
+    if ((mDesc.flags & Function) && !mIsDevice)
+        return invoke(ByteArray());
+    
     if (!mDesc.readSize || !mReadPtr || !(mDesc.flags & Read))
         return ByteArray();
     if (mDesc.rType == String)
@@ -43,6 +50,9 @@ ByteArray ObjectInfo::read()
 
 bool ObjectInfo::write(const ByteArray &ba)
 {
+    if ((mDesc.flags & Function) && !mIsDevice)
+        invoke(ba);
+  
     if (!mDesc.writeSize || !mWritePtr || !(mDesc.flags & Write))
         return false;
     if (mDesc.wType == String)
@@ -67,7 +77,7 @@ bool ObjectInfo::write(const ByteArray &ba)
 
 ByteArray ObjectInfo::invoke(const ByteArray &ba)
 {
-    if (!(mDesc.flags & Function))
+    if (!(mDesc.flags & Function) || mIsDevice)
         return ByteArray();
    
     ByteArray ret;

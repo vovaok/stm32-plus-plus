@@ -83,6 +83,7 @@ public:
     unsigned long serial() const {return mSerial;}
     unsigned short version() const {return mVersion;}
     int burnCount() const {return mBurnCount;}
+    unsigned char objectCount() const {return mObjects.size();}
 
     bool isConnected() const {return mNetState > netnConnecting;}
 
