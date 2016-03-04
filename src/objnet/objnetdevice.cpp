@@ -59,6 +59,7 @@ void ObjnetDevice::prepareObject(const ObjectInfo::Description &desc)
         {
             mObjBuffers[id].resize(sizeof(_String));
             obj->mWritePtr = mObjBuffers[id].data();
+            obj->mDesc.writeSize = sizeof(_String);
             _String x3;
             for (size_t i=0; i<sizeof(_String); i++)
                 reinterpret_cast<unsigned char*>(obj->mWritePtr)[i] = reinterpret_cast<unsigned char*>(&x3)[i];

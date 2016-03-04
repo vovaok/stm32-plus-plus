@@ -15,6 +15,17 @@ public:
     void setG(unsigned char value);
     void setB(unsigned char value);
     void setRgb(unsigned char r, unsigned char g, unsigned char b);
+    
+    void showBlack();
+    void showRed();
+    void showGreen();
+    void showYellow();
+    void showBlue();
+    void showMagenta();
+    void showCyan();
+    void showWhite();
+    
+    void showOrange();
 };
 
 #endif

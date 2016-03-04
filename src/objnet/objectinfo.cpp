@@ -37,9 +37,12 @@ ByteArray ObjectInfo::read()
         return ByteArray();
     if (mDesc.rType == String)
     {
-        string *str = reinterpret_cast<string*>(mReadPtr);
+        _String *str = reinterpret_cast<_String*>(mReadPtr);
         if (str)
-            return ByteArray(str->c_str(), str->length());
+        {
+            string s = _fromString(*str);
+            return ByteArray(s.c_str(), s.length());
+        }
         return ByteArray();
     }
     else

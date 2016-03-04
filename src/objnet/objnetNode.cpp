@@ -192,9 +192,9 @@ void ObjnetNode::parseServiceMessage(CommonMessage &msg)
 
       case svcWelcome:
       case svcWelcomeAgain:
-        for (int oid=0; oid<mObjects.size(); oid++)
+        for (int i=0; i<mObjects.size(); i++)
         {
-            ObjectInfo &obj = mObjects[oid];
+            ObjectInfo &obj = mObjects[i];
             obj.mAutoPeriod = 0;
         }
         if (msg.data().size() == 1)
@@ -216,16 +216,23 @@ void ObjnetNode::parseServiceMessage(CommonMessage &msg)
         break;
 
       case svcRequestAllInfo:
-        for (size_t i=2; i<mSvcObjects.size(); i++)
-            sendServiceMessage(remoteAddr, (SvcOID)i, mSvcObjects[i].read());
+        if (isConnected())
+        {
+            for (size_t i=2; i<mSvcObjects.size(); i++)
+                sendServiceMessage(remoteAddr, (SvcOID)i, mSvcObjects[i].read());
+        }
         break;
 
       case svcRequestObjInfo:
-        mCurrentRemoteAddress = remoteAddr;
-        mObjInfoSendCount = 0; // initiate object info sending task
+        if (isConnected())
+        {
+            mCurrentRemoteAddress = remoteAddr;
+            mObjInfoSendCount = 0; // initiate object info sending task
+        }
         break;
 
       case svcAutoRequest:
+        if (isConnected())
         {
             int period = *reinterpret_cast<int*>(msg.data().data());
             unsigned char oid = msg.data()[4];
@@ -239,7 +246,7 @@ void ObjnetNode::parseServiceMessage(CommonMessage &msg)
         default:;
     }
 
-    if (oid < mSvcObjects.size())
+    if (isConnected() && oid < mSvcObjects.size())
     {
         ObjectInfo &obj = mSvcObjects[oid];
         if (msg.data().size()) // write
@@ -298,6 +305,13 @@ void ObjnetNode::onTimeoutTimer()
     if (mNetTimeout >= 1000)
     {
         mNetState = netnStart;
+        
+        for (int oid=0; oid<mObjects.size(); oid++)
+        {
+            ObjectInfo &obj = mObjects[oid];
+            obj.mAutoPeriod = 0;
+            obj.mAutoTime = 0;
+        }
     }
 }
 //---------------------------------------------------------

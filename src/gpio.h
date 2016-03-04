@@ -53,8 +53,25 @@ public:
         PH8  = 0x78, PH9  = 0x79, PH10 = 0x7A, PH11 = 0x7B, PH12 = 0x7C, PH13 = 0x7D, PH14 = 0x7E, PH15 = 0x7F,
         PI0  = 0x80, PI1  = 0x81, PI2  = 0x82, PI3  = 0x83, PI4  = 0x84, PI5  = 0x85, PI6  = 0x86, PI7  = 0x87,
         PI8  = 0x88, PI9  = 0x89, PI10 = 0x8A, PI11 = 0x8B, //!< ...up to PORTI pin 11
-        noPin = 0xFF //!< no pin choosed
+        noPin = 0xFF  //!< no pin choosed
     } PinName;
+    
+    /*! Enumeration of port names.
+        Intended for many pins handling.
+    */
+    typedef enum
+    {
+        portA = 0x00, 
+        portB = 0x10,
+        portC = 0x20,
+        portD = 0x30,
+        portE = 0x40,
+        portF = 0x50,
+        portG = 0x60,
+        portH = 0x70,
+        portI = 0x80,
+        noPort = 0xFF
+    } PortName;
     
     /*! Gpio configuration flags.
         Use OR'ed flags to describe configuration. For example, `modeOut | outOpenDrain | speed50MHz`
@@ -377,14 +394,18 @@ private:
         struct
         {
             unsigned char pinNumber: 4;
-            unsigned char portNumber: 3;
-            unsigned char : 1;
+            unsigned char portNumber: 4;
             unsigned char mode: 2;
             unsigned char outType: 1;
             unsigned char pull: 2;
             unsigned char speed: 2;
-            unsigned char : 1;
+            unsigned char manyPins: 1; // several pins of port used, 'mPin' variable contains mask
             unsigned char afNumber;
+        };
+        struct
+        {
+            unsigned short _dummy;
+            unsigned short mask;
         };
     } ConfigStruct;
   
@@ -392,9 +413,7 @@ private:
     static void usePin(const ConfigStruct &cfg);
     ConfigStruct mConfig;
     GPIO_TypeDef *mPort;
-    uint32_t mPin;
-    
-//    bool mState;
+    unsigned short mPin;
     
     void init();
     static GPIO_TypeDef *getPortByNumber(int port);
@@ -412,6 +431,12 @@ public:
         Convenient for fast configuration.
     */
     Gpio(Config config);
+    
+    /*! Construct Gpio object with many pins of port handling.
+        You should use it if there is not necessary configuration available.
+        But other constructor is more convenient.
+    */
+    Gpio(PortName port, unsigned short mask = 0xFFFF, Flags flags = flagsDefault);
     
     /*! Initialize pin with explicit configuration.
         This function is useful when you not need to create an instance
@@ -477,11 +502,11 @@ public:
     /*! Сброс ноги в 0 */
     inline void reset() {mPort->BSRRH = mPin;}
     
-       /*! запись порта*/
-    void writePort(short value);
+    /*! запись порта*/
+    void writePort(unsigned short value);
 
     /*! чтение порта*/
-    short readPort();
+    unsigned short readPort();
 };
 
 #endif

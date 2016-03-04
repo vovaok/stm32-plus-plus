@@ -102,7 +102,9 @@ void ObjnetMaster::onTimer()
         #ifndef __ICCARM__
         emit devRemoved(dev->mNetAddress);
         #endif
+        unsigned char mac = route(dev->mNetAddress);
         mRouteTable.erase(dev->mNetAddress);
+        mLocalnetDevices[mac] = 0L;
         delete dev;
         mDevices.erase(*it);
     }
@@ -218,7 +220,9 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
         }
 
         if (dev)
+        {
             netaddr = dev->netAddress();
+        }
 
         if (localnet)                          // если это девайс текущей подсети...
         {

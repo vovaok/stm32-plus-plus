@@ -7,8 +7,8 @@ Gpio::Gpio(PinName pin, Flags flags, PinAF altFunction)
     mConfig.pin = pin;
     mConfig.flags = flags;
     mConfig.af = altFunction;
-    mPin = 1 << mConfig.pinNumber;
     mPort = getPortByNumber(mConfig.portNumber);
+    mPin = 1 << mConfig.pinNumber;
     config(mConfig.config);
 }
 
@@ -17,6 +17,17 @@ Gpio::Gpio(Config conf)
     mConfig.config = conf;
     mPin = 1 << mConfig.pinNumber;
     mPort = getPortByNumber(mConfig.portNumber);
+    config(mConfig.config);
+}
+
+Gpio::Gpio(PortName port, unsigned short mask, Flags flags)
+{
+    mConfig.pin = port;
+    mConfig.flags = flags;
+    mConfig.manyPins = 1;
+    mConfig.mask = mask;
+    mPort = getPortByNumber(mConfig.portNumber);
+    mPin = mask;
     config(mConfig.config);
 }
 //---------------------------------------------------------------------------
@@ -36,19 +47,44 @@ void Gpio::config(const Config &conf)
     if (c.pin == noPin)
         return;
     
-    usePin(c);
-    
     GPIO_TypeDef *port = getPortByNumber(c.portNumber);
     if (!port)
         return;
     
-    RCC_AHB1PeriphClockCmd(1 << c.portNumber, ENABLE); 
+    unsigned short mask;    
     
-    if (c.afNumber != afNone)
-        GPIO_PinAFConfig(port, c.pinNumber, c.afNumber);
+    if (!c.manyPins) // only one pin initialization
+    {
+        mask = 1 << c.pinNumber;
+        usePin(c);
+        
+        RCC_AHB1PeriphClockCmd(1 << c.portNumber, ENABLE); 
+        
+        if (c.afNumber != afNone)
+            GPIO_PinAFConfig(port, c.pinNumber, c.afNumber);
+    }
+    else // many pins initialization
+    {        
+        mask = c.mask;
+        
+        RCC_AHB1PeriphClockCmd(1 << c.portNumber, ENABLE); 
+        
+        for (int pin=0; pin<16; pin++)
+        {
+            if (!(mask & (1<<pin)))
+                continue;
+            
+            ConfigStruct cc = c;
+            cc.pinNumber = pin;
+            usePin(cc);
+            
+            if (c.afNumber != afNone)
+                GPIO_PinAFConfig(port, pin, c.afNumber);
+        }
+    }
     
     GPIO_InitTypeDef GPIO_InitStructure;  
-    GPIO_InitStructure.GPIO_Pin = 1 << c.pinNumber; 
+    GPIO_InitStructure.GPIO_Pin = mask; 
     GPIO_InitStructure.GPIO_Mode = (GPIOMode_TypeDef)c.mode;
     GPIO_InitStructure.GPIO_Speed = (GPIOSpeed_TypeDef)c.speed;
     GPIO_InitStructure.GPIO_OType = (GPIOOType_TypeDef)c.outType;
@@ -58,7 +94,7 @@ void Gpio::config(const Config &conf)
 
 void Gpio::updateConfig()
 {
-    GPIO_InitTypeDef GPIO_InitStructure;  
+    GPIO_InitTypeDef GPIO_InitStructure;
     GPIO_InitStructure.GPIO_Pin = mPin; 
     GPIO_InitStructure.GPIO_Mode = (GPIOMode_TypeDef)mConfig.mode;
     GPIO_InitStructure.GPIO_Speed = (GPIOSpeed_TypeDef)mConfig.speed;
@@ -159,20 +195,9 @@ void Gpio::setAsOutputOpenDrain()
 bool Gpio::read() const
 {
     if (mConfig.mode == modeOut)
-        return GPIO_ReadOutputDataBit(mPort, mPin) == Bit_SET;
+        return mPort->ODR & mPin;
     else
-        return GPIO_ReadInputDataBit(mPort, mPin) == Bit_SET;  
-}
-
-void Gpio::writePort(short value)
-{
-  mPort->ODR = (uint16_t)value;
-}
- 
-
-short Gpio::readPort()
-{
-  return ((uint16_t)mPort->ODR);
+        return mPort->IDR & mPin;
 }
 
 void Gpio::write(bool value)
@@ -182,3 +207,18 @@ void Gpio::write(bool value)
     else
         mPort->BSRRH = mPin;
 }
+//---------------------------------------------------------------------------
+
+void Gpio::writePort(unsigned short value)
+{
+    mPort->ODR = (mPort->ODR & (~mPin)) | (value & mPin);
+}
+ 
+unsigned short Gpio::readPort()
+{
+    if (mConfig.mode == modeOut)
+        return mPort->ODR & mPin;
+    else
+        return mPort->IDR & mPin;
+}
+//---------------------------------------------------------------------------

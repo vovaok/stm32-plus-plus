@@ -42,3 +42,49 @@ void RgbLed::setRgb(unsigned char r, unsigned char g, unsigned char b)
     pwm->setDutyCycle(chG, g<<8);
     pwm->setDutyCycle(chB, b<<8);
 }
+//---------------------------------------------------------------------------
+
+void RgbLed::showBlack()
+{
+    setRgb(0, 0, 0);
+}
+
+void RgbLed::showRed()
+{
+    setRgb(255, 0, 0);
+}
+
+void RgbLed::showGreen()
+{
+    setRgb(0, 255, 0);
+}
+
+void RgbLed::showYellow()
+{
+    setRgb(255, 255, 0);
+}
+
+void RgbLed::showBlue()
+{
+    setRgb(0, 0, 255);
+}
+
+void RgbLed::showMagenta()
+{
+    setRgb(255, 0, 255);
+}
+
+void RgbLed::showCyan()
+{
+    setRgb(0, 255, 255);
+}
+
+void RgbLed::showWhite()
+{
+    setRgb(255, 255, 255);
+}
+
+void RgbLed::showOrange()
+{
+    setRgb(255, 64, 0);
+}

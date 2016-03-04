@@ -10,7 +10,7 @@
 #else
 #define _String QString
 #define _toString(x) QString::fromStdString(x)
-#define _fromString(x) x.toStdString()
+#define _fromString(x) (x).toStdString()
 #endif
 
 using namespace std;
