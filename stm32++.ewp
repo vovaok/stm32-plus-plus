@@ -4904,10 +4904,22 @@
       <name>$PROJ_DIR$\src\objnet\objnetmsg.h</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\src\objnet\objnetNode.cpp</name>
+      <name>$PROJ_DIR$\src\objnet\objnetnode.cpp</name>
     </file>
     <file>
       <name>$PROJ_DIR$\src\objnet\objnetnode.h</name>
+    </file>
+  </group>
+  <group>
+    <name>serial</name>
+    <file>
+      <name>$PROJ_DIR$\src\serial\esp8266.cpp</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\src\serial\esp8266.h</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\src\serial\serialinterface.h</name>
     </file>
   </group>
   <group>
@@ -5118,6 +5130,12 @@
   </file>
   <file>
     <name>$PROJ_DIR$\src\led.h</name>
+  </file>
+  <file>
+    <name>$PROJ_DIR$\src\led7.cpp</name>
+  </file>
+  <file>
+    <name>$PROJ_DIR$\src\led7.h</name>
   </file>
   <file>
     <name>$PROJ_DIR$\src\pwminput.cpp</name>

@@ -2,7 +2,9 @@
 #define _UARTONBINTERFACE_H
 
 #include "objnetInterface.h"
-#include "usart.h"
+#include "serial/serialinterface.h"
+
+using namespace Serial;
 
 namespace Objnet
 {
@@ -19,7 +21,7 @@ typedef struct
 class UartOnbInterface : public ObjnetInterface
 {
 private:
-    Usart *mUsart;
+    SerialInterface *mInterface;
     int mReadCnt;
     UartOnbMessage mCurMsg, mCurTxMsg;
     
@@ -42,7 +44,7 @@ private:
     void msgReceived(const ByteArray &ba);
   
 public:
-    UartOnbInterface(Usart *usart);
+    UartOnbInterface(SerialInterface *serialInterface);
   
     bool write(CommonMessage &msg);
     bool read(CommonMessage &msg);

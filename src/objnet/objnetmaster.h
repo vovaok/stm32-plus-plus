@@ -27,10 +27,7 @@ private:
     string mName;
 
 protected:
-#ifdef __ICCARM__
     void task();
-#endif
-
     void parseMessage(CommonMessage &msg);
 
     void acceptServiceMessage(unsigned char sender, SvcOID oid, ByteArray *ba=0L);
@@ -57,9 +54,6 @@ public:
     ObjnetMaster(ObjnetInterface *iface);
     ~ObjnetMaster();
 
-#ifndef __ICCARM__
-    void task();
-#endif
     void reset();
 
     void setName(string name) {mName = name;}

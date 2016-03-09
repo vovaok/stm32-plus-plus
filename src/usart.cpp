@@ -4,12 +4,13 @@ Usart *Usart::mUsarts[6] = {0, 0, 0, 0, 0, 0};
 //---------------------------------------------------------------------------
 
 Usart::Usart(UsartNo number, int baudrate, Config config, Gpio::Config pinTx, Gpio::Config pinRx) :
-    mOpenMode(NotOpen),
+    mUseDma(true),
     mDmaRx(0L),
     mDmaTx(0L),
     mRxPos(0),
     mRxIrqDataCounter(0),
-    mRxBufferSize(64)
+    mRxBufferSize(64),
+    mLineEnd("\n")
 {  
     Gpio::config(pinRx);
     Gpio::config(pinTx);
@@ -149,9 +150,9 @@ void Usart::init()
 }
 //---------------------------------------------------------------------------
 
-bool Usart::open(OpenMode mode, bool useDma)
+bool Usart::open(OpenMode mode)
 {
-    if (mOpenMode != NotOpen)
+    if (isOpen())
         return false;
     
     mConfig.USART_Mode = 0;
@@ -159,7 +160,7 @@ bool Usart::open(OpenMode mode, bool useDma)
     {
         mConfig.USART_Mode |= USART_Mode_Rx;
         mRxBuffer.resize(mRxBufferSize); ///////////////////////////////!!!!!! power of two only!!!!
-        if (useDma)
+        if (mUseDma)
         {
             if (!mDmaRx)
                 mDmaRx = Dma::getStreamForPeriph(mDmaChannelRx);
@@ -189,20 +190,21 @@ bool Usart::open(OpenMode mode, bool useDma)
     
     init();
     
-    if (mDmaRx && useDma)
+    if (mDmaRx && mUseDma)
     {
         USART_DMACmd(mDev, USART_DMAReq_Rx, ENABLE);
         mDmaRx->start();
-        (unsigned int&)mOpenMode |= Read;
+        (unsigned int&)mode |= Read;
     }
-    if (mDmaTx && useDma)
+    if (mDmaTx && mUseDma)
     {
         USART_DMACmd(mDev, USART_DMAReq_Tx, ENABLE);
-        (unsigned int&)mOpenMode |= Write;
+        (unsigned int&)mode |= Write;
     }
     
     USART_Cmd(mDev, ENABLE);
     
+    SerialInterface::open(mode);
     return true;
 }
 
@@ -224,8 +226,7 @@ void Usart::close()
     }
     
     USART_Cmd(mDev, DISABLE);
-    
-    mOpenMode = NotOpen;
+    SerialInterface::close();
 }
 //---------------------------------------------------------------------------
 
@@ -253,9 +254,6 @@ int Usart::write(const ByteArray &ba)
 
 int Usart::read(ByteArray &ba)
 {
-//    if (!mDmaRx)
-//        return -1;
-    
     int mask = mRxBuffer.size() - 1;
     int curPos = mRxBuffer.size() - (mDmaRx? mDmaRx->dataCounter(): mRxIrqDataCounter);
     int read = (curPos - mRxPos) & mask;
@@ -263,6 +261,49 @@ int Usart::read(ByteArray &ba)
         ba.append(mRxBuffer[i & mask]);
        
     mRxPos = curPos;
+    return read;
+}
+
+bool Usart::canReadLine()
+{
+    int mask = mRxBuffer.size() - 1;
+    int curPos = mRxBuffer.size() - (mDmaRx? mDmaRx->dataCounter(): mRxIrqDataCounter);
+    int read = (curPos - mRxPos) & mask;
+    for (int i=mRxPos; i<mRxPos+read; i++)
+    {
+        bool flag = true;
+        for (int j=0; j<mLineEnd.size(); j++)
+        {
+            if (mRxBuffer[(i+j) & mask] != mLineEnd[j])
+            {
+                flag = false;
+                break;
+            }
+        }
+        if (flag)
+            return true;
+    }
+    return false;
+}
+
+int Usart::readLine(ByteArray &ba)
+{
+    int mask = mRxBuffer.size() - 1;
+    int curPos = mRxBuffer.size() - (mDmaRx? mDmaRx->dataCounter(): mRxIrqDataCounter);
+    int read = (curPos - mRxPos) & mask;
+    int i = mRxPos, endi = 0;
+    for (; (i<mRxPos+read) && (endi<mLineEnd.size()); i++)
+    {
+        char b = mRxBuffer[i & mask];
+        ba.append(b);
+        if (b == mLineEnd[endi])
+            endi++;
+        else
+            endi = 0;
+    }
+       
+    read = (i - mRxPos) & mask;
+    mRxPos = i & mask;
     return read;
 }
 //---------------------------------------------------------------------------
@@ -283,9 +324,21 @@ void Usart::setConfig(Config config)
 
 void Usart::setBufferSize(int size_bytes)
 {
-    if (mOpenMode & Read)
+    if (isOpen())
         throw Exception::resourceBusy;
     mRxBufferSize = upper_power_of_two(size_bytes);
+}
+
+void Usart::setUseDma(bool useDma)
+{
+    if (isOpen())
+        throw Exception::resourceBusy;
+    mUseDma = useDma;
+}
+
+void Usart::setLineEnd(ByteArray lineend)
+{
+    mLineEnd = lineend;
 }
 //---------------------------------------------------------------------------
 

@@ -2,22 +2,21 @@
 
 using namespace Objnet;
 
-UartOnbInterface::UartOnbInterface(Usart *usart) :
-    mUsart(usart),
+UartOnbInterface::UartOnbInterface(SerialInterface *serialInterface) :
+    mInterface(serialInterface),
     mReadCnt(0),
     cs(0), esc(0), cmd_acc(0)
 { 
     mMaxFrameSize = 8;
     stmApp()->registerTaskEvent(EVENT(&UartOnbInterface::task));
-    mUsart->setBufferSize(256);
-    mUsart->open(ReadWrite, true);
+    mInterface->open(ReadWrite);
 }
 //---------------------------------------------------------------------------
 
 void UartOnbInterface::task()
 {
     ByteArray ba;
-    if (mUsart->read(ba))
+    if (mInterface->read(ba))
     {
         for (int i=0; i<ba.size(); i++)
         {
@@ -65,7 +64,7 @@ void UartOnbInterface::task()
         unsigned long id = mCurTxMsg.id;
         ba.append(reinterpret_cast<const char*>(&id), 4);
         ba.append(mCurTxMsg.data, mCurTxMsg.size);
-        mUsart->write(encode(ba));
+        mInterface->write(encode(ba));
     }
 }
 //---------------------------------------------------------------------------

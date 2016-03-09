@@ -4,6 +4,9 @@
 #include "gpio.h"
 #include "dma.h"
 #include "rcc.h"
+#include "serial/serialinterface.h"
+
+using namespace Serial;
 
 typedef enum
 {
@@ -14,15 +17,6 @@ typedef enum
     Usart5  = 5,
     Usart6  = 6,
 } UsartNo;
-
-typedef enum
-{
-    NotOpen     = 0x00,
-    Read        = 0x01,
-    Write       = 0x02,
-    ReadOnly    = Read,
-    ReadWrite   = Read | Write
-} OpenMode;
 //---------------------------------------------------------------------------
 
 extern "C" void USART1_IRQHandler();
@@ -33,7 +27,7 @@ extern "C" void UART5_IRQHandler();
 extern "C" void USART6_IRQHandler();
 //---------------------------------------------------------------------------
 
-class Usart
+class Usart : public SerialInterface
 {  
 public:
     typedef enum
@@ -56,7 +50,7 @@ private:
     USART_TypeDef *mDev;
     USART_InitTypeDef mConfig;
     bool mConfigured;
-    OpenMode mOpenMode;
+    bool mUseDma;
     ByteArray mRxBuffer;
     ByteArray mTxBuffer;
     Dma::DmaChannel mDmaChannelRx;
@@ -67,6 +61,7 @@ private:
     int mRxPos;
     int mRxIrqDataCounter;
     int mRxBufferSize;
+    ByteArray mLineEnd;
     
     void init();
     
@@ -84,14 +79,17 @@ public:
     ~Usart();
     
     void setBufferSize(int size_bytes);
+    void setUseDma(bool useDma);
+    void setLineEnd(ByteArray lineend);
     
-    bool open(OpenMode mode = ReadWrite, bool useDma = false);
+    bool open(OpenMode mode = ReadWrite);
     void close();
-    
-    bool isOpen() const {return mOpenMode != NotOpen;}
     
     int write(const ByteArray &ba);
     int read(ByteArray &ba);
+    
+    bool canReadLine();
+    int readLine(ByteArray &ba);
     
     void setBaudrate(int baudrate);
     int baudrate() const {return mConfig.USART_BaudRate;}
