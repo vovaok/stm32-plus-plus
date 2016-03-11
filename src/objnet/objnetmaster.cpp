@@ -438,7 +438,7 @@ void ObjnetMaster::parseMessage(CommonMessage &msg)
     else
     {
         #ifndef __ICCARM__
-        qDebug() << "object received from unknown device!!";
+        //qDebug() << "object received from unknown device!!";
         #endif
     }
 }

@@ -44,6 +44,9 @@ public:
     inline char& operator [](unsigned int idx) {if (idx >= mSize) throw Exception::outOfRange; else return mData[idx];}
     inline const char &operator[](unsigned int idx) const {if (idx >= mSize) throw Exception::outOfRange; else return mData[idx];}
     inline ByteArray &operator +=(const ByteArray &ba) {return append(ba);}
+    
+    bool operator ==(const ByteArray &ba) const;
+    bool operator !=(const ByteArray &ba) const;
 };
 
 

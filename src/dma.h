@@ -2,7 +2,20 @@
 #define _DMA_H
 
 #include "stm32_conf.h"
+#include "core/coreexception.h"
+#include "core/coretypes.h"
 
+#define FOR_EACH_DMA(f) \
+    f(1,0) f(1,1) f(1,2) f(1,3) f(1,4) f(1,5) f(1,6) f(1,7) \
+    f(2,0) f(2,1) f(2,2) f(2,3) f(2,4) f(2,5) f(2,6) f(2,7)
+#define DECLARE_DMA_IRQ_HANDLER(x,y) extern "C" void DMA##x##_Stream##y##_IRQHandler();
+#define DECLARE_FRIEND(x,y) friend void DMA##x##_Stream##y##_IRQHandler();
+      
+//---------------------------------------------------------------------------
+
+FOR_EACH_DMA(DECLARE_DMA_IRQ_HANDLER)
+//---------------------------------------------------------------------------
+      
 class Dma
 {
 public:
@@ -32,9 +45,12 @@ public:
     } DmaChannel;
   
 private:
+    static Dma *mStreams1[8];
+    static Dma *mStreams2[8];
     DMA_Stream_TypeDef *mStream;
     uint32_t mChannel;
     uint32_t mDmaFlagMask;
+    uint32_t mDmaFlagTc;
     DMA_InitTypeDef mConfig;
     
     bool mEnabled;
@@ -42,7 +58,14 @@ private:
     bool mPeriphConfigured;
     bool mConfigured;
     
+    IRQn mIrq;
+    NotifyEvent mOnTransferComplete;
+    
     void tryInit();
+    
+    FOR_EACH_DMA(DECLARE_FRIEND)
+    
+    void handleInterrupt();
   
 public:
     Dma(unsigned char stream, unsigned char channel);
@@ -63,6 +86,8 @@ public:
     
     int currentPage() const {return DMA_GetCurrentMemoryTarget(mStream);}
     inline int dataCounter() const {return mStream->NDTR;}
+    
+    void setTransferCompleteEvent(NotifyEvent event);
 };
 
 #endif

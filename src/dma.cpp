@@ -1,6 +1,13 @@
 #include "dma.h"
 
 #define DMA_FLAG_MASK(i) (DMA_FLAG_TCIF##i | DMA_FLAG_HTIF##i | DMA_FLAG_TEIF##i | DMA_FLAG_DMEIF##i | DMA_FLAG_FEIF##i)
+#define DMA_FLAG_TC(i) (DMA_FLAG_TCIF##i)
+
+#define DMA_STREAM(x,y) DMA##x##_Stream##y
+#define DMA_IRQn(x,y) DMA##x##_Stream##y##_IRQn
+
+Dma *Dma::mStreams1[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+Dma *Dma::mStreams2[8] = {0, 0, 0, 0, 0, 0, 0, 0};
 
 Dma::Dma(unsigned char stream, unsigned char channel) :
     mDmaFlagMask(false),
@@ -10,23 +17,30 @@ Dma::Dma(unsigned char stream, unsigned char channel) :
 {
     switch (stream)
     {
-        case 10: mStream = DMA1_Stream0; mDmaFlagMask = DMA_FLAG_MASK(0); break;
-        case 11: mStream = DMA1_Stream1; mDmaFlagMask = DMA_FLAG_MASK(1); break;
-        case 12: mStream = DMA1_Stream2; mDmaFlagMask = DMA_FLAG_MASK(2); break;
-        case 13: mStream = DMA1_Stream3; mDmaFlagMask = DMA_FLAG_MASK(3); break;
-        case 14: mStream = DMA1_Stream4; mDmaFlagMask = DMA_FLAG_MASK(4); break;
-        case 15: mStream = DMA1_Stream5; mDmaFlagMask = DMA_FLAG_MASK(5); break;
-        case 16: mStream = DMA1_Stream6; mDmaFlagMask = DMA_FLAG_MASK(6); break;
-        case 17: mStream = DMA1_Stream7; mDmaFlagMask = DMA_FLAG_MASK(7); break;
-        
-        case 20: mStream = DMA2_Stream0; mDmaFlagMask = DMA_FLAG_MASK(0); break;
-        case 21: mStream = DMA2_Stream1; mDmaFlagMask = DMA_FLAG_MASK(1); break;
-        case 22: mStream = DMA2_Stream2; mDmaFlagMask = DMA_FLAG_MASK(2); break;
-        case 23: mStream = DMA2_Stream3; mDmaFlagMask = DMA_FLAG_MASK(3); break;
-        case 24: mStream = DMA2_Stream4; mDmaFlagMask = DMA_FLAG_MASK(4); break;
-        case 25: mStream = DMA2_Stream5; mDmaFlagMask = DMA_FLAG_MASK(5); break;
-        case 26: mStream = DMA2_Stream6; mDmaFlagMask = DMA_FLAG_MASK(6); break;
-        case 27: mStream = DMA2_Stream7; mDmaFlagMask = DMA_FLAG_MASK(7); break;
+        #define DMA_STREAM_INIT(x,y) \
+        case x##y: \
+            mStream = DMA_STREAM(x,y); \
+            mDmaFlagMask = DMA_FLAG_MASK(y); \
+            mDmaFlagTc = DMA_FLAG_TC(y); \
+            mIrq = DMA_IRQn(x,y); \
+            break;
+            
+        FOR_EACH_DMA(DMA_STREAM_INIT)
+    }
+    
+    if (stream < 20)
+    {
+        unsigned char idx = stream - 10;
+        if (mStreams1[idx])
+            throw Exception::resourceBusy;
+        mStreams1[idx] = this;
+    }
+    else
+    {
+        unsigned char idx = stream - 20;
+        if (mStreams2[idx])
+            throw Exception::resourceBusy;
+        mStreams2[idx] = this;
     }
     
     switch (channel)
@@ -192,11 +206,6 @@ void Dma::start(int itemCount)
         DMA_SetCurrDataCounter(mStream, itemCount);
         // clearing flags is necessary for enabling dma streaming
         DMA_ClearFlag(mStream, mDmaFlagMask);
-//        if (mStream == DMA1_Stream5)
-//        {
-//#warning flags clearing implemented only for DMA1_Stream5 !!
-//            DMA_ClearFlag(mStream, DMA_FLAG_TCIF5 | DMA_FLAG_HTIF5 | DMA_FLAG_TEIF5 | DMA_FLAG_DMEIF5 | DMA_FLAG_FEIF5);
-//        }
     }
     setEnabled(true);
 }
@@ -225,3 +234,44 @@ void Dma::setEnabled(bool enable)
     }
 }
 //---------------------------------------------------------------------------
+
+void Dma::setTransferCompleteEvent(NotifyEvent event)
+{
+    mOnTransferComplete = event;
+    
+    NVIC_InitTypeDef NVIC_InitStructure;
+    NVIC_InitStructure.NVIC_IRQChannel = mIrq;
+    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 2;
+    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 2;
+    NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+    NVIC_Init(&NVIC_InitStructure);
+    
+    DMA_ClearFlag(mStream, mDmaFlagMask);
+    DMA_ITConfig(mStream, DMA_IT_TC, ENABLE);
+}
+//---------------------------------------------------------------------------
+
+void Dma::handleInterrupt()
+{
+    bool sts = DMA_GetFlagStatus(mStream, mDmaFlagTc);
+    DMA_ClearITPendingBit(mStream, mDmaFlagMask);
+    
+    if (sts && mOnTransferComplete)
+        mOnTransferComplete();
+    
+}
+//---------------------------------------------------------------------------
+
+
+#ifdef __cplusplus
+ extern "C" {
+#endif 
+   
+#define DEFINE_DMA_IRQ_HANDLER(x,y) \
+    void DMA##x##_Stream##y##_IRQHandler() {Dma::mStreams##x[y]->handleInterrupt();}
+    
+FOR_EACH_DMA(DEFINE_DMA_IRQ_HANDLER)    
+  
+#ifdef __cplusplus
+}
+#endif

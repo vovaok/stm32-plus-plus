@@ -4901,6 +4901,9 @@
       <name>$PROJ_DIR$\src\objnet\objnetmaster.h</name>
     </file>
     <file>
+      <name>$PROJ_DIR$\src\objnet\objnetmsg.cpp</name>
+    </file>
+    <file>
       <name>$PROJ_DIR$\src\objnet\objnetmsg.h</name>
     </file>
     <file>

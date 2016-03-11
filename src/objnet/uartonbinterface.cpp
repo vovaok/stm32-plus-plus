@@ -5,10 +5,12 @@ using namespace Objnet;
 UartOnbInterface::UartOnbInterface(SerialInterface *serialInterface) :
     mInterface(serialInterface),
     mReadCnt(0),
+    mWriteTimer(30),
     cs(0), esc(0), cmd_acc(0)
 { 
-    mMaxFrameSize = 8;
+    mMaxFrameSize = 64;
     stmApp()->registerTaskEvent(EVENT(&UartOnbInterface::task));
+    stmApp()->registerTickEvent(EVENT(&UartOnbInterface::tick));
     mInterface->open(ReadWrite);
 }
 //---------------------------------------------------------------------------
@@ -58,14 +60,33 @@ void UartOnbInterface::task()
         }
     }
     
-    if (readTx(mCurTxMsg))
+    if (mUnsendBuffer.size())
     {
-        ByteArray ba;
-        unsigned long id = mCurTxMsg.id;
-        ba.append(reinterpret_cast<const char*>(&id), 4);
-        ba.append(mCurTxMsg.data, mCurTxMsg.size);
-        mInterface->write(encode(ba));
+        if (mInterface->write(mUnsendBuffer) != -1)
+            mUnsendBuffer.resize(0);
     }
+    
+    if (mWriteTimer >= 30)
+    {
+        mWriteTimer = 0;
+        while (readTx(mCurTxMsg))
+        {
+            ByteArray ba;
+            unsigned long id = mCurTxMsg.id;
+            ba.append(reinterpret_cast<const char*>(&id), 4);
+            ba.append(mCurTxMsg.data, mCurTxMsg.size);
+            mUnsendBuffer = encode(ba);
+            if (mInterface->write(mUnsendBuffer) != -1)
+                mUnsendBuffer.resize(0);
+            else
+                break;
+        }
+    }
+}
+
+void UartOnbInterface::tick(int dt)
+{
+    mWriteTimer += dt;
 }
 //---------------------------------------------------------------------------
 

@@ -14,7 +14,8 @@ typedef struct
 {
     unsigned long id;
     unsigned char size;
-    unsigned char data[8];
+#warning nado peredelat na ByteArray, a lu4we usat CommonMessage, a ewe lu4we zapilit queue handling into base ObjnetInterface class
+    unsigned char data[64];
 } UartOnbMessage;
 #pragma pack(pop)
 
@@ -23,6 +24,8 @@ class UartOnbInterface : public ObjnetInterface
 private:
     SerialInterface *mInterface;
     int mReadCnt;
+    int mWriteTimer;
+    ByteArray mUnsendBuffer;
     UartOnbMessage mCurMsg, mCurTxMsg;
     
     std::queue<UartOnbMessage> mTxQueue;
@@ -36,6 +39,7 @@ private:
     bool writeTx(UartOnbMessage &msg);
     
     void task();
+    void tick(int dt);
     
     ByteArray mBuffer;
     unsigned char cs, esc, cmd_acc;

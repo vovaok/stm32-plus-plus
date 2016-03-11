@@ -154,3 +154,24 @@ ByteArray &ByteArray::remove(int index, int count)
     return *this;
 }
 //---------------------------------------------------------------------------
+
+bool ByteArray::operator ==(const ByteArray &ba) const
+{
+    if (ba.mSize != mSize)
+        return false;
+    for (int i=0; i<mSize; i++)
+        if (ba.mData[i] != mData[i])
+            return false;
+    return true;
+}
+
+bool ByteArray::operator !=(const ByteArray &ba) const
+{
+    if (ba.mSize != mSize)
+        return true;
+    for (int i=0; i<mSize; i++)
+        if (ba.mData[i] != mData[i])
+            return true;
+    return false;
+}
+//---------------------------------------------------------------------------

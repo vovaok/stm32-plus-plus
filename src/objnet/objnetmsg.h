@@ -44,6 +44,7 @@ public:
     ByteArray &data() {return mBa;}
     void setData(const ByteArray &ba) {mBa = ba;}
 };
+//---------------------------------------------------------------------------
 
 class CommonMessageBuffer : public CommonMessage
 {
@@ -65,28 +66,12 @@ private:
     unsigned char mHealthPoints;
 
 public:
-    CommonMessageBuffer() : CommonMessage(), mParts(0), mPartsMask(0xFFFF), mHealthPoints(100) {}
+    CommonMessageBuffer();
 
-    void addPart(ByteArray &ba)
-    {
-        if (!ba.size())
-            return;
-        FragmentSignature signature;
-        signature.byte = ba[0];
-        int offset = signature.fragmentNumber * 7;
-        int size = ba.size() - 1;
-        int newsize = offset + size;
-        if (newsize > mBa.size())
-            mBa.resize(newsize);
-        for (int i=0; i<size; i++)
-            mBa[offset+i] = ba[i+1];
-        mParts |= (1 << signature.fragmentNumber);
-        if (signature.lastFragment)
-            mPartsMask = (1 << (signature.fragmentNumber + 1)) - 1;
-    }
+    void addPart(ByteArray &ba, int maxsize);
+    unsigned char damage(unsigned char points=1);
 
-    bool isReady() const {return (mParts & mPartsMask) == mPartsMask;}
-    unsigned char damage(unsigned char points=1) {mHealthPoints -= mHealthPoints > points? points: mHealthPoints; return mHealthPoints;}
+    inline bool isReady() const {return (mParts & mPartsMask) == mPartsMask;}
 };
 //---------------------------------------------------------------------------
 
