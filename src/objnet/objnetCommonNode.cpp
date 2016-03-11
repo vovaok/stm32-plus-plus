@@ -72,7 +72,7 @@ void ObjnetCommonNode::task()
                     key.addr = inMsg.data()[0] & 0x70; // field "addr" of LocalId stores sequence number
                     CommonMessageBuffer &buf = mFragmentBuffer[key];
                     buf.setLocalId(id);
-                    buf.addPart(inMsg.data());
+                    buf.addPart(inMsg.data(), mInterface->maxFrameSize());
                     if (buf.isReady())
                     {
                         if (id.svc)

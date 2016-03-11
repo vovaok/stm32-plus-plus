@@ -10,11 +10,36 @@ Usart::Usart(UsartNo number, int baudrate, Config config, Gpio::Config pinTx, Gp
     mRxPos(0),
     mRxIrqDataCounter(0),
     mRxBufferSize(64),
+    mTxPos(0),
+    mTxReadPos(0),
+    mTxBufferSize(64),
     mLineEnd("\n")
 {  
     Gpio::config(pinRx);
     Gpio::config(pinTx);
-                 
+    commonConstructor(number, baudrate, config);
+}
+
+Usart::Usart(Gpio::Config pinTx, Gpio::Config pinRx) :
+    mUseDma(true),
+    mDmaRx(0L),
+    mDmaTx(0L),
+    mRxPos(0),
+    mRxIrqDataCounter(0),
+    mRxBufferSize(64),
+    mTxPos(0),
+    mTxReadPos(0),
+    mTxBufferSize(64),
+    mLineEnd("\n")
+{
+    UsartNo number = getUsartByPin(pinTx);
+    Gpio::config(pinRx);
+    Gpio::config(pinTx);
+    commonConstructor(number, 57600, Mode8N1);
+}
+
+void Usart::commonConstructor(UsartNo number, int baudrate, Config config)
+{
     switch (number)
     {
       case Usart1:  
@@ -84,6 +109,43 @@ Usart::~Usart()
     if (mDmaTx)
         delete mDmaTx;
     USART_DeInit(mDev);
+}
+//---------------------------------------------------------------------------
+
+UsartNo Usart::getUsartByPin(Gpio::Config pin)
+{
+    switch (pin)
+    {
+        // USART1
+        case Gpio::USART1_CK_PA8: case Gpio::USART1_TX_PA9: case Gpio::USART1_RX_PA10: case Gpio::USART1_CTS_PA11:
+        case Gpio::USART1_RTS_PA12: case Gpio::USART1_TX_PB6: case Gpio::USART1_RX_PB7:
+        return Usart1;
+        // USART2
+        case Gpio::USART2_CTS_PA0: case Gpio::USART2_RTS_PA1: case Gpio::USART2_TX_PA2: case Gpio::USART2_RX_PA3:
+        case Gpio::USART2_CK_PA4: case Gpio::USART2_CTS_PD3: case Gpio::USART2_RTS_PD4: case Gpio::USART2_TX_PD5:
+        case Gpio::USART2_RX_PD6: case Gpio::USART2_CK_PD7:
+        return Usart2;
+        // USART3
+        case Gpio::USART3_TX_PB10: case Gpio::USART3_RX_PB11: case Gpio::USART3_CK_PB12: case Gpio::USART3_CTS_PB13:
+        case Gpio::USART3_RTS_PB14: case Gpio::USART3_TX_PC10: case Gpio::USART3_RX_PC11: case Gpio::USART3_CK_PC12:
+        case Gpio::USART3_TX_PD8: case Gpio::USART3_RX_PD9: case Gpio::USART3_CK_PD10: case Gpio::USART3_CTS_PD11:
+        case Gpio::USART3_RTS_PD12:
+        return Usart3;
+        // UART4
+        case Gpio::UART4_TX_PA0: case Gpio::UART4_RX_PA1: case Gpio::UART4_TX_PC10: case Gpio::UART4_RX_PC11:
+        return Usart4;
+        // UART5
+        case Gpio::UART5_TX_PC12: case Gpio::UART5_RX_PD2:
+        return Usart5;
+        // USART6
+        case Gpio::USART6_TX_PC6: case Gpio::USART6_RX_PC7: case Gpio::USART6_CK_PC8: case Gpio::USART6_CK_PG7:
+        case Gpio::USART6_RTS_PG8: case Gpio::USART6_RX_PG9: case Gpio::USART6_RTS_PG12: case Gpio::USART6_CTS_PG13:
+        case Gpio::USART6_TX_PG14: case Gpio::USART6_CTS_PG15:
+        return Usart6;
+        // no usart
+        default:
+        return UsartNone;
+    }
 }
 //---------------------------------------------------------------------------
 
@@ -182,10 +244,14 @@ bool Usart::open(OpenMode mode)
     if (mode & Write)
     {
         mConfig.USART_Mode |= USART_Mode_Tx;
-#warning USART: DMA is not used on Tx
-//        if (!mDmaTx)
-//            mDmaTx = Dma::getStreamForPeriph(mDmaChannelTx);
-//        mDmaTx->setSink((void*)&mDev->DR, 1);
+        mTxBuffer.resize(mTxBufferSize);
+        if (mUseDma)
+        {
+            if (!mDmaTx)
+                mDmaTx = Dma::getStreamForPeriph(mDmaChannelTx);
+            mDmaTx->setSink((void*)&mDev->DR, 1);
+            mDmaTx->setTransferCompleteEvent(EVENT(&Usart::dmaTxComplete));
+        }
     }
     
     init();
@@ -230,6 +296,8 @@ void Usart::close()
 }
 //---------------------------------------------------------------------------
 
+static int written = 0;
+
 int Usart::write(const ByteArray &ba)
 {
     if (!mDmaTx)
@@ -243,13 +311,32 @@ int Usart::write(const ByteArray &ba)
         return ba.size();
     }
     
-    if (mDmaTx->dataCounter() > 0)
+    //  write through DMA
+    int mask = mTxBuffer.size() - 1;
+    int curPos = (mTxReadPos - mDmaTx->dataCounter()) & mask;
+    int maxsize = (curPos - mTxPos - 1) & mask;
+    int sz = ba.size();
+    if (sz > maxsize)
+    {
         return -1;
-    mTxBuffer = ba;
+//        sz = maxsize;
+    }
+    for (int i=0; i<sz; i++)
+        mTxBuffer[(mTxPos + i) & mask] = ba[i];
+    mTxPos = (mTxPos + sz) & mask;
+    written += sz;
+    
+    if (mDmaTx->dataCounter() > 0) // if transmission in progress...
+        return sz; // dma restarts in irq handler
+    
+    // otherwise start new dma transfer
     mDmaTx->stop(true);
-    mDmaTx->setSingleBuffer(mTxBuffer.data(), mTxBuffer.size());
+    if (sz > mTxBufferSize - mTxReadPos)
+        sz = mTxBufferSize - mTxReadPos;
+    mDmaTx->setSingleBuffer(mTxBuffer.data() + mTxReadPos, sz);
+    mTxReadPos = (mTxReadPos + sz) & mask;
     mDmaTx->start();
-    return 0;
+    return ba.size();
 }
 
 int Usart::read(ByteArray &ba)
@@ -308,6 +395,23 @@ int Usart::readLine(ByteArray &ba)
 }
 //---------------------------------------------------------------------------
 
+void Usart::dmaTxComplete()
+{
+    int mask = mTxBuffer.size() - 1;
+    int sz = (mTxPos - mTxReadPos) & mask;
+    if (sz > mTxBufferSize - mTxReadPos)
+        sz = mTxBufferSize - mTxReadPos;
+    if (!sz)
+    {
+        mDmaTx->stop();
+        return;
+    }
+    mDmaTx->setSingleBuffer(mTxBuffer.data() + mTxReadPos, sz);
+    mTxReadPos = (mTxReadPos + sz) & mask;
+    mDmaTx->start();
+}
+//---------------------------------------------------------------------------
+
 void Usart::setBaudrate(int baudrate)
 {
     mConfig.USART_BaudRate = baudrate;
@@ -327,6 +431,7 @@ void Usart::setBufferSize(int size_bytes)
     if (isOpen())
         throw Exception::resourceBusy;
     mRxBufferSize = upper_power_of_two(size_bytes);
+    mTxBufferSize = mRxBufferSize;
 }
 
 void Usart::setUseDma(bool useDma)

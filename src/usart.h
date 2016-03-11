@@ -10,12 +10,13 @@ using namespace Serial;
 
 typedef enum
 {
-    Usart1  = 1,
-    Usart2  = 2,
-    Usart3  = 3,
-    Usart4  = 4,
-    Usart5  = 5,
-    Usart6  = 6,
+    UsartNone = 0,
+    Usart1    = 1,
+    Usart2    = 2,
+    Usart3    = 3,
+    Usart4    = 4,
+    Usart5    = 5,
+    Usart6    = 6,
 } UsartNo;
 //---------------------------------------------------------------------------
 
@@ -61,9 +62,14 @@ private:
     int mRxPos;
     int mRxIrqDataCounter;
     int mRxBufferSize;
+    int mTxPos;
+    int mTxReadPos;
+    int mTxBufferSize;
     ByteArray mLineEnd;
     
+    void commonConstructor(UsartNo number, int baudrate, Config config);
     void init();
+    void dmaTxComplete();
     
     friend void USART1_IRQHandler();
     friend void USART2_IRQHandler();
@@ -74,8 +80,11 @@ private:
     
     void handleInterrupt();
     
+    static UsartNo getUsartByPin(Gpio::Config pin);
+    
 public:
     Usart(UsartNo number, int baudrate, Config config, Gpio::Config pinTx, Gpio::Config pinRx);
+    Usart(Gpio::Config pinTx, Gpio::Config pinRx);
     ~Usart();
     
     void setBufferSize(int size_bytes);
