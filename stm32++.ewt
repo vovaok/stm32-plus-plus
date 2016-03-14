@@ -5319,6 +5319,12 @@
       <name>$PROJ_DIR$\src\objnet\canInterface.h</name>
     </file>
     <file>
+      <name>$PROJ_DIR$\src\objnet\objectinfo.cpp</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\src\objnet\objectinfo.h</name>
+    </file>
+    <file>
       <name>$PROJ_DIR$\src\objnet\objnetcommon.h</name>
     </file>
     <file>
@@ -5356,6 +5362,18 @@
     </file>
     <file>
       <name>$PROJ_DIR$\src\objnet\objnetnode.h</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\src\objnet\uartonbinterface.cpp</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\src\objnet\uartonbinterface.h</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\src\objnet\usbhidonbinterface.cpp</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\src\objnet\usbhidonbinterface.h</name>
     </file>
   </group>
   <group>
