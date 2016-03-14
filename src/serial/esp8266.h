@@ -5,6 +5,7 @@
 #include "usart.h"
 #include "gpio.h"
 #include "timer.h"
+#include <string>
 
 namespace Serial
 {
@@ -35,7 +36,8 @@ private:
         cmdIpMode,
         cmdListIp,
         cmdIpStart,
-        cmdIpSend
+        cmdIpSend,
+        cmdSaveTransLink
     } Command;
     
     bool mTransparentMode;
@@ -66,6 +68,8 @@ public:
     void reset();
     void setBaudrate(int baudrate);
     void setAPMode(string ssid, string pass="");
+    void saveTransLink(string translink_string);
+    void setOnbStaMode(string autoConnIp);
     
     NotifyEvent onOK;
     NotifyEvent onError;

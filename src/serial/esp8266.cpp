@@ -17,12 +17,12 @@ ESP8266::ESP8266(Usart *usart, Gpio::PinName resetPin) :
   
     mUsart->setBaudrate(1000000);//78400);
     mUsart->setConfig(Usart::Mode8N1);
-    mUsart->setBufferSize(1024);//256);
+    mUsart->setBufferSize(256); // 1024 for 3 ms!!
     mUsart->setUseDma(true);
     mUsart->setLineEnd("\r\n");
     mUsart->open(ReadWrite);
     
-    for (int i=0; i<1000; i++);
+    for (int i=0; i<10000; i++);
     mResetPin->setAsInputPullUp();
     
     mTimer.setTimeoutEvent(EVENT(&ESP8266::onTimer));
@@ -111,7 +111,11 @@ void ESP8266::parseLine(ByteArray &line)
             
           case cmdIpSend:
             mTransparentMode = true;
-            break;  
+            break; 
+            
+          case cmdSaveTransLink:
+            hardReset();
+            break;
         }
         
         if (onOK)
@@ -225,5 +229,23 @@ void ESP8266::setAPMode(string ssid, string pass)
     mApKey = pass;
     mLastCmd = cmdCwMode;
     sendCmd("AT+CWMODE_CUR=2");    
+}
+
+void ESP8266::saveTransLink(string translink_string)
+{
+    if (mTransparentMode)
+        interruptTransparentMode();
+    mLastCmd = cmdSaveTransLink;
+    string cmd = "AT+SAVETRANSLINK=" + translink_string;
+    sendCmd(cmd.c_str());
+}
+
+void ESP8266::setOnbStaMode(string autoConnIp)
+{
+    if (mTransparentMode)
+        interruptTransparentMode();
+    mLastCmd = cmdSaveTransLink;
+    string cmd = "AT+SAVETRANSLINK=1,\"" + autoConnIp + "\",51966,\"TCP\",10";
+    sendCmd(cmd.c_str());
 }
 //---------------------------------------------------------------------------

@@ -136,9 +136,10 @@ void ObjnetDevice::receiveObject(unsigned char oid, const ByteArray &ba)
 
 void ObjnetDevice::requestObject(_String name)
 {    
-    if (mObjMap.count(_fromString(name)))
+    map<string, ObjectInfo>::iterator it = mObjMap.find(_fromString(name));
+    if (it != mObjMap.end() && it->second.flags())
     {
-        unsigned char oid = mObjMap[_fromString(name)].mDesc.id;
+        unsigned char oid = it->second.mDesc.id;
         #ifndef __ICCARM__
         emit requestObject(mNetAddress, oid);
         #endif
@@ -147,9 +148,10 @@ void ObjnetDevice::requestObject(_String name)
 
 void ObjnetDevice::sendObject(_String name)
 {
-    if (mObjMap.count(_fromString(name)))
+    map<string, ObjectInfo>::iterator it = mObjMap.find(_fromString(name));
+    if (it != mObjMap.end() && it->second.flags())
     {
-        unsigned char oid = mObjMap[_fromString(name)].mDesc.id;
+        unsigned char oid = it->second.mDesc.id;
         ObjectInfo *obj = mObjects[oid];
         if (obj)
         {
@@ -162,9 +164,10 @@ void ObjnetDevice::sendObject(_String name)
 
 void ObjnetDevice::autoRequest(_String name, int periodMs)
 {
-    if (mObjMap.count(_fromString(name)))
+    map<string, ObjectInfo>::iterator it = mObjMap.find(_fromString(name));
+    if (it != mObjMap.end() && it->second.flags())
     {
-        unsigned char oid = mObjMap[_fromString(name)].mDesc.id;
+        unsigned char oid = it->second.mDesc.id;
         ByteArray ba;
         ba.append(reinterpret_cast<const char*>(&periodMs), sizeof(int));
         ba.append(oid);
