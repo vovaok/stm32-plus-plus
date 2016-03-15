@@ -26,21 +26,11 @@ ObjnetNode::ObjnetNode(ObjnetInterface *iface) :
     mSendTimer.start(1);
 
     #ifdef __ICCARM__
-    mVersion = 0x0100;
-    mBuildDate = string(__DATE__" "__TIME__);
-    unsigned long *signature = reinterpret_cast<unsigned long*>(0x1FFF7A10);
-    mSerial = signature[0] ^ signature[1] ^ signature[2];
-    char tempstr[64];
-    int flash = *reinterpret_cast<unsigned short*>(0x1FFF7A22);
-    unsigned long cpuid = *reinterpret_cast<unsigned long*>(0xE0042000);
-    unsigned short cpu = cpuid & 0xFFF;
-    switch (cpu)
-    {
-        case 0x413: mCpuInfo = "STM32F40x"; break;
-        default: mCpuInfo = "STM32 family";
-    }
-    sprintf(tempstr, " @ %d MHz, %dK flash", (int)(SystemCoreClock / 1000000), flash);
-    mCpuInfo += string(tempstr);
+    mVersion = stmApp()->version();
+    mBuildDate = stmApp()->buildDate();
+    mSerial = CpuId::serial();
+    mCpuInfo = stmApp()->cpuInfo();
+    mBurnCount = stmApp()->burnCount();
     #endif
 
     registerSvcObject(ObjectInfo("class", mClass, ObjectInfo::ReadOnly));
