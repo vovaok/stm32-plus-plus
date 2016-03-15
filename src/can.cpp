@@ -58,7 +58,7 @@ Can::Can(int canNumber, int baudrate, Gpio::Config pinRx, Gpio::Config pinTx) :
     CAN_InitStructure.CAN_TXFP = DISABLE;
     CAN_InitStructure.CAN_Mode = CAN_Mode_Normal;
     
-    int APB1freq = SystemCoreClock >> 2; // as APB1 clock prescaler = 4
+    int APB1freq = Rcc::pClk1();
     int psc = (APB1freq / ((8+16+1)*baudrate)) + 1; // prescaler choosed assumpting max bit length is 25tq
     int btq = APB1freq / (psc*baudrate); // the number of quanta per bit 
     int t2 = btq<=17? ((btq-1)>>1): 8; // length of T2 segment

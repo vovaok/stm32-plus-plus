@@ -47,7 +47,7 @@ I2S::I2S(Gpio::Config clkPin, Gpio::Config doPin) :
     {
 
         // blabla
-#warning nado zapilit baudrate calculation, a poka:
+//#warning nado zapilit baudrate calculation, a poka:
         if (config.I2S_AudioFreq == 8000)
         {
             RCC_PLLI2SConfig(192, 2);

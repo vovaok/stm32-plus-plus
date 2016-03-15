@@ -5111,6 +5111,12 @@
     <name>$PROJ_DIR$\src\can_old.h</name>
   </file>
   <file>
+    <name>$PROJ_DIR$\src\cpuid.cpp</name>
+  </file>
+  <file>
+    <name>$PROJ_DIR$\src\cpuid.h</name>
+  </file>
+  <file>
     <name>$PROJ_DIR$\src\dac.cpp</name>
   </file>
   <file>

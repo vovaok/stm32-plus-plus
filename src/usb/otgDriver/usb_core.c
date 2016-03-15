@@ -27,12 +27,13 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "usb_core.h"
+#include "rcc.h"
 //#include "usb_bsp.h"
 
 void USB_OTG_BSP_uDelay (const uint32_t usec)
 {
   uint32_t count = 0;
-  const uint32_t utime = ((SystemCoreClock/1000000) * usec / 7);
+  const uint32_t utime = ((Rcc::sysClk()/1000000) * usec / 7);
   do
   {
     if ( ++count > utime )

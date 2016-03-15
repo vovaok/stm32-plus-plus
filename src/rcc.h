@@ -2,7 +2,7 @@
 #define _RCC_H
 
 #include "stm32_conf.h"
-#include "core/core.h"
+#include "core/coreexception.h"
 
 class Rcc
 {

@@ -107,7 +107,7 @@ HardwareTimer::HardwareTimer(TimerNumber timerNumber, unsigned int frequency_Hz)
         throw Exception::resourceBusy; // ALARM!! this timer already in use!
     
     mTimers[timerNumber-1] = this;
-    mInputClk = SystemCoreClock >> clkDiv;
+    mInputClk = Rcc::sysClk() >> clkDiv;
     
     for (int i=0; i<8; i++)
         mEnabledIrq[i] = false;
