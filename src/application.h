@@ -3,10 +3,18 @@
 
 #include <list>
 #include "rcc.h"
+#include "cpuid.h"
 #include "core/core.h"
 #include "stm32_conf.h"
 
 using namespace std;
+
+#if !defined(APP_VERSION)
+#define APP_VERSION 0x0100
+#endif
+#if !defined(APP_BURNCOUNT)
+#define APP_BURNCOUNT 0
+#endif
 
 #pragma pack(4)
 class Application
@@ -20,17 +28,29 @@ private:
     typedef std::list<TaskEvent>::iterator TaskIterator;
     typedef std::list<TickEvent>::iterator TickIterator;
     
-    static unsigned long mVersion;
+    static unsigned short mVersion;
     static string mBuildDate;
     static string mCpuInfo;
     static unsigned long mBurnCount;
 
 protected:
-    Application();
+    Application()
+    {
+        self = this;
+        mVersion = APP_VERSION;
+        mBurnCount = APP_BURNCOUNT;
+        mBuildDate = string(__DATE__" "__TIME__);
+        char tempstr[64];
+        sprintf(tempstr, "%s @ %d MHz, %dK flash", CpuId::name(), (int)(Rcc::sysClk() / 1000000), CpuId::flashSizeK());
+        mCpuInfo = string(tempstr);
+    }
+    void setVersion(unsigned short ver) {mVersion = ver;}
+    void setBurnCount(unsigned long cnt) {mBurnCount = cnt;}
     
 public:
-    /*! Экземпляр приложения (синглетон). */
-    static Application *instance() {if (!self) self = new Application(); return self;}
+    /*! Экземпляр приложения. */
+    static Application *instance() {return self;}
+
     /*! Запуск петли задач. */
     void exec();
     

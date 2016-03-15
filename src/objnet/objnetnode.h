@@ -2,6 +2,9 @@
 #define _OBJNET_NODE_H
 
 #include "objnetCommonNode.h"
+#ifdef __ICCARM__
+#include "cpuid.h"
+#endif
 
 namespace Objnet
 {
@@ -74,8 +77,6 @@ public:
     
     void setName(string name) {mName = name.substr(0, 8);}
     void setFullName(string name) {mFullName = name;}
-    void setVersion(unsigned short version) {mVersion = version;}
-    void setBurnCount(int burnCount) {mBurnCount = burnCount;}
     
     string name() const {return mName;}
     string fullName() const {return mFullName;}

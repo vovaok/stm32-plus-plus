@@ -10,7 +10,10 @@ ObjnetMaster::ObjnetMaster(ObjnetInterface *iface) :
     mAdjIfConnected(false)
 {
     for (int i=0; i<16; i++)
+    {
         mLocalnetDevices[i] = 0L;
+        mNetAddrByMacCache[i] = 0;
+    }
     setBusAddress(0);
     mNetAddress = 0x00;
     #ifdef __ICCARM__
@@ -202,12 +205,27 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
         if (!dev || !localnet)                           // сначала добавляем девайс с маком, который в id-шнике, если он ещё не добавлен
         {
             if (!localnet)
+            {
                 mac = route(tempaddr);
-            netaddr = createNetAddress(mac);             // создаём новый адрес
+                netaddr = createNetAddress(mac);  // создаём новый адрес
+            }
+            else if (mNetAddrByMacCache[mac])     // если девайс в текущей подсети
+            {
+                netaddr = mNetAddrByMacCache[mac];// пытаемся вспомнить адрес по маку
+                mRouteTable[netaddr] = mac;
+            }
+            else
+            {
+                netaddr = createNetAddress(mac);  // создаём новый адрес
+            }
+
             dev = new ObjnetDevice(netaddr);             // создаём объект с новым адресом
             dev->mAutoDelete = true;                     // раз автоматически создали - автоматически и удалим)
-            if (localnet)                                // если девайс в текцщей подсети...
+            if (localnet)                                // если девайс в текущей подсети...
+            {
                 mLocalnetDevices[mac] = dev;             // ...запоминаем для поиска по маку
+                mNetAddrByMacCache[mac] = netaddr;       // и кэшируем адрес для возврата по маку (чтобы лишний раз не создавать)
+            }
 #warning NEED TO IMPLEMENT: kill mLocalnetDevices[mac] on svcKill. A mb i ne nado!!
             mDevices[netaddr] = dev;                     // запоминаем для поиска по адресу
             welcomeCmd = svcWelcome;                     // меняем команду на svcWelcome
@@ -448,6 +466,7 @@ unsigned char ObjnetMaster::createNetAddress(unsigned char mac)
 {
     if (mRouteTable.size() >= 127) // сразу избегаем бесконечного цикла
         return 0x7F;
+
     while (mRouteTable.count(mAssignNetAddress)) // если в таблице маршрутизации данный адрес занят, ищем дальше
     {
         mAssignNetAddress++;

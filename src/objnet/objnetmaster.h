@@ -19,9 +19,11 @@ private:
     typedef std::map<unsigned char, ObjnetDevice*> DeviceMap;
     typedef DeviceMap::iterator DeviceIterator;
 //    ObjnetDeviceTreeNode mTree;
-    DeviceMap mDevices; // map devices by mac
+    DeviceMap mDevices; // map devices by network address
     std::map<unsigned char, unsigned char> mRouteTable; // route table: returns mac by network address
     ObjnetDevice* mLocalnetDevices[16]; // array of devices on the local network accessed by mac
+//    std::map<unsigned long, unsigned char> mNetAddrBySerialCache;
+    unsigned char mNetAddrByMacCache[16];
     unsigned char mAssignNetAddress; // network address for assigning to nodes (a la DHCP)
     bool mAdjIfConnected; // connection state of adjacent interface
     string mName;

@@ -174,7 +174,6 @@ bool ObjnetCommonNode::sendCommonMessage(CommonMessage &msg)
     }
     else
     {
-#warning maxsize must be equal to 8, otherwise fucking trash will be instead of data!! (see CommonMessage for details)
         maxsize--;
         CommonMessage outMsg;
         LocalMsgId id = msg.localId();

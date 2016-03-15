@@ -13,20 +13,8 @@ __no_init unsigned long Rcc::mAPB2Clk;
 void Rcc::configPll(unsigned long hseValue, unsigned long sysClk)
 {
     __IO uint32_t StartUpCounter = 0, HSEStatus = 0;
- 
-    // calc pllM, pllN, etc...
-    unsigned long pllvco = sysClk << 1;
-    mHseValue = hseValue;
-    mPllM = mHseValue / 1000000;
-    if (mPllM > 0x3F)
-        throw Exception::badSoBad;
-    mPllN = pllvco / 1000000;
-    if (mPllN > 0x1FF)
-        throw Exception::badSoBad;
-    mPllP = 2;
-    mPllQ = pllvco / 48000000;
     
-    mSysClk = mHseValue / mPllM * mPllN / mPllP;
+    mHseValue = 0;
     
     // Enable HSE
     RCC->CR |= ((uint32_t)RCC_CR_HSEON);
@@ -45,6 +33,60 @@ void Rcc::configPll(unsigned long hseValue, unsigned long sysClk)
 
     if (HSEStatus == (uint32_t)0x01)
     {
+        if (hseValue == 0)
+        {
+            // measure HSE frequency
+            RCC->APB2ENR |= (1<<18); // enable peripheral clock for TIM11
+            unsigned long rccCfgr = RCC->CFGR;
+            unsigned long temp = rccCfgr;
+            temp &= ~(0x1F << 16);
+            temp |= (20 << 16); // RTC = HSE / 20
+            RCC->CFGR = temp;
+            TIM11->OR = 0x0002; // HSE connect to TIM11_CH1 input
+            TIM11->CCMR1 = 0x0001; // CC1 channel configured as input
+            TIM11->CCER = 0x0001; // enable capture of rising edge
+            TIM11->ARR = 0xFFFF;
+            TIM11->CR1 = 0x0001; // enable TIM11
+            TIM11->SR = 0;
+            
+            while (!(TIM11->SR & 0x0002)); // wait first edge
+            int fr0 = TIM11->CCR1;
+            TIM11->CCR1 = 0;
+            TIM11->SR = 0;
+            
+            while (!TIM11->CCR1); // wait until capture
+            int fr1 = TIM11->CCR1;
+            TIM11->SR = 0;
+            
+            TIM11->CR1 = 0; // disable timer
+            
+            RCC->CFGR = rccCfgr;
+            RCC->APB2ENR &= ~(1<<18); // disable peripheral clock to TIM11
+            // end of measure
+            
+            // calculate hseValue
+            hseValue = (fr1 - fr0) * 16 / 20;
+            hseValue *= 1000000;
+        }
+        
+        // calc pllM, pllN, etc...
+        unsigned long pllvco = sysClk << 1;
+        if (hseValue > 26000000)
+            hseValue = 16000000;
+        mHseValue = hseValue;
+        mPllM = mHseValue / 1000000;
+        if (mPllM > 0x3F)
+            throw Exception::badSoBad;
+        mPllN = pllvco / 1000000;
+        if (mPllN > 0x1FF)
+            throw Exception::badSoBad;
+        mPllP = 2;
+        mPllQ = pllvco / 48000000;
+
+        mSysClk = mHseValue / mPllM * mPllN / mPllP;
+        //end of calc
+        
+      
         /* Select regulator voltage output Scale 1 mode */
         RCC->APB1ENR |= RCC_APB1ENR_PWREN;
         PWR->CR |= PWR_CR_VOS;
