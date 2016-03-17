@@ -44,3 +44,4 @@ lib/CMSIS/*.htm
 lib/CMSIS/DSP_Lib/Examples
 stm32++.dep
 *.dep
+*.dep

@@ -51,7 +51,7 @@ private:
     USART_TypeDef *mDev;
     USART_InitTypeDef mConfig;
     bool mConfigured;
-    bool mUseDma;
+    bool mUseDmaRx, mUseDmaTx;
     ByteArray mRxBuffer;
     ByteArray mTxBuffer;
     Dma::DmaChannel mDmaChannelRx;
@@ -88,7 +88,8 @@ public:
     ~Usart();
     
     void setBufferSize(int size_bytes);
-    void setUseDma(bool useDma);
+    void setUseDmaRx(bool useDma);
+    void setUseDmaTx(bool useDma);
     void setLineEnd(ByteArray lineend);
     
     bool open(OpenMode mode = ReadWrite);
