@@ -18,7 +18,8 @@ ESP8266::ESP8266(Usart *usart, Gpio::PinName resetPin) :
     mUsart->setBaudrate(1000000);//78400);
     mUsart->setConfig(Usart::Mode8N1);
     mUsart->setBufferSize(256); // 1024 for 3 ms!!
-    mUsart->setUseDma(true);
+    mUsart->setUseDmaRx(true);
+    mUsart->setUseDmaTx(true);
     mUsart->setLineEnd("\r\n");
     mUsart->open(ReadWrite);
     

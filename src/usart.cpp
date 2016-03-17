@@ -4,7 +4,7 @@ Usart *Usart::mUsarts[6] = {0, 0, 0, 0, 0, 0};
 //---------------------------------------------------------------------------
 
 Usart::Usart(UsartNo number, int baudrate, Config config, Gpio::Config pinTx, Gpio::Config pinRx) :
-    mUseDma(true),
+    mUseDmaRx(true), mUseDmaTx(true),
     mDmaRx(0L),
     mDmaTx(0L),
     mRxPos(0),
@@ -21,7 +21,7 @@ Usart::Usart(UsartNo number, int baudrate, Config config, Gpio::Config pinTx, Gp
 }
 
 Usart::Usart(Gpio::Config pinTx, Gpio::Config pinRx) :
-    mUseDma(true),
+    mUseDmaRx(true), mUseDmaTx(true),
     mDmaRx(0L),
     mDmaTx(0L),
     mRxPos(0),
@@ -222,7 +222,7 @@ bool Usart::open(OpenMode mode)
     {
         mConfig.USART_Mode |= USART_Mode_Rx;
         mRxBuffer.resize(mRxBufferSize); ///////////////////////////////!!!!!! power of two only!!!!
-        if (mUseDma)
+        if (mUseDmaRx)
         {
             if (!mDmaRx)
                 mDmaRx = Dma::getStreamForPeriph(mDmaChannelRx);
@@ -245,7 +245,7 @@ bool Usart::open(OpenMode mode)
     {
         mConfig.USART_Mode |= USART_Mode_Tx;
         mTxBuffer.resize(mTxBufferSize);
-        if (mUseDma)
+        if (mUseDmaTx)
         {
             if (!mDmaTx)
                 mDmaTx = Dma::getStreamForPeriph(mDmaChannelTx);
@@ -256,13 +256,13 @@ bool Usart::open(OpenMode mode)
     
     init();
     
-    if (mDmaRx && mUseDma)
+    if (mDmaRx && mUseDmaRx)
     {
         USART_DMACmd(mDev, USART_DMAReq_Rx, ENABLE);
         mDmaRx->start();
         (unsigned int&)mode |= Read;
     }
-    if (mDmaTx && mUseDma)
+    if (mDmaTx && mUseDmaTx)
     {
         USART_DMACmd(mDev, USART_DMAReq_Tx, ENABLE);
         (unsigned int&)mode |= Write;
@@ -434,11 +434,18 @@ void Usart::setBufferSize(int size_bytes)
     mTxBufferSize = mRxBufferSize;
 }
 
-void Usart::setUseDma(bool useDma)
+void Usart::setUseDmaRx(bool useDma)
 {
     if (isOpen())
         throw Exception::resourceBusy;
-    mUseDma = useDma;
+    mUseDmaRx = useDma;
+}
+
+void Usart::setUseDmaTx(bool useDma)
+{
+    if (isOpen())
+        throw Exception::resourceBusy;
+    mUseDmaTx = useDma;
 }
 
 void Usart::setLineEnd(ByteArray lineend)
