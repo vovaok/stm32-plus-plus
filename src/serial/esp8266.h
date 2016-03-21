@@ -37,7 +37,8 @@ private:
         cmdListIp,
         cmdIpStart,
         cmdIpSend,
-        cmdSaveTransLink
+        cmdSaveTransLink,
+        cmdConnectToAp
     } Command;
     
     bool mTransparentMode;
@@ -55,6 +56,8 @@ private:
 public:
     ESP8266(Usart *usart, Gpio::PinName resetPin);
     
+    string autoSSID, autoKey;
+    
     void hardReset();
     void sendCmd(ByteArray ba);
     
@@ -70,6 +73,7 @@ public:
     void setAPMode(string ssid, string pass="");
     void saveTransLink(string translink_string);
     void setOnbStaMode(string autoConnIp);
+    void autoConnectToAp(string ssid_and_pass);
     
     NotifyEvent onOK;
     NotifyEvent onError;

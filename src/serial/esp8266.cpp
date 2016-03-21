@@ -117,6 +117,10 @@ void ESP8266::parseLine(ByteArray &line)
           case cmdSaveTransLink:
             hardReset();
             break;
+            
+          case cmdConnectToAp:
+            hardReset();
+            break;
         }
         
         if (onOK)
@@ -247,6 +251,15 @@ void ESP8266::setOnbStaMode(string autoConnIp)
         interruptTransparentMode();
     mLastCmd = cmdSaveTransLink;
     string cmd = "AT+SAVETRANSLINK=1,\"" + autoConnIp + "\",51966,\"TCP\",10";
+    sendCmd(cmd.c_str());
+}
+
+void ESP8266::autoConnectToAp(string ssid_and_pass)
+{
+    if (mTransparentMode)
+        interruptTransparentMode();
+    mLastCmd = cmdConnectToAp;
+    string cmd = "AT+CWJAP_DEF=" + ssid_and_pass;
     sendCmd(cmd.c_str());
 }
 //---------------------------------------------------------------------------
