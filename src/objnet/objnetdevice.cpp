@@ -95,7 +95,7 @@ void ObjnetDevice::prepareObject(const ObjectInfo::Description &desc)
         {
             _String x3;
             for (size_t i=0; i<sizeof(_String); i++)
-                reinterpret_cast<unsigned char*>(obj->mReadPtr)[i] = reinterpret_cast<unsigned char*>(&x3)[i];
+                const_cast<unsigned char*>(reinterpret_cast<const unsigned char*>(obj->mReadPtr))[i] = reinterpret_cast<unsigned char*>(&x3)[i];
         }
     }
 
@@ -176,4 +176,25 @@ void ObjnetDevice::autoRequest(_String name, int periodMs)
         #endif
     }
 }
+
+#ifndef __ICCARM__
+void ObjnetDevice::sendObject(QString name, QVariant value)
+{
+    map<string, ObjectInfo>::iterator it = mObjMap.find(_fromString(name));
+    if (it != mObjMap.end() && it->second.flags())
+    {
+        unsigned char oid = it->second.mDesc.id;
+        ObjectInfo *obj = mObjects[oid];
+        if (obj)
+        {
+            if (obj->rType() == ObjectInfo::Common)
+                value = QByteArray::fromHex(value.toByteArray());
+            else
+                value.convert(obj->rType());
+            obj->fromVariant(value);
+            emit sendObject(mNetAddress, oid, obj->read());
+        }
+    }
+}
+#endif
 //---------------------------------------------------------

@@ -1,6 +1,7 @@
 #include "rgbled.h"
 
-RgbLed::RgbLed(Gpio::Config pinR, Gpio::Config pinG, Gpio::Config pinB, int pwmFrequency)
+RgbLed::RgbLed(Gpio::Config pinR, Gpio::Config pinG, Gpio::Config pinB, int pwmFrequency) :
+    mR(0), mG(0), mB(0)
 {
     TimerNumber tim = HardwareTimer::getTimerByPin(pinR);
     chR = HardwareTimer::getChannelByPin(pinR);
@@ -23,21 +24,27 @@ RgbLed::RgbLed(Gpio::Config pinR, Gpio::Config pinG, Gpio::Config pinB, int pwmF
 
 void RgbLed::setR(unsigned char value)
 {
+    mR = value;
     pwm->setDutyCycle(chR, value<<8);
 }
 
 void RgbLed::setG(unsigned char value)
 {
+    mG = value;
     pwm->setDutyCycle(chG, value<<8);
 }
 
 void RgbLed::setB(unsigned char value)
 {
+    mB = value;
     pwm->setDutyCycle(chB, value<<8);
 }
 
 void RgbLed::setRgb(unsigned char r, unsigned char g, unsigned char b)
 {
+    mR = r;
+    mG = g;
+    mB = b;
     pwm->setDutyCycle(chR, r<<8);
     pwm->setDutyCycle(chG, g<<8);
     pwm->setDutyCycle(chB, b<<8);

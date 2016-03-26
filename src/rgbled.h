@@ -8,6 +8,7 @@ class RgbLed
 private:
     PwmOutput *pwm;
     ChannelNumber chR, chG, chB;
+    unsigned char mR, mG, mB;
     
 public:
     RgbLed(Gpio::Config pinR, Gpio::Config pinG, Gpio::Config pinB, int pwmFrequency=1_kHz);
@@ -15,6 +16,10 @@ public:
     void setG(unsigned char value);
     void setB(unsigned char value);
     void setRgb(unsigned char r, unsigned char g, unsigned char b);
+    
+    unsigned char r() const {return mR;}
+    unsigned char g() const {return mG;}
+    unsigned char b() const {return mB;}
     
     void showBlack();
     void showRed();

@@ -37,7 +37,7 @@ ByteArray ObjectInfo::read()
         return ByteArray();
     if (mDesc.rType == String)
     {
-        _String *str = reinterpret_cast<_String*>(mReadPtr);
+        const _String *str = reinterpret_cast<const _String*>(mReadPtr);
         if (str)
         {
             string s = _fromString(*str);
@@ -206,11 +206,11 @@ bool ObjectInfo::fromVariant(QVariant &v)
         int sz = ba.size();
         sz = sz > mDesc.readSize? mDesc.readSize: sz;
         for (int i=0; i<sz; i++)
-            reinterpret_cast<unsigned char*>(mReadPtr)[i] = ba[i];
+            const_cast<unsigned char*>(reinterpret_cast<const unsigned char*>(mReadPtr))[i] = ba[i];
         return true;
     }
     for (int i=0; i<mDesc.readSize; i++)
-        reinterpret_cast<unsigned char*>(mReadPtr)[i] = reinterpret_cast<unsigned char*>(v.data())[i];
+        const_cast<unsigned char*>(reinterpret_cast<const unsigned char*>(mReadPtr))[i] = reinterpret_cast<unsigned char*>(v.data())[i];
     return true;
 }
 #endif

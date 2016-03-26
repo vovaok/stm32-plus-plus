@@ -122,7 +122,8 @@ public:
     };
 
 private:
-    void *mReadPtr, *mWritePtr;
+    const void *mReadPtr;
+    void *mWritePtr;
     int mAutoPeriod, mAutoTime; // automatic transmission period
     Description mDesc;
     bool mIsDevice;
@@ -137,8 +138,10 @@ public:
     // vars binding:
     template<typename T>
     ObjectInfo(string name, T &var, Flags flags=ReadWrite);
+    template<typename T>
+    ObjectInfo(string name, const T &var, Flags flags=ReadOnly);
     template<typename Tr, typename Tw>
-    ObjectInfo(string name, Tr &varRead, Tw &varWrite, Flags flags=ReadWrite);
+    ObjectInfo(string name, const Tr &varRead, Tw &varWrite, Flags flags=ReadWrite);
 
     // methods binding:
     template<class R>
@@ -214,8 +217,27 @@ ObjectInfo::ObjectInfo(string name, T &var, Flags flags) :
     mDesc.name = name;
 }
 
+template<typename T>
+ObjectInfo::ObjectInfo(string name, const T &var, Flags flags) :
+    mReadPtr(0), mWritePtr(0),
+    mAutoPeriod(0), mAutoTime(0),
+    mIsDevice(false)
+{
+    flags = static_cast<Flags>(flags & (~Write));
+    size_t sz = sizeof(T);
+    Type t = typeOfVar(var);
+    if (flags & Read)
+    {
+        mReadPtr = &var;
+        mDesc.readSize = sz;
+        mDesc.rType = t;
+    }
+    mDesc.flags = flags;
+    mDesc.name = name;
+}
+
 template<typename Tr, typename Tw>
-ObjectInfo::ObjectInfo(string name, Tr &varRead, Tw &varWrite, Flags flags) :
+ObjectInfo::ObjectInfo(string name, const Tr &varRead, Tw &varWrite, Flags flags) :
     mReadPtr(0), mWritePtr(0),
     mAutoPeriod(0), mAutoTime(0),
     mIsDevice(false)

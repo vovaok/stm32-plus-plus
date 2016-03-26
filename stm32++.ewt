@@ -5617,6 +5617,12 @@
     <name>$PROJ_DIR$\src\rcc.h</name>
   </file>
   <file>
+    <name>$PROJ_DIR$\src\rgbled.cpp</name>
+  </file>
+  <file>
+    <name>$PROJ_DIR$\src\rgbled.h</name>
+  </file>
+  <file>
     <name>$PROJ_DIR$\src\spi.cpp</name>
   </file>
   <file>

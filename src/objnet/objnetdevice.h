@@ -104,7 +104,8 @@ public:
         ObjectInfo::Type t = typeOfVar(var);
         if ((t == info.mDesc.wType) || !info.mDesc.flags)
         {
-            info.mWritePtr = info.mReadPtr = &var;
+            info.mWritePtr = &var;
+            info.mReadPtr = &var;
             info.mDesc.wType = info.mDesc.rType = t;
             return true;
         }
@@ -137,6 +138,10 @@ signals:
     void objectReceived(QString name, QVariant value);
 
     void ready();
+
+public slots:
+    void sendObject(QString name, QVariant value);
+
 #endif
 };
 

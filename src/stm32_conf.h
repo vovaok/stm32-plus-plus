@@ -61,7 +61,7 @@
     #include "stm32f4xx_tim.h"
     #include "stm32f4xx_usart.h"
     #include "stm32f4xx_wwdg.h"
-#elif defined(STM32F427_437xx)
+#elif defined(STM32F427_437xx) || defined(STM32F429_439xx)
     #include "stm32f4xx.h"
     #include "stm32f4xx_adc.h"
     #include "stm32f4xx_can.h"
