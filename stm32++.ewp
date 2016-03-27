@@ -5876,6 +5876,12 @@
       <name>$PROJ_DIR$\src\objnet\objnetnode.h</name>
     </file>
     <file>
+      <name>$PROJ_DIR$\src\objnet\objnetstorage.cpp</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\src\objnet\objnetstorage.h</name>
+    </file>
+    <file>
       <name>$PROJ_DIR$\src\objnet\uartonbinterface.cpp</name>
     </file>
     <file>
@@ -6092,6 +6098,12 @@
   </file>
   <file>
     <name>$PROJ_DIR$\src\encoder.h</name>
+  </file>
+  <file>
+    <name>$PROJ_DIR$\src\flash.cpp</name>
+  </file>
+  <file>
+    <name>$PROJ_DIR$\src\flash.h</name>
   </file>
   <file>
     <name>$PROJ_DIR$\src\gpio.cpp</name>

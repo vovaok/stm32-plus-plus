@@ -40,7 +40,7 @@ void Rcc::configPll(unsigned long hseValue, unsigned long sysClk)
             unsigned long rccCfgr = RCC->CFGR;
             unsigned long temp = rccCfgr;
             temp &= ~(0x1F << 16);
-            temp |= (20 << 16); // RTC = HSE / 20
+            temp |= (30 << 16); // RTC = HSE / 20
             RCC->CFGR = temp;
             TIM11->OR = 0x0002; // HSE connect to TIM11_CH1 input
             TIM11->CCMR1 = 0x0001; // CC1 channel configured as input
@@ -51,21 +51,26 @@ void Rcc::configPll(unsigned long hseValue, unsigned long sysClk)
             
             while (!(TIM11->SR & 0x0002)); // wait first edge
             int fr0 = TIM11->CCR1;
-            TIM11->CCR1 = 0;
-            TIM11->SR = 0;
+//            TIM11->CCR1 = 0;
             
-            while (!TIM11->CCR1); // wait until capture
+            //while (!TIM11->CCR1); // wait until capture
+            while (!(TIM11->SR & 0x0002));
             int fr1 = TIM11->CCR1;
+            if (TIM11->SR & (1<<9)) // overcapture
+                throw Exception::badSoBad;
             TIM11->SR = 0;
-            
-            TIM11->CR1 = 0; // disable timer
+            TIM11->CR1 = 0; // disable timer            
             
             RCC->CFGR = rccCfgr;
             RCC->APB2ENR &= ~(1<<18); // disable peripheral clock to TIM11
             // end of measure
             
             // calculate hseValue
-            hseValue = (fr1 - fr0) * 16 / 20;
+            hseValue = ((fr1 - fr0) * 16 + 15) / 30;
+#if defined(STM32F429_439xx)
+#warning RCC FUCKING HACK!!! Tak ne doljno bit!!
+            hseValue = (hseValue + 2) / 4;      
+#endif
             hseValue *= 1000000;
         }
         

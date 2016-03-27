@@ -6,15 +6,23 @@
 #include "cpuid.h"
 #include "core/core.h"
 #include "stm32_conf.h"
+//---------------------------------------------------------------------------
 
 using namespace std;
+//---------------------------------------------------------------------------
+
+#if !defined(SYSTEM_CLOCK_MS)
+#define SYSTEM_CLOCK_MS         1
+#endif
 
 #if !defined(APP_VERSION)
 #define APP_VERSION 0x0100
 #endif
+
 #if !defined(APP_BURNCOUNT)
 #define APP_BURNCOUNT 0
 #endif
+//---------------------------------------------------------------------------
 
 #pragma pack(4)
 class Application

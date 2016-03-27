@@ -1,10 +1,5 @@
 #include "application.h"
 
-#if !defined(SYSTEM_CLOCK_MS)
-#define SYSTEM_CLOCK_MS         1
-#endif
-//---------------------------------------------------------------------------
-
 Application *Application::self = 0L;
 
 unsigned short Application::mVersion = 0x0000;
@@ -99,7 +94,8 @@ void SystemInit(void) // on Reset_Handler
     /* Disable all interrupts */
     RCC->CIR = 0x00000000;
 
-    Rcc::configPll(0, CpuId::maxSysClk());
+//    Rcc::configPll(0, CpuId::maxSysClk());
+    Rcc::configPll(8000000, 168000000);
 
     /* Configure the Vector Table location add offset address ------------------*/
     #ifdef VECT_TAB_SRAM
