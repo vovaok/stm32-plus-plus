@@ -1,7 +1,7 @@
 #include "led.h"
 
 Led::Led(char portLetter, int pinNumber) :
-  mState(false)
+  mState(false),mCountMig(0)
 {
     if (pinNumber<0 || pinNumber>31)
     {
@@ -84,6 +84,18 @@ void Led::off()
 {
     mState = false;
     GPIO_ResetBits(mPort, mPin);
+}
+
+void Led::toggle(char count)
+{
+  
+  mCountMig++;
+  if(mCountMig>=count)
+  {
+    mState = !mState;
+    GPIO_ToggleBits(mPort, mPin);
+    mCountMig=0;
+  }
 }
 
 void Led::toggle()

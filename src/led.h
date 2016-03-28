@@ -15,6 +15,7 @@ private:
     uint32_t mPin;
     
     bool mState;
+    char mCountMig;
   
 public:
     Led(char portLetter, int pinNumber);
@@ -25,6 +26,7 @@ public:
     
     bool state() const {return mState;}
     void setState(bool newState);
+    void toggle(char count);
 };
 
 #endif

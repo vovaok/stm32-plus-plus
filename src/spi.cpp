@@ -16,7 +16,14 @@ Spi::Spi(SPI_TypeDef *SPIx, SPI_InitTypeDef *SPI_InitStruct) : countCs(24)
 //   
 //   zero[7] = 2.98206; zero[8] = 4.57083; zero[9] = 1.97577;
 //   zero[10] = 5.72482; zero[11] = 5.77199;
+   
+   zero[4] = 64.7;
+   zero[6] = -7;
+   zero[5] = -167;
+   zero[7] = -92;
   
+  
+  // int a = 42\23;
    
    for(int i=0;i<countCs;i++)
    {
@@ -76,8 +83,9 @@ float* Spi::spiRead() //unsigned short* Spi::spiRead()
    
     
   //  u32result[i] = (float)(temp[i]*2*PI)/65536;
+     temp[i]-= zero[i]*182;
     u32result[i] = (float)temp[i]/182;
-    u32result[i]-= zero[i];
+   
        
   }
  return u32result;
