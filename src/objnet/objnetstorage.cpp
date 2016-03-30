@@ -29,16 +29,36 @@ ObjnetStorage::ObjnetStorage(Flash::Sector sector1, Flash::Sector sector2)
     
     mSectorHeader1 = reinterpret_cast<SectorHeader*>(Flash::getBeginOfSector(mSector1));
     mSectorHeader2 = reinterpret_cast<SectorHeader*>(Flash::getBeginOfSector(mSector2));
+    
+    if (mSectorHeader1->magicNumber == Active)
+        mStorage = reinterpret_cast<unsigned long*>(mSectorHeader1);
+    else if (mSectorHeader2->magicNumber == Active)
+        mStorage = reinterpret_cast<unsigned long*>(mSectorHeader2);
+    
+    if (mSectorHeader1->magicNumber == Transfer)
+        transfer(mSector2, mSector1);
+    else if (mSectorHeader2->magicNumber == Transfer)
+        transfer(mSector1, mSector2);
+    
+    else if (mSectorHeader1->magicNumber == Erased)
+    {
+        format(mSector1);
+    }
 }
 //---------------------------------------------------------------------------
 
-void save(ObjectInfo &info)
+void ObjnetStorage::save(ObjectInfo &info)
 {
   
 }
   
-void load(ObjectInfo &info)
+void ObjnetStorage::load(ObjectInfo &info)
 {
     
 }
 //---------------------------------------------------------------------------
+
+void ObjnetStorage::transfer(Flash::Sector from, Flash::Sector to)
+{
+  
+}

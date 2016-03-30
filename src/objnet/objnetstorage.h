@@ -24,7 +24,7 @@ private:
     typedef enum
     {
         Erased      = 0xFF,
-        Transfer    = 0x02,
+        Transfer    = 0xF2,
         Active      = 0x42
     } MagicNumber;
     
@@ -70,6 +70,9 @@ private:
 #pragma pack(pop)
 
     SectorHeader *mSectorHeader1, *mSectorHeader2;
+    unsigned long *mStorage;
+    
+    void transfer(Flash::Sector from, Flash::Sector to);
     
 protected:
     friend class ObjectInfo;
