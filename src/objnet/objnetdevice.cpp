@@ -130,9 +130,17 @@ void ObjnetDevice::receiveObject(unsigned char oid, const ByteArray &ba)
         }
     }
 }
+
+void ObjnetDevice::receiveGlobalMessage(unsigned char aid)
+{
+#ifndef __ICCARM__
+    emit globalMessage(aid);
+#else
+    if (onGlobalMessage)
+        onGlobalMessage(aid);
+#endif
+}
 //---------------------------------------------------------
-
-
 
 void ObjnetDevice::requestObject(_String name)
 {    

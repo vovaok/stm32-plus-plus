@@ -442,7 +442,17 @@ void ObjnetMaster::parseMessage(CommonMessage &msg)
 {
     if (msg.isGlobal())
     {
-        return;
+        #ifndef __ICCARM__
+            emit globalMessage(msg.globalId().aid);
+        #else
+            if (onGlobalMessage)
+                onGlobalMessage(msg.globalId().aid);
+        #endif
+
+        unsigned char remoteAddr = msg.globalId().addr;
+        ObjnetDevice *dev = mDevices.count(remoteAddr)? mDevices[remoteAddr]: 0L;
+        if (dev)
+            dev->receiveGlobalMessage(msg.globalId().aid);
     }
 
     unsigned char oid = msg.localId().oid;

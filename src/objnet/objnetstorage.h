@@ -1,7 +1,7 @@
 #ifndef _OBJNETSTORAGE_H
 #define _OBJNETSTORAGE_H
 
-#include "stm32_conf.h"
+#include "flash.h"
 
 namespace Objnet
 {

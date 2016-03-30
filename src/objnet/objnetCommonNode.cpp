@@ -54,12 +54,15 @@ void ObjnetCommonNode::task()
             {
                 parseServiceMessage(inMsg);
             }
-            #ifdef __ICCARM__
-            else if (mGlobalMessageEvent)
+            else
             {
-                mGlobalMessageEvent(inMsg);
+                #warning poka x3 s global messagami
+                #ifdef __ICCARM__
+                if (mGlobalMessageEvent)
+                    mGlobalMessageEvent(inMsg);
+                #endif
+                parseMessage(inMsg);
             }
-            #endif
         }
         else
         {

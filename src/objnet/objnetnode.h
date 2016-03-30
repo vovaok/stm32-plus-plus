@@ -8,7 +8,7 @@
 
 namespace Objnet
 {
-
+  
 class ObjnetNode : public ObjnetCommonNode
 {
 #ifndef __ICCARM__
@@ -97,6 +97,13 @@ public:
     
 #ifdef __ICCARM__
     NotifyEvent onPolling;
+#endif
+
+#ifndef __ICCARM__
+signals:
+    void globalMessage(unsigned char aid);
+#else
+    GlobalMessageEvent onGlobalMessage;
 #endif
 };
 

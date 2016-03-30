@@ -66,6 +66,7 @@ protected:
     void setClassId(unsigned long classId) {mClass = classId; mClassValid = true;}
 
     void receiveObject(unsigned char oid, const ByteArray &ba);
+    void receiveGlobalMessage(unsigned char aid);
 
 public:
     ObjnetDevice(unsigned char netaddr = 0);
@@ -142,6 +143,13 @@ signals:
 public slots:
     void sendObject(QString name, QVariant value);
 
+#endif
+
+#ifndef __ICCARM__
+signals:
+    void globalMessage(unsigned char aid);
+#else
+    GlobalMessageEvent onGlobalMessage;
 #endif
 };
 

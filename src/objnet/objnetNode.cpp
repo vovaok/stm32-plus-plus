@@ -255,7 +255,12 @@ void ObjnetNode::parseMessage(CommonMessage &msg)
 {
     if (msg.isGlobal())
     {
-        return;
+    #ifndef __ICCARM__
+        emit globalMessage(msg.globalId().aid);
+    #else
+        if (onGlobalMessage)
+            onGlobalMessage(msg.globalId().aid);
+    #endif
     }
 
     unsigned char oid = msg.localId().oid;

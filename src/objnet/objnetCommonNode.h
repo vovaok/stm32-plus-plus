@@ -122,10 +122,10 @@ public:
 //    ObjnetMessageEvent retranslateEvent() const {return mRetranslateEvent;}
 
     void setGlobalMessageEvent(ObjnetMessageEvent event) {mGlobalMessageEvent = event;}
-    ObjnetMessageEvent GlobalMessageEvent() const {return mGlobalMessageEvent;}
+    ObjnetMessageEvent globalMessageEvent() const {return mGlobalMessageEvent;}
 
     void setMessageEvent(ObjnetMessageEvent event) {mMessageEvent = event;}
-    ObjnetMessageEvent MessageEvent() const {return mMessageEvent;}
+    ObjnetMessageEvent messageEvent() const {return mMessageEvent;}
 #endif
 
     void connect(ObjnetCommonNode *node);

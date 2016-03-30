@@ -80,8 +80,15 @@ public slots:
     }
 
 //    void sendRemoteMessage(unsigned char receiver, unsigned char oid, const ByteArray &ba = ByteArray());
+
+#ifndef __ICCARM__
+signals:
+    void globalMessage(unsigned char aid);
+#else
+    GlobalMessageEvent onGlobalMessage;
+#endif
 };
 
-};
+}
 
 #endif

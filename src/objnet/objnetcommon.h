@@ -17,6 +17,8 @@
 namespace Objnet
 {
 
+typedef Closure<void(unsigned char)> GlobalMessageEvent;  
+  
 using namespace std;
 
 //! Standard ActionID enumeration.
