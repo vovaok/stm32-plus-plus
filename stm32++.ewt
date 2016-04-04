@@ -6639,6 +6639,12 @@
     <name>$PROJ_DIR$\src\hardtimer.h</name>
   </file>
   <file>
+    <name>$PROJ_DIR$\src\i2c.cpp</name>
+  </file>
+  <file>
+    <name>$PROJ_DIR$\src\i2c.h</name>
+  </file>
+  <file>
     <name>$PROJ_DIR$\src\i2s.cpp</name>
   </file>
   <file>
