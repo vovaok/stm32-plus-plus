@@ -1,14 +1,14 @@
 #include "rcc.h"
 
-__no_init unsigned long Rcc::mHseValue;
-__no_init unsigned long Rcc::mPllM;
-__no_init unsigned long Rcc::mPllN;
-__no_init unsigned long Rcc::mPllP;
-__no_init unsigned long Rcc::mPllQ;
-__no_init unsigned long Rcc::mSysClk;
-__no_init unsigned long Rcc::mAHBClk;
-__no_init unsigned long Rcc::mAPB1Clk;
-__no_init unsigned long Rcc::mAPB2Clk;
+__NO_INIT( unsigned long Rcc::mHseValue );
+__NO_INIT( unsigned long Rcc::mPllM );
+__NO_INIT( unsigned long Rcc::mPllN );
+__NO_INIT( unsigned long Rcc::mPllP );
+__NO_INIT( unsigned long Rcc::mPllQ );
+__NO_INIT( unsigned long Rcc::mSysClk );
+__NO_INIT( unsigned long Rcc::mAHBClk );
+__NO_INIT( unsigned long Rcc::mAPB1Clk );
+__NO_INIT( unsigned long Rcc::mAPB2Clk );
 
 void Rcc::configPll(unsigned long hseValue, unsigned long sysClk)
 {

@@ -3,7 +3,7 @@
 
 #include "objnetcommon.h"
 
-#ifdef __ICCARM__
+#ifndef QT_VERSION
 #define _String string
 #define _toString(x) (x)
 #define _fromString(x) (x)
@@ -168,7 +168,7 @@ public:
     inline bool isDual() const {return mDesc.flags & Dual;}
     inline bool isInvokable() const {return mDesc.flags & Function;}
 
-    #ifndef __ICCARM__
+    #ifdef QT_VERSION
     QVariant toVariant();
     bool fromVariant(QVariant &v);
     #endif

@@ -2,6 +2,8 @@
 #define _APPLICATION_H
 
 #include <list>
+#include <string>
+#include <stdio.h>
 #include "rcc.h"
 #include "cpuid.h"
 #include "core/core.h"

@@ -5,7 +5,7 @@
 #include <map>
 #include "objnetcommon.h"
 #include "objectinfo.h"
-#ifdef __ICCARM__
+#ifndef QT_VERSION
 #include "timer.h"
 #else
 #include <QtCore>
@@ -17,7 +17,7 @@ namespace Objnet
 {
 
 
-#ifdef __ICCARM__
+#ifndef QT_VERSION
 class ObjnetDevice {
 #else
 class ObjnetDevice : public QObject
@@ -92,7 +92,7 @@ public:
     int objectCount() const {return mObjectCount;}
     ObjectInfo *objectInfo(unsigned char oid) {if (oid < mObjects.size()) return mObjects[oid]; return 0L;}
 
-    #ifdef __ICCARM__
+    #ifndef QT_VERSION
 
     #else
 
@@ -130,7 +130,7 @@ public:
     void sendObject(_String name);
     void autoRequest(_String name, int periodMs);
 
-#ifndef __ICCARM__
+#ifdef QT_VERSION
 signals:
     void requestObject(unsigned char netAddress, unsigned char oid);
     void sendObject(unsigned char netAddress, unsigned char oid, const QByteArray &ba);
@@ -145,7 +145,7 @@ public slots:
 
 #endif
 
-#ifndef __ICCARM__
+#ifdef QT_VERSION
 signals:
     void globalMessage(unsigned char aid);
 #else

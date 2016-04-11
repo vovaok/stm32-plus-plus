@@ -3,7 +3,7 @@
 
 #include <deque>
 #include "objnetInterface.h"
-#include "usb/usbhid/usbhid.h"
+#include "usb/usbHid/usbhid.h"
 #include "timer.h"
 
 using namespace Usb;

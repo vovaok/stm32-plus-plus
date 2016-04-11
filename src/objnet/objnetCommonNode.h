@@ -5,7 +5,7 @@
 #include <map>
 #include "objnetInterface.h"
 #include "objectinfo.h"
-#ifdef __ICCARM__
+#ifndef QT_VERSION
 #include "canInterface.h"
 #include "gpio.h"
 #include "timer.h"
@@ -17,7 +17,7 @@
 namespace Objnet
 {
 
-#ifdef __ICCARM__
+#ifndef QT_VERSION
 //! Событие, содержащее сообщение Objnet.
 typedef Closure<void(CommonMessage&)> ObjnetMessageEvent;
 #endif
@@ -25,7 +25,7 @@ typedef Closure<void(CommonMessage&)> ObjnetMessageEvent;
 /*! Узел сети Objnet.
     Реализует поведение узла (Node) на сетевом и транспортном уровнях.
 */
-#ifdef __ICCARM__
+#ifndef QT_VERSION
 class ObjnetCommonNode
 {
 #else
@@ -37,7 +37,7 @@ private:
     int mLocalFilter;
     int mGlobalFilter;
 
-#ifdef __ICCARM__
+#ifndef QT_VERSION
 //    ObjnetMessageEvent mRetranslateEvent;
     ObjnetMessageEvent mGlobalMessageEvent;
     ObjnetMessageEvent mMessageEvent;
@@ -79,7 +79,7 @@ protected:
 
     virtual void acceptServiceMessage(unsigned char sender, SvcOID oid, ByteArray *ba=0L) = 0;
 
-#ifdef __ICCARM__
+#ifndef QT_VERSION
 protected:
 #else
 protected slots:
@@ -108,7 +108,7 @@ public:
     */
     unsigned char busAddress() const {return mBusAddress;}
 
-#ifdef __ICCARM__
+#ifndef QT_VERSION
     /*! Установка физического адреса по сигналам на ногах.
         В функцию передаётся разрядность адреса и имена ножек
         в порядке от младшего бита к старшему.

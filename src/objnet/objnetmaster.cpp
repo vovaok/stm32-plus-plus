@@ -16,7 +16,7 @@ ObjnetMaster::ObjnetMaster(ObjnetInterface *iface) :
     }
     setBusAddress(0);
     mNetAddress = 0x00;
-    #ifdef __ICCARM__
+    #ifndef QT_VERSION
     mTimer.setTimeoutEvent(EVENT(&ObjnetMaster::onTimer));
     #else
     QObject::connect(&mTimer, SIGNAL(timeout()), this, SLOT(onTimer()));
@@ -84,7 +84,7 @@ void ObjnetMaster::onTimer()
                     ba.append(dev->mNetAddress);
                     mAdjacentNode->acceptServiceMessage(0, svcDisconnected, &ba);
                 }
-                #ifndef __ICCARM__
+                #ifdef QT_VERSION
                 emit devDisconnected(dev->mNetAddress);
                 #endif
             }
@@ -102,7 +102,7 @@ void ObjnetMaster::onTimer()
             mAdjacentNode->acceptServiceMessage(0, svcKill, &ba);
             removeNatPair(supernetaddr, dev->mNetAddress);
         }
-        #ifndef __ICCARM__
+        #ifdef QT_VERSION
         emit devRemoved(dev->mNetAddress);
         #endif
         unsigned char mac = route(dev->mNetAddress);
@@ -116,7 +116,7 @@ void ObjnetMaster::onTimer()
 
 void ObjnetMaster::acceptServiceMessage(unsigned char sender, SvcOID oid, ByteArray *ba)
 {
-//    #ifndef __ICCARM__
+//    #ifdef QT_VERSION
 //    qDebug() << "master" << QString::fromStdString(mName) << "accept" << oid;
 //    #endif
 
@@ -149,7 +149,7 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
 {
     SvcOID oid = (SvcOID)msg.localId().oid;
 
-//    #ifndef __ICCARM__
+//    #ifdef QT_VERSION
 //    qDebug() << "master" << QString::fromStdString(mName) << "parse" << oid;
 //    #endif
 
@@ -158,7 +158,7 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
     switch (oid)
     {
       case svcEcho:
-//        #ifndef __ICCARM__
+//        #ifdef QT_VERSION
 //        qDebug() << "master" << QString::fromStdString(mName) << "parse echo from" << netaddr;
 //        #endif
         if (!dev)
@@ -184,7 +184,7 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
                 dev->mInfoValidCnt = 0;
                 sendServiceMessage(netaddr, svcRequestAllInfo);
                 sendServiceMessage(netaddr, svcRequestObjInfo);
-                #ifndef __ICCARM__
+                #ifdef QT_VERSION
                 emit devConnected(dev->mNetAddress);
                 #endif
             }
@@ -230,7 +230,7 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
             mDevices[netaddr] = dev;                     // запоминаем для поиска по адресу
             welcomeCmd = svcWelcome;                     // меняем команду на svcWelcome
 
-            #ifndef __ICCARM__
+            #ifdef QT_VERSION
             QObject::connect(dev, SIGNAL(requestObject(unsigned char,unsigned char)), SLOT(requestObject(unsigned char,unsigned char)));
             QObject::connect(dev, SIGNAL(sendObject(unsigned char,unsigned char,QByteArray)), SLOT(sendObject(unsigned char,unsigned char,QByteArray)));
             QObject::connect(dev, SIGNAL(serviceRequest(unsigned char,SvcOID,QByteArray)), SLOT(sendServiceRequest(unsigned char,SvcOID,QByteArray)));
@@ -273,7 +273,7 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
 
 //        ba.append(netaddr);                         // добавляем в конец созданный логический адрес текущего узла
 
-        #ifndef __ICCARM__
+        #ifdef QT_VERSION
         emit devAdded(netaddr, ba);                 // устройство добавлено
         #endif
 
@@ -304,7 +304,7 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
         }
 //#warning if (localnet) '// nado dobavit!'
 //        sendServiceMessage(netaddr, svcRequestAllInfo);
-        #ifndef __ICCARM__
+        #ifdef QT_VERSION
         emit devConnected(netaddr2);
         #endif
         break;
@@ -324,7 +324,7 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
                 removeNatPair(addr, netaddr);
             }
         }
-        #ifndef __ICCARM__
+        #ifdef QT_VERSION
         emit devDisconnected(netaddr);
         #endif
         break;
@@ -345,7 +345,7 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
                 removeNatPair(addr, netaddr);
             }
         }
-        #ifndef __ICCARM__
+        #ifdef QT_VERSION
         emit devRemoved(netaddr);
         #endif
         break;
@@ -425,7 +425,7 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
 
     if (oid < svcEcho)
     {
-        #ifndef __ICCARM__
+        #ifdef QT_VERSION
         emit serviceMessageAccepted(netaddr, oid, msg.data());
         #endif
     }
@@ -442,7 +442,7 @@ void ObjnetMaster::parseMessage(CommonMessage &msg)
 {
     if (msg.isGlobal())
     {
-        #ifndef __ICCARM__
+        #ifdef QT_VERSION
             emit globalMessage(msg.globalId().aid);
         #else
             if (onGlobalMessage)
@@ -465,7 +465,7 @@ void ObjnetMaster::parseMessage(CommonMessage &msg)
     }
     else
     {
-        #ifndef __ICCARM__
+        #ifdef QT_VERSION
         //qDebug() << "object received from unknown device!!";
         #endif
     }
@@ -496,7 +496,7 @@ void ObjnetMaster::addDevice(unsigned char mac, ObjnetDevice *dev)
     dev->mNetAddress = createNetAddress(mac);   // создаём объект с новым адресом
     dev->mAutoDelete = false;                   // автоматически не удаляется, т.к. создан внешним объектом
     mDevices[mac] = dev;                        // запоминаем для поиска по маку
-    #ifndef __ICCARM__
+    #ifdef QT_VERSION
     emit devAdded(dev->mNetAddress, ByteArray().append(mac));
     #endif
 }

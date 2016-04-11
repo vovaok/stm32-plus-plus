@@ -2,7 +2,7 @@
 #define _OBJNET_NODE_H
 
 #include "objnetCommonNode.h"
-#ifdef __ICCARM__
+#ifndef QT_VERSION
 #include "cpuid.h"
 #endif
 
@@ -11,7 +11,7 @@ namespace Objnet
   
 class ObjnetNode : public ObjnetCommonNode
 {
-#ifndef __ICCARM__
+#ifdef QT_VERSION
     Q_OBJECT
 #endif
 private:
@@ -46,7 +46,7 @@ private:
     // словарь объектов
     std::vector<ObjectInfo> mObjects;
 
-#ifdef __ICCARM__
+#ifndef QT_VERSION
 protected:
 #else
 protected slots:
@@ -66,7 +66,7 @@ protected:
 
     void registerSvcObject(const ObjectInfo &info) {mSvcObjects.push_back(info);}
 
-#ifndef __ICCARM__
+#ifdef QT_VERSION
 protected slots:
 #endif
     void onTimeoutTimer();
@@ -95,11 +95,11 @@ public:
     #define BindMethod(method) bindObject(ObjectInfo(#method, CLOSURE(this, &method)))
     #define BindMethodEx(name, object, method) bindObject(ObjectInfo(name, CLOSURE(object, &method)))
     
-#ifdef __ICCARM__
+#ifndef QT_VERSION
     NotifyEvent onPolling;
 #endif
 
-#ifndef __ICCARM__
+#ifdef QT_VERSION
 signals:
     void globalMessage(unsigned char aid);
 #else

@@ -12,7 +12,7 @@ ObjnetCommonNode::ObjnetCommonNode(ObjnetInterface *iface) :
     mNetAddress(0xFF),
     mConnected(false)
 {
-    #ifdef __ICCARM__
+    #ifndef QT_VERSION
     stmApp()->registerTaskEvent(EVENT(&ObjnetCommonNode::task));
     #else
     QTimer *timer = new QTimer(this);
@@ -23,7 +23,7 @@ ObjnetCommonNode::ObjnetCommonNode(ObjnetInterface *iface) :
 
 ObjnetCommonNode::~ObjnetCommonNode()
 {
-    #ifdef __ICCARM__
+    #ifndef QT_VERSION
     stmApp()->unregisterTaskEvent(EVENT(&ObjnetCommonNode::task));
     #endif
     delete mInterface;
@@ -57,7 +57,7 @@ void ObjnetCommonNode::task()
             else
             {
                 #warning poka x3 s global messagami
-                #ifdef __ICCARM__
+                #ifndef QT_VERSION
                 if (mGlobalMessageEvent)
                     mGlobalMessageEvent(inMsg);
                 #endif
@@ -149,7 +149,7 @@ void ObjnetCommonNode::setBusAddress(unsigned char address)
     mGlobalFilter = mInterface->addFilter(gid, gmask);
 }
 
-#ifdef __ICCARM__
+#ifndef QT_VERSION
 void ObjnetCommonNode::setBusAddressFromPins(int bits, Gpio::PinName a0, ...)
 {
     unsigned long address = 0;

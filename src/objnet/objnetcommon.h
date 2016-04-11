@@ -3,7 +3,7 @@
 
 #include <string>
 #include <typeinfo>
-#ifdef __ICCARM__
+#ifndef QT_VERSION
 #include "core/core.h"
 #else
 #include <QtCore>

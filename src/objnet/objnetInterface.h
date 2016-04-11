@@ -18,7 +18,7 @@ namespace Objnet
 /*! Media access interface.
     Provide access to link layer of the network
 */
-#ifdef __ICCARM__
+#ifndef QT_VERSION
 class ObjnetInterface
 {
 #else
