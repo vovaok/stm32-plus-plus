@@ -1,0 +1,9 @@
+import qbs
+
+Module {
+	property string repoRoot: qbs.getEnv("ARM_REPO")
+
+	property string commonIncludes: repoRoot + "/include"
+
+	property string commonLibs: repoRoot + "/lib/GCC"
+}
