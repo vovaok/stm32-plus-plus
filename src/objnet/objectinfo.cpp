@@ -9,7 +9,7 @@ ObjectInfo::ObjectInfo() :
 {
 }
 
-#ifndef QT_VERSION
+#ifndef QT_CORE_LIB
 template<> ObjectInfo::ObjectInfo<void>(string name, Closure<void(void)> event, ObjectInfo::Flags flags) :
     mAutoPeriod(0), mAutoTime(0),
     mIsDevice(false)
@@ -183,7 +183,7 @@ ByteArray ObjectInfo::invoke(const ByteArray &ba)
 }
 //---------------------------------------------------------
 
-#ifdef QT_VERSION
+#ifdef QT_CORE_LIB
 QVariant ObjectInfo::toVariant()
 {
     if (!mWritePtr)

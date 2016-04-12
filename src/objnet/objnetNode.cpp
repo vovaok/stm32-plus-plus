@@ -15,7 +15,7 @@ ObjnetNode::ObjnetNode(ObjnetInterface *iface) :
     mVersion(0x0100),
     mBurnCount(0)
 {
-    #ifndef QT_VERSION
+    #ifndef QT_CORE_LIB
     mTimer.setTimeoutEvent(EVENT(&ObjnetNode::onTimeoutTimer));
     mSendTimer.setTimeoutEvent(EVENT(&ObjnetNode::onSendTimer));
     #else
@@ -25,7 +25,7 @@ ObjnetNode::ObjnetNode(ObjnetInterface *iface) :
     mTimer.start(200);
     mSendTimer.start(1);
 
-    #ifndef QT_VERSION
+    #ifndef QT_CORE_LIB
     mVersion = stmApp()->version();
     mBuildDate = stmApp()->buildDate();
     mSerial = CpuId::serial();
@@ -101,7 +101,7 @@ void ObjnetNode::task()
 
 void ObjnetNode::acceptServiceMessage(unsigned char sender, SvcOID oid, ByteArray *ba)
 {
-//    #ifdef QT_VERSION
+//    #ifdef QT_CORE_LIB
 //    qDebug() << "node" << QString::fromStdString(mName) << "accept" << oid;
 //    #endif
 
@@ -131,7 +131,7 @@ void ObjnetNode::parseServiceMessage(CommonMessage &msg)
     {
         StdAID aid = (StdAID)msg.globalId().aid;
 
-//        #ifdef QT_VERSION
+//        #ifdef QT_CORE_LIB
 //        qDebug() << "node" << QString::fromStdString(mName) << "global" << aid;
 //        #endif
 
@@ -148,7 +148,7 @@ void ObjnetNode::parseServiceMessage(CommonMessage &msg)
             {
                 mNetState = netnConnecting;
             }
-            #ifndef QT_VERSION
+            #ifndef QT_CORE_LIB
             if (onPolling)
                 onPolling();
             #endif
@@ -168,7 +168,7 @@ void ObjnetNode::parseServiceMessage(CommonMessage &msg)
     SvcOID oid = (SvcOID)msg.localId().oid;
     unsigned char remoteAddr = msg.localId().sender;
 
-//    #ifdef QT_VERSION
+//    #ifdef QT_CORE_LIB
 //    qDebug() << "node" << QString::fromStdString(mName) << "parse" << oid;
 //    #endif
 
@@ -255,7 +255,7 @@ void ObjnetNode::parseMessage(CommonMessage &msg)
 {
     if (msg.isGlobal())
     {
-    #ifdef QT_VERSION
+    #ifdef QT_CORE_LIB
         emit globalMessage(msg.globalId().aid);
     #else
         if (onGlobalMessage)

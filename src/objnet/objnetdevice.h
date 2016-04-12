@@ -5,7 +5,7 @@
 #include <map>
 #include "objnetcommon.h"
 #include "objectinfo.h"
-#ifndef QT_VERSION
+#ifndef QT_CORE_LIB
 #include "timer.h"
 #else
 #include <QtCore>
@@ -17,7 +17,7 @@ namespace Objnet
 {
 
 
-#ifndef QT_VERSION
+#ifndef QT_CORE_LIB
 class ObjnetDevice {
 #else
 class ObjnetDevice : public QObject
@@ -39,7 +39,7 @@ protected:
     unsigned char mNetAddress;
     bool mPresent;
     unsigned char mTimeout;
-    bool mAutoDelete; // РєРѕРіРґР° true, РїСЂРё РѕС‚РєР»СЋС‡РµРЅРёРё РґРµРІР°Р№СЃР° РѕС‚ СЃРµС‚Рё, РѕРЅ СѓРґР°Р»СЏРµС‚СЃСЏ РёР· СЃРїРёСЃРєР° (РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ false, С‚РѕР»СЊРєРѕ РјР°СЃС‚РµСЂ РјРѕР¶РµС‚ СѓСЃС‚Р°РЅРѕРІРёС‚СЊ true РїСЂРё СЃРѕР·РґР°РЅРёРё РѕР±СЉРµРєС‚Р°)
+    bool mAutoDelete; // когда true, при отключении девайса от сети, он удаляется из списка (по умолчанию false, только мастер может установить true при создании объекта)
 //    bool mStateChanged;
 //    unsigned char mChildrenCount;
 //    unsigned char mOrphanCount; // not processed children
@@ -92,7 +92,7 @@ public:
     int objectCount() const {return mObjectCount;}
     ObjectInfo *objectInfo(unsigned char oid) {if (oid < mObjects.size()) return mObjects[oid]; return 0L;}
 
-    #ifndef QT_VERSION
+    #ifndef QT_CORE_LIB
 
     #else
 
@@ -130,7 +130,7 @@ public:
     void sendObject(_String name);
     void autoRequest(_String name, int periodMs);
 
-#ifdef QT_VERSION
+#ifdef QT_CORE_LIB
 signals:
     void requestObject(unsigned char netAddress, unsigned char oid);
     void sendObject(unsigned char netAddress, unsigned char oid, const QByteArray &ba);
@@ -145,7 +145,7 @@ public slots:
 
 #endif
 
-#ifdef QT_VERSION
+#ifdef QT_CORE_LIB
 signals:
     void globalMessage(unsigned char aid);
 #else

@@ -3,7 +3,7 @@
 
 #include "objnetcommon.h"
 
-#ifndef QT_VERSION
+#ifndef QT_CORE_LIB
 #define _String string
 #define _toString(x) (x)
 #define _fromString(x) (x)
@@ -168,7 +168,7 @@ public:
     inline bool isDual() const {return mDesc.flags & Dual;}
     inline bool isInvokable() const {return mDesc.flags & Function;}
 
-    #ifdef QT_VERSION
+    #ifdef QT_CORE_LIB
     QVariant toVariant();
     bool fromVariant(QVariant &v);
     #endif

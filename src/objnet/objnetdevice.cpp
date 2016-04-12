@@ -29,7 +29,7 @@ void ObjnetDevice::prepareObject(const ObjectInfo::Description &desc)
     if (obj->mWritePtr && desc.writeSize && desc.wType != obj->mDesc.wType)
     {
         wt = obj->mDesc.wType;
-        #ifdef QT_VERSION
+        #ifdef QT_CORE_LIB
         qDebug() << "[ObjnetDevice::prepareObject] write type mismatch!!";
         #endif
     }
@@ -37,7 +37,7 @@ void ObjnetDevice::prepareObject(const ObjectInfo::Description &desc)
     if (obj->mReadPtr && desc.readSize && desc.rType != obj->mDesc.rType)
     {
         rt = obj->mDesc.rType;
-        #ifdef QT_VERSION
+        #ifdef QT_CORE_LIB
         qDebug() << "[ObjnetDevice::prepareObject] read type mismatch!!";
         #endif
     }
@@ -99,7 +99,7 @@ void ObjnetDevice::prepareObject(const ObjectInfo::Description &desc)
         }
     }
 
-    #ifdef QT_VERSION
+    #ifdef QT_CORE_LIB
     if (desc.id == mObjectCount - 1)
         emit ready();
     #else
@@ -116,7 +116,7 @@ void ObjnetDevice::receiveObject(unsigned char oid, const ByteArray &ba)
         if (obj)
         {
             obj->write(ba);
-            #ifndef QT_VERSION
+            #ifndef QT_CORE_LIB
             //onObjectReceived(oid);
             #else
             emit objectReceived(obj->name(), obj->toVariant());
@@ -124,7 +124,7 @@ void ObjnetDevice::receiveObject(unsigned char oid, const ByteArray &ba)
         }
         else
         {
-            #ifdef QT_VERSION
+            #ifdef QT_CORE_LIB
             qDebug() << "no such object";
             #endif
         }
@@ -133,7 +133,7 @@ void ObjnetDevice::receiveObject(unsigned char oid, const ByteArray &ba)
 
 void ObjnetDevice::receiveGlobalMessage(unsigned char aid)
 {
-#ifdef QT_VERSION
+#ifdef QT_CORE_LIB
     emit globalMessage(aid);
 #else
     if (onGlobalMessage)
@@ -148,7 +148,7 @@ void ObjnetDevice::requestObject(_String name)
     if (it != mObjMap.end() && it->second.flags())
     {
         unsigned char oid = it->second.mDesc.id;
-        #ifdef QT_VERSION
+        #ifdef QT_CORE_LIB
         emit requestObject(mNetAddress, oid);
         #endif
     }
@@ -163,7 +163,7 @@ void ObjnetDevice::sendObject(_String name)
         ObjectInfo *obj = mObjects[oid];
         if (obj)
         {
-            #ifdef QT_VERSION
+            #ifdef QT_CORE_LIB
             emit sendObject(mNetAddress, oid, obj->read());
             #endif
         }
@@ -179,13 +179,13 @@ void ObjnetDevice::autoRequest(_String name, int periodMs)
         ByteArray ba;
         ba.append(reinterpret_cast<const char*>(&periodMs), sizeof(int));
         ba.append(oid);
-        #ifdef QT_VERSION
+        #ifdef QT_CORE_LIB
         emit serviceRequest(mNetAddress, svcAutoRequest, ba);
         #endif
     }
 }
 
-#ifdef QT_VERSION
+#ifdef QT_CORE_LIB
 void ObjnetDevice::sendObject(QString name, QVariant value)
 {
     map<string, ObjectInfo>::iterator it = mObjMap.find(_fromString(name));
