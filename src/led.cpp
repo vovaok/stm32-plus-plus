@@ -86,16 +86,15 @@ void Led::off()
     GPIO_ResetBits(mPort, mPin);
 }
 
-void Led::toggle(char count)
+void Led::toggleSkip(char count)
 {
-  
-  mCountMig++;
-  if(mCountMig>=count)
-  {
-    mState = !mState;
-    GPIO_ToggleBits(mPort, mPin);
-    mCountMig=0;
-  }
+    mCountMig++;
+    if (mCountMig>=count)
+    {
+        mState = !mState;
+        GPIO_ToggleBits(mPort, mPin);
+        mCountMig=0;
+    }
 }
 
 void Led::toggle()

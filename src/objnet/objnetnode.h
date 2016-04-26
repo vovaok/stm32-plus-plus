@@ -4,6 +4,7 @@
 #include "objnetCommonNode.h"
 #ifdef __ICCARM__
 #include "cpuid.h"
+#include "objnetstorage.h"
 #endif
 
 namespace Objnet
@@ -61,7 +62,6 @@ protected:
 
     unsigned char route(unsigned char netAddress) {(void)netAddress; return 0;}
 
-    void setClassId(unsigned long classId) {mClass = classId;}
     void setSerial(unsigned long serial) {mSerial = serial;}
 
     void registerSvcObject(const ObjectInfo &info) {mSvcObjects.push_back(info);}
@@ -75,6 +75,7 @@ protected slots:
 public:
     ObjnetNode(ObjnetInterface *iface);
     
+    void setClassId(unsigned long classId) {mClass = classId;}
     void setName(string name) {mName = name.substr(0, 8);}
     void setFullName(string name) {mFullName = name;}
     
@@ -88,7 +89,7 @@ public:
 
     bool isConnected() const {return mNetState > netnConnecting;}
 
-    void bindObject(const ObjectInfo &info) {mObjects.push_back(info); mObjects.back().mDesc.id = mObjects.size() - 1;}
+    void bindObject(const ObjectInfo &info);
     #define BindObject(obj) bindObject(ObjectInfo(#obj, obj)) // convenient macro
     #define BindObjectEx(obj, flags) bindObject(ObjectInfo(#obj, obj, flags)) // convenient macro
     #define BindDualObject(objRead, objWrite) bindObject(ObjectInfo(#objRead":"#objWrite, objRead, objWrite))

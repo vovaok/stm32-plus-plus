@@ -1,0 +1,83 @@
+#include "buzzer.h"
+
+unsigned short Buzzer::mNoteFreqs[12] = {8372, 8870, 9397, 9956, 10548, 11175, 11840, 12544, 13290, 14080, 14917, 15804};
+
+Buzzer::Buzzer(Gpio::Config pin) :
+    mTime(0),
+    mEndFlag(false)
+{
+    TimerNumber tim = HardwareTimer::getTimerByPin(pin);
+    mChan = HardwareTimer::getChannelByPin(pin);
+    
+    if (tim == TimNone)
+        throw Exception::invalidPeriph;
+    if (mChan == ChNone)
+        throw Exception::invalidPin;
+    
+    mPwm = new PwmOutput(tim, 1_kHz);
+    mPwm->configChannel(mChan, pin);
+    mPwm->setDutyCycle(mChan, 32768);
+    
+    stmApp()->registerTaskEvent(EVENT(&Buzzer::task));
+    stmApp()->registerTickEvent(EVENT(&Buzzer::tick));
+}
+
+void Buzzer::task()
+{
+    if (mEndFlag)
+    {
+        mEndFlag = false;
+        off();
+        if (onBeepDone)
+            onBeepDone();
+    }
+}
+
+void Buzzer::tick(int dt)
+{
+    if (mTime > dt)
+    {
+        mTime -= dt;
+    }
+    else if (mTime)
+    {
+        mTime = 0;
+        mEndFlag = true;
+    }
+}
+
+//void Buzzer::setVolume(unsigned char volume_percent)
+//{
+//    mPwm->setDutyCycle(mChan, ((unsigned long)volume_percent << 15) / 100); // 50% = max volume
+//}
+
+void Buzzer::setFrequency(int f_Hz)
+{
+    mPwm->setFrequency(f_Hz);
+}
+
+void Buzzer::setEnabled(bool enabled)
+{
+    mPwm->setChannelEnabled(mChan, enabled);
+}
+
+void Buzzer::beep(int duration_ms)
+{
+    if (mTime)
+        mEndFlag = true;
+    mTime = duration_ms;
+    on();
+}
+
+void Buzzer::beep(unsigned char note, int duration_ms)
+{
+    setFrequency(getFreqByNote(note));
+    beep(duration_ms);
+}
+
+int Buzzer::getFreqByNote(unsigned char note)
+{
+    int octave1 = (note / 12);
+    note -= octave1 * 12;
+    return mNoteFreqs[note] >> (10 - octave1);
+}

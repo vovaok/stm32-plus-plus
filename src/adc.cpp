@@ -203,7 +203,7 @@ void Adc::setContinuousMode(bool enabled)
 }
 //---------------------------------------------------------------------------
 
-int Adc::result(Channel channel)
+int Adc::result(unsigned char channel)
 {
     int index = mChannelResultMap[channel];
     if (index >= 0 && index < mChannelCount)

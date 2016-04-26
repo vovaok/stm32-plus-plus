@@ -45,6 +45,17 @@ ObjnetNode::ObjnetNode(ObjnetInterface *iface) :
 }
 //---------------------------------------------------------------------------
 
+void ObjnetNode::bindObject(const ObjectInfo &info)
+{
+    mObjects.push_back(info);
+    ObjectInfo &obj = mObjects.back();
+    obj.mDesc.id = mObjects.size() - 1;
+    #ifdef __ICCARM__
+    if (obj.isStorable())
+        objnetStorage()->load(obj);
+    #endif
+}
+
 void ObjnetNode::task()
 {
     ObjnetCommonNode::task();
@@ -280,6 +291,10 @@ void ObjnetNode::parseMessage(CommonMessage &msg)
             obj.write(msg.data());
             if (obj.isDual())
                 sendMessage(remoteAddr, oid, obj.read());
+            #ifdef __ICCARM__
+            else if (obj.isStorable())
+                objnetStorage()->save(obj);
+            #endif
         }
         else
         {

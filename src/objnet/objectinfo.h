@@ -131,6 +131,7 @@ private:
     friend class ObjnetNode;
     friend class ObjnetMaster;
     friend class ObjnetDevice;
+    friend class ObjnetStorage;
 
 public:
     ObjectInfo();
@@ -224,6 +225,7 @@ ObjectInfo::ObjectInfo(string name, const T &var, Flags flags) :
     mIsDevice(false)
 {
     flags = static_cast<Flags>(flags & (~Write));
+    flags = static_cast<Flags>(flags & (~Save));
     size_t sz = sizeof(T);
     Type t = typeOfVar(var);
     if (flags & Read)
@@ -242,6 +244,7 @@ ObjectInfo::ObjectInfo(string name, const Tr &varRead, Tw &varWrite, Flags flags
     mAutoPeriod(0), mAutoTime(0),
     mIsDevice(false)
 {
+    flags = static_cast<Flags>(flags & (~Save));
     if (flags & Read)
     {
         mReadPtr = &varRead;

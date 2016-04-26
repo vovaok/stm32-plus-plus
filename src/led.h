@@ -26,7 +26,7 @@ public:
     
     bool state() const {return mState;}
     void setState(bool newState);
-    void toggle(char count);
+    void toggleSkip(char count);
 };
 
 #endif

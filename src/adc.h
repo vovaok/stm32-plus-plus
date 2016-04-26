@@ -88,7 +88,7 @@ public:
     
     void configDma(Dma *dma);
     
-    int result(Channel channel);
+    int result(unsigned char channel);
 };
 
 #endif

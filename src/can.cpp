@@ -51,7 +51,7 @@ Can::Can(int canNumber, int baudrate, Gpio::Config pinRx, Gpio::Config pinTx) :
     
     /* CAN cell init */
     CAN_InitStructure.CAN_TTCM = DISABLE;
-    CAN_InitStructure.CAN_ABOM = DISABLE;
+    CAN_InitStructure.CAN_ABOM = ENABLE; //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! must be enabled!
     CAN_InitStructure.CAN_AWUM = DISABLE;
     CAN_InitStructure.CAN_NART = DISABLE;
     CAN_InitStructure.CAN_RFLM = DISABLE;
