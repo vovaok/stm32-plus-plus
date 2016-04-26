@@ -49,7 +49,6 @@ Adc::Adc(int adcBase) :
 //    mConfig.ADC_ExternalTrigConv = ;
     mConfig.ADC_DataAlign = ADC_DataAlign_Left;
     mConfig.ADC_NbrOfConversion = mChannelCount;
-    ADC_Init(mAdc, &mConfig);
 }
 //---------------------------------------------------------------------------
 

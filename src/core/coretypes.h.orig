@@ -1,0 +1,11 @@
+#include "core/closure.h"
+#include "core/bytearray.h"
+
+typedef Closure<void(void)> TaskEvent;
+typedef Closure<void(int)> TickEvent;
+typedef Closure<void(void)> NotifyEvent;
+<<<<<<< HEAD
+typedef Closure<void(ByteArray &)> DataEvent;
+typedef Closure<void(const ByteArray &)> ConstDataEvent;
+=======
+>>>>>>> d9b4eef4439cd15c84402157a03b794bee1b4a26

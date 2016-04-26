@@ -12,7 +12,7 @@ ObjnetCommonNode::ObjnetCommonNode(ObjnetInterface *iface) :
     mNetAddress(0xFF),
     mConnected(false)
 {
-    #ifdef __ICCARM__
+    #ifndef QT_CORE_LIB
     stmApp()->registerTaskEvent(EVENT(&ObjnetCommonNode::task));
     #else
     QTimer *timer = new QTimer(this);
@@ -23,7 +23,7 @@ ObjnetCommonNode::ObjnetCommonNode(ObjnetInterface *iface) :
 
 ObjnetCommonNode::~ObjnetCommonNode()
 {
-    #ifdef __ICCARM__
+    #ifndef QT_CORE_LIB
     stmApp()->unregisterTaskEvent(EVENT(&ObjnetCommonNode::task));
     #endif
     delete mInterface;
@@ -32,7 +32,7 @@ ObjnetCommonNode::~ObjnetCommonNode()
 
 void ObjnetCommonNode::task()
 {
-    // РЅРµ РІС‹РїРѕР»РЅСЏРµРј Р·Р°РґР°С‡Сѓ, РїРѕРєР° С„РёР·РёС‡РµСЃРєРёР№ Р°РґСЂРµСЃ РЅРµРїСЂР°РІРёР»СЊРЅС‹Р№
+    // не выполняем задачу, пока физический адрес неправильный
     if (mBusAddress == 0xFF)
         return;
 
@@ -57,7 +57,7 @@ void ObjnetCommonNode::task()
             else
             {
                 #warning poka x3 s global messagami
-                #ifdef __ICCARM__
+                #ifndef QT_CORE_LIB
                 if (mGlobalMessageEvent)
                     mGlobalMessageEvent(inMsg);
                 #endif
@@ -126,7 +126,7 @@ void ObjnetCommonNode::task()
 
 void ObjnetCommonNode::setBusAddress(unsigned char address)
 {
-    if (address > 0xF && address != 0xFF) // РїСЂРµСЃРµРєР°РµРј РїРѕРїС‹С‚РєСѓ СѓСЃС‚Р°РЅРѕРІРєРё РЅРµРїСЂР°РІРёР»СЊРЅРѕРіРѕ Р°РґСЂРµСЃР°
+    if (address > 0xF && address != 0xFF) // пресекаем попытку установки неправильного адреса
         return;
 
     if (mLocalFilter >= 0)
@@ -149,7 +149,7 @@ void ObjnetCommonNode::setBusAddress(unsigned char address)
     mGlobalFilter = mInterface->addFilter(gid, gmask);
 }
 
-#ifdef __ICCARM__
+#ifndef QT_CORE_LIB
 void ObjnetCommonNode::setBusAddressFromPins(int bits, Gpio::PinName a0, ...)
 {
     unsigned long address = 0;

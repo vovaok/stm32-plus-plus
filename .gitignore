@@ -9,3 +9,4 @@ lib/CMSIS/*.pdf
 lib/CMSIS/*.htm
 lib/CMSIS/DSP_Lib/Examples
 *.dep
+*~

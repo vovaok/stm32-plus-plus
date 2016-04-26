@@ -303,6 +303,31 @@ public:
         CAN2_TX_PB6 =       PINCONFIG(PB6,  modeAF | outPushPull | pullUp | speed50MHz, afCan2), //!<.
         CAN2_RX_PB12 =      PINCONFIG(PB12, modeAF | outPushPull | pullUp | speed50MHz, afCan2), //!<.
         CAN2_TX_PB13 =      PINCONFIG(PB13, modeAF | outPushPull | pullUp | speed50MHz, afCan2), //!<.
+        
+        //I2C
+        I2C2_SCL_PH4 =      PINCONFIG(PH4,  modeAF | outOpenDrain| pullUp | speed50MHz, afI2C2), //!<.
+        I2C2_SDA_PH5 =      PINCONFIG(PH5,  modeAF | outOpenDrain| pullUp | speed50MHz, afI2C2), //!<.
+        I2C2_SCL_PB10 =     PINCONFIG(PB10,  modeAF | outOpenDrain| pullUp | speed50MHz, afI2C2), //!<.
+        I2C2_SDA_PB11 =     PINCONFIG(PB11,  modeAF | outOpenDrain| pullUp | speed50MHz, afI2C2), //!<.
+        I2C2_SMBA_PH6 =     PINCONFIG(PH6,  modeAF | outOpenDrain| pullUp | speed50MHz, afI2C2), //!<.
+        I2C3_SCL_PH7 =      PINCONFIG(PH7,  modeAF | outOpenDrain| pullUp | speed50MHz, afI2C3), //!<.
+        I2C3_SDA_PH8  =     PINCONFIG(PH8,  modeAF | outOpenDrain| pullUp | speed50MHz, afI2C3), //!<.
+        I2C3_SMBA_PH9 =     PINCONFIG(PH9,  modeAF | outOpenDrain| pullUp | speed50MHz, afI2C3), //!<.
+        I2C2_SMBA_PB12  =   PINCONFIG(PB12,  modeAF | outOpenDrain| pullUp | speed50MHz, afI2C2), //!<.
+        I2C3_SDA_PC9  =     PINCONFIG(PC9,  modeAF | outOpenDrain| pullUp | speed50MHz, afI2C3), //!<.
+        I2C3_SCL_PA8  =     PINCONFIG(PA8,  modeAF | outOpenDrain| pullUp | speed50MHz, afI2C3), //!<.
+        I2C3_SMBA_PA9  =    PINCONFIG(PA9,  modeAF | outOpenDrain| pullUp | speed50MHz, afI2C3), //!<.
+        I2C1_SMBA_PB5  =    PINCONFIG(PB5,  modeAF | outOpenDrain| pullUp | speed50MHz, afI2C1), //!<.
+        I2C1_SCL_PB6  =     PINCONFIG(PB6,  modeAF | outOpenDrain| pullUp | speed50MHz, afI2C1), //!<.
+        I2C1_SDA_PB7  =     PINCONFIG(PB7,  modeAF | outOpenDrain| pullUp | speed50MHz, afI2C1), //!<.
+        I2C1_SCL_PB8  =     PINCONFIG(PB8,  modeAF | outOpenDrain| pullUp | speed50MHz, afI2C1), //!<.
+        I2C1_SDA_PB9  =     PINCONFIG(PB9,  modeAF | outOpenDrain| pullUp | speed50MHz, afI2C1), //!<.
+          
+          
+          
+          
+          
+        
         // SPI (I2S)
         SPI1_NSS_PA4 =      PINCONFIG(PA4,  modeAF | speed50MHz, afSpi1), //!.
         SPI1_SCK_PA5 =      PINCONFIG(PA5,  modeAF | speed50MHz, afSpi1), //!.

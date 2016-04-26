@@ -2,7 +2,7 @@
 #define _OBJNET_NODE_H
 
 #include "objnetCommonNode.h"
-#ifdef __ICCARM__
+#ifndef QT_CORE_LIB
 #include "cpuid.h"
 #include "objnetstorage.h"
 #endif
@@ -12,18 +12,18 @@ namespace Objnet
   
 class ObjnetNode : public ObjnetCommonNode
 {
-#ifndef __ICCARM__
+#ifdef QT_CORE_LIB
     Q_OBJECT
 #endif
 private:
     typedef enum
     {
-        netnStart = 0,      //!< РёСЃС…РѕРґРЅРѕРµ СЃРѕСЃС‚РѕСЏРЅРёРµ, РїРѕСЃС‹Р»РєР° СЃРѕРѕР±С‰РµРЅРёСЏ Hello
-        netnConnecting,     //!< РѕР¶РёРґР°РЅРёРµ РѕС‚РІРµС‚Р° РјР°СЃС‚РµСЂР° РІ С‚РµС‡РµРЅРёРµ С…С…С… РјСЃ
-        netnDisconnecting,  //!< СѓР·РµР» РїРѕРЅСЏР», С‡С‚Рѕ РµРіРѕ РЅРёРєС‚Рѕ РЅРµ Р¶РґС‘С‚ Рё РѕС‚РєР»СЋС‡Р°РµС‚СЃСЏ
-        netnAccepted,       //!< РѕС‚РІРµС‚ РѕС‚ РјР°СЃС‚РµСЂР° РїСЂРёРЅСЏС‚
-        //netnEnumeration,    //!< РїСЂРёСЃРІРѕРµРЅРёРµ Р»РѕРіРёС‡РµСЃРєРѕРіРѕ Р°РґСЂРµСЃР°
-        netnReady,          //!< СѓР·РµР» РіРѕС‚РѕРІ
+        netnStart = 0,      //!< исходное состояние, посылка сообщения Hello
+        netnConnecting,     //!< ожидание ответа мастера в течение ххх мс
+        netnDisconnecting,  //!< узел понял, что его никто не ждёт и отключается
+        netnAccepted,       //!< ответ от мастера принят
+        //netnEnumeration,    //!< присвоение логического адреса
+        netnReady,          //!< узел готов
     } NetState;
 
     Timer mSendTimer;
@@ -42,12 +42,12 @@ private:
     string mCpuInfo;
     unsigned long mBurnCount;
 
-    // СЃР»РѕРІР°СЂСЊ СЃРµСЂРІРёСЃРЅС‹С… РѕР±СЉРµРєС‚РѕРІ:
+    // словарь сервисных объектов:
     std::vector<ObjectInfo> mSvcObjects;
-    // СЃР»РѕРІР°СЂСЊ РѕР±СЉРµРєС‚РѕРІ
+    // словарь объектов
     std::vector<ObjectInfo> mObjects;
 
-#ifdef __ICCARM__
+#ifndef QT_CORE_LIB
 protected:
 #else
 protected slots:
@@ -66,7 +66,7 @@ protected:
 
     void registerSvcObject(const ObjectInfo &info) {mSvcObjects.push_back(info);}
 
-#ifndef __ICCARM__
+#ifdef QT_CORE_LIB
 protected slots:
 #endif
     void onTimeoutTimer();
@@ -96,11 +96,11 @@ public:
     #define BindMethod(method) bindObject(ObjectInfo(#method, CLOSURE(this, &method)))
     #define BindMethodEx(name, object, method) bindObject(ObjectInfo(name, CLOSURE(object, &method)))
     
-#ifdef __ICCARM__
+#ifndef QT_CORE_LIB
     NotifyEvent onPolling;
 #endif
 
-#ifndef __ICCARM__
+#ifdef QT_CORE_LIB
 signals:
     void globalMessage(unsigned char aid);
 #else

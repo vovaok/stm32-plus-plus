@@ -11,17 +11,20 @@ namespace Objnet
 {
   
 class ObjnetStorage;
-  
+
+//! @warning функция отказывается компилироваться в GCC как френд функция
+//! видимо из за экстерна
+//! Так как она нигде не используется, закомментил
+//! Теперь используется, ГЦЦ должен понять и простить
 extern "C" ObjnetStorage *objnetStorage();
   
 class ObjnetStorage
 {
+    friend ObjnetStorage *objnetStorage();
 private:
     static ObjnetStorage *mSelf;
     static Flash::Sector mSector1, mSector2;
     ObjnetStorage(Flash::Sector sector1, Flash::Sector sector2);
-    
-    friend ObjnetStorage *objnetStorage();
     
 #pragma pack(push,1)
     typedef enum

@@ -127,4 +127,10 @@
   #define assert_param(expr) ((void)0)
 #endif /* USE_FULL_ASSERT */
 
+#ifdef __GNUC__
+#define __NO_INIT(definition) definition __attribute__((section (".noinit")))
+#else
+#define __NO_INIT(definition) __no_init definition
+#endif
+
 #endif

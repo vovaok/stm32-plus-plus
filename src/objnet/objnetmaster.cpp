@@ -16,7 +16,7 @@ ObjnetMaster::ObjnetMaster(ObjnetInterface *iface) :
     }
     setBusAddress(0);
     mNetAddress = 0x00;
-    #ifdef __ICCARM__
+    #ifndef QT_CORE_LIB
     mTimer.setTimeoutEvent(EVENT(&ObjnetMaster::onTimer));
     #else
     QObject::connect(&mTimer, SIGNAL(timeout()), this, SLOT(onTimer()));
@@ -36,7 +36,7 @@ void ObjnetMaster::reset()
         delete it->second;
     mDevices.clear();
     mRouteTable.clear();
-    mRouteTable[0x00] = 0; // СЃСЂР°Р·Сѓ Р·Р°РїРёСЃС‹РІР°РµРј, РєР°Рє РґРѕСЃС‚СѓС‡Р°С‚СЊСЃСЏ РґРѕ РІРµСЂС…РЅРµРіРѕ СѓСЂРѕРІРЅСЏ
+    mRouteTable[0x00] = 0; // сразу записываем, как достучаться до верхнего уровня
 }
 //---------------------------------------------------------------------------
 
@@ -51,11 +51,11 @@ void ObjnetMaster::task()
         mAdjIfConnected = mAdjacentNode->isConnected(); // store previous value of connection state
     }
 
-    if (mRouteTable.size() >= 127) // РµСЃР»Рё РІСЃСЏ С‚Р°Р±Р»РёС†Р° РјР°СЂС€СЂСѓС‚РёР·Р°С†РёРё Р·Р°РїРѕР»РЅРµРЅР°, Р·РЅР°С‡РёС‚ С‡С‚Рѕ-С‚Рѕ РїРѕС€Р»Рѕ РЅРµ С‚Р°Рє, Рё...
+    if (mRouteTable.size() >= 127) // если вся таблица маршрутизации заполнена, значит что-то пошло не так, и...
     {
-        mRouteTable.clear();                    // С‡РёСЃС‚РёРј С‚Р°Р±Р»РёС†Сѓ РјР°СЂС€СЂСѓС‚РёР·Р°С†РёРё
-        mRouteTable[0x00] = 0;                  // СЃСЂР°Р·Сѓ Р·Р°РїРёСЃС‹РІР°РµРј, РєР°Рє РґРѕСЃС‚СѓС‡Р°С‚СЊСЃСЏ РґРѕ РІРµСЂС…РЅРµРіРѕ СѓСЂРѕРІРЅСЏ
-        sendGlobalServiceMessage(aidConnReset); // РІС‹РїРѕР»РЅСЏРµРј РїРµСЂРµРЅСѓРјРµСЂР°С†РёСЋ
+        mRouteTable.clear();                    // чистим таблицу маршрутизации
+        mRouteTable[0x00] = 0;                  // сразу записываем, как достучаться до верхнего уровня
+        sendGlobalServiceMessage(aidConnReset); // выполняем перенумерацию
     }
 }
 
@@ -84,13 +84,13 @@ void ObjnetMaster::onTimer()
                     ba.append(dev->mNetAddress);
                     mAdjacentNode->acceptServiceMessage(0, svcDisconnected, &ba);
                 }
-                #ifndef __ICCARM__
+                #ifdef QT_CORE_LIB
                 emit devDisconnected(dev->mNetAddress);
                 #endif
             }
         }
     }
-    // СѓРґР°Р»СЏРµРј РѕС‚СЃСѓС‚СЃС‚РІСѓСЋС‰РёРµ РґРµРІР°Р№СЃС‹, РµСЃР»Рё Сѓ РЅРёС… РІРєР»СЋС‡РµРЅРѕ Р°РІС‚РѕСѓРґР°Р»РµРЅРёРµ
+    // удаляем отсутствующие девайсы, если у них включено автоудаление
     for (std::vector<unsigned char>::iterator it=macsToRemove.begin(); it!=macsToRemove.end(); it++)
     {
         ObjnetDevice *dev = mDevices[*it];
@@ -102,7 +102,7 @@ void ObjnetMaster::onTimer()
             mAdjacentNode->acceptServiceMessage(0, svcKill, &ba);
             removeNatPair(supernetaddr, dev->mNetAddress);
         }
-        #ifndef __ICCARM__
+        #ifdef QT_CORE_LIB
         emit devRemoved(dev->mNetAddress);
         #endif
         unsigned char mac = route(dev->mNetAddress);
@@ -116,7 +116,7 @@ void ObjnetMaster::onTimer()
 
 void ObjnetMaster::acceptServiceMessage(unsigned char sender, SvcOID oid, ByteArray *ba)
 {
-//    #ifndef __ICCARM__
+//    #ifdef QT_CORE_LIB
 //    qDebug() << "master" << QString::fromStdString(mName) << "accept" << oid;
 //    #endif
 
@@ -127,7 +127,7 @@ void ObjnetMaster::acceptServiceMessage(unsigned char sender, SvcOID oid, ByteAr
       {
         unsigned char supernetaddr = ba->data()[0];
         unsigned char netaddr = ba->data()[1];
-        addNatPair(supernetaddr, netaddr);        // РґРѕР±Р°РІР»СЏРµРј РІ С‚Р°Р±Р»РёС†Сѓ NAT
+        addNatPair(supernetaddr, netaddr);        // добавляем в таблицу NAT
         ObjnetDevice *dev = mDevices.count(netaddr)? mDevices[netaddr]: 0L;
         if (dev)
         {
@@ -149,7 +149,7 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
 {
     SvcOID oid = (SvcOID)msg.localId().oid;
 
-//    #ifndef __ICCARM__
+//    #ifdef QT_CORE_LIB
 //    qDebug() << "master" << QString::fromStdString(mName) << "parse" << oid;
 //    #endif
 
@@ -158,7 +158,7 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
     switch (oid)
     {
       case svcEcho:
-//        #ifndef __ICCARM__
+//        #ifdef QT_CORE_LIB
 //        qDebug() << "master" << QString::fromStdString(mName) << "parse echo from" << netaddr;
 //        #endif
         if (!dev)
@@ -184,7 +184,7 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
                 dev->mInfoValidCnt = 0;
                 sendServiceMessage(netaddr, svcRequestAllInfo);
                 sendServiceMessage(netaddr, svcRequestObjInfo);
-                #ifndef __ICCARM__
+                #ifdef QT_CORE_LIB
                 emit devConnected(dev->mNetAddress);
                 #endif
             }
@@ -195,42 +195,42 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
 
       case svcHello:
       {
-        SvcOID welcomeCmd = svcWelcomeAgain;             // РµСЃР»Рё РґРµРІР°Р№СЃ СѓР¶Рµ РґРѕР±Р°РІР»РµРЅ, РєРѕРјР°РЅРґР° Р±СѓРґРµС‚ svcWelcomeAgain
+        SvcOID welcomeCmd = svcWelcomeAgain;             // если девайс уже добавлен, команда будет svcWelcomeAgain
         ByteArray ba = msg.data();
         unsigned char mac = ba[0];
         bool localnet = (ba.size() == 1);
         if (localnet)
             dev = mLocalnetDevices[mac];
         unsigned char tempaddr = netaddr;
-        if (!dev || !localnet)                           // СЃРЅР°С‡Р°Р»Р° РґРѕР±Р°РІР»СЏРµРј РґРµРІР°Р№СЃ СЃ РјР°РєРѕРј, РєРѕС‚РѕСЂС‹Р№ РІ id-С€РЅРёРєРµ, РµСЃР»Рё РѕРЅ РµС‰С‘ РЅРµ РґРѕР±Р°РІР»РµРЅ
+        if (!dev || !localnet)                           // сначала добавляем девайс с маком, который в id-шнике, если он ещё не добавлен
         {
             if (!localnet)
             {
                 mac = route(tempaddr);
-                netaddr = createNetAddress(mac);  // СЃРѕР·РґР°С‘Рј РЅРѕРІС‹Р№ Р°РґСЂРµСЃ
+                netaddr = createNetAddress(mac);  // создаём новый адрес
             }
-            else if (mNetAddrByMacCache[mac])     // РµСЃР»Рё РґРµРІР°Р№СЃ РІ С‚РµРєСѓС‰РµР№ РїРѕРґСЃРµС‚Рё
+            else if (mNetAddrByMacCache[mac])     // если девайс в текущей подсети
             {
-                netaddr = mNetAddrByMacCache[mac];// РїС‹С‚Р°РµРјСЃСЏ РІСЃРїРѕРјРЅРёС‚СЊ Р°РґСЂРµСЃ РїРѕ РјР°РєСѓ
+                netaddr = mNetAddrByMacCache[mac];// пытаемся вспомнить адрес по маку
                 mRouteTable[netaddr] = mac;
             }
             else
             {
-                netaddr = createNetAddress(mac);  // СЃРѕР·РґР°С‘Рј РЅРѕРІС‹Р№ Р°РґСЂРµСЃ
+                netaddr = createNetAddress(mac);  // создаём новый адрес
             }
 
-            dev = new ObjnetDevice(netaddr);             // СЃРѕР·РґР°С‘Рј РѕР±СЉРµРєС‚ СЃ РЅРѕРІС‹Рј Р°РґСЂРµСЃРѕРј
-            dev->mAutoDelete = true;                     // СЂР°Р· Р°РІС‚РѕРјР°С‚РёС‡РµСЃРєРё СЃРѕР·РґР°Р»Рё - Р°РІС‚РѕРјР°С‚РёС‡РµСЃРєРё Рё СѓРґР°Р»РёРј)
-            if (localnet)                                // РµСЃР»Рё РґРµРІР°Р№СЃ РІ С‚РµРєСѓС‰РµР№ РїРѕРґСЃРµС‚Рё...
+            dev = new ObjnetDevice(netaddr);             // создаём объект с новым адресом
+            dev->mAutoDelete = true;                     // раз автоматически создали - автоматически и удалим)
+            if (localnet)                                // если девайс в текущей подсети...
             {
-                mLocalnetDevices[mac] = dev;             // ...Р·Р°РїРѕРјРёРЅР°РµРј РґР»СЏ РїРѕРёСЃРєР° РїРѕ РјР°РєСѓ
-                mNetAddrByMacCache[mac] = netaddr;       // Рё РєСЌС€РёСЂСѓРµРј Р°РґСЂРµСЃ РґР»СЏ РІРѕР·РІСЂР°С‚Р° РїРѕ РјР°РєСѓ (С‡С‚РѕР±С‹ Р»РёС€РЅРёР№ СЂР°Р· РЅРµ СЃРѕР·РґР°РІР°С‚СЊ)
+                mLocalnetDevices[mac] = dev;             // ...запоминаем для поиска по маку
+                mNetAddrByMacCache[mac] = netaddr;       // и кэшируем адрес для возврата по маку (чтобы лишний раз не создавать)
             }
 #warning NEED TO IMPLEMENT: kill mLocalnetDevices[mac] on svcKill. A mb i ne nado!!
-            mDevices[netaddr] = dev;                     // Р·Р°РїРѕРјРёРЅР°РµРј РґР»СЏ РїРѕРёСЃРєР° РїРѕ Р°РґСЂРµСЃСѓ
-            welcomeCmd = svcWelcome;                     // РјРµРЅСЏРµРј РєРѕРјР°РЅРґСѓ РЅР° svcWelcome
+            mDevices[netaddr] = dev;                     // запоминаем для поиска по адресу
+            welcomeCmd = svcWelcome;                     // меняем команду на svcWelcome
 
-            #ifndef __ICCARM__
+            #ifdef QT_CORE_LIB
             QObject::connect(dev, SIGNAL(requestObject(unsigned char,unsigned char)), SLOT(requestObject(unsigned char,unsigned char)));
             QObject::connect(dev, SIGNAL(sendObject(unsigned char,unsigned char,QByteArray)), SLOT(sendObject(unsigned char,unsigned char,QByteArray)));
             QObject::connect(dev, SIGNAL(serviceRequest(unsigned char,SvcOID,QByteArray)), SLOT(sendServiceRequest(unsigned char,SvcOID,QByteArray)));
@@ -242,21 +242,21 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
             netaddr = dev->netAddress();
         }
 
-        if (localnet)                          // РµСЃР»Рё СЌС‚Рѕ РґРµРІР°Р№СЃ С‚РµРєСѓС‰РµР№ РїРѕРґСЃРµС‚Рё...
+        if (localnet)                          // если это девайс текущей подсети...
         {
             ByteArray outBa;
             outBa.append(netaddr);
-            sendServiceMessage(netaddr, welcomeCmd, outBa);     // С‚СѓРїРѕ РѕС‚РїСЂР°РІР»СЏРµРј СЃРѕРѕР±С‰РµРЅРёРµ СЃ РїСЂРёСЃРІРѕРµРЅРЅС‹Рј Р°РґСЂРµСЃРѕРј
-            ba.append(netaddr);                             // РґРѕР±Р°РІР»СЏРµРј РІ РєРѕРЅРµС† СЃРѕР·РґР°РЅРЅС‹Р№ Р»РѕРіРёС‡РµСЃРєРёР№ Р°РґСЂРµСЃ СѓР·Р»Р°
+            sendServiceMessage(netaddr, welcomeCmd, outBa);     // тупо отправляем сообщение с присвоенным адресом
+            ba.append(netaddr);                             // добавляем в конец созданный логический адрес узла
         }
         else
         {
             ByteArray outBa;
             outBa.append(netaddr);
-            unsigned char subnetaddr = ba[1];       // СѓР·РЅР°С‘Рј РµРіРѕ Р°РґСЂРµСЃ РІ С‚РѕР№ РїРѕРґСЃРµС‚Рё
+            unsigned char subnetaddr = ba[1];       // узнаём его адрес в той подсети
             outBa.append(subnetaddr);
-            sendServiceMessage(tempaddr, welcomeCmd, outBa);     // С‚СѓРїРѕ РѕС‚РїСЂР°РІР»СЏРµРј СЃРѕРѕР±С‰РµРЅРёРµ СЃ РїСЂРёСЃРІРѕРµРЅРЅС‹РјРё Р°РґСЂРµСЃР°РјРё
-            ba[1] = netaddr;                        // С‚РµРїРµСЂСЊ Р·РґРµСЃСЊ Р°РґСЂРµСЃ РІ СЌС‚РѕР№ РїРѕРґСЃРµС‚Рё
+            sendServiceMessage(tempaddr, welcomeCmd, outBa);     // тупо отправляем сообщение с присвоенными адресами
+            ba[1] = netaddr;                        // теперь здесь адрес в этой подсети
             ba.append(tempaddr);
             if (mAdjacentNode)
             {
@@ -268,21 +268,21 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
 //        if (mAdjacentNode)
 //        {
 //            for (int i=1; i<ba.count(); i++)
-//                ba[i] = mAdjacentNode->natRoute(tempaddr);                // РјРµРЅСЏРµРј Р°РґСЂРµСЃ РІ С‚РѕР№ РїРѕРґСЃРµС‚Рё РЅР° Р°РґСЂРµСЃ РІ СЌС‚РѕР№ РїРѕРґСЃРµС‚Рё
+//                ba[i] = mAdjacentNode->natRoute(tempaddr);                // меняем адрес в той подсети на адрес в этой подсети
 //        }
 
-//        ba.append(netaddr);                         // РґРѕР±Р°РІР»СЏРµРј РІ РєРѕРЅРµС† СЃРѕР·РґР°РЅРЅС‹Р№ Р»РѕРіРёС‡РµСЃРєРёР№ Р°РґСЂРµСЃ С‚РµРєСѓС‰РµРіРѕ СѓР·Р»Р°
+//        ba.append(netaddr);                         // добавляем в конец созданный логический адрес текущего узла
 
-        #ifndef __ICCARM__
-        emit devAdded(netaddr, ba);                 // СѓСЃС‚СЂРѕР№СЃС‚РІРѕ РґРѕР±Р°РІР»РµРЅРѕ
+        #ifdef QT_CORE_LIB
+        emit devAdded(netaddr, ba);                 // устройство добавлено
         #endif
 
-        if (mAdjacentNode)                               // РµСЃР»Рё РјР°СЃС‚РµСЂ СЃРІСЏР·Р°РЅ СЃ СѓР·Р»РѕРј, С‚Рѕ РѕРЅ РЅРµ РІРµСЂС…РЅРёР№
+        if (mAdjacentNode)                               // если мастер связан с узлом, то он не верхний
         {
-            if (mAdjacentNode->isConnected())            // Рё РµСЃР»Рё СЃРјРµР¶РЅС‹Р№ СѓР·РµР» РїРѕРґРєР»СЋС‡С‘РЅ Рє СЃРІРѕРµРјСѓ РјР°СЃС‚РµСЂСѓ
+            if (mAdjacentNode->isConnected())            // и если смежный узел подключён к своему мастеру
             {
-                //ba[0] = mAdjacentNode->mBusAddress;                                // РјРµРЅСЏРµРј С„РёР·РёС‡РµСЃРєРёР№ Р°РґСЂРµСЃ РЅР° СЃРІРѕР№
-                mAdjacentNode->sendServiceMessage(svcHello, ba);    // Рё РѕС‚РїСЂР°РІР»СЏРµРј РґР°Р»СЊС€Рµ
+                //ba[0] = mAdjacentNode->mBusAddress;                                // меняем физический адрес на свой
+                mAdjacentNode->sendServiceMessage(svcHello, ba);    // и отправляем дальше
             }
         }
 
@@ -304,7 +304,7 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
         }
 //#warning if (localnet) '// nado dobavit!'
 //        sendServiceMessage(netaddr, svcRequestAllInfo);
-        #ifndef __ICCARM__
+        #ifdef QT_CORE_LIB
         emit devConnected(netaddr2);
         #endif
         break;
@@ -324,7 +324,7 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
                 removeNatPair(addr, netaddr);
             }
         }
-        #ifndef __ICCARM__
+        #ifdef QT_CORE_LIB
         emit devDisconnected(netaddr);
         #endif
         break;
@@ -345,7 +345,7 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
                 removeNatPair(addr, netaddr);
             }
         }
-        #ifndef __ICCARM__
+        #ifdef QT_CORE_LIB
         emit devRemoved(netaddr);
         #endif
         break;
@@ -425,7 +425,7 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
 
     if (oid < svcEcho)
     {
-        #ifndef __ICCARM__
+        #ifdef QT_CORE_LIB
         emit serviceMessageAccepted(netaddr, oid, msg.data());
         #endif
     }
@@ -442,7 +442,7 @@ void ObjnetMaster::parseMessage(CommonMessage &msg)
 {
     if (msg.isGlobal())
     {
-        #ifndef __ICCARM__
+        #ifdef QT_CORE_LIB
             emit globalMessage(msg.globalId().aid);
         #else
             if (onGlobalMessage)
@@ -465,7 +465,7 @@ void ObjnetMaster::parseMessage(CommonMessage &msg)
     }
     else
     {
-        #ifndef __ICCARM__
+        #ifdef QT_CORE_LIB
         //qDebug() << "object received from unknown device!!";
         #endif
     }
@@ -474,10 +474,10 @@ void ObjnetMaster::parseMessage(CommonMessage &msg)
 
 unsigned char ObjnetMaster::createNetAddress(unsigned char mac)
 {
-    if (mRouteTable.size() >= 127) // СЃСЂР°Р·Сѓ РёР·Р±РµРіР°РµРј Р±РµСЃРєРѕРЅРµС‡РЅРѕРіРѕ С†РёРєР»Р°
+    if (mRouteTable.size() >= 127) // сразу избегаем бесконечного цикла
         return 0x7F;
 
-    while (mRouteTable.count(mAssignNetAddress)) // РµСЃР»Рё РІ С‚Р°Р±Р»РёС†Рµ РјР°СЂС€СЂСѓС‚РёР·Р°С†РёРё РґР°РЅРЅС‹Р№ Р°РґСЂРµСЃ Р·Р°РЅСЏС‚, РёС‰РµРј РґР°Р»СЊС€Рµ
+    while (mRouteTable.count(mAssignNetAddress)) // если в таблице маршрутизации данный адрес занят, ищем дальше
     {
         mAssignNetAddress++;
         if (mAssignNetAddress >= 127)
@@ -493,10 +493,10 @@ unsigned char ObjnetMaster::createNetAddress(unsigned char mac)
 
 void ObjnetMaster::addDevice(unsigned char mac, ObjnetDevice *dev)
 {
-    dev->mNetAddress = createNetAddress(mac);   // СЃРѕР·РґР°С‘Рј РѕР±СЉРµРєС‚ СЃ РЅРѕРІС‹Рј Р°РґСЂРµСЃРѕРј
-    dev->mAutoDelete = false;                   // Р°РІС‚РѕРјР°С‚РёС‡РµСЃРєРё РЅРµ СѓРґР°Р»СЏРµС‚СЃСЏ, С‚.Рє. СЃРѕР·РґР°РЅ РІРЅРµС€РЅРёРј РѕР±СЉРµРєС‚РѕРј
-    mDevices[mac] = dev;                        // Р·Р°РїРѕРјРёРЅР°РµРј РґР»СЏ РїРѕРёСЃРєР° РїРѕ РјР°РєСѓ
-    #ifndef __ICCARM__
+    dev->mNetAddress = createNetAddress(mac);   // создаём объект с новым адресом
+    dev->mAutoDelete = false;                   // автоматически не удаляется, т.к. создан внешним объектом
+    mDevices[mac] = dev;                        // запоминаем для поиска по маку
+    #ifdef QT_CORE_LIB
     emit devAdded(dev->mNetAddress, ByteArray().append(mac));
     #endif
 }

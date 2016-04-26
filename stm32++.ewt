@@ -6404,7 +6404,7 @@
       <name>$PROJ_DIR$\src\objnet\objnetmsg.h</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\src\objnet\objnetnode.cpp</name>
+      <name>$PROJ_DIR$\src\objnet\objnetNode.cpp</name>
     </file>
     <file>
       <name>$PROJ_DIR$\src\objnet\objnetnode.h</name>
@@ -6451,7 +6451,7 @@
         <name>$PROJ_DIR$\src\usb\otgDriver\usb_conf.h</name>
       </file>
       <file>
-        <name>$PROJ_DIR$\src\usb\otgDriver\usb_core.c</name>
+        <name>$PROJ_DIR$\src\usb\otgDriver\usb_core.cpp</name>
       </file>
       <file>
         <name>$PROJ_DIR$\src\usb\otgDriver\usb_core.h</name>
@@ -6643,6 +6643,12 @@
   </file>
   <file>
     <name>$PROJ_DIR$\src\hardtimer.h</name>
+  </file>
+  <file>
+    <name>$PROJ_DIR$\src\i2c.cpp</name>
+  </file>
+  <file>
+    <name>$PROJ_DIR$\src\i2c.h</name>
   </file>
   <file>
     <name>$PROJ_DIR$\src\i2s.cpp</name>
