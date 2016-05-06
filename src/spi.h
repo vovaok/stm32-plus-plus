@@ -2,34 +2,76 @@
 #define _SPI_H
 
 #include "gpio.h"
-#include "dma.h"
-#define PI (3.141592653589793)
 
+typedef enum
+{
+    SpiNone = 0,
+    Spi1    = 1,
+    Spi2    = 2,
+    Spi3    = 3
+} SpiNo;
 
-extern "C"  void SPI2_IRQHandler(void);
+typedef Closure<void(unsigned short)> SpiDataEvent;
+//---------------------------------------------------------------------------
+
+extern "C" void SPI1_IRQHandler(void);
+extern "C" void SPI2_IRQHandler(void);
+extern "C" void SPI3_IRQHandler(void);
+//---------------------------------------------------------------------------
+
 class Spi
 {
+public:
+#pragma pack(push,1)
+    union Config
+    {
+        unsigned short word;
+        struct
+        {
+            unsigned char CPHA: 1;
+            unsigned char CPOL: 1;
+            unsigned char master: 1;
+            unsigned char baudrate: 3;
+            unsigned char enable: 1;
+            unsigned char LSBfirst: 1;
+            unsigned char : 2; // internal use
+            unsigned char RXonly: 1;
+            unsigned char frame16bit: 1;
+            unsigned char : 4; // internal use
+        };
+        Config() : word(0){}
+    };
+#pragma pack(pop)
   
-  public:
+private:  
+    static Spi *mSpies[3];
+    SPI_TypeDef *mDev;
+    Config mConfig;
+    IRQn mIrq;
+    SpiDataEvent onTransferComplete;
     
-    explicit Spi( SPI_TypeDef *SPIx, SPI_InitTypeDef *SPI_InitStruct);  
-    float* spiRead();
+    friend void SPI1_IRQHandler(void);
+    friend void SPI2_IRQHandler(void);
+    friend void SPI3_IRQHandler(void);
    
-   
-
-private:
- Gpio *cs[24];
- float u32result[24];
- int countCs;
- float zero[24];
- unsigned short temp[24];
- 
- friend void SPI2_IRQHandler(void);
- static Spi *mSpi;
-  void handleInterrupt();
+    void enableInterrupt();
+    void handleInterrupt();
+    
+    SpiNo getSpiByPin(Gpio::Config pin);
   
- 
- 
+public:
+    explicit Spi(Gpio::Config sck, Gpio::Config miso, Gpio::Config mosi);
+    
+    void setConfig(Config cfg);
+    
+    void open();
+    void close();
+    inline bool isOpen() {return mConfig.enable;}
+    
+    unsigned short transferWord(unsigned short word=0xFFFF);
+    void transferWordAsync(unsigned short word=0xFFFF);
+
+    void setTransferCompleteEvent(SpiDataEvent e); 
 };
 
 #endif

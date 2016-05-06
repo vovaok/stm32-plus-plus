@@ -6074,6 +6074,12 @@
     <name>$PROJ_DIR$\src\application.h</name>
   </file>
   <file>
+    <name>$PROJ_DIR$\src\as5040master.cpp</name>
+  </file>
+  <file>
+    <name>$PROJ_DIR$\src\as5040master.h</name>
+  </file>
+  <file>
     <name>$PROJ_DIR$\src\button.cpp</name>
   </file>
   <file>

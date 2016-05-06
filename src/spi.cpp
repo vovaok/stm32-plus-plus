@@ -1,130 +1,158 @@
 #include "spi.h"
 
-Spi *Spi::mSpi =0;
+Spi *Spi::mSpies[3] = {0L, 0L, 0L};
 
-Spi::Spi(SPI_TypeDef *SPIx, SPI_InitTypeDef *SPI_InitStruct) : countCs(24)
+Spi::Spi(Gpio::Config sck, Gpio::Config miso, Gpio::Config mosi)
 {
-  mSpi = this;
-   for(int i=0;i<24;i++)
-   {
-     zero[i] =0;
-     temp[i] =0;
-     u32result[i]=0;
-   }
-//   zero[0] = 5.74322; zero[1] = 1.49103; zero[2] = 3.7061;
-//   zero[3] = 3.26431; zero[4] = 5.41188-4.33809; 
-//   
-//   zero[7] = 2.98206; zero[8] = 4.57083; zero[9] = 1.97577;
-//   zero[10] = 5.72482; zero[11] = 5.77199;
-   
-   zero[4] = 64.7;
-   zero[6] = -7;
-   zero[5] = -167;
-   zero[7] = -92;
+    SpiNo no = getSpiByPin(sck);
+    if (no == SpiNone)
+        throw Exception::invalidPin;
+    if (miso != Gpio::noPin && no != getSpiByPin(miso))
+        throw Exception::invalidPin;
+    if (mosi != Gpio::noPin && no != getSpiByPin(mosi))
+        throw Exception::invalidPin;
   
-  
-  // int a = 42\23;
-   
-   for(int i=0;i<countCs;i++)
-   {
-   cs[i] = new Gpio((Gpio::PinName)(Gpio::PD0+i));
-   cs[i]->setAsOutput();
-   cs[i]->write(1);
-   }
-  if(SPIx==SPI1)
-  {
-    RCC_APB2PeriphClockCmd(RCC_APB2Periph_SPI1,ENABLE);
-    Gpio::config(Gpio::SPI1_MOSI_PA7);
-    Gpio::config(Gpio::SPI1_SCK_PA5);
-   
-  
+    mSpies[no-1] = this;
     
+    Gpio::config(sck);
+    Gpio::config(miso);
+    Gpio::config(mosi);
     
-  }
-  else if(SPIx==SPI2)
-  {
-    RCC_APB1PeriphClockCmd  ( RCC_APB1Periph_SPI2,ENABLE);
-  
-
-    Gpio::config(Gpio::SPI2_MISO_PB14 );
-    Gpio::config(Gpio::SPI2_SCK_PB13);
-    Gpio::config(Gpio::SPI2_MOSI_PB15);
-  
+    switch (no)
+    {
+      case Spi1:
+        mDev = SPI1;
+        RCC_APB2PeriphClockCmd(RCC_APB2Periph_SPI1, ENABLE); 
+        mIrq = SPI1_IRQn;
+        break;
+        
+      case Spi2:
+        mDev = SPI2;
+        RCC_APB2PeriphClockCmd(RCC_APB1Periph_SPI2, ENABLE);
+        mIrq = SPI2_IRQn;
+        break;
+        
+      case Spi3:
+        mDev = SPI3;
+        RCC_APB2PeriphClockCmd(RCC_APB1Periph_SPI3, ENABLE);
+        mIrq = SPI3_IRQn;
+        break;
     }
+}
 
+
+SpiNo Spi::getSpiByPin(Gpio::Config pin)
+{
+    switch (pin)
+    {
+        case Gpio::SPI1_MISO_PA6: case Gpio::SPI1_MISO_PB4: case Gpio::SPI1_MOSI_PA7: case Gpio::SPI1_MOSI_PB5:
+        case Gpio::SPI1_NSS_PA15: case Gpio::SPI1_NSS_PA4: case Gpio::SPI1_SCK_PA5: case Gpio::SPI1_SCK_PB3:
+        return Spi1;
+        
+        case Gpio::SPI2_MISO_PB14: case Gpio::SPI2_MISO_PC2: case Gpio::SPI2_MISO_PI2: case Gpio::SPI2_MOSI_PB15:
+        case Gpio::SPI2_MOSI_PC3: case Gpio::SPI2_MOSI_PI3: case Gpio::SPI2_NSS_PB12: case Gpio::SPI2_NSS_PB9: 
+        case Gpio::SPI2_NSS_PI0: case Gpio::SPI2_SCK_PB10: case Gpio::SPI2_SCK_PB13: case Gpio::SPI2_SCK_PI1:
+        return Spi2;
+        
+        case Gpio::SPI3_MISO_PB4: case Gpio::SPI3_MISO_PC11: case Gpio::SPI3_MOSI_PB5: case Gpio::SPI3_MOSI_PC12:
+        case Gpio::SPI3_NSS_PA15: case Gpio::SPI3_NSS_PA4: case Gpio::SPI3_SCK_PB3: case Gpio::SPI3_SCK_PC10:
+        return Spi3;
+
+        default: return SpiNone;
+    }
+}
+//---------------------------------------------------------------------------
+
+void Spi::setConfig(Config cfg)
+{
+    bool en = mConfig.enable;
+    cfg.enable = 0;
+    mConfig = cfg;
+    mDev->CR1 = mConfig.word;
+    if (en)
+    {
+        mConfig.enable = 1;
+        mDev->CR1 = mConfig.word;
+    }
+}
+//--------------------------------------------------------------------------
+
+void Spi::open()
+{
+    mConfig.enable = 1;
+    mDev->CR1 = mConfig.word;
+}
+
+void Spi::close()
+{
+    mConfig.enable = 0;
+    mDev->CR1 = mConfig.word;
+}
+//---------------------------------------------------------------------------
+
+unsigned short Spi::transferWord(unsigned short word)
+{
+    mDev->DR = word;
+    while (!(mDev->SR & 0x0001)); // wait for RX Not Empty
+    return mDev->DR;
+}
+
+void Spi::transferWordAsync(unsigned short word)
+{
+    mDev->DR = word;
+}
+//---------------------------------------------------------------------------
+
+void Spi::setTransferCompleteEvent(SpiDataEvent e)
+{
+    onTransferComplete = e;
+    enableInterrupt();
+}
+//---------------------------------------------------------------------------
+
+void Spi::enableInterrupt()
+{
     NVIC_InitTypeDef NVIC_InitStructure;
-    NVIC_InitStructure.NVIC_IRQChannel = SPI2_IRQn;
+    NVIC_InitStructure.NVIC_IRQChannel = mIrq;
     NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 3;
     NVIC_InitStructure.NVIC_IRQChannelSubPriority = 2;
     NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
     NVIC_Init(&NVIC_InitStructure);
-   
     
-  SPI_Init(SPIx,SPI_InitStruct);
-  SPI_Cmd (SPIx,ENABLE);
-  
-  SPI_I2S_ITConfig  ( SPIx,SPI_I2S_IT_RXNE,ENABLE); 
-
-}
-
-
-
-
-float* Spi::spiRead() //unsigned short* Spi::spiRead()
-{
-   cs[0]->write(0);
-   SPI_I2S_SendData  (SPI2, 0xffff); 
-  
- 
-  for(int i=0;i<countCs;i++)
-  {
-   
-   
-   
-    
-  //  u32result[i] = (float)(temp[i]*2*PI)/65536;
-     temp[i]-= zero[i]*182;
-    u32result[i] = (float)temp[i]/182;
-   
-       
-  }
- return u32result;
-
-
+    SPI_I2S_ITConfig(mDev, 0x0001, ENABLE);
 }
 
 void Spi::handleInterrupt()
 {
-static char i = 0;
-  /* SPI in Slave Receiver mode--------------------------------------- */
-  if (SPI_I2S_GetITStatus(SPI2, SPI_I2S_IT_RXNE) == SET)
-  {
-     cs[i]->write(1);
-     temp[i] =  SPI_I2S_ReceiveData  ( SPI2 ); // read data from SPI register
-     temp[i] &=~63; 
-     if(i==23)
-       i=0;
-     else
-     {
-     cs[++i]->write(0);
-     SPI_I2S_SendData  (SPI2, 0xffff);
-     }
-   // 
-  }
-
+    if (SPI_I2S_GetITStatus(mDev, 0x0001) == SET)
+    {
+        onTransferComplete(mDev->DR);
+    }
 }
+//---------------------------------------------------------------------------
 
 #ifdef __cplusplus
- extern "C" {
+extern "C" {
 #endif 
 
-   void SPI2_IRQHandler(void)
+void SPI1_IRQHandler(void)
 {
-  
-  Spi::mSpi->handleInterrupt();
-
-
+    if (Spi::mSpies[0])
+        Spi::mSpies[0]->handleInterrupt();
 }
+   
+void SPI2_IRQHandler(void)
+{
+    if (Spi::mSpies[1])
+        Spi::mSpies[1]->handleInterrupt();
+}
+
+void SPI3_IRQHandler(void)
+{
+    if (Spi::mSpies[2])
+        Spi::mSpies[2]->handleInterrupt();
+}
+
 #ifdef __cplusplus
 }
 #endif
