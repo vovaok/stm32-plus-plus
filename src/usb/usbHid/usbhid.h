@@ -112,7 +112,7 @@ public:
     void setUseMultipleReportId(bool enable) {mMultipleReportId = enable;}
     bool isUseMultipleReportId() const {return mMultipleReportId;}
     
-    DataEvent onReportReceiveEvent; //(const ByteArray &ba);
+    ConstDataEvent onReportReceiveEvent; //(const ByteArray &ba);
     NumberedDataEvent onSetReportEvent; //(int reportId), ByteArray &ba);
     NumberedDataEvent onGetReportEvent; //(int reportId), ByteArray &ba);
     

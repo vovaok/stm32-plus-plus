@@ -7,8 +7,6 @@
 
 namespace Usb
 {
-
-typedef Closure<void(const ByteArray &)> DataEvent;
   
 //class UsbCsEndpoint
 //{
@@ -26,7 +24,7 @@ private:
     EndpointDescriptor *mDescriptor;
     ByteArray mRxBuffer;
     ByteArray mTxBuffer;
-    DataEvent mDataOutEvent;
+    ConstDataEvent mDataOutEvent;
     //void getRxBuffer(ByteArray &data);
     
 protected:
@@ -44,7 +42,7 @@ public:
     void setEndpointNumber(unsigned char num) {mDescriptor->setEndpointAddress((mDescriptor->endpointAddress() & 0x80) | (num & 0x7F));}
     unsigned char number() const {return mDescriptor->endpointAddress();}
     
-    void setDataOutEvent(const DataEvent &e) {mDataOutEvent = e;}
+    void setDataOutEvent(const ConstDataEvent &e) {mDataOutEvent = e;}
     void sendData(const ByteArray &data);
     
     bool isIn() const {return mDescriptor->endpointAddress() & 0x80;}
