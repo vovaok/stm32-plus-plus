@@ -59,6 +59,7 @@ private:
     ADC_InitTypeDef mConfig;
     Dma *mDma;
     bool mDmaOwner;
+    Dma::DmaChannel mDmaChannel;
     ByteArray mBuffer;
     unsigned char mChannelResultMap[19];
   

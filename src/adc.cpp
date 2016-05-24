@@ -17,16 +17,19 @@ Adc::Adc(int adcBase) :
       case 1:
         mAdc = ADC1;
         RCC_APB2PeriphClockCmd(RCC_APB2Periph_ADC1, ENABLE);
+        mDmaChannel = Dma::ChannelAdc1;
         break;
         
       case 2:
         mAdc = ADC2;
         RCC_APB2PeriphClockCmd(RCC_APB2Periph_ADC2, ENABLE);
+        mDmaChannel = Dma::ChannelAdc2;
         break;
         
       case 3:
         mAdc = ADC3;
         RCC_APB2PeriphClockCmd(RCC_APB2Periph_ADC3, ENABLE);
+        mDmaChannel = Dma::ChannelAdc3;
         break;
         
       default:
@@ -146,7 +149,7 @@ void Adc::setEnabled(bool enable)
 {
     if (!mDma && enable)
     {
-        mDma = Dma::getStreamForPeriph(Dma::ChannelAdc);
+        mDma = Dma::getStreamForPeriph(mDmaChannel);
         mDma->setCircularBuffer(mBuffer.data(), mChannelCount);
         configDma(mDma);
         mDmaOwner = true;

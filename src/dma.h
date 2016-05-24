@@ -23,7 +23,9 @@ public:
     {
         ChannelDac1,
         ChannelDac2,
-        ChannelAdc,
+        ChannelAdc1,
+        ChannelAdc2,
+        ChannelAdc3,
         ChannelUsart1_Rx,
         ChannelUsart1_Tx,
         ChannelUsart2_Rx,

@@ -85,7 +85,9 @@ Dma* Dma::getStreamForPeriph(DmaChannel channelName)
     {
         case ChannelDac1:       return new Dma(15, 7);
         case ChannelDac2:       return new Dma(16, 7);
-        case ChannelAdc:        return new Dma(24, 0);
+        case ChannelAdc1:       return new Dma(24, 0); // alternative (20, 0)
+        case ChannelAdc2:       return new Dma(23, 1); // alternative (22, 1)
+        case ChannelAdc3:       return new Dma(20, 2); // alternative (21, 2)
         case ChannelUsart1_Rx:  return new Dma(25, 4); // alternative (22, 4)
         case ChannelUsart1_Tx:  return new Dma(27, 4); 
         case ChannelUsart2_Rx:  return new Dma(15, 4);

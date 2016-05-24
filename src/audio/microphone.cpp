@@ -41,7 +41,7 @@ void Microphone::open()
         default: return;
     }
   
-    mAdc = new Adc();
+    mAdc = new Adc(1);
     mAdc->setResolution(res);
     mAdc->selectTrigger(Adc::TriggerTim3, Adc::EdgeRising);
     for (int i=0; i<mFormat.channelCount(); i++)
@@ -49,7 +49,7 @@ void Microphone::open()
         mAdc->addChannel(mInterfaces[i], Adc::SampleTime_28Cycles);
     }
     
-    mDma = Dma::getStreamForPeriph(Dma::ChannelAdc);
+    mDma = Dma::getStreamForPeriph(Dma::ChannelAdc1);
     mDma->setDoubleBuffer(buffer(), buffer() + bufferSize()/2, bufferSize()/(2 * mFormat.bytesPerSample()));
     mAdc->configDma(mDma);    
     
