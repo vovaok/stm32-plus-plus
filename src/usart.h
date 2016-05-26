@@ -44,6 +44,7 @@ public:
         WordLength9 = 0x0010,
         Mode8N1     = WordLength8 | ParityNone | StopBits1,
         Mode8E1     = WordLength9 | ParityEven | StopBits1,
+        Mode7E1     = WordLength8 | ParityEven | StopBits1,
     } Config;
   
 private:
@@ -66,6 +67,7 @@ private:
     int mTxReadPos;
     int mTxBufferSize;
     ByteArray mLineEnd;
+    bool m7bits;
     
     void commonConstructor(UsartNo number, int baudrate, Config config);
     void init();

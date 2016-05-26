@@ -330,7 +330,7 @@ void TIM5_IRQHandler()
     GPIOD->BSRRH = 1<<0;
 }
 
-void TIM6_IRQHandler()
+void TIM6_DAC_IRQHandler()
 {
     if (HardwareTimer::mTimers[6-1])
         HardwareTimer::mTimers[6-1]->handleInterrupt();

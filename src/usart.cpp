@@ -92,14 +92,11 @@ void Usart::commonConstructor(UsartNo number, int baudrate, Config config)
     }
     
     mUsarts[number-1] = this;
-    
+        
     mConfig.USART_BaudRate = baudrate;
-    mConfig.USART_Parity = config & 0x0600;
-    mConfig.USART_StopBits = config & 0x3000;
-    mConfig.USART_WordLength = (config << 8) & 0x1000;
     mConfig.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
     mConfig.USART_Mode = 0;
-    init();
+    setConfig(config);
 }
 
 Usart::~Usart()
@@ -344,8 +341,16 @@ int Usart::read(ByteArray &ba)
     int mask = mRxBuffer.size() - 1;
     int curPos = mRxBuffer.size() - (mDmaRx? mDmaRx->dataCounter(): mRxIrqDataCounter);
     int read = (curPos - mRxPos) & mask;
-    for (int i=mRxPos; i<mRxPos+read; i++)
-        ba.append(mRxBuffer[i & mask]);
+    if (m7bits)
+    {
+        for (int i=mRxPos; i<mRxPos+read; i++)
+            ba.append(mRxBuffer[i & mask] & 0x7F);
+    }
+    else
+    {
+        for (int i=mRxPos; i<mRxPos+read; i++)
+            ba.append(mRxBuffer[i & mask]);
+    }
        
     mRxPos = curPos;
     return read;
@@ -356,12 +361,13 @@ bool Usart::canReadLine()
     int mask = mRxBuffer.size() - 1;
     int curPos = mRxBuffer.size() - (mDmaRx? mDmaRx->dataCounter(): mRxIrqDataCounter);
     int read = (curPos - mRxPos) & mask;
+    unsigned char bitmask = m7bits? 0x7F: 0xFF;
     for (int i=mRxPos; i<mRxPos+read; i++)
     {
         bool flag = true;
         for (int j=0; j<mLineEnd.size(); j++)
         {
-            if (mRxBuffer[(i+j) & mask] != mLineEnd[j])
+            if ((mRxBuffer[(i+j) & mask] & bitmask) != mLineEnd[j])
             {
                 flag = false;
                 break;
@@ -379,9 +385,10 @@ int Usart::readLine(ByteArray &ba)
     int curPos = mRxBuffer.size() - (mDmaRx? mDmaRx->dataCounter(): mRxIrqDataCounter);
     int read = (curPos - mRxPos) & mask;
     int i = mRxPos, endi = 0;
+    unsigned char bitmask = m7bits? 0x7F: 0xFF;
     for (; (i<mRxPos+read) && (endi<mLineEnd.size()); i++)
     {
-        char b = mRxBuffer[i & mask];
+        char b = mRxBuffer[i & mask] & bitmask;
         ba.append(b);
         if (b == mLineEnd[endi])
             endi++;
@@ -420,6 +427,15 @@ void Usart::setBaudrate(int baudrate)
 
 void Usart::setConfig(Config config)
 {
+    switch (config)
+    {
+      case Mode7E1:
+        m7bits = true;
+        break;
+      default: 
+        m7bits = false;
+    }
+    
     mConfig.USART_Parity = config & 0x0600;
     mConfig.USART_StopBits = config & 0x3000;
     mConfig.USART_WordLength = (config << 8) & 0x1000;
