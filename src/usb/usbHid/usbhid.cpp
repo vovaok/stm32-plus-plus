@@ -4,11 +4,12 @@ using namespace Usb;
 
 UsbHidInterface::UsbHidInterface(const ByteArray &report) :
     UsbNode(UsbNode::NodeTypeCsInterface),
+    mInEp(0L), mOutEp(0L),
     mProtocol(0),
     mIdleState(0),
     mMultipleReportId(false),
     mAltSet(0),
-    mInEp(0L), mOutEp(0L)
+    mPollTimer(0)
 {
     mDescriptor = new HidInterfaceDescriptor();
     setReport(report);
@@ -153,6 +154,17 @@ void UsbHidInterface::ep0RxReady()
     else if (reportType == HidReportTypeOutput && onReportReceiveEvent)
     {
         onReportReceiveEvent(mCtlBuffer);
+    }
+}
+
+void UsbHidInterface::sof()
+{
+    mPollTimer++;
+    if (mPollTimer >= mInEp->pollingInterval())
+    {
+        mPollTimer = 0;
+        if (onReportRequestEvent)
+            onReportRequestEvent();
     }
 }
 //---------------------------------------------------------------------------

@@ -116,7 +116,9 @@ uint32_t UsbDeviceDriver::handleInEp()
                 USB_OTG_MODIFY_REG32(&pdev->regs.DREGS->DIEPEMPMSK, fifoemptymsk, 0);
                 CLEAR_IN_EP_INTR(epnum, xfercompl);
                 /* TX COMPLETE */
+                
                 dataInStageEvent(epnum); // this is EVENT!!
+                
                 if (pdev->cfg.dma_enable == 1)
                 {
                     if((epnum == 0) && (pdev->dev.device_state == USB_OTG_EP0_STATUS_IN))                        

@@ -4,7 +4,8 @@
 using namespace Usb;
 
 UsbEndpoint::UsbEndpoint(EndpointDirection epDir, TransferType transferType, unsigned short maxPacketSize, unsigned char pollInterval) :
-  UsbNode(UsbNode::NodeTypeEndpoint)
+  UsbNode(UsbNode::NodeTypeEndpoint),
+  mPollInterval(pollInterval)
     //csEndpoint(0L)
 {
     mDescriptor = new EndpointDescriptor;

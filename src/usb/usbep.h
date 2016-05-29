@@ -26,6 +26,7 @@ private:
     ByteArray mTxBuffer;
     ConstDataEvent mDataOutEvent;
     //void getRxBuffer(ByteArray &data);
+    unsigned char mPollInterval;
     
 protected:
     //UsbCsEndpoint *csEndpoint;
@@ -46,6 +47,8 @@ public:
     void sendData(const ByteArray &data);
     
     bool isIn() const {return mDescriptor->endpointAddress() & 0x80;}
+    
+    unsigned char pollingInterval() const {return mPollInterval;}
 };
 //
 //class UsbAltSetting : public UsbNode

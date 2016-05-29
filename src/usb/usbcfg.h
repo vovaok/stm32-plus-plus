@@ -4,6 +4,7 @@
 #include "usbdesc.h"
 #include "usbnode.h"
 #include "usbif.h"
+#include "core/core.h"
 
 namespace Usb
 {

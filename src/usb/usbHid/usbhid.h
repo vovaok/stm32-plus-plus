@@ -100,11 +100,15 @@ private:
     unsigned char mProtocol;
     unsigned char mIdleState;
     unsigned char mAltSet;
+    
+    unsigned char mPollTimer;
   
 protected:
     void addChild(UsbNode *child);
     void setup(const UsbSetupReq &req);
     void ep0RxReady();
+    virtual void sof();
+    void onReportReceive(const ByteArray &report);
     
 public:
     UsbHidInterface(const ByteArray &reportDescriptor);
@@ -113,11 +117,11 @@ public:
     bool isUseMultipleReportId() const {return mMultipleReportId;}
     
     ConstDataEvent onReportReceiveEvent; //(const ByteArray &ba);
+    NotifyEvent onReportRequestEvent;
     NumberedDataEvent onSetReportEvent; //(int reportId), ByteArray &ba);
     NumberedDataEvent onGetReportEvent; //(int reportId), ByteArray &ba);
     
     void sendReport(const ByteArray &report);
-    void onReportReceive(const ByteArray &report);
 };
 
 }
