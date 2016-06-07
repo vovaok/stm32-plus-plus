@@ -58,22 +58,24 @@ ByteArray &ByteArray::operator=(const ByteArray &other)
 
 void ByteArray::allocMore(int size)
 {
+    __disable_irq();
     unsigned int desiredSize = mSize + size; // compute desired buffer size
     if (desiredSize <= mAllocSize)
         return;
     while (mAllocSize < desiredSize) // compute nearest allocation size
         mAllocSize = mAllocSize? (mAllocSize << 1): 16; // minimum size = 16 bytes
-    __disable_irq();
+    //__disable_irq();
     char *temp = new char[mAllocSize]; // allocate new buffer
-    __enable_irq();
+    //__enable_irq();
     if (mData)
     {
         memcpy(temp, mData, mSize); // copy old data
-        __disable_irq();
+        //__disable_irq();
         delete mData;               // delete old buffer
-        __enable_irq();
+        //__enable_irq();
     }
     mData = temp; 
+    __enable_irq();
 }
 //---------------------------------------------------------------------------
 

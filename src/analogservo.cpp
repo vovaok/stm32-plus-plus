@@ -5,23 +5,25 @@ Servo::Servo(PinName pin, int frequency_Hz) :
     mFreq(frequency_Hz),
     mValue(128),
     mMin(0),
-    mMax(255)
+    mMax(255),
+    mEnabled(false)
 {
-  
 }
    
 void Servo::setEnabled(bool enabled)
 {
-    if (enabled)
+    if (enabled && !mEnabled)
         setAsOutput();
-    else
+    else if (!enabled && mEnabled)
         setAsInputPullUp();
+    mEnabled = enabled;
 }
 
 void Servo::setRange(int min, int max)
 {
     mMin = min<0? 0: min>255? 255: min;
     mMax = max<0? 0: max>255? 255: max;
+    setValue(mValue); // fit to limits 
 }
 
 void Servo::setPosition(int pos)
@@ -32,7 +34,7 @@ void Servo::setPosition(int pos)
 
 void Servo::setValue(int value)
 {
-    mValue = value<0? 0: value>255? 255: value;
+    mValue = value<mMin? mMin: value>mMax? mMax: value;
 }
 //---------------------------------------------------------------------------
 //---------------------------------------------------------------------------
@@ -42,6 +44,7 @@ AnalogServo::AnalogServo(TimerNumber timerNumber) :
     HardwareTimer(timerNumber, 4096*50)
 {
     setUpdateEvent(EVENT(&AnalogServo::timerHandler));
+    HardwareTimer::setEnabled(true);
 }
   
 AnalogServo::~AnalogServo()
@@ -51,7 +54,7 @@ AnalogServo::~AnalogServo()
 
 void AnalogServo::timerHandler()
 {
-    GPIOD->BSRRL = 1<<1;
+    //GPIOD->BSRRL = 1<<1;
     mTime = (mTime + 1) & 0x0FFF; // 12 bit PWM
     int size = mServo.size();
     for (int i=0; i<size; i++)
@@ -64,13 +67,12 @@ void AnalogServo::timerHandler()
 //        bool pinstate = mTime < (servo->mValue + 180);
 //        servo->write(pinstate);
     }
-    GPIOD->BSRRH = 1<<1;
+    //GPIOD->BSRRH = 1<<1;
 }
 //---------------------------------------------------------------------------
 
 void AnalogServo::setEnabled(bool enabled)
 {
-    HardwareTimer::setEnabled(enabled);
     for (int i=0; i<mServo.size(); i++)
         mServo[i]->setEnabled(enabled);
 }

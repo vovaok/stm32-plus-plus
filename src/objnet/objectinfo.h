@@ -127,6 +127,7 @@ private:
     int mAutoPeriod, mAutoTime; // automatic transmission period
     Description mDesc;
     bool mIsDevice;
+    static int mAssignId;
 
     friend class ObjnetNode;
     friend class ObjnetMaster;
@@ -216,6 +217,7 @@ ObjectInfo::ObjectInfo(string name, T &var, Flags flags) :
     }
     mDesc.flags = flags;
     mDesc.name = name;
+    mDesc.id = mAssignId++;
 }
 
 template<typename T>
@@ -236,6 +238,7 @@ ObjectInfo::ObjectInfo(string name, const T &var, Flags flags) :
     }
     mDesc.flags = flags;
     mDesc.name = name;
+    mDesc.id = mAssignId++;
 }
 
 template<typename Tr, typename Tw>
@@ -259,6 +262,7 @@ ObjectInfo::ObjectInfo(string name, const Tr &varRead, Tw &varWrite, Flags flags
     }
     mDesc.flags = flags | Dual;
     mDesc.name = name;
+    mDesc.id = mAssignId++;
 }
 
 
@@ -282,6 +286,7 @@ ObjectInfo::ObjectInfo(string name, Closure<R(void)> event, ObjectInfo::Flags fl
     mDesc.wType = Void; // param type
     mDesc.flags = (flags | Function) & ~(Save | Write);
     mDesc.name = name;
+    mDesc.id = mAssignId++;
 }
 
 template<> ObjectInfo::ObjectInfo<void>(string name, Closure<void(void)> event, ObjectInfo::Flags flags);
@@ -305,6 +310,7 @@ ObjectInfo::ObjectInfo(string name, Closure<void(P0)> event, ObjectInfo::Flags f
     mDesc.wType = typeOfVar(param); // param type
     mDesc.flags = (flags | Function) & ~(Save | Read);
     mDesc.name = name;
+    mDesc.id = mAssignId++;
 }
 
 template<class R, class P0>
@@ -330,6 +336,7 @@ ObjectInfo::ObjectInfo(string name, Closure<R(P0)> event, ObjectInfo::Flags flag
     mDesc.wType = typeOfVar(param); // param type
     mDesc.flags = (flags | Function) & ~(Save);
     mDesc.name = name;
+    mDesc.id = mAssignId++;
 }
 
 }

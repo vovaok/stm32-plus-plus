@@ -2,6 +2,8 @@
 
 using namespace Objnet;
 
+int ObjectInfo::mAssignId = 0;
+
 ObjectInfo::ObjectInfo() :
     mReadPtr(0L), mWritePtr(0L),
     mAutoPeriod(0), mAutoTime(0),
@@ -24,6 +26,7 @@ template<> ObjectInfo::ObjectInfo<void>(string name, Closure<void(void)> event, 
     mDesc.wType = Void; // param type
     mDesc.flags = (flags | Function) & ~(Save | Write);
     mDesc.name = name;
+    mDesc.id = mAssignId++;
 }
 #endif
 //---------------------------------------------------------
