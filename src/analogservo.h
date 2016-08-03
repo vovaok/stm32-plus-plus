@@ -15,10 +15,12 @@ class Servo : public Gpio
 private:
     int mFreq;
     int mValue;
+    int mLoadedValue;
     int mMin;
     int mMax;
     int mPosition; // для хранения заданного положения
-//    bool mEnabled;
+    unsigned short mOffset; // for internal use
+    bool mEnabled;
     
     Servo(PinName pin, int frequency_Hz=50);
     
@@ -31,6 +33,11 @@ public:
         \param enabled \arg true разрешить управление; \arg false запретить управление.
     */
     void setEnabled(bool enabled);
+    
+    /*! Проверка разрешения управления серводвигателем.
+        \return true, если на серводвигатель выдаётся ШИМ; false, если выход подтянут к питанию.
+    */
+    bool isEnabled() {return mEnabled;}
     
     /*! Установка диапазона допустимых положений.
         Положение серводвигателя может меняться от 0 до 255.
@@ -51,7 +58,7 @@ public:
     */
     int position() const {return mPosition;}
     
-    /*! Установка текущего положения без ограничений.
+    /*! Установка текущего положения без ограничений. Было. Теперь с ограничениями.
         Позволяет обойти ограничения при задании положения. Может быть полезно при калибровке серводвигателя.
         \param value Задание положения (в пределах от 0 до 255).
     */

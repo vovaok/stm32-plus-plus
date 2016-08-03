@@ -2,10 +2,11 @@
 
 Button::Button(PinName pin, bool pullUp, bool inverted) :
     Gpio(pin, pullUp? Gpio::pullUp: Gpio::pullNone),
+    mFilter(false),
     mState(false),
     mInverted(inverted),
     mDebounceTime(50),
-    mTime(0)
+    mTime(mDebounceTime)
 {
     mState = state();
     stmApp()->registerTaskEvent(EVENT(&Button::task));
@@ -21,27 +22,33 @@ Button::~Button()
 
 void Button::task()
 {
-    if (mTime >= mDebounceTime)
+    bool s = mInverted ^ read();
+    if (s != mFilter)
+        mTime = mDebounceTime;
+    mFilter = s;
+        
+    if (!mTime)
     {
-        mTime = 0;
-        bool s = state();
-        if (s && !mState&&mPressEvent)
+        if (mFilter && !mState && mPressEvent)
             mPressEvent();
-        else if (!s && mState&&mReleaseEvent)
+        else if (!mFilter && mState && mReleaseEvent)
             mReleaseEvent();
-        mState = s;
+        mState = mFilter;
     }
 }
 
 void Button::tick(int period)
 {
-    mTime += period;
+    if (mTime >= period)
+        mTime -= period;
+    else
+        mTime = 0;
 }
 //---------------------------------------------------------------------------
 
 bool Button::state() const
 {
-    return mInverted ^ read();
+    return mState;
 }
 //---------------------------------------------------------------------------
 
