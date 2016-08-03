@@ -94,10 +94,7 @@ void SystemInit(void) // on Reset_Handler
     /* Disable all interrupts */
     RCC->CIR = 0x00000000;
 
-//    Rcc::configPll(0, CpuId::maxSysClk());
-//    Rcc::configPll(8000000, 168000000);
-//    Rcc::configPll(16000000, 168000000);
-    Rcc::configPll(25000000, 168000000);
+    Rcc::configPll(Application::crystalFrequency(), CpuId::maxSysClk());
 
     /* Configure the Vector Table location add offset address ------------------*/
     #ifdef VECT_TAB_SRAM

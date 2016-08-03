@@ -15,9 +15,11 @@ class Servo : public Gpio
 private:
     int mFreq;
     int mValue;
+    int mLoadedValue;
     int mMin;
     int mMax;
     int mPosition; // для хранения заданного положения
+    unsigned short mOffset; // for internal use
     bool mEnabled;
     
     Servo(PinName pin, int frequency_Hz=50);

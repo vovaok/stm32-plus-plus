@@ -11,6 +11,7 @@
 class Button : private Gpio
 {
 private:
+    bool mFilter;
     bool mState;
     bool mInverted;
     int mDebounceTime;

@@ -1,11 +1,13 @@
 #include "analogservo.h"
 
 Servo::Servo(PinName pin, int frequency_Hz) :
-    Gpio(pin, Gpio::pullUp),
+    Gpio(pin, Gpio::pullDown),
     mFreq(frequency_Hz),
     mValue(128),
+    mLoadedValue(mValue),
     mMin(0),
     mMax(255),
+    mOffset(0),
     mEnabled(false)
 {
 }
@@ -15,15 +17,15 @@ void Servo::setEnabled(bool enabled)
     if (enabled && !mEnabled)
         setAsOutput();
     else if (!enabled && mEnabled)
-        setAsInputPullUp();
+        setAsInputPullDown();
     mEnabled = enabled;
 }
 
 void Servo::setRange(int min, int max)
 {
-    mMin = min<0? 0: min>255? 255: min;
-    mMax = max<0? 0: max>255? 255: max;
-    setValue(mValue); // fit to limits 
+    mMin = (min<0? 0: min>255? 255: min);
+    mMax = (max<0? 0: max>255? 255: max);
+    setValue(value()); // fit to limits 
 }
 
 void Servo::setPosition(int pos)
@@ -34,6 +36,7 @@ void Servo::setPosition(int pos)
 
 void Servo::setValue(int value)
 {
+    value = value;
     mValue = value<mMin? mMin: value>mMax? mMax: value;
 }
 //---------------------------------------------------------------------------
@@ -41,7 +44,7 @@ void Servo::setValue(int value)
 //---------------------------------------------------------------------------
 
 AnalogServo::AnalogServo(TimerNumber timerNumber) :
-    HardwareTimer(timerNumber, 4096*50)
+    HardwareTimer(timerNumber, 2048*50)
 {
     setUpdateEvent(EVENT(&AnalogServo::timerHandler));
     HardwareTimer::setEnabled(true);
@@ -55,17 +58,20 @@ AnalogServo::~AnalogServo()
 void AnalogServo::timerHandler()
 {
     //GPIOD->BSRRL = 1<<1;
-    mTime = (mTime + 1) & 0x0FFF; // 12 bit PWM
+    mTime = (mTime + 1) & 0x07FF; // 11 bit PWM
     int size = mServo.size();
     for (int i=0; i<size; i++)
     {
         Servo *servo = mServo[i];
-        if (!mTime)
+        if (mTime == servo->mOffset)
+        {
+            servo->mLoadedValue = servo->mValue + servo->mOffset + 25;
             servo->set();
-        if (mTime == servo->mValue + 180)
+        }
+        else if (mTime == servo->mLoadedValue)
+        {
             servo->reset();
-//        bool pinstate = mTime < (servo->mValue + 180);
-//        servo->write(pinstate);
+        }
     }
     //GPIOD->BSRRH = 1<<1;
 }
@@ -81,6 +87,9 @@ Servo *AnalogServo::addServo(Gpio::PinName pin)
 {
     Servo *servo = new Servo(pin);
     mServo.push_back(servo);
+    int size = mServo.size();
+    for (int i=0; i<size; i++)
+        mServo[i]->mOffset = i * 0x0800 / size;
     return servo;
 }
 //---------------------------------------------------------------------------
