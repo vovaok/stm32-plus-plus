@@ -17,16 +17,6 @@ using namespace std;
 #define SYSTEM_CLOCK_MS         1
 #endif
 
-#if defined(CRYSTAL_8MHZ)
-#define _CRYSTAL_FREQ   8000000
-#elif defined(CRYSTAL_16MHZ)
-#define _CRYSTAL_FREQ   16000000
-#elif defined(CRYSTAL_25MHZ)
-#define _CRYSTAL_FREQ   25000000
-#else
-#define _CRYSTAL_FREQ   0 // automatic frequency estimation
-#endif
-
 #if !defined(APP_VERSION)
 #define APP_VERSION 0x0100
 #endif
@@ -53,7 +43,6 @@ private:
     static string mCpuInfo;
     static unsigned long mBurnCount;  
     
-    static int crystalFrequency() {return _CRYSTAL_FREQ;}
     friend void SystemInit();
 
 protected:

@@ -40,33 +40,50 @@ void Rcc::configPll(unsigned long hseValue, unsigned long sysClk)
             unsigned long rccCfgr = RCC->CFGR;
             unsigned long temp = rccCfgr;
             temp &= ~(0x1F << 16);
-            temp |= (30 << 16); // RTC = HSE / 20
+            temp |= (30 << 16); // RTC = HSE / 30
             RCC->CFGR = temp;
-            TIM11->OR = 0x0002; // HSE connect to TIM11_CH1 input
-            TIM11->CCMR1 = 0x0001; // CC1 channel configured as input
-            TIM11->CCER = 0x0001; // enable capture of rising edge
-            TIM11->ARR = 0xFFFF;
-            TIM11->CR1 = 0x0001; // enable TIM11
-            TIM11->SR = 0;
             
-            while (!(TIM11->SR & 0x0002)); // wait first edge
-            int fr0 = TIM11->CCR1;
-//            TIM11->CCR1 = 0;
-            
-            //while (!TIM11->CCR1); // wait until capture
-            while (!(TIM11->SR & 0x0002));
-            int fr1 = TIM11->CCR1;
-            if (TIM11->SR & (1<<9)) // overcapture
-                throw Exception::badSoBad;
-            TIM11->SR = 0;
-            TIM11->CR1 = 0; // disable timer            
+            int loopCount = 10;
+            int fr0, fr1;
+            TIM_TypeDef *tim11 = TIM11;
+            asm("ADD  R1, %[tim], #16\n"        // R1 = TIM1->SR
+                "ADD  R2, %[tim], #52\n"        // R2 = TIM1->CCR1
+                "MOV  R3, %[cnt]\n"             // counter = 10
+                "MOV  R0, #2\n"
+                "STRH R0, [%[tim], #80]\n"      // TIM11->OR = 0x0002; // HSE connect to TIM11_CH1 input
+                "MOVW R0, #65535\n"
+                "STR  R0, [%[tim], #44]\n"      // TIM11->ARR = 0xFFFF;
+                "MOV  R0, #1\n"
+                "STRH R0, [%[tim], #24]\n"      // TIM11->CCMR1 = 0x0001; // CC1 channel configured as input
+                "STRH R0, [%[tim], #32]\n"      // TIM11->CCER = 0x0001; // enable capture of rising edge
+                "STRH R0, [%[tim]]\n"           // TIM11->CR1 = 0x0001; // enable TIM11
+                "MOV  R0, #0\n"
+                "STRH R0, [R1]\n"               // TIM11->SR = 0;
+                "wait0:\n"
+                "LDR R0, [R1]\n"
+                "LSLS R0, R0, #30\n"            // test bit 2
+                "BPL wait0\n"                   // wait for bit 2
+                "LDR %[f0], [R2]\n"             // fr0 = TIM11->CCR1;
+                "wait1: LDR R0, [R1]\n"
+                "LSLS R0, R0, #30\n"            // test bit 2
+                "BPL wait1\n"                   // wait for bit 2
+                "LDR %[f1], [R2]\n"             // fr1 = TIM11->CCR1;
+                "SUBS R3, R3, #1\n"             // decrement counter
+                "BNE wait1\n"                   // continue loop
+                "MOVS R0, #0\n"
+                "STRH R0, [%[tim]]\n"           // TIM11->CR1 = 0x0000; // disable TIM11
+                "STRH R0, [R1]\n"               // TIM11->SR = 0;
+                : [f0]"=r"(fr0), [f1]"=r"(fr1)
+                : [tim]"r"(tim11), [cnt]"r"(loopCount)
+                : "cc", "R0", "R1", "R2", "R3");     
             
             RCC->CFGR = rccCfgr;
             RCC->APB2ENR &= ~(1<<18); // disable peripheral clock to TIM11
             // end of measure
             
             // calculate hseValue
-            hseValue = ((fr1 - fr0) * 16 + 15) / 30;
+            fr1 -= fr0;
+            hseValue = ((16 * 30) * loopCount + fr1 / 2) / fr1;
 #if defined(STM32F429_439xx)
 #warning RCC FUCKING HACK!!! Tak ne doljno bit!!
             hseValue = (hseValue + 2) / 4;      
