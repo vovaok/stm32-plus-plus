@@ -45,7 +45,7 @@ ObjnetNode::ObjnetNode(ObjnetInterface *iface) :
 }
 //---------------------------------------------------------------------------
 
-void ObjnetNode::bindObject(const ObjectInfo &info)
+unsigned char ObjnetNode::bindObject(const ObjectInfo &info)
 {
     mObjects.push_back(info);
     ObjectInfo &obj = mObjects.back();
@@ -54,6 +54,7 @@ void ObjnetNode::bindObject(const ObjectInfo &info)
     if (obj.isStorable())
         objnetStorage()->load(obj);
     #endif
+    return obj.mDesc.id;
 }
 
 void ObjnetNode::task()
@@ -341,5 +342,10 @@ void ObjnetNode::onSendTimer()
             }
         }
     }
+}
+
+void ObjnetNode::sendForced(unsigned char oid)
+{
+    sendMessage(0x00, oid, mObjects[oid].read());
 }
 //---------------------------------------------------------

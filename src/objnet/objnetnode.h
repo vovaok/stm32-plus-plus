@@ -89,12 +89,14 @@ public:
 
     bool isConnected() const {return mNetState > netnConnecting;}
 
-    void bindObject(const ObjectInfo &info);
+    unsigned char bindObject(const ObjectInfo &info);
     #define BindObject(obj) bindObject(ObjectInfo(#obj, obj)) // convenient macro
     #define BindObjectEx(obj, flags) bindObject(ObjectInfo(#obj, obj, flags)) // convenient macro
     #define BindDualObject(objRead, objWrite) bindObject(ObjectInfo(#objRead":"#objWrite, objRead, objWrite))
     #define BindMethod(method) bindObject(ObjectInfo(#method, CLOSURE(this, &method)))
     #define BindMethodEx(name, object, method) bindObject(ObjectInfo(name, CLOSURE(object, &method)))
+    
+    void sendForced(unsigned char oid);
     
 #ifndef QT_CORE_LIB
     NotifyEvent onPolling;

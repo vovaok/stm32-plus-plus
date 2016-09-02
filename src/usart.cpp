@@ -339,7 +339,7 @@ int Usart::write(const ByteArray &ba)
 int Usart::read(ByteArray &ba)
 {
     int mask = mRxBuffer.size() - 1;
-    int curPos = mRxBuffer.size() - (mDmaRx? mDmaRx->dataCounter(): mRxIrqDataCounter);
+    int curPos = mDmaRx? (mRxBuffer.size() - mDmaRx->dataCounter()): mRxIrqDataCounter;
     int read = (curPos - mRxPos) & mask;
     if (m7bits)
     {
@@ -359,7 +359,7 @@ int Usart::read(ByteArray &ba)
 bool Usart::canReadLine()
 {
     int mask = mRxBuffer.size() - 1;
-    int curPos = mRxBuffer.size() - (mDmaRx? mDmaRx->dataCounter(): mRxIrqDataCounter);
+    int curPos = mDmaRx? (mRxBuffer.size() - mDmaRx->dataCounter()): mRxIrqDataCounter;
     int read = (curPos - mRxPos) & mask;
     unsigned char bitmask = m7bits? 0x7F: 0xFF;
     for (int i=mRxPos; i<mRxPos+read; i++)
@@ -382,7 +382,7 @@ bool Usart::canReadLine()
 int Usart::readLine(ByteArray &ba)
 {
     int mask = mRxBuffer.size() - 1;
-    int curPos = mRxBuffer.size() - (mDmaRx? mDmaRx->dataCounter(): mRxIrqDataCounter);
+    int curPos = mDmaRx? (mRxBuffer.size() - mDmaRx->dataCounter()): mRxIrqDataCounter;
     int read = (curPos - mRxPos) & mask;
     int i = mRxPos, endi = 0;
     unsigned char bitmask = m7bits? 0x7F: 0xFF;

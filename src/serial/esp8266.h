@@ -38,16 +38,23 @@ private:
         cmdIpStart,
         cmdIpSend,
         cmdSaveTransLink,
-        cmdConnectToAp
+        cmdConnectToAp,
+        cmdIpMux,
+        cmdIpServer,
     } Command;
     
     bool mTransparentMode;
+    bool mConnected;
+    bool mServerActive;
     State mState;
     Command mLastCmd;
     int mLastData;
     
+    ByteArray mOutBuffer, mInBuffer;
+    
     string mApSSID, mApKey;
     string mPeerIp;
+    unsigned short mServerPort;
     
     void task();
     void parseLine(ByteArray &line);
@@ -64,7 +71,9 @@ public:
     int read(ByteArray &ba);
     int write(const ByteArray &ba);
     
-    bool isOpen() const {return mTransparentMode;}
+    void sendLine(string line);
+    
+    bool isOpen() const {return mTransparentMode || mConnected;}
     bool isReady() const {return mState == ReadyState;}
     
     void interruptTransparentMode();
@@ -74,9 +83,12 @@ public:
     void saveTransLink(string translink_string);
     void setOnbStaMode(string autoConnIp);
     void autoConnectToAp(string ssid_and_pass);
+    void startServer(unsigned short port);
     
     NotifyEvent onOK;
     NotifyEvent onError;
+    
+    Closure<void(string)> onReceiveLine;
 };
 
 }

@@ -5,6 +5,8 @@ using namespace Serial;
 ESP8266::ESP8266(Usart *usart, Gpio::PinName resetPin) :
     mUsart(usart),
     mTransparentMode(false),
+    mConnected(false),
+    mServerActive(false),
     mState(ResetState),
     mLastCmd(cmdNone),
     mApSSID("stm32wifi")
@@ -15,10 +17,10 @@ ESP8266::ESP8266(Usart *usart, Gpio::PinName resetPin) :
     mResetPin->setAsOutput();
     mResetPin->write(0);
   
-    mUsart->setBaudrate(115200);//78400);
+    mUsart->setBaudrate(78400);
     mUsart->setConfig(Usart::Mode8N1);
-    mUsart->setBufferSize(256); // 1024 for 3 ms!!
-    mUsart->setUseDmaRx(true);
+    mUsart->setBufferSize(512); // 1024 for 3 ms!!
+    mUsart->setUseDmaRx(false);
     mUsart->setUseDmaTx(true);
     mUsart->setLineEnd("\r\n");
     mUsart->open(ReadWrite);
@@ -49,6 +51,9 @@ void ESP8266::task()
 
 void ESP8266::parseLine(ByteArray &line)
 {
+    if (onReceiveLine)
+        onReceiveLine(string(line.data(), line.size()));
+  
     if (line.size() >= 2 && line[0] == 'A' && line[1] == 'T')
     {
         // this is EEECHOOOO!!
@@ -111,7 +116,15 @@ void ESP8266::parseLine(ByteArray &line)
             break;
             
           case cmdIpSend:
-            mTransparentMode = true;
+            if (mConnected)
+            {
+                mUsart->write(mOutBuffer);
+                mOutBuffer.remove(0, mLastData);
+            }
+            else
+            {
+                mTransparentMode = true;
+            }
             break; 
             
           case cmdSaveTransLink:
@@ -120,6 +133,20 @@ void ESP8266::parseLine(ByteArray &line)
             
           case cmdConnectToAp:
             hardReset();
+            break;
+            
+          case cmdIpMux:
+          {
+            char cmd[32];
+            sprintf(cmd, "AT+CIPSERVER=1,%d", mServerPort);
+            mLastCmd = cmdIpServer;
+            sendCmd(cmd);
+          }
+            break;
+            
+          case cmdIpServer:
+            mServerActive = true;
+            mLastCmd = cmdNone;
             break;
         }
         
@@ -155,6 +182,18 @@ void ESP8266::parseLine(ByteArray &line)
         }
         mPeerIp = string(line.data(), line.size());
     }
+    else if (mServerActive)
+    {
+        ByteArray cc = line.remove(0, 2);
+        if (cc == "CONNECT")
+        {
+            mConnected = true;
+        }
+        else if (cc == "CLOSED" || cc == "CONNECT FAIL")
+        {
+            mConnected = false;
+        }
+    }
 }
 
 void ESP8266::sendCmd(ByteArray ba)
@@ -162,6 +201,11 @@ void ESP8266::sendCmd(ByteArray ba)
     ba.append(0x0d);
     ba.append(0x0a);
     mUsart->write(ba);
+}
+
+void ESP8266::sendLine(string line)
+{
+    sendCmd(line.c_str());
 }
 
 void ESP8266::onTimer()
@@ -190,6 +234,30 @@ int ESP8266::read(ByteArray &ba)
 {
     if (mTransparentMode)
         return mUsart->read(ba);
+    else if (mConnected)
+    {
+//        if (!mUsart->canReadLine() && mUsart->read(mInBuffer))
+//        {
+//            ByteArray tmp(mInBuffer.data(), 4);
+//            if (tmp == "+IPD")
+//            {
+//                bool found = false;
+//                int cidx;
+//                for (cidx=7; cidx<12 && !found; cidx++)
+//                    if (mInBuffer[cidx] == ':')
+//                        found = true;
+//                if (found)
+//                {
+//                    int cnt = 0;
+//                    sscanf(mInBuffer.data()+7, "%d", &cnt);
+//                    if (mInBuffer.size() >= (cidx+cnt))
+//                        ba.append(mInBuffer.data()+cidx, cnt);
+//                    mInBuffer.remove(0, cidx+cnt);
+//                    return cnt;
+//                }
+//            }
+//        }
+    }
     return -1;
 }
 
@@ -197,6 +265,16 @@ int ESP8266::write(const ByteArray &ba)
 {
     if (mTransparentMode)
         return mUsart->write(ba);
+    else if (mConnected)
+    {
+        mOutBuffer.append(ba);
+        mLastData = mOutBuffer.size();
+        mLastCmd = cmdIpSend;
+        char cmd[32];
+        sprintf(cmd, "AT+CIPSEND=0,%d", mLastData);
+        sendCmd(cmd);
+        return ba.size();
+    }
     return -1;
 }
 //---------------------------------------------------------------------------
@@ -261,5 +339,14 @@ void ESP8266::autoConnectToAp(string ssid_and_pass)
     mLastCmd = cmdConnectToAp;
     string cmd = "AT+CWJAP_DEF=" + ssid_and_pass;
     sendCmd(cmd.c_str());
+}
+
+void ESP8266::startServer(unsigned short port)
+{
+    if (mTransparentMode)
+        interruptTransparentMode();
+    mServerPort = port;
+    mLastCmd = cmdIpMux;
+    sendCmd("AT+CIPMUX=1");
 }
 //---------------------------------------------------------------------------
