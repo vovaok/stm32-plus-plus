@@ -16,7 +16,7 @@ private:
     
     bool mState;
     char mCountMig;
-  
+    
 public:
     Led(char portLetter, int pinNumber);
     
@@ -27,6 +27,7 @@ public:
     bool state() const {return mState;}
     void setState(bool newState);
     void toggleSkip(char count);
+    void toggleSkip(char count1, char count2);
 };
 
 #endif

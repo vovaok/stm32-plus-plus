@@ -295,31 +295,31 @@ void Usart::close()
 
 static int written = 0;
 
-int Usart::write(const ByteArray &ba)
+int Usart::write(const char *data, int size)
 {
     if (!mDmaTx)
     {
-        for (int i=0; i<ba.size(); i++)
+        for (int i=0; i<size; i++)
         {
             while (!(mDev->SR & USART_FLAG_TC));
-            mDev->DR = ba[i];
+            mDev->DR = data[i];
         }
         while (!(mDev->SR & USART_FLAG_TC));
-        return ba.size();
+        return size;
     }
     
     //  write through DMA
     int mask = mTxBuffer.size() - 1;
     int curPos = (mTxReadPos - mDmaTx->dataCounter()) & mask;
     int maxsize = (curPos - mTxPos - 1) & mask;
-    int sz = ba.size();
+    int sz = size;
     if (sz > maxsize)
     {
         return -1;
 //        sz = maxsize;
     }
     for (int i=0; i<sz; i++)
-        mTxBuffer[(mTxPos + i) & mask] = ba[i];
+        mTxBuffer[(mTxPos + i) & mask] = data[i];
     mTxPos = (mTxPos + sz) & mask;
     written += sz;
     
@@ -333,7 +333,12 @@ int Usart::write(const ByteArray &ba)
     mDmaTx->setSingleBuffer(mTxBuffer.data() + mTxReadPos, sz);
     mTxReadPos = (mTxReadPos + sz) & mask;
     mDmaTx->start();
-    return ba.size();
+    return size;
+}
+
+int Usart::write(const ByteArray &ba)
+{
+    return write(ba.data(), ba.size());
 }
 
 int Usart::read(ByteArray &ba)

@@ -47,6 +47,22 @@ public:
     
     bool operator ==(const ByteArray &ba) const;
     bool operator !=(const ByteArray &ba) const;
+    
+    ByteArray left(int len) const;
+    ByteArray right(int len) const;
+    ByteArray mid(int index, int len = -1) const;
+
+    bool startsWith(const ByteArray &ba) const;
+    bool startsWith(char c) const;
+    bool startsWith(const char *str) const;
+
+    bool endsWith(const ByteArray &ba) const;
+    bool endsWith(char c) const;
+    bool endsWith(const char *str) const;
+    
+    int indexOf(char c, int from = 0) const;
+    int indexOf(const char *str, int from = 0) const;
+    int indexOf(const ByteArray &ba, int from = 0) const;
 };
 
 
