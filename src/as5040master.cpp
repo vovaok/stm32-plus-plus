@@ -56,6 +56,10 @@ void As5040Master::onRead(unsigned short rawValue)
         mChannels[mCurChannel].cs->write(0);
         mSpi->transferWordAsync();
     }
+    else if (onFinish)
+    {
+        onFinish();
+    }
 }
 //---------------------------------------------------------------------------
 

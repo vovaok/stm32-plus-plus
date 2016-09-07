@@ -34,7 +34,8 @@ public:
             unsigned char baudrate: 3;
             unsigned char enable: 1;
             unsigned char LSBfirst: 1;
-            unsigned char : 2; // internal use
+            unsigned char SSI: 1;
+            unsigned char SSM: 1;
             unsigned char RXonly: 1;
             unsigned char frame16bit: 1;
             unsigned char : 4; // internal use

@@ -7,9 +7,9 @@ Spi::Spi(Gpio::Config sck, Gpio::Config miso, Gpio::Config mosi)
     SpiNo no = getSpiByPin(sck);
     if (no == SpiNone)
         throw Exception::invalidPin;
-    if (miso != Gpio::noPin && no != getSpiByPin(miso))
+    if (miso != Gpio::NoConfig && no != getSpiByPin(miso))
         throw Exception::invalidPin;
-    if (mosi != Gpio::noPin && no != getSpiByPin(mosi))
+    if (mosi != Gpio::NoConfig && no != getSpiByPin(mosi))
         throw Exception::invalidPin;
   
     mSpies[no-1] = this;
@@ -68,6 +68,8 @@ void Spi::setConfig(Config cfg)
     bool en = mConfig.enable;
     cfg.enable = 0;
     mConfig = cfg;
+    mConfig.SSI = 1;
+    mConfig.SSM = 1;
     mDev->CR1 = mConfig.word;
     if (en)
     {
@@ -119,12 +121,12 @@ void Spi::enableInterrupt()
     NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
     NVIC_Init(&NVIC_InitStructure);
     
-    SPI_I2S_ITConfig(mDev, 0x0001, ENABLE);
+    SPI_I2S_ITConfig(mDev, SPI_I2S_IT_RXNE, ENABLE);
 }
 
 void Spi::handleInterrupt()
 {
-    if (SPI_I2S_GetITStatus(mDev, 0x0001) == SET)
+    if (SPI_I2S_GetITStatus(mDev, SPI_I2S_IT_RXNE) == SET)
     {
         onTransferComplete(mDev->DR);
     }

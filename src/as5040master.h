@@ -52,6 +52,9 @@ public:
     float valueDeg(unsigned char channel);
     float valueRad(unsigned char channel);
     Flags flags(unsigned char channel);
+    
+    bool isReady() const {return mCurChannel >= mChannels.size();}
+    NotifyEvent onFinish;
 };
 
 #endif
