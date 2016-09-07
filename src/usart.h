@@ -93,10 +93,12 @@ public:
     void setUseDmaRx(bool useDma);
     void setUseDmaTx(bool useDma);
     void setLineEnd(ByteArray lineend);
+    const ByteArray &lineEnd() const {return mLineEnd;}
     
     bool open(OpenMode mode = ReadWrite);
     void close();
     
+    int write(const char *data, int size);
     int write(const ByteArray &ba);
     int read(ByteArray &ba);
     

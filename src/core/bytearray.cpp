@@ -58,10 +58,10 @@ ByteArray &ByteArray::operator=(const ByteArray &other)
 
 void ByteArray::allocMore(int size)
 {
-    __disable_irq();
     unsigned int desiredSize = mSize + size; // compute desired buffer size
     if (desiredSize <= mAllocSize)
         return;
+    __disable_irq();
     while (mAllocSize < desiredSize) // compute nearest allocation size
         mAllocSize = mAllocSize? (mAllocSize << 1): 16; // minimum size = 16 bytes
     //__disable_irq();
@@ -175,5 +175,153 @@ bool ByteArray::operator !=(const ByteArray &ba) const
         if (ba.mData[i] != mData[i])
             return true;
     return false;
+}
+//---------------------------------------------------------------------------
+
+bool ByteArray::startsWith(const ByteArray &ba) const
+{
+    if (ba.mSize == 0)
+        return true;
+    if (mSize < ba.mSize)
+        return false;
+    return memcmp(mData, ba.mData, ba.mSize) == 0;
+}
+
+bool ByteArray::startsWith(const char *str) const
+{
+    if (!str || !*str)
+        return true;
+    int len = strlen(str);
+    if (mSize < len)
+        return false;
+    return strncmp(mData, str, len) == 0;
+}
+
+bool ByteArray::startsWith(char ch) const
+{
+    if (mSize == 0)
+        return false;
+    return mData[0] == ch;
+}
+
+bool ByteArray::endsWith(const ByteArray &ba) const
+{
+    if (ba.mSize == 0)
+        return true;
+    if (mSize < ba.mSize)
+        return false;
+    return memcmp(mData + mSize - ba.mSize, ba.mData, ba.mSize) == 0;
+}
+
+bool ByteArray::endsWith(const char *str) const
+{
+    if (!str || !*str)
+        return true;
+    int len = strlen(str);
+    if (mSize < len)
+        return false;
+    return strncmp(mData + mSize - len, str, len) == 0;
+}
+
+bool ByteArray::endsWith(char ch) const
+{
+    if (mSize == 0)
+        return false;
+    return mData[mSize - 1] == ch;
+}
+
+ByteArray ByteArray::left(int len) const
+{
+    if (len >= mSize)
+        return *this;
+    if (len < 0)
+        len = 0;
+    return ByteArray(mData, len);
+}
+
+ByteArray ByteArray::right(int len) const
+{
+    if (len >= mSize)
+        return *this;
+    if (len < 0)
+        len = 0;
+    return ByteArray(mData + mSize - len, len);
+}
+
+ByteArray ByteArray::mid(int pos, int len) const
+{
+    if (pos >= mSize)
+        return ByteArray();
+    if (len < 0)
+        len = mSize - pos;
+    if (pos < 0) {
+        len += pos;
+        pos = 0;
+    }
+    if (len + pos > mSize)
+        len = mSize - pos;
+    if (pos == 0 && len == mSize)
+        return *this;
+    return ByteArray(mData + pos, len);
+}
+//---------------------------------------------------------------------------
+
+int findByteArray(const char *b, int blen, int from, const char *s, int slen)
+{
+    for (int i=from; i<=blen-slen; i++)
+    {
+        int j;
+        for (j=0; j<slen && (b[i+j]==s[j]); j++);
+        if (j==slen)
+            return i;
+    }
+    return -1;
+}
+
+int ByteArray::indexOf(const ByteArray &ba, int from) const
+{
+    const int ol = ba.mSize;
+    if (ol == 0)
+        return from;
+    if (ol == 1)
+        return indexOf(*ba.mData, from);
+
+    const int l = mSize;
+    if (from > l || ol + from > l)
+        return -1;
+
+    return findByteArray(mData, mSize, from, ba.mData, ol);
+}
+
+int ByteArray::indexOf(const char *str, int from) const
+{
+    const int ol = strlen(str);
+    if (ol == 1)
+        return indexOf(*str, from);
+    
+    const int l = mSize;
+    if (from > l || ol + from > l)
+        return -1;
+    if (ol == 0)
+        return from;
+
+    return findByteArray(mData, mSize, from, str, ol);
+}
+
+int ByteArray::indexOf(char c, int from) const
+{
+    if (from < 0)
+        from = from + mSize;
+    if (from < 0)
+        from = 0;
+    if (from < mSize)
+    {
+        const char *n = mData + from - 1;
+        const char *e = mData + mSize;
+        while (++n != e)
+        if (*n == c)
+            return n - mData;
+    }
+    return -1;
 }
 //---------------------------------------------------------------------------

@@ -22,7 +22,9 @@ private:
         ResetState = 0,
         ReadyState,
         WaitForConnect,
-        Connecting
+        IdleState,
+        Connecting,
+        Connected
     } State;
     
     typedef enum
@@ -32,11 +34,13 @@ private:
         cmdReset,
         cmdUart,
         cmdCwMode,
+        cmdCwModeReq,
         cmdSetAp,
         cmdIpMode,
         cmdListIp,
         cmdIpStart,
         cmdIpSend,
+        cmdIpSendBuf,
         cmdSaveTransLink,
         cmdConnectToAp,
         cmdIpMux,
@@ -45,12 +49,15 @@ private:
     
     bool mTransparentMode;
     bool mConnected;
+    int mReceiveSize;
+    int mTransmitSize;
     bool mServerActive;
+    bool mApMode;
     State mState;
     Command mLastCmd;
     int mLastData;
     
-    ByteArray mOutBuffer, mInBuffer;
+    ByteArray mOutBuffer, mInBuffer, mLineBuffer;
     
     string mApSSID, mApKey;
     string mPeerIp;
@@ -73,8 +80,11 @@ public:
     
     void sendLine(string line);
     
-    bool isOpen() const {return mTransparentMode || mConnected;}
     bool isReady() const {return mState == ReadyState;}
+    bool isWaiting() const {return mState == WaitForConnect;}
+    bool isIdle() const {return mState == IdleState;}
+    bool isConnecting() const {return mState == Connecting;}
+    bool isOpen() const {return mTransparentMode || mConnected;}
     
     void interruptTransparentMode();
     void reset();
@@ -84,9 +94,12 @@ public:
     void setOnbStaMode(string autoConnIp);
     void autoConnectToAp(string ssid_and_pass);
     void startServer(unsigned short port);
+    void connectToHost(string ip, unsigned short port);
+    void autoConnectToHost(string ip, unsigned short port);
     
     NotifyEvent onOK;
     NotifyEvent onError;
+    NotifyEvent onReady;
     
     Closure<void(string)> onReceiveLine;
 };

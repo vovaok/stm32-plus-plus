@@ -97,6 +97,20 @@ void Led::toggleSkip(char count)
     }
 }
 
+void Led::toggleSkip(char count1, char count2)
+{
+    mCountMig++;
+    if (mCountMig >= count1 + count2)
+    {
+        on();
+        mCountMig=0;
+    }
+    else if (mCountMig>=count1)
+    {
+        off();
+    }
+}
+
 void Led::toggle()
 {
     mState = !mState;
