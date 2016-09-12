@@ -68,6 +68,8 @@ public:
 
     void requestName(unsigned char netAddress) {sendServiceMessage(netAddress, svcName);}
     void requestClassId(unsigned char netAddress) {sendServiceMessage(netAddress, svcClass);}
+    void requestDevInfo(unsigned char netAddress) {sendServiceMessage(netAddress, svcRequestAllInfo);}
+    void requestObjInfo(unsigned char netAddress) {sendServiceMessage(netAddress, svcRequestObjInfo);}
 
 #ifdef QT_CORE_LIB
 public slots:
@@ -77,6 +79,15 @@ public slots:
     void sendServiceRequest(unsigned char netAddress, SvcOID oid, const ByteArray &ba)
     {
         sendServiceMessage(netAddress, oid, ba);
+    }
+    void sendServiceRequest(StdAID aid, bool propagation, const ByteArray &ba=ByteArray())
+    {
+        if (propagation)
+            aid = static_cast<StdAID>(aid | aidPropagationDown);
+        if (ba.size())
+            sendGlobalServiceDataMessage(aid, ba);
+        else
+            sendGlobalServiceMessage(aid);
     }
 
 //    void sendRemoteMessage(unsigned char receiver, unsigned char oid, const ByteArray &ba = ByteArray());

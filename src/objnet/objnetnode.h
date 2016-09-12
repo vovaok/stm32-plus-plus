@@ -9,7 +9,7 @@
 
 namespace Objnet
 {
-  
+
 class ObjnetNode : public ObjnetCommonNode
 {
 #ifdef QT_CORE_LIB
@@ -18,12 +18,12 @@ class ObjnetNode : public ObjnetCommonNode
 private:
     typedef enum
     {
-        netnStart = 0,      //!< исходное состояние, посылка сообщения Hello
-        netnConnecting,     //!< ожидание ответа мастера в течение ххх мс
-        netnDisconnecting,  //!< узел понял, что его никто не ждёт и отключается
-        netnAccepted,       //!< ответ от мастера принят
-        //netnEnumeration,    //!< присвоение логического адреса
-        netnReady,          //!< узел готов
+        netnStart = 0,      //!< РёСЃС…РѕРґРЅРѕРµ СЃРѕСЃС‚РѕСЏРЅРёРµ, РїРѕСЃС‹Р»РєР° СЃРѕРѕР±С‰РµРЅРёСЏ Hello
+        netnConnecting,     //!< РѕР¶РёРґР°РЅРёРµ РѕС‚РІРµС‚Р° РјР°СЃС‚РµСЂР° РІ С‚РµС‡РµРЅРёРµ С…С…С… РјСЃ
+        netnDisconnecting,  //!< СѓР·РµР» РїРѕРЅСЏР», С‡С‚Рѕ РµРіРѕ РЅРёРєС‚Рѕ РЅРµ Р¶РґС‘С‚ Рё РѕС‚РєР»СЋС‡Р°РµС‚СЃСЏ
+        netnAccepted,       //!< РѕС‚РІРµС‚ РѕС‚ РјР°СЃС‚РµСЂР° РїСЂРёРЅСЏС‚
+        //netnEnumeration,    //!< РїСЂРёСЃРІРѕРµРЅРёРµ Р»РѕРіРёС‡РµСЃРєРѕРіРѕ Р°РґСЂРµСЃР°
+        netnReady,          //!< СѓР·РµР» РіРѕС‚РѕРІ
     } NetState;
 
     Timer mSendTimer;
@@ -34,17 +34,17 @@ private:
 
     // objnet related parameters:
     unsigned long mClass;
-    string mName;
-    string mFullName;
+    _String mName;
+    _String mFullName;
     unsigned long mSerial;
     unsigned short mVersion;
-    string mBuildDate;
-    string mCpuInfo;
+    _String mBuildDate;
+    _String mCpuInfo;
     unsigned long mBurnCount;
 
-    // словарь сервисных объектов:
+    // СЃР»РѕРІР°СЂСЊ СЃРµСЂРІРёСЃРЅС‹С… РѕР±СЉРµРєС‚РѕРІ:
     std::vector<ObjectInfo> mSvcObjects;
-    // словарь объектов
+    // СЃР»РѕРІР°СЂСЊ РѕР±СЉРµРєС‚РѕРІ
     std::vector<ObjectInfo> mObjects;
 
 #ifndef QT_CORE_LIB
@@ -74,13 +74,13 @@ protected slots:
 
 public:
     ObjnetNode(ObjnetInterface *iface);
-    
+
     void setClassId(unsigned long classId) {mClass = classId;}
-    void setName(string name) {mName = name.substr(0, 8);}
-    void setFullName(string name) {mFullName = name;}
-    
-    string name() const {return mName;}
-    string fullName() const {return mFullName;}
+    void setName(_String name) {mName = _toString(_fromString(name).substr(0, 8));}
+    void setFullName(_String name) {mFullName = name;}
+
+    _String name() const {return mName;}
+    _String fullName() const {return mFullName;}
     unsigned long classId() const {return mClass;}
     unsigned long serial() const {return mSerial;}
     unsigned short version() const {return mVersion;}
@@ -95,17 +95,17 @@ public:
     #define BindDualObject(objRead, objWrite) bindObject(ObjectInfo(#objRead":"#objWrite, objRead, objWrite))
     #define BindMethod(method) bindObject(ObjectInfo(#method, CLOSURE(this, &method)))
     #define BindMethodEx(name, object, method) bindObject(ObjectInfo(name, CLOSURE(object, &method)))
-    
+
     void sendForced(unsigned char oid);
-    
-#ifndef QT_CORE_LIB
-    NotifyEvent onPolling;
-#endif
 
 #ifdef QT_CORE_LIB
 signals:
     void globalMessage(unsigned char aid);
+    void polling();
+    void upgradeRequest();
 #else
+    NotifyEvent onPolling;
+    NotifyEvent onUpgradeRequest;
     GlobalMessageEvent onGlobalMessage;
 #endif
 };

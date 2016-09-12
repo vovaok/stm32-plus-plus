@@ -96,7 +96,7 @@ void ObjnetNode::task()
         {
             mTimer.start();
         }
-        while (mObjInfoSendCount >= 0 && mObjInfoSendCount < mObjects.size())
+        while (mObjInfoSendCount >= 0 && mObjInfoSendCount < (int)mObjects.size())
         {
             ByteArray ba;
             mObjects[mObjInfoSendCount].mDesc.read(ba);
@@ -163,6 +163,8 @@ void ObjnetNode::parseServiceMessage(CommonMessage &msg)
             #ifndef QT_CORE_LIB
             if (onPolling)
                 onPolling();
+            #else
+                emit polling();
             #endif
             break;
 
@@ -171,6 +173,18 @@ void ObjnetNode::parseServiceMessage(CommonMessage &msg)
 //            mNetState = netnConnecting;
             mNetState = netnStart;
             break;
+            
+          case aidUpgradeStart:
+          {
+            unsigned long classId = *reinterpret_cast<unsigned long*>(msg.data().data());
+            #ifndef QT_CORE_LIB
+            if (classId == mClass && onUpgradeRequest)
+                onUpgradeRequest();
+            #else
+            if (classId == mClass)
+                emit upgradeRequest();
+            #endif
+          } break;
 
           default:;
         }
@@ -194,7 +208,7 @@ void ObjnetNode::parseServiceMessage(CommonMessage &msg)
 
       case svcWelcome:
       case svcWelcomeAgain:
-        for (int i=0; i<mObjects.size(); i++)
+        for (unsigned int i=0; i<mObjects.size(); i++)
         {
             ObjectInfo &obj = mObjects[i];
             obj.mAutoPeriod = 0;
@@ -208,7 +222,7 @@ void ObjnetNode::parseServiceMessage(CommonMessage &msg)
                 len = 8;
             // send different info
             sendServiceMessage(remoteAddr, svcClass, ByteArray(reinterpret_cast<const char*>(&mClass), sizeof(mClass)));
-            sendServiceMessage(remoteAddr, svcName, ByteArray(mName.c_str(), len));
+            sendServiceMessage(remoteAddr, svcName, ByteArray(_fromString(mName).c_str(), len));
             sendServiceMessage(remoteAddr, svcEcho); // echo at the end of info
         }
         else if (mAdjacentNode) // remote addr
@@ -241,6 +255,7 @@ void ObjnetNode::parseServiceMessage(CommonMessage &msg)
             if (oid < mObjects.size())
             {
                 mObjects[oid].mAutoPeriod = period;
+                mObjects[oid].mAutoReceiverAddr = remoteAddr;
             }
         }
         break;
@@ -317,7 +332,7 @@ void ObjnetNode::onTimeoutTimer()
     {
         mNetState = netnStart;
         
-        for (int oid=0; oid<mObjects.size(); oid++)
+        for (unsigned int oid=0; oid<mObjects.size(); oid++)
         {
             ObjectInfo &obj = mObjects[oid];
             obj.mAutoPeriod = 0;
@@ -329,7 +344,7 @@ void ObjnetNode::onTimeoutTimer()
 
 void ObjnetNode::onSendTimer()
 {
-    for (int oid=0; oid<mObjects.size(); oid++)
+    for (unsigned int oid=0; oid<mObjects.size(); oid++)
     {
         ObjectInfo &obj = mObjects[oid];
         if (obj.mAutoPeriod)
@@ -338,7 +353,7 @@ void ObjnetNode::onSendTimer()
             if (obj.mAutoTime >= obj.mAutoPeriod)
             {
                 obj.mAutoTime = 0;
-                sendMessage(0x00, oid, obj.read());
+                sendMessage(obj.mAutoReceiverAddr, oid, obj.read());
             }
         }
     }

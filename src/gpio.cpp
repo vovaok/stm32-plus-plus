@@ -94,6 +94,8 @@ void Gpio::config(const Config &conf)
 
 void Gpio::updateConfig()
 {
+    if (mConfig.pin == noPin)
+        return;
     GPIO_InitTypeDef GPIO_InitStructure;
     GPIO_InitStructure.GPIO_Pin = mPin; 
     GPIO_InitStructure.GPIO_Mode = (GPIOMode_TypeDef)mConfig.mode;
@@ -194,6 +196,8 @@ void Gpio::setAsOutputOpenDrain()
 
 bool Gpio::read() const
 {
+    if (mConfig.pin == noPin)
+        return false;
     if (mConfig.mode == modeOut)
         return mPort->ODR & mPin;
     else
@@ -202,6 +206,8 @@ bool Gpio::read() const
 
 void Gpio::write(bool value)
 {
+    if (mConfig.pin == noPin)
+        return;
     if (value)
         mPort->BSRRL = mPin;
     else

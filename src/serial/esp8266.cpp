@@ -255,7 +255,7 @@ void ESP8266::parseLine(ByteArray &line)
         if (onError)
             onError();
     }
-    else if (line == "CONNECT")
+    else if (line == "CONNECT" || line == "ALREADY CONNECTED")
     {
         mConnected = true;
         mState = Connected;

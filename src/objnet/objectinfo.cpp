@@ -13,7 +13,7 @@ ObjectInfo::ObjectInfo() :
 
 #ifndef QT_CORE_LIB
 template<> ObjectInfo::ObjectInfo<void>(string name, Closure<void(void)> event, ObjectInfo::Flags flags) :
-    mAutoPeriod(0), mAutoTime(0),
+    mAutoPeriod(0), mAutoTime(0), mAutoReceiverAddr(0),
     mIsDevice(false)
 {
     mDesc.readSize = 0; // no return

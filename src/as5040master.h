@@ -10,7 +10,7 @@ public:
 #pragma pack(push,1)
     typedef union
     {
-        unsigned short word;
+        unsigned char word;
         struct
         {
             unsigned char parity: 1;

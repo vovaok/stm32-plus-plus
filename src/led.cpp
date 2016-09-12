@@ -6,7 +6,11 @@ Led::Led(char portLetter, int pinNumber) :
     if (pinNumber<0 || pinNumber>31)
     {
         mPort = 0L; 
+//        #ifndef NO_EXCEPTIONS
         throw Exception::invalidPin;
+//        #else
+//        while(1);
+//        #endif
     }
     
     mPin = 1 << pinNumber;
@@ -61,7 +65,11 @@ Led::Led(char portLetter, int pinNumber) :
         break;
         
       default:
+//        #ifndef NO_EXCEPTIONS
         throw Exception::invalidPort;
+//        #else
+//        while(1);
+//        #endif
     }
      
     RCC_AHB1PeriphClockCmd(gpioRcc, ENABLE); 

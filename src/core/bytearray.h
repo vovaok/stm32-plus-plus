@@ -41,8 +41,14 @@ public:
     inline int length() const {return mSize;}
     inline int count() const {return mSize;}
     
+#ifndef NO_EXCEPTIONS
     inline char& operator [](unsigned int idx) {if (idx >= mSize) throw Exception::outOfRange; else return mData[idx];}
     inline const char &operator[](unsigned int idx) const {if (idx >= mSize) throw Exception::outOfRange; else return mData[idx];}
+#else
+    inline char& operator [](unsigned int idx) {return mData[idx];}
+    inline const char &operator[](unsigned int idx) const {return mData[idx];}
+#endif
+
     inline ByteArray &operator +=(const ByteArray &ba) {return append(ba);}
     
     bool operator ==(const ByteArray &ba) const;

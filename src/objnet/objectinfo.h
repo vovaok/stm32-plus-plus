@@ -125,6 +125,7 @@ private:
     const void *mReadPtr;
     void *mWritePtr;
     int mAutoPeriod, mAutoTime; // automatic transmission period
+    unsigned char mAutoReceiverAddr; // address of receiver for automatic transmission
     Description mDesc;
     bool mIsDevice;
     static int mAssignId;
@@ -198,7 +199,7 @@ template<> ObjectInfo::Type typeOfVar<_String>(_String &var) {(void)var; return 
 template<typename T>
 ObjectInfo::ObjectInfo(string name, T &var, Flags flags) :
     mReadPtr(0), mWritePtr(0),
-    mAutoPeriod(0), mAutoTime(0),
+    mAutoPeriod(0), mAutoTime(0), mAutoReceiverAddr(0),
     mIsDevice(false)
 {
     size_t sz = sizeof(T);
@@ -223,7 +224,7 @@ ObjectInfo::ObjectInfo(string name, T &var, Flags flags) :
 template<typename T>
 ObjectInfo::ObjectInfo(string name, const T &var, Flags flags) :
     mReadPtr(0), mWritePtr(0),
-    mAutoPeriod(0), mAutoTime(0),
+    mAutoPeriod(0), mAutoTime(0), mAutoReceiverAddr(0),
     mIsDevice(false)
 {
     flags = static_cast<Flags>(flags & (~Write));
@@ -244,7 +245,7 @@ ObjectInfo::ObjectInfo(string name, const T &var, Flags flags) :
 template<typename Tr, typename Tw>
 ObjectInfo::ObjectInfo(string name, const Tr &varRead, Tw &varWrite, Flags flags) :
     mReadPtr(0), mWritePtr(0),
-    mAutoPeriod(0), mAutoTime(0),
+    mAutoPeriod(0), mAutoTime(0), mAutoReceiverAddr(0),
     mIsDevice(false)
 {
     flags = static_cast<Flags>(flags & (~Save));
@@ -269,7 +270,7 @@ ObjectInfo::ObjectInfo(string name, const Tr &varRead, Tw &varWrite, Flags flags
 template<class R>
 ObjectInfo::ObjectInfo(string name, Closure<R(void)> event, ObjectInfo::Flags flags) :
     mReadPtr(0), mWritePtr(0),
-    mAutoPeriod(0), mAutoTime(0),
+    mAutoPeriod(0), mAutoTime(0), mAutoReceiverAddr(0),
     mIsDevice(false)
 {
     mDesc.readSize = sizeof(R);
@@ -293,7 +294,7 @@ template<> ObjectInfo::ObjectInfo<void>(string name, Closure<void(void)> event, 
 
 template<class P0>
 ObjectInfo::ObjectInfo(string name, Closure<void(P0)> event, ObjectInfo::Flags flags) :
-    mAutoPeriod(0), mAutoTime(0),
+    mAutoPeriod(0), mAutoTime(0), mAutoReceiverAddr(0),
     mIsDevice(false)
 {
     mDesc.readSize = 0;
@@ -316,7 +317,7 @@ ObjectInfo::ObjectInfo(string name, Closure<void(P0)> event, ObjectInfo::Flags f
 template<class R, class P0>
 ObjectInfo::ObjectInfo(string name, Closure<R(P0)> event, ObjectInfo::Flags flags) :
     mReadPtr(0), mWritePtr(0),
-    mAutoPeriod(0), mAutoTime(0),
+    mAutoPeriod(0), mAutoTime(0), mAutoReceiverAddr(0),
     mIsDevice(false)
 {
     mDesc.readSize = sizeof(R);

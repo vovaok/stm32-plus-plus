@@ -5,6 +5,7 @@ using namespace Objnet;
 ObjnetDevice::ObjnetDevice(unsigned char netaddr) :
     mClassValid(false),
     mNameValid(false),
+    mInfoValidCnt(0),
     mNetAddress(netaddr),
     mPresent(false),
     mTimeout(5),
@@ -48,8 +49,11 @@ void ObjnetDevice::prepareObject(const ObjectInfo::Description &desc)
     unsigned char id = desc.id;
     if (id >= mObjects.size())
     {
+        int sz = mObjects.size();
         mObjects.resize(id + 1);
         mObjBuffers.resize(id + 1);
+        for (int i=sz; i<id; i++)
+            mObjects[i] = 0L;
     }
 
     mObjects[id] = obj;
@@ -100,7 +104,13 @@ void ObjnetDevice::prepareObject(const ObjectInfo::Description &desc)
     }
 
     #ifdef QT_CORE_LIB
-    if (desc.id == mObjectCount - 1)
+    bool readyFlag = true;
+    for (unsigned int i=0; i<mObjectCount; i++)
+    {
+        if (i>=mObjects.size() || !mObjects[i])
+            readyFlag = false;
+    }
+    if (readyFlag)
         emit ready();
     #else
         #warning device ready signal not implemented!

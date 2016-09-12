@@ -39,7 +39,7 @@ protected:
     unsigned char mNetAddress;
     bool mPresent;
     unsigned char mTimeout;
-    bool mAutoDelete; // êîãäà true, ïğè îòêëş÷åíèè äåâàéñà îò ñåòè, îí óäàëÿåòñÿ èç ñïèñêà (ïî óìîë÷àíèş false, òîëüêî ìàñòåğ ìîæåò óñòàíîâèòü true ïğè ñîçäàíèè îáúåêòà)
+    bool mAutoDelete; // ĞºĞ¾Ğ³Ğ´Ğ° true, Ğ¿Ñ€Ğ¸ Ğ¾Ñ‚ĞºĞ»ÑÑ‡ĞµĞ½Ğ¸Ğ¸ Ğ´ĞµĞ²Ğ°Ğ¹ÑĞ° Ğ¾Ñ‚ ÑĞµÑ‚Ğ¸, Ğ¾Ğ½ ÑƒĞ´Ğ°Ğ»ÑĞµÑ‚ÑÑ Ğ¸Ğ· ÑĞ¿Ğ¸ÑĞºĞ° (Ğ¿Ğ¾ ÑƒĞ¼Ğ¾Ğ»Ñ‡Ğ°Ğ½Ğ¸Ñ false, Ñ‚Ğ¾Ğ»ÑŒĞºĞ¾ Ğ¼Ğ°ÑÑ‚ĞµÑ€ Ğ¼Ğ¾Ğ¶ĞµÑ‚ ÑƒÑÑ‚Ğ°Ğ½Ğ¾Ğ²Ğ¸Ñ‚ÑŒ true Ğ¿Ñ€Ğ¸ ÑĞ¾Ğ·Ğ´Ğ°Ğ½Ğ¸Ğ¸ Ğ¾Ğ±ÑŠĞµĞºÑ‚Ğ°)
 //    bool mStateChanged;
 //    unsigned char mChildrenCount;
 //    unsigned char mOrphanCount; // not processed children
@@ -73,7 +73,7 @@ public:
 
     bool isPresent() const {return mPresent;}
     bool isValid() const {return mClassValid && mNameValid;}
-    bool isInfoValid() const {return mInfoValidCnt >= 7;}
+    bool isInfoValid() const {return mInfoValidCnt >= 6;}
 
     unsigned char netAddress() const {return mNetAddress;}
 

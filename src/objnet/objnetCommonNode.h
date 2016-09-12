@@ -18,12 +18,12 @@ namespace Objnet
 {
 
 #ifndef QT_CORE_LIB
-//! Событие, содержащее сообщение Objnet.
+//! РЎРѕР±С‹С‚РёРµ, СЃРѕРґРµСЂР¶Р°С‰РµРµ СЃРѕРѕР±С‰РµРЅРёРµ Objnet.
 typedef Closure<void(CommonMessage&)> ObjnetMessageEvent;
 #endif
 
-/*! Узел сети Objnet.
-    Реализует поведение узла (Node) на сетевом и транспортном уровнях.
+/*! РЈР·РµР» СЃРµС‚Рё Objnet.
+    Р РµР°Р»РёР·СѓРµС‚ РїРѕРІРµРґРµРЅРёРµ СѓР·Р»Р° (Node) РЅР° СЃРµС‚РµРІРѕРј Рё С‚СЂР°РЅСЃРїРѕСЂС‚РЅРѕРј СѓСЂРѕРІРЅСЏС….
 */
 #ifndef QT_CORE_LIB
 class ObjnetCommonNode
@@ -67,6 +67,7 @@ protected:
     bool sendServiceMessage(unsigned char receiver, SvcOID oid, const ByteArray &ba = ByteArray());
     bool sendServiceMessage(SvcOID oid, const ByteArray &ba = ByteArray());
     bool sendGlobalServiceMessage(StdAID aid);
+    bool sendGlobalServiceDataMessage(unsigned char aid, const ByteArray &ba);
     virtual void parseServiceMessage(CommonMessage &msg) = 0;
 
     virtual unsigned char route(unsigned char netAddress) = 0;
@@ -87,36 +88,37 @@ protected slots:
     virtual void task();
 
 public:
-    /*! Конструктор узла сети Objnet.
-        \param iface указатель на интерфейс, через который будет осуществляться доступ к сети.
-        Экземпляр ObjnetNode становится владельцем объекта интерфейса, и сам позаботится об его удалении.
+    /*! РљРѕРЅСЃС‚СЂСѓРєС‚РѕСЂ СѓР·Р»Р° СЃРµС‚Рё Objnet.
+        \param iface СѓРєР°Р·Р°С‚РµР»СЊ РЅР° РёРЅС‚РµСЂС„РµР№СЃ, С‡РµСЂРµР· РєРѕС‚РѕСЂС‹Р№ Р±СѓРґРµС‚ РѕСЃСѓС‰РµСЃС‚РІР»СЏС‚СЊСЃСЏ РґРѕСЃС‚СѓРї Рє СЃРµС‚Рё.
+        Р­РєР·РµРјРїР»СЏСЂ ObjnetNode СЃС‚Р°РЅРѕРІРёС‚СЃСЏ РІР»Р°РґРµР»СЊС†РµРј РѕР±СЉРµРєС‚Р° РёРЅС‚РµСЂС„РµР№СЃР°, Рё СЃР°Рј РїРѕР·Р°Р±РѕС‚РёС‚СЃСЏ РѕР± РµРіРѕ СѓРґР°Р»РµРЅРёРё.
     */
     ObjnetCommonNode(ObjnetInterface *iface);
 
-    /*! Деструктор.
-        Удаляет объект интерфейса.
+    /*! Р”РµСЃС‚СЂСѓРєС‚РѕСЂ.
+        РЈРґР°Р»СЏРµС‚ РѕР±СЉРµРєС‚ РёРЅС‚РµСЂС„РµР№СЃР°.
     */
     ~ObjnetCommonNode();
 
-    /*! Установка физического адреса непосредственно.
-        \param [in] address новый адрес.
+    /*! РЈСЃС‚Р°РЅРѕРІРєР° С„РёР·РёС‡РµСЃРєРѕРіРѕ Р°РґСЂРµСЃР° РЅРµРїРѕСЃСЂРµРґСЃС‚РІРµРЅРЅРѕ.
+        \param [in] address РЅРѕРІС‹Р№ Р°РґСЂРµСЃ.
     */
     void setBusAddress(unsigned char address = 0xFF);
 
-    /*! Текущий физический адрес.
-        \return физический адрес в подсети.
+    /*! РўРµРєСѓС‰РёР№ С„РёР·РёС‡РµСЃРєРёР№ Р°РґСЂРµСЃ.
+        \return С„РёР·РёС‡РµСЃРєРёР№ Р°РґСЂРµСЃ РІ РїРѕРґСЃРµС‚Рё.
     */
     unsigned char busAddress() const {return mBusAddress;}
 
 #ifndef QT_CORE_LIB
-    /*! Установка физического адреса по сигналам на ногах.
-        В функцию передаётся разрядность адреса и имена ножек
-        в порядке от младшего бита к старшему.
-        \param [in] bits разрядность адреса (количество ног).
-        \param [in] a0 имя ноги, отвечающей за 0 разряд адреса, например, Gpio::PE2.
-        \param [in] ... остальные ноги (если есть).
+    /*! РЈСЃС‚Р°РЅРѕРІРєР° С„РёР·РёС‡РµСЃРєРѕРіРѕ Р°РґСЂРµСЃР° РїРѕ СЃРёРіРЅР°Р»Р°Рј РЅР° РЅРѕРіР°С….
+        Р’ С„СѓРЅРєС†РёСЋ РїРµСЂРµРґР°С‘С‚СЃСЏ СЂР°Р·СЂСЏРґРЅРѕСЃС‚СЊ Р°РґСЂРµСЃР° Рё РёРјРµРЅР° РЅРѕР¶РµРє
+        РІ РїРѕСЂСЏРґРєРµ РѕС‚ РјР»Р°РґС€РµРіРѕ Р±РёС‚Р° Рє СЃС‚Р°СЂС€РµРјСѓ.
+        \param [in] bits СЂР°Р·СЂСЏРґРЅРѕСЃС‚СЊ Р°РґСЂРµСЃР° (РєРѕР»РёС‡РµСЃС‚РІРѕ РЅРѕРі).
+        \param [in] a0 РёРјСЏ РЅРѕРіРё, РѕС‚РІРµС‡Р°СЋС‰РµР№ Р·Р° 0 СЂР°Р·СЂСЏРґ Р°РґСЂРµСЃР°, РЅР°РїСЂРёРјРµСЂ, Gpio::PE2.
+        \param [in] ... РѕСЃС‚Р°Р»СЊРЅС‹Рµ РЅРѕРіРё (РµСЃР»Рё РµСЃС‚СЊ).
     */
     void setBusAddressFromPins(int bits, Gpio::PinName a0 = Gpio::noPin, ...);
+    void setBusAddressFromPins(Gpio::PinName a0, Gpio::PinName a1=Gpio::noPin, Gpio::PinName a2=Gpio::noPin, Gpio::PinName a3=Gpio::noPin);
 
 //    void setRetranslateEvent(ObjnetMessageEvent event) {mRetranslateEvent = event;}
 //    ObjnetMessageEvent retranslateEvent() const {return mRetranslateEvent;}
@@ -132,12 +134,12 @@ public:
 
     virtual bool isConnected() const = 0;
 
-    /*! Отправка сообщения.
-        Отправляет сообщение с указанными параметрами устройству с логическим адресом receiver.
-        \param mac Физический адрес получателя. В режиме узла просто опускается.
-        \param oid Идентификатор объекта, к которому идёт обращение.
-        \param ba  Данные для передачи. Если объект без данных, то можно опустить этот параметр
-        \return true в случае успешной передачи, если false - не удалось, нужно повторить
+    /*! РћС‚РїСЂР°РІРєР° СЃРѕРѕР±С‰РµРЅРёСЏ.
+        РћС‚РїСЂР°РІР»СЏРµС‚ СЃРѕРѕР±С‰РµРЅРёРµ СЃ СѓРєР°Р·Р°РЅРЅС‹РјРё РїР°СЂР°РјРµС‚СЂР°РјРё СѓСЃС‚СЂРѕР№СЃС‚РІСѓ СЃ Р»РѕРіРёС‡РµСЃРєРёРј Р°РґСЂРµСЃРѕРј receiver.
+        \param mac Р¤РёР·РёС‡РµСЃРєРёР№ Р°РґСЂРµСЃ РїРѕР»СѓС‡Р°С‚РµР»СЏ. Р’ СЂРµР¶РёРјРµ СѓР·Р»Р° РїСЂРѕСЃС‚Рѕ РѕРїСѓСЃРєР°РµС‚СЃСЏ.
+        \param oid РРґРµРЅС‚РёС„РёРєР°С‚РѕСЂ РѕР±СЉРµРєС‚Р°, Рє РєРѕС‚РѕСЂРѕРјСѓ РёРґС‘С‚ РѕР±СЂР°С‰РµРЅРёРµ.
+        \param ba  Р”Р°РЅРЅС‹Рµ РґР»СЏ РїРµСЂРµРґР°С‡Рё. Р•СЃР»Рё РѕР±СЉРµРєС‚ Р±РµР· РґР°РЅРЅС‹С…, С‚Рѕ РјРѕР¶РЅРѕ РѕРїСѓСЃС‚РёС‚СЊ СЌС‚РѕС‚ РїР°СЂР°РјРµС‚СЂ
+        \return true РІ СЃР»СѓС‡Р°Рµ СѓСЃРїРµС€РЅРѕР№ РїРµСЂРµРґР°С‡Рё, РµСЃР»Рё false - РЅРµ СѓРґР°Р»РѕСЃСЊ, РЅСѓР¶РЅРѕ РїРѕРІС‚РѕСЂРёС‚СЊ
     */
     bool sendMessage(unsigned char receiver, unsigned char oid, const ByteArray &ba = ByteArray());
     bool sendGlobalMessage(unsigned char aid);

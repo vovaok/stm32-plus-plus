@@ -32,7 +32,7 @@ ObjnetCommonNode::~ObjnetCommonNode()
 
 void ObjnetCommonNode::task()
 {
-    // не выполняем задачу, пока физический адрес неправильный
+    // РЅРµ РІС‹РїРѕР»РЅСЏРµРј Р·Р°РґР°С‡Сѓ, РїРѕРєР° С„РёР·РёС‡РµСЃРєРёР№ Р°РґСЂРµСЃ РЅРµРїСЂР°РІРёР»СЊРЅС‹Р№
     if (mBusAddress == 0xFF)
         return;
 
@@ -106,8 +106,27 @@ void ObjnetCommonNode::task()
                     id.sender = mAdjacentNode->natRoute(id.sender);
                     --id.addr;
                 }
-                inMsg.setLocalId(id);
-                mAdjacentNode->mInterface->write(inMsg);
+
+                if (id.frag) // if message is fragmented
+                {
+                    id.frag = 0;
+                    LocalMsgId key = id;
+                    key.addr = inMsg.data()[0] & 0x70; // field "addr" of LocalId stores sequence number
+                    CommonMessageBuffer &buf = mFragmentBuffer[key];
+                    buf.setLocalId(id);
+                    buf.addPart(inMsg.data(), mInterface->maxFrameSize());
+                    if (buf.isReady())
+                    {
+                        mAdjacentNode->sendCommonMessage(buf);
+                        mFragmentBuffer.erase(key);
+                    }
+                }
+                else
+                {
+                    inMsg.setLocalId(id);
+                    //mAdjacentNode->mInterface->write(inMsg);
+                    mAdjacentNode->sendCommonMessage(inMsg);
+                }
             }
 
             std::list<unsigned long> toRemove;
@@ -126,7 +145,7 @@ void ObjnetCommonNode::task()
 
 void ObjnetCommonNode::setBusAddress(unsigned char address)
 {
-    if (address > 0xF && address != 0xFF) // пресекаем попытку установки неправильного адреса
+    if (address > 0xF && address != 0xFF) // РїСЂРµСЃРµРєР°РµРј РїРѕРїС‹С‚РєСѓ СѓСЃС‚Р°РЅРѕРІРєРё РЅРµРїСЂР°РІРёР»СЊРЅРѕРіРѕ Р°РґСЂРµСЃР°
         return;
 
     if (mLocalFilter >= 0)
@@ -163,6 +182,21 @@ void ObjnetCommonNode::setBusAddressFromPins(int bits, Gpio::PinName a0, ...)
         address |= bit << i;
     }
     va_end(vl);
+    setBusAddress(address);
+}
+
+void ObjnetCommonNode::setBusAddressFromPins(Gpio::PinName a0, Gpio::PinName a1, Gpio::PinName a2, Gpio::PinName a3)
+{
+    unsigned char address = 0;
+    const Gpio::Flags f = Gpio::Flags(Gpio::modeIn | Gpio::pullUp);
+    if (Gpio(a0, f).read())
+        address |= 0x1;
+    if (Gpio(a1, f).read())
+        address |= 0x2;
+    if (Gpio(a2, f).read())
+        address |= 0x4;
+    if (Gpio(a3, f).read())
+        address |= 0x8;
     setBusAddress(address);
 }
 #endif
@@ -283,6 +317,19 @@ bool ObjnetCommonNode::sendGlobalServiceMessage(StdAID aid)
     id.aid = aid;
     msg.setGlobalId(id);
     //msg.setData(ba);
+    return mInterface->write(msg);
+}
+
+bool ObjnetCommonNode::sendGlobalServiceDataMessage(unsigned char aid, const ByteArray &ba)
+{
+    CommonMessage msg;
+    GlobalMsgId id;
+    id.mac = mBusAddress;
+    id.svc = 1;
+    id.addr = mNetAddress;
+    id.aid = aid;
+    msg.setGlobalId(id);
+    msg.setData(ba);
     return mInterface->write(msg);
 }
 //---------------------------------------------------------------------------

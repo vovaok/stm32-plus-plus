@@ -532,6 +532,9 @@ public:
 
     /*! чтение порта*/
     unsigned short readPort();
+    
+    /*! что за нога? */
+    PinName pin() const {return static_cast<Gpio::PinName>(mConfig.pin);}
 };
 
 #endif

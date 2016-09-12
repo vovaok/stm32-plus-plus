@@ -10,3 +10,4 @@ lib/CMSIS/*.htm
 lib/CMSIS/DSP_Lib/Examples
 *.dep
 *~
+stm32f405rg_no-exceptions_no-rtti/

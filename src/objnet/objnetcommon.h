@@ -17,51 +17,51 @@
 namespace Objnet
 {
 
-typedef Closure<void(unsigned char)> GlobalMessageEvent;  
-  
+typedef Closure<void(unsigned char)> GlobalMessageEvent;
+
 using namespace std;
 
 //! Standard ActionID enumeration.
 typedef enum
 {
-    aidPropagationUp    = 0x40, //!< пересылка сообщения через мастера на уровень выше
-    aidPropagationDown  = 0x80, //!< пересылка сообщения через узлы на уровень ниже
-    aidPollNodes        = 0x00, //!< опрос узлов, можно добавить пересылку с помощью ИЛИ
-    aidConnReset        = 0x01 | aidPropagationDown, //!< сброс состояния узлов до disconnected, установка соединения заново
-//    aidEnumerate        = 0x02, //!< построение карты сети
+    aidPropagationUp    = 0x40, //!< РїРµСЂРµСЃС‹Р»РєР° СЃРѕРѕР±С‰РµРЅРёСЏ С‡РµСЂРµР· РјР°СЃС‚РµСЂР° РЅР° СѓСЂРѕРІРµРЅСЊ РІС‹С€Рµ
+    aidPropagationDown  = 0x80, //!< РїРµСЂРµСЃС‹Р»РєР° СЃРѕРѕР±С‰РµРЅРёСЏ С‡РµСЂРµР· СѓР·Р»С‹ РЅР° СѓСЂРѕРІРµРЅСЊ РЅРёР¶Рµ
+    aidPollNodes        = 0x00, //!< РѕРїСЂРѕСЃ СѓР·Р»РѕРІ, РјРѕР¶РЅРѕ РґРѕР±Р°РІРёС‚СЊ РїРµСЂРµСЃС‹Р»РєСѓ СЃ РїРѕРјРѕС‰СЊСЋ РР›Р
+    aidConnReset        = 0x01 | aidPropagationDown, //!< СЃР±СЂРѕСЃ СЃРѕСЃС‚РѕСЏРЅРёСЏ СѓР·Р»РѕРІ РґРѕ disconnected, СѓСЃС‚Р°РЅРѕРІРєР° СЃРѕРµРґРёРЅРµРЅРёСЏ Р·Р°РЅРѕРІРѕ
+//    aidEnumerate        = 0x02, //!< РїРѕСЃС‚СЂРѕРµРЅРёРµ РєР°СЂС‚С‹ СЃРµС‚Рё
 
-    aidUpgradeStart     = 0x30, //!< запуск обновления прошивки, в данных класс устройства
-    aidUpgradeConfirm   = 0x31, //!< подтверждение начала прошивки, чтобы не было случайностей
-    aidUpgradeEnd       = 0x32, //!< окончание обновления прошивки
-    aidUpgradeData      = 0x34, //!< собственно, сама прошивка (см. протокол)
-    aidUpgradeRepeat    = 0x38, //!< запрос повтора страницы
+    aidUpgradeStart     = 0x30, //!< Р·Р°РїСѓСЃРє РѕР±РЅРѕРІР»РµРЅРёСЏ РїСЂРѕС€РёРІРєРё, РІ РґР°РЅРЅС‹С… РєР»Р°СЃСЃ СѓСЃС‚СЂРѕР№СЃС‚РІР°
+    aidUpgradeConfirm   = 0x31, //!< РїРѕРґС‚РІРµСЂР¶РґРµРЅРёРµ РЅР°С‡Р°Р»Р° РїСЂРѕС€РёРІРєРё, С‡С‚РѕР±С‹ РЅРµ Р±С‹Р»Рѕ СЃР»СѓС‡Р°Р№РЅРѕСЃС‚РµР№
+    aidUpgradeEnd       = 0x32, //!< РѕРєРѕРЅС‡Р°РЅРёРµ РѕР±РЅРѕРІР»РµРЅРёСЏ РїСЂРѕС€РёРІРєРё
+    aidUpgradeData      = 0x34, //!< СЃРѕР±СЃС‚РІРµРЅРЅРѕ, СЃР°РјР° РїСЂРѕС€РёРІРєР° (СЃРј. РїСЂРѕС‚РѕРєРѕР»)
+    aidUpgradeRepeat    = 0x38, //!< Р·Р°РїСЂРѕСЃ РїРѕРІС‚РѕСЂР° СЃС‚СЂР°РЅРёС†С‹
 } StdAID;
 
 //! Service ObjectID enumeration.
 typedef enum
 {
-    svcClass            = 0x00, //!< узел говорит, из каких он слоёв общества
-    svcName             = 0x01, //!< узел сообщает, как его величать
-    svcFullName         = 0x02, //!< полное имя узла
-    svcSerial           = 0x03, //!< серийный номер
-    svcVersion          = 0x04, //!< версия прошивки
-    svcBuildDate        = 0x05, //!< дата и время сборки
-    svcCpuInfo          = 0x06, //!< информация о процессоре
-    svcBurnCount        = 0x07, //!< без комментариев..
-    svcObjectCount      = 0x08, //!< число объектов
-    // можно добавить что-нибудь ещё..
-    svcObjectInfo       = 0x80, //!< описание объекта
+    svcClass            = 0x00, //!< СѓР·РµР» РіРѕРІРѕСЂРёС‚, РёР· РєР°РєРёС… РѕРЅ СЃР»РѕС‘РІ РѕР±С‰РµСЃС‚РІР°
+    svcName             = 0x01, //!< СѓР·РµР» СЃРѕРѕР±С‰Р°РµС‚, РєР°Рє РµРіРѕ РІРµР»РёС‡Р°С‚СЊ
+    svcFullName         = 0x02, //!< РїРѕР»РЅРѕРµ РёРјСЏ СѓР·Р»Р°
+    svcSerial           = 0x03, //!< СЃРµСЂРёР№РЅС‹Р№ РЅРѕРјРµСЂ
+    svcVersion          = 0x04, //!< РІРµСЂСЃРёСЏ РїСЂРѕС€РёРІРєРё
+    svcBuildDate        = 0x05, //!< РґР°С‚Р° Рё РІСЂРµРјСЏ СЃР±РѕСЂРєРё
+    svcCpuInfo          = 0x06, //!< РёРЅС„РѕСЂРјР°С†РёСЏ Рѕ РїСЂРѕС†РµСЃСЃРѕСЂРµ
+    svcBurnCount        = 0x07, //!< Р±РµР· РєРѕРјРјРµРЅС‚Р°СЂРёРµРІ..
+    svcObjectCount      = 0x08, //!< С‡РёСЃР»Рѕ РѕР±СЉРµРєС‚РѕРІ
+    // РјРѕР¶РЅРѕ РґРѕР±Р°РІРёС‚СЊ С‡С‚Рѕ-РЅРёР±СѓРґСЊ РµС‰С‘..
+    svcObjectInfo       = 0x80, //!< РѕРїРёСЃР°РЅРёРµ РѕР±СЉРµРєС‚Р°
 
-    svcEcho             = 0xF0, //!< узел напоминает мастеру, что он здесь
-    svcHello            = 0xF1, //!< сообщение узла, что он пришёл с приветом, либо мастер играет в юща и спрашивает узла: "А вы, собственно, кто?"
-    svcWelcome          = 0xF2, //!< мастер приглашает в гости
-    svcWelcomeAgain     = 0xF3, //!< мастер уже приглашал в гости
-    svcConnected        = 0xF4, //!< мастер сообщает вверх, что пришёл девайс
-    svcDisconnected     = 0xF5, //!< мастер понял, что девайс отключился, и передаёт по цепочке главному
-    svcKill             = 0xF6, //!< мастеру надоело, что девайс в отключке, он его убивает и рассказывает об этом всем
-    svcRequestAllInfo   = 0xF8, //!< мастер хочет знать всё о девайсе и даже больше
-    svcRequestObjInfo   = 0xF9, //!< мастер хочет знать дескрипторы всех зареганных объектов девайса
-    svcAutoRequest      = 0xFA, //!< мастер говорит узлу, что хочет от него порой получать объект без лишних слов
+    svcEcho             = 0xF0, //!< СѓР·РµР» РЅР°РїРѕРјРёРЅР°РµС‚ РјР°СЃС‚РµСЂСѓ, С‡С‚Рѕ РѕРЅ Р·РґРµСЃСЊ
+    svcHello            = 0xF1, //!< СЃРѕРѕР±С‰РµРЅРёРµ СѓР·Р»Р°, С‡С‚Рѕ РѕРЅ РїСЂРёС€С‘Р» СЃ РїСЂРёРІРµС‚РѕРј, Р»РёР±Рѕ РјР°СЃС‚РµСЂ РёРіСЂР°РµС‚ РІ СЋС‰Р° Рё СЃРїСЂР°С€РёРІР°РµС‚ СѓР·Р»Р°: "Рђ РІС‹, СЃРѕР±СЃС‚РІРµРЅРЅРѕ, РєС‚Рѕ?"
+    svcWelcome          = 0xF2, //!< РјР°СЃС‚РµСЂ РїСЂРёРіР»Р°С€Р°РµС‚ РІ РіРѕСЃС‚Рё
+    svcWelcomeAgain     = 0xF3, //!< РјР°СЃС‚РµСЂ СѓР¶Рµ РїСЂРёРіР»Р°С€Р°Р» РІ РіРѕСЃС‚Рё
+    svcConnected        = 0xF4, //!< РјР°СЃС‚РµСЂ СЃРѕРѕР±С‰Р°РµС‚ РІРІРµСЂС…, С‡С‚Рѕ РїСЂРёС€С‘Р» РґРµРІР°Р№СЃ
+    svcDisconnected     = 0xF5, //!< РјР°СЃС‚РµСЂ РїРѕРЅСЏР», С‡С‚Рѕ РґРµРІР°Р№СЃ РѕС‚РєР»СЋС‡РёР»СЃСЏ, Рё РїРµСЂРµРґР°С‘С‚ РїРѕ С†РµРїРѕС‡РєРµ РіР»Р°РІРЅРѕРјСѓ
+    svcKill             = 0xF6, //!< РјР°СЃС‚РµСЂСѓ РЅР°РґРѕРµР»Рѕ, С‡С‚Рѕ РґРµРІР°Р№СЃ РІ РѕС‚РєР»СЋС‡РєРµ, РѕРЅ РµРіРѕ СѓР±РёРІР°РµС‚ Рё СЂР°СЃСЃРєР°Р·С‹РІР°РµС‚ РѕР± СЌС‚РѕРј РІСЃРµРј
+    svcRequestAllInfo   = 0xF8, //!< РјР°СЃС‚РµСЂ С…РѕС‡РµС‚ Р·РЅР°С‚СЊ РІСЃС‘ Рѕ РґРµРІР°Р№СЃРµ Рё РґР°Р¶Рµ Р±РѕР»СЊС€Рµ
+    svcRequestObjInfo   = 0xF9, //!< РјР°СЃС‚РµСЂ С…РѕС‡РµС‚ Р·РЅР°С‚СЊ РґРµСЃРєСЂРёРїС‚РѕСЂС‹ РІСЃРµС… Р·Р°СЂРµРіР°РЅРЅС‹С… РѕР±СЉРµРєС‚РѕРІ РґРµРІР°Р№СЃР°
+    svcAutoRequest      = 0xFA, //!< РјР°СЃС‚РµСЂ РіРѕРІРѕСЂРёС‚ СѓР·Р»Сѓ, С‡С‚Рѕ С…РѕС‡РµС‚ РѕС‚ РЅРµРіРѕ РїРѕСЂРѕР№ РїРѕР»СѓС‡Р°С‚СЊ РѕР±СЉРµРєС‚ Р±РµР· Р»РёС€РЅРёС… СЃР»РѕРІ
 } SvcOID;
 
 typedef enum
@@ -80,20 +80,20 @@ struct LocalMsgId
     unsigned char svc: 1;       //!< message is service
     unsigned char mac: 4;       //!< receiver bus address (physical)
     const unsigned char local: 1; //!< local area message (inside the bus) = 1
-    /*! Конструктор обнуляет. */
+    /*! РљРѕРЅСЃС‚СЂСѓРєС‚РѕСЂ РѕР±РЅСѓР»СЏРµС‚. */
     LocalMsgId() :
       oid(0), sender(0), frag(0), addr(0), svc(0), mac(0), local(1)
     {
     }
-    /*! Неявный конструктор. */
+    /*! РќРµСЏРІРЅС‹Р№ РєРѕРЅСЃС‚СЂСѓРєС‚РѕСЂ. */
     LocalMsgId(const unsigned long &data) :
       local(1)
     {
         *reinterpret_cast<unsigned long*>(this) = data;
     }
-    /*! Приведение типа к unsigned long */
+    /*! РџСЂРёРІРµРґРµРЅРёРµ С‚РёРїР° Рє unsigned long */
     operator unsigned long&() {return *reinterpret_cast<unsigned long*>(this);}
-    /*! Приведение типа из unsigned long */
+    /*! РџСЂРёРІРµРґРµРЅРёРµ С‚РёРїР° РёР· unsigned long */
     void operator =(const unsigned long &data) {*reinterpret_cast<unsigned long*>(this) = data;}
 };
 
@@ -106,22 +106,66 @@ struct GlobalMsgId
     unsigned char svc: 1;   //!< message is service
     unsigned char mac: 4;   //!< own bus address (physical)
     unsigned char local: 1; //!< local area message (inside the bus) = 0
-    /*! Конструктор обнуляет. */
+    /*! РљРѕРЅСЃС‚СЂСѓРєС‚РѕСЂ РѕР±РЅСѓР»СЏРµС‚. */
     GlobalMsgId() :
       aid(0), res(0), addr(0), svc(0), mac(0), local(0)
     {
     }
-    /*! Неявный конструктор. */
+    /*! РќРµСЏРІРЅС‹Р№ РєРѕРЅСЃС‚СЂСѓРєС‚РѕСЂ. */
     GlobalMsgId(const unsigned long &data) :
       local(0)
     {
         *reinterpret_cast<unsigned long*>(this) = data;
     }
-    /*! Приведение типа к unsigned long */
+    /*! РџСЂРёРІРµРґРµРЅРёРµ С‚РёРїР° Рє unsigned long */
     operator unsigned long&() {return *reinterpret_cast<unsigned long*>(this);}
-    /*! Приведение типа из unsigned long */
+    /*! РџСЂРёРІРµРґРµРЅРёРµ С‚РёРїР° РёР· unsigned long */
     void operator =(const unsigned long &data) {*reinterpret_cast<unsigned long*>(this) = data;}
 };
+
+typedef enum
+{
+    // device groups:     0xXX000000
+    cidController       = 0x01000000,
+    cidSensor           = 0x02000000,
+    cidActuator         = 0x04000000,
+    
+    // device types:      0x00XX0000
+    // Controller group:
+    cidMechanical       = 0x00010000,
+    // Sensor group:
+    cidEncoder          = 0x00010000,
+    cidIMU              = 0x00020000,
+    // Actuator group:
+    cidMotor            = 0x00010000,
+    
+    // device subtypes:   0x0000XX00
+    // Controller group:
+    cidExoskeleton      = 0x00001300,
+    // Sensor group:
+    cidMagnetic         = 0x00000100,
+    cidMEMS             = 0x00000200,
+    // Motor:
+    cidBrushed          = 0x00000100,
+    cidBrushless        = 0x00000200,
+    cidStepping         = 0x00000300,
+    
+    // implementations:   0x000000XX
+    // Controller group:
+    cidWifiInterface    = 0x00000001,
+    cidUsbInterface     = 0x00000002,
+    // Motor:
+    cidPosition         = 0x00000001,
+    cidSpeed            = 0x00000002,
+    cidTorque           = 0x00000004,
+    cidCurrent          = 0x00000008,
+    cidTemperature      = 0x00000010,
+    cidVoltage          = 0x00000020,
+    
+    // combinations:
+    cidBrushedMotorController = cidActuator | cidMotor | cidBrushed,
+    cidExoskeletonController = cidController | cidMechanical | cidExoskeleton,
+} ClassId;
 
 }
 
