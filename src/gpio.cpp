@@ -8,14 +8,14 @@ Gpio::Gpio(PinName pin, Flags flags, PinAF altFunction)
     mConfig.flags = flags;
     mConfig.af = altFunction;
     mPort = getPortByNumber(mConfig.portNumber);
-    mPin = 1 << mConfig.pinNumber;
+    mPin = pin==noPin? 0: (1 << mConfig.pinNumber);
     config(mConfig.config);
 }
 
 Gpio::Gpio(Config conf)
 {
     mConfig.config = conf;
-    mPin = 1 << mConfig.pinNumber;
+    mPin = mConfig.pin==noPin? 0: (1 << mConfig.pinNumber);
     mPort = getPortByNumber(mConfig.portNumber);
     config(mConfig.config);
 }
@@ -33,7 +33,7 @@ Gpio::Gpio(PortName port, unsigned short mask, Flags flags)
 //---------------------------------------------------------------------------
 
 void Gpio::config(PinName pin, Flags flags, PinAF altFunction)
-{
+{  
     ConfigStruct c;
     c.pin = pin;
     c.flags = flags;

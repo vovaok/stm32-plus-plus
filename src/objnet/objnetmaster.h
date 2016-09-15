@@ -89,14 +89,29 @@ public slots:
         else
             sendGlobalServiceMessage(aid);
     }
+    void sendUpgrageData(unsigned char seq, const ByteArray &ba)
+    {
+        CommonMessage msg;
+        GlobalMsgId id;
+        id.mac = mBusAddress;
+        id.svc = 1;
+        id.addr = mNetAddress;
+        id.res = seq;
+        id.aid = aidUpgradeData | aidPropagationDown;
+        msg.setGlobalId(id);
+        msg.setData(ba);
+        mInterface->write(msg);
+    }
 
 //    void sendRemoteMessage(unsigned char receiver, unsigned char oid, const ByteArray &ba = ByteArray());
 
 #ifdef QT_CORE_LIB
 signals:
     void globalMessage(unsigned char aid);
+    void globalServiceMessage(unsigned char aid);
 #else
     GlobalMessageEvent onGlobalMessage;
+    GlobalMessageEvent onGlobalServiceMessage;
 #endif
 };
 

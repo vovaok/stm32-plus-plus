@@ -10,6 +10,7 @@
 #include "closure.h"
 #define ByteArray QByteArray
 #endif
+#include "objnetclasses.h"
 
 /*! @brief Object Network.
     This is a part of STM32++ library providing network connection between stm32 devices
@@ -27,14 +28,19 @@ typedef enum
     aidPropagationUp    = 0x40, //!< пересылка сообщения через мастера на уровень выше
     aidPropagationDown  = 0x80, //!< пересылка сообщения через узлы на уровень ниже
     aidPollNodes        = 0x00, //!< опрос узлов, можно добавить пересылку с помощью ИЛИ
-    aidConnReset        = 0x01 | aidPropagationDown, //!< сброс состояния узлов до disconnected, установка соединения заново
+    aidConnReset        = 0x01, //!< сброс состояния узлов до disconnected, установка соединения заново
 //    aidEnumerate        = 0x02, //!< построение карты сети
 
     aidUpgradeStart     = 0x30, //!< запуск обновления прошивки, в данных класс устройства
     aidUpgradeConfirm   = 0x31, //!< подтверждение начала прошивки, чтобы не было случайностей
     aidUpgradeEnd       = 0x32, //!< окончание обновления прошивки
+    aidUpgradeSetPage   = 0x33, //!< установка текущей страницы
     aidUpgradeData      = 0x34, //!< собственно, сама прошивка (см. протокол)
+    aidUpgradeAddress   = 0x35, //!< адрес начала прошивки
     aidUpgradeRepeat    = 0x38, //!< запрос повтора страницы
+    aidUpgradePageDone  = 0x39, //!< прошиваемые устройства говорят, что всё хорошо
+    aidUpgradeAccepted  = 0x3A, //!< прошиваемые устройства обозначают себя
+    aidUpgradeReady     = 0x3B, //!< прошиваемые устройства готовы принимать прошивку
 } StdAID;
 
 //! Service ObjectID enumeration.
@@ -101,7 +107,7 @@ struct LocalMsgId
 struct GlobalMsgId
 {
     unsigned char aid;      //!< action ID
-    unsigned char res: 8;   //!< reserved
+    unsigned char res;      //!< reserved
     unsigned char addr: 7;  //!< own network address (logical)
     unsigned char svc: 1;   //!< message is service
     unsigned char mac: 4;   //!< own bus address (physical)
@@ -122,50 +128,6 @@ struct GlobalMsgId
     /*! Приведение типа из unsigned long */
     void operator =(const unsigned long &data) {*reinterpret_cast<unsigned long*>(this) = data;}
 };
-
-typedef enum
-{
-    // device groups:     0xXX000000
-    cidController       = 0x01000000,
-    cidSensor           = 0x02000000,
-    cidActuator         = 0x04000000,
-    
-    // device types:      0x00XX0000
-    // Controller group:
-    cidMechanical       = 0x00010000,
-    // Sensor group:
-    cidEncoder          = 0x00010000,
-    cidIMU              = 0x00020000,
-    // Actuator group:
-    cidMotor            = 0x00010000,
-    
-    // device subtypes:   0x0000XX00
-    // Controller group:
-    cidExoskeleton      = 0x00001300,
-    // Sensor group:
-    cidMagnetic         = 0x00000100,
-    cidMEMS             = 0x00000200,
-    // Motor:
-    cidBrushed          = 0x00000100,
-    cidBrushless        = 0x00000200,
-    cidStepping         = 0x00000300,
-    
-    // implementations:   0x000000XX
-    // Controller group:
-    cidWifiInterface    = 0x00000001,
-    cidUsbInterface     = 0x00000002,
-    // Motor:
-    cidPosition         = 0x00000001,
-    cidSpeed            = 0x00000002,
-    cidTorque           = 0x00000004,
-    cidCurrent          = 0x00000008,
-    cidTemperature      = 0x00000010,
-    cidVoltage          = 0x00000020,
-    
-    // combinations:
-    cidBrushedMotorController = cidActuator | cidMotor | cidBrushed,
-    cidExoskeletonController = cidController | cidMechanical | cidExoskeleton,
-} ClassId;
 
 }
 

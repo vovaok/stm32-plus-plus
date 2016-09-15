@@ -75,6 +75,9 @@ protected slots:
 public:
     ObjnetNode(ObjnetInterface *iface);
 
+#ifndef QT_CORE_LIB
+    void setClassId() {mClass = APP_CLASS;}
+#endif
     void setClassId(unsigned long classId) {mClass = classId;}
     void setName(_String name) {mName = _toString(_fromString(name).substr(0, 8));}
     void setFullName(_String name) {mFullName = name;}

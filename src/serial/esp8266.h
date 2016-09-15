@@ -32,6 +32,7 @@ private:
         cmdNone,
         cmdEcho,
         cmdReset,
+        cmdSetEcho,
         cmdUart,
         cmdCwMode,
         cmdCwModeReq,
@@ -47,15 +48,24 @@ private:
         cmdIpServer,
     } Command;
     
+    typedef enum
+    {
+        wmUnknown=0,
+        wmSta=1,
+        wmAp=2,
+        wmApSta=3
+    } WirelessMode;
+    
     bool mTransparentMode;
     bool mConnected;
     int mReceiveSize;
     int mTransmitSize;
     bool mServerActive;
-    bool mApMode;
+    WirelessMode mWirelessMode;
     State mState;
     Command mLastCmd;
     int mLastData;
+    int mTimeout;
     
     ByteArray mOutBuffer, mInBuffer, mLineBuffer;
     
@@ -86,9 +96,13 @@ public:
     bool isConnecting() const {return mState == Connecting;}
     bool isOpen() const {return mTransparentMode || mConnected;}
     
+    bool isStaMode() const {return mWirelessMode & wmSta;}
+    bool isApMode() const {return mWirelessMode & wmAp;}
+    
     void interruptTransparentMode();
     void reset();
     void setBaudrate(int baudrate);
+    void setEchoEnabled(bool enabled);
     void setAPMode(string ssid, string pass="");
     void saveTransLink(string translink_string);
     void setOnbStaMode(string autoConnIp);

@@ -47,7 +47,7 @@ void ObjnetMaster::task()
     if (mAdjacentNode)
     {
         if (!mAdjIfConnected && mAdjacentNode->isConnected())
-            sendGlobalServiceMessage(aidConnReset); // reset subnet state on adjacent node connection
+            sendGlobalServiceMessage((StdAID)(aidConnReset | aidPropagationDown)); // reset subnet state on adjacent node connection
         mAdjIfConnected = mAdjacentNode->isConnected(); // store previous value of connection state
     }
 
@@ -55,7 +55,7 @@ void ObjnetMaster::task()
     {
         mRouteTable.clear();                    // чистим таблицу маршрутизации
         mRouteTable[0x00] = 0;                  // сразу записываем, как достучаться до верхнего уровня
-        sendGlobalServiceMessage(aidConnReset); // выполняем перенумерацию
+        sendGlobalServiceMessage((StdAID)(aidConnReset | aidPropagationDown)); // выполняем перенумерацию
     }
 }
 
@@ -147,6 +147,17 @@ void ObjnetMaster::acceptServiceMessage(unsigned char sender, SvcOID oid, ByteAr
 
 void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
 {
+    if (msg.isGlobal())
+    {
+        #ifdef QT_CORE_LIB
+        emit globalServiceMessage(msg.globalId().aid);
+        #else
+        if (onGlobalServiceMessage)
+            onGlobalServiceMessage(msg.globalId().aid);
+        #endif
+        return;
+    }
+
     SvcOID oid = (SvcOID)msg.localId().oid;
 
 //    #ifdef QT_CORE_LIB
@@ -163,7 +174,8 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
 //        #endif
         if (!dev)
         {
-            sendServiceMessage(netaddr, svcHello); // reset node's connection state
+            sendGlobalServiceMessage(aidConnReset);
+            //sendServiceMessage(netaddr, svcHello); // reset node's connection state
         }
         else
         {

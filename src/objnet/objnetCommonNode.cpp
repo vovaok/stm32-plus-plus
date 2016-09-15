@@ -42,7 +42,7 @@ void ObjnetCommonNode::task()
         if (inMsg.isGlobal())
         {
             GlobalMsgId id = inMsg.globalId();
-            if (id.aid & aidPropagationDown)
+            if (id.aid & (aidPropagationDown | aidPropagationUp))
             {
 //                if (mRetranslateEvent)
 //                    mRetranslateEvent(inMsg);

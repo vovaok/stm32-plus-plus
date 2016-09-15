@@ -6808,6 +6808,9 @@
     <file>
       <name>$PROJ_DIR$\src\core\coretypes.h</name>
     </file>
+    <file>
+      <name>$PROJ_DIR$\src\core\macros.h</name>
+    </file>
   </group>
   <group>
     <name>objnet</name>
@@ -6822,6 +6825,9 @@
     </file>
     <file>
       <name>$PROJ_DIR$\src\objnet\objectinfo.h</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\src\objnet\objnetclasses.h</name>
     </file>
     <file>
       <name>$PROJ_DIR$\src\objnet\objnetcommon.h</name>
@@ -6857,7 +6863,7 @@
       <name>$PROJ_DIR$\src\objnet\objnetmsg.h</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\src\objnet\objnetNode.cpp</name>
+      <name>$PROJ_DIR$\src\objnet\objnetnode.cpp</name>
     </file>
     <file>
       <name>$PROJ_DIR$\src\objnet\objnetnode.h</name>

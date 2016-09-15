@@ -82,6 +82,7 @@ void ObjnetNode::task()
       case netnDisconnecting:
         //mInterface->flush();
         mTimer.stop();
+        mNetState = netnStart;
         break;
 
       case netnAccepted:
@@ -141,7 +142,7 @@ void ObjnetNode::parseServiceMessage(CommonMessage &msg)
 {
     if (msg.isGlobal())
     {
-        StdAID aid = (StdAID)msg.globalId().aid;
+        StdAID aid = static_cast<StdAID>(msg.globalId().aid & 0x3F);
 
 //        #ifdef QT_CORE_LIB
 //        qDebug() << "node" << QString::fromStdString(mName) << "global" << aid;
@@ -178,8 +179,12 @@ void ObjnetNode::parseServiceMessage(CommonMessage &msg)
           {
             unsigned long classId = *reinterpret_cast<unsigned long*>(msg.data().data());
             #ifndef QT_CORE_LIB
-            if (classId == mClass && onUpgradeRequest)
-                onUpgradeRequest();
+            if (classId == mClass)
+            {
+                if (onUpgradeRequest)
+                    onUpgradeRequest();
+                Application::startOnbBootloader();
+            }
             #else
             if (classId == mClass)
                 emit upgradeRequest();

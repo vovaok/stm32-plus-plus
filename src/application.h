@@ -24,7 +24,26 @@ using namespace std;
 #if !defined(APP_BURNCOUNT)
 #define APP_BURNCOUNT 0
 #endif
+
+#if !defined(APP_CLASS)
+#define APP_CLASS 0xFFFF0000
+#endif
+
+typedef struct
+{
+    char const pre[12];
+    unsigned long cid;
+    unsigned short ver;
+    unsigned short burncount;
+    unsigned long length;
+    unsigned long checksum;
+    char timestamp[25];
+} __appinfo_t__;
+#define APP_DECLARE_BOOT_INFO() __root static const __appinfo_t__ __appinfo__ = {"__APPINFO__", APP_CLASS, APP_VERSION, APP_BURNCOUNT, 0xDeadFace, 0xBaadFeed, __TIMESTAMP__}
 //---------------------------------------------------------------------------
+
+extern "C" void SysTick_Handler();
+extern "C" void HardFault_Handler();
 
 #pragma pack(4)
 class Application
@@ -43,7 +62,11 @@ private:
     static string mCpuInfo;
     static unsigned long mBurnCount;  
     
+    static void sysTickHandler();
+    
     friend void SystemInit();
+    friend void SysTick_Handler();
+    friend void HardFault_Handler();
 
 protected:
     Application()
@@ -69,12 +92,7 @@ public:
     void registerTaskEvent(TaskEvent event);
     void unregisterTaskEvent(TaskEvent event);
     void registerTickEvent(TickEvent event);
-    void unregisterTickEvent(TickEvent event);
-    
-    /*! Обработчик прерываний системного таймера.
-        Эта функция для внутреннего использования, забудьте её.
-    */
-    static void sysTickHandler();
+    void unregisterTickEvent(TickEvent event);    
     
     /*! Версия приложения.
         Возвращает версию приложения, указанную в 'config.h'.
@@ -98,6 +116,11 @@ public:
     static unsigned long burnCount() {return Application::mBurnCount;}
     
     //static int tickPeriodMs() {return Application::mSysClkPeriod;}
+    
+    /*! Запуск обновления прошивки
+        Переходит к выполнению программы обновления (если она имеется)
+    */
+    static bool startOnbBootloader();
 };
 
 /*! Экземпляр приложения.

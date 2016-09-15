@@ -3,31 +3,29 @@
 
 #include "core/core.h"
 #include "stm32_conf.h"
+#include "gpio.h"
 
 /*! @file led.h
     @brief GPIO LED control
     */
 
-class Led
+class Led : private Gpio
 {
 private:
-    GPIO_TypeDef *mPort;
-    uint32_t mPin;
-    
-    bool mState;
-    char mCountMig;
+    int mCountMig;
     
 public:
+    Led(Gpio::PinName pin);
     Led(char portLetter, int pinNumber);
     
-    void on();
-    void off();
-    void toggle();
+    inline void on() {set();}
+    inline void off() {reset();}
+    inline void toggle() {Gpio::toggle();}
+    inline bool state() const {return read();}
+    inline void setState(bool newState) {write(newState);}
     
-    bool state() const {return mState;}
-    void setState(bool newState);
-    void toggleSkip(char count);
-    void toggleSkip(char count1, char count2);
+    void toggleSkip(int count);
+    void toggleSkip(int count1, int count2);
 };
 
 #endif

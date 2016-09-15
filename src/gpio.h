@@ -527,6 +527,9 @@ public:
     /*! Сброс ноги в 0 */
     inline void reset() {mPort->BSRRH = mPin;}
     
+    /*! Инверсия состояния ноги */
+    inline void toggle() {mPort->ODR ^= mPin;}
+    
     /*! запись порта*/
     void writePort(unsigned short value);
 

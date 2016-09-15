@@ -10,6 +10,9 @@ unsigned long Application::mBurnCount = 0;
 
 void Application::sysTickHandler()
 {
+    if (!Application::self)
+        return;
+    
     Application *app = instance();
     std::list<TickEvent> &elist = app->mTickEvents;
     for (TickIterator it=elist.begin(); it!=elist.end(); it++)
@@ -65,6 +68,24 @@ Application *stmApp()
 }
 //---------------------------------------------------------------------------
 
+bool Application::startOnbBootloader()
+{
+    unsigned long *ptr = (unsigned long*)0x08000000;
+    if (*ptr == 0xFFFFFFFF)
+        return false;
+    void (*f)(void) = reinterpret_cast<void(*)(void)>(*(ptr + 1));
+    __disable_irq();
+    for (int i=0; i<3; i++)
+    {
+        NVIC->ICER[i] = 0xFFFFFFFF;
+        NVIC->ICPR[i] = 0xFFFFFFFF;
+    }
+    __set_MSP(*ptr);
+    f();
+    return true; // po idee ne doljno suda zahodit
+}
+//---------------------------------------------------------------------------
+
 #ifdef __cplusplus
  extern "C" {
 #endif 
@@ -72,6 +93,12 @@ Application *stmApp()
 void SysTick_Handler(void)
 {  
     Application::sysTickHandler();
+}
+
+void HardFault_Handler(void)
+{
+    SysTick->CTRL = 0;
+    Application::startOnbBootloader();
 }
 
 void SystemInit(void) // on Reset_Handler

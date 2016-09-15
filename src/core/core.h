@@ -2,6 +2,7 @@
 #define _CORE_H
 
 #include "coreexception.h"
+#include "macros.h"
 
 #ifndef NO_CORE_SUPPORT
     #include "coretypes.h"

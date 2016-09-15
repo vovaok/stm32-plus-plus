@@ -62,7 +62,7 @@ void UartOnbInterface::task()
     
     if (mUnsendBuffer.size())
     {
-        if (mInterface->write(mUnsendBuffer) != -1)
+        if (mInterface->write(mUnsendBuffer) > 0)
             mUnsendBuffer.resize(0);
     }
     
@@ -76,7 +76,7 @@ void UartOnbInterface::task()
             ba.append(reinterpret_cast<const char*>(&id), 4);
             ba.append(mCurTxMsg.data, mCurTxMsg.size);
             mUnsendBuffer = encode(ba);
-            if (mInterface->write(mUnsendBuffer) != -1)
+            if (mInterface->write(mUnsendBuffer) > 0)
                 mUnsendBuffer.resize(0);
             else
                 break;
