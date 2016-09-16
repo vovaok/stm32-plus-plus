@@ -19,6 +19,7 @@ namespace Objnet
 {
 
 typedef Closure<void(unsigned char)> GlobalMessageEvent;
+typedef Closure<void(unsigned char, const ByteArray&)> GlobalDataMessageEvent;
 
 using namespace std;
 

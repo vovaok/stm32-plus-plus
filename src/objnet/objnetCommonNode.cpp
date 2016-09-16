@@ -303,7 +303,18 @@ bool ObjnetCommonNode::sendGlobalMessage(unsigned char aid)
     id.addr = mNetAddress;
     id.aid = aid;
     msg.setGlobalId(id);
-    //msg.setData(ba);
+    return mInterface->write(msg);
+}
+
+bool ObjnetCommonNode::sendGlobalMessage(unsigned char aid, const ByteArray &ba)
+{
+    CommonMessage msg;
+    GlobalMsgId id;
+    id.mac = mBusAddress;
+    id.addr = mNetAddress;
+    id.aid = aid;
+    msg.setGlobalId(id);
+    msg.setData(ba);
     return mInterface->write(msg);
 }
 

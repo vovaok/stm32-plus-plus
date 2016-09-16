@@ -143,6 +143,7 @@ public:
     */
     bool sendMessage(unsigned char receiver, unsigned char oid, const ByteArray &ba = ByteArray());
     bool sendGlobalMessage(unsigned char aid);
+    bool sendGlobalMessage(unsigned char aid, const ByteArray &ba);
 
     ObjnetInterface *objnetInterface() {return mInterface;}
 };

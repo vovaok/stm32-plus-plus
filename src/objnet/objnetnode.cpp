@@ -288,9 +288,14 @@ void ObjnetNode::parseMessage(CommonMessage &msg)
     if (msg.isGlobal())
     {
     #ifdef QT_CORE_LIB
-        emit globalMessage(msg.globalId().aid);
+        if (msg.data().size())
+            emit globalDataMessage(msg.globalId().aid), msg.data());
+        else
+            emit globalMessage(msg.globalId().aid);
     #else
-        if (onGlobalMessage)
+        if (msg.data().size())
+            onGlobalDataMessage(msg.globalId().aid, msg.data());
+        else if (onGlobalMessage)
             onGlobalMessage(msg.globalId().aid);
     #endif
     }

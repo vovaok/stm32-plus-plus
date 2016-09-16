@@ -103,13 +103,15 @@ public:
 
 #ifdef QT_CORE_LIB
 signals:
-    void globalMessage(unsigned char aid);
     void polling();
     void upgradeRequest();
+    void globalMessage(unsigned char aid);
+    void globalMessage(unsigned char aid, const QByteArray &ba);
 #else
     NotifyEvent onPolling;
     NotifyEvent onUpgradeRequest;
     GlobalMessageEvent onGlobalMessage;
+    GlobalDataMessageEvent onGlobalDataMessage;
 #endif
 };
 
