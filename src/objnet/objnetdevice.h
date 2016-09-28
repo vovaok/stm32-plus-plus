@@ -37,6 +37,7 @@ protected:
 //    } ObjnetObject;
 
     unsigned char mNetAddress;
+    unsigned char mBusAddress;
     bool mPresent;
     unsigned char mTimeout;
     bool mAutoDelete; // когда true, при отключении девайса от сети, он удаляется из списка (по умолчанию false, только мастер может установить true при создании объекта)
@@ -76,6 +77,7 @@ public:
     bool isInfoValid() const {return mInfoValidCnt >= 6;}
 
     unsigned char netAddress() const {return mNetAddress;}
+    unsigned char busAddress() const {return mBusAddress;}
 
     unsigned long classId() const {return mClass;}
     _String name() const {return _toString(mName);}
@@ -142,7 +144,11 @@ signals:
 
 public slots:
     void sendObject(QString name, QVariant value);
-
+#else
+    
+    Closure<void(ObjnetDevice*)> onReady;
+    Closure<void(_String name)> onObjectReceived;
+    
 #endif
 
 #ifdef QT_CORE_LIB

@@ -8,7 +8,7 @@ As5040Master::As5040Master(Spi *spi) :
     conf.CPHA = 1;
     conf.CPOL = 0;
     conf.master = 1;
-    conf.baudrate = 5; // clock / 64
+    conf.baudrate = 6; // clock / 128
 //    conf.LSBfirst = 0;
 //    conf.RXonly = 1;
     conf.frame16bit = 1;
@@ -63,10 +63,24 @@ void As5040Master::onRead(unsigned short rawValue)
 }
 //---------------------------------------------------------------------------
 
+void As5040Master::setZero(unsigned char channel)
+{
+    if (channel < mChannels.size())
+        mChannels[channel].zero = mChannels[channel].raw;
+}
+
 void As5040Master::setZero(unsigned char channel, float zeroDeg)
 {
     if (channel < mChannels.size())
         mChannels[channel].zero = lrintf(zeroDeg * (65536.0f / 360.0f));
+}
+
+float As5040Master::zeroDeg(unsigned char channel) const
+{
+    if (channel < mChannels.size())
+        return mChannels[channel].zero * 360.f / 65536.0f;
+    else
+        return NAN;
 }
 
 bool As5040Master::isValid(unsigned char channel)

@@ -38,6 +38,7 @@ protected:
     unsigned char route(unsigned char netAddress) {return netAddress<0x7F? mRouteTable[netAddress]: 0;}
     unsigned char createNetAddress(unsigned char mac);
 
+public:
 #ifdef QT_CORE_LIB
 signals:
     void devAdded(unsigned char netAddress, const QByteArray &locData);
@@ -45,6 +46,8 @@ signals:
     void devDisconnected(unsigned char netAddress);
     void devRemoved(unsigned char netAddress);
     void serviceMessageAccepted(unsigned char netAddress, SvcOID oid, const QByteArray &data);
+#else
+    Closure<void(unsigned char, const ByteArray&)> onDevAdded;
 #endif
 
 #ifdef QT_CORE_LIB

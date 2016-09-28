@@ -184,7 +184,7 @@ void Adc::configDma(Dma *dma)
     if (mMode==ModeSingle)
         ADC_DMARequestAfterLastTransferCmd(mAdc, ENABLE);
     
-    ADC_DMACmd(ADC1, ENABLE);
+    ADC_DMACmd(mAdc, ENABLE);
 }
 //---------------------------------------------------------------------------
 

@@ -46,7 +46,9 @@ public:
     unsigned char addChannel(Gpio::PinName csPin, float zeroDeg = 0);
     void start();
     
+    void setZero(unsigned char channel);
     void setZero(unsigned char channel, float zeroDeg);
+    float zeroDeg(unsigned char channel) const;
     
     bool isValid(unsigned char channel);
     float valueDeg(unsigned char channel);

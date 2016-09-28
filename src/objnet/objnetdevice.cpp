@@ -52,6 +52,31 @@ void ObjnetDevice::prepareObject(const ObjectInfo::Description &desc)
         int sz = mObjects.size();
         mObjects.resize(id + 1);
         mObjBuffers.resize(id + 1);
+        for (int i=0; i<sz; i++)
+        {
+            ObjectInfo *o = mObjects[i];
+            if (o)
+            {
+                char *ptr = mObjBuffers[i].data();
+                if (o->mWritePtr && o->mWritePtr != ptr)
+                {
+                    if (o->mReadPtr == o->mWritePtr)
+                        o->mReadPtr = o->mWritePtr = ptr;
+                    else if (!o->mReadPtr)
+                        o->mWritePtr = ptr;
+                    else
+                    {
+                        int off = (int)o->mReadPtr - (int)o->mWritePtr;
+                        o->mWritePtr = ptr;
+                        o->mReadPtr = ptr + off;
+                    }
+                }
+                else if (o->mReadPtr && o->mReadPtr != ptr)
+                {
+                    o->mReadPtr = ptr;
+                }
+            }
+        }
         for (int i=sz; i<id; i++)
             mObjects[i] = 0L;
     }
@@ -103,17 +128,18 @@ void ObjnetDevice::prepareObject(const ObjectInfo::Description &desc)
         }
     }
 
-    #ifdef QT_CORE_LIB
     bool readyFlag = true;
     for (unsigned int i=0; i<mObjectCount; i++)
     {
         if (i>=mObjects.size() || !mObjects[i])
             readyFlag = false;
     }
+    #ifdef QT_CORE_LIB
     if (readyFlag)
         emit ready();
     #else
-        #warning device ready signal not implemented!
+    if (readyFlag && onReady)
+        onReady(this);
     #endif
 }
 //---------------------------------------------------------
@@ -127,7 +153,8 @@ void ObjnetDevice::receiveObject(unsigned char oid, const ByteArray &ba)
         {
             obj->write(ba);
             #ifndef QT_CORE_LIB
-            //onObjectReceived(oid);
+            if (onObjectReceived)
+                onObjectReceived(obj->name());
             #else
             emit objectReceived(obj->name(), obj->toVariant());
             #endif

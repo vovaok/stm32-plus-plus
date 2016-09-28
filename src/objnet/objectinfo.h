@@ -42,7 +42,8 @@ public:
         Exchange    = ReadWrite | Volatile,
         SecretVar   = ReadWrite | Hidden,
         Storage     = ReadWrite | Save,
-        SecretSetting = Storage | Hidden
+        SecretSetting = Storage | Hidden,
+        HiddenMeasurement = Measurement | Hidden
     } Flags;
     
     typedef enum // KAK QVariant / QMetaType B Qt!!!
