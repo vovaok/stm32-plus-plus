@@ -199,6 +199,21 @@ void ObjnetCommonNode::setBusAddressFromPins(Gpio::PinName a0, Gpio::PinName a1,
         address |= 0x8;
     setBusAddress(address);
 }
+
+void ObjnetCommonNode::setBusAddress(unsigned char startAddress, Gpio::PinName a0, Gpio::PinName a1, Gpio::PinName a2, Gpio::PinName a3)
+{
+    unsigned char address = 0;
+    const Gpio::Flags f = Gpio::Flags(Gpio::modeIn | Gpio::pullUp);
+    if (Gpio(a0, f).read())
+        address |= 0x1;
+    if (Gpio(a1, f).read())
+        address |= 0x2;
+    if (Gpio(a2, f).read())
+        address |= 0x4;
+    if (Gpio(a3, f).read())
+        address |= 0x8;
+    setBusAddress(startAddress + address);
+}
 #endif
 //---------------------------------------------------------------------------
 

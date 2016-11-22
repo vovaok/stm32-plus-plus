@@ -47,7 +47,7 @@ void As5040Master::onRead(unsigned short rawValue)
     Channel &ch = mChannels[mCurChannel];
     ch.cs->write(1);
     ch.raw = rawValue & 0xFFC0; // last 6 bits are flags
-    ch.value = (ch.raw - ch.zero) * (360.0f / 65536.0f);
+    ch.value = ((unsigned long)(ch.raw - ch.zero) & 0xFFFF) * (360.0f / 65536.0f);
     ch.flags.word = rawValue & 0x3f;
     
     mCurChannel++;
