@@ -32,7 +32,11 @@ Usart::Usart(Gpio::Config pinTx, Gpio::Config pinRx) :
     mTxBufferSize(64),
     mLineEnd("\n")
 {
-    UsartNo number = getUsartByPin(pinTx);
+    UsartNo number = UsartNone;
+    if (pinTx != Gpio::NoConfig)
+        number = getUsartByPin(pinTx);
+    else if (pinRx != Gpio::NoConfig)
+        number = getUsartByPin(pinRx);
     Gpio::config(pinRx);
     Gpio::config(pinTx);
     commonConstructor(number, 57600, Mode8N1);

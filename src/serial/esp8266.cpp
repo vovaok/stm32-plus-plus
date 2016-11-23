@@ -372,8 +372,8 @@ void ESP8266::onTimer()
         
         if (mLastCmd == cmdNone)
         {
-            mLastCmd = cmdCwModeReq;
-            sendCmd("AT+CWMODE?");
+//            mLastCmd = cmdCwModeReq;
+//            sendCmd("AT+CWMODE?");
         }
     }
     else if (mState == WaitForConnect)
