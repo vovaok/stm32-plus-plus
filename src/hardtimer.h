@@ -55,6 +55,14 @@ public:
         TrgOC4Ref   = TIM_TRGOSource_OC4Ref
     } TrgSource;
     
+    typedef enum
+    {
+        None,
+        Rising,
+        Falling,
+        BothEdge
+    } Polarity;
+    
 //    typedef enum
 //    {
 //        CH1     = 0x01,
@@ -122,6 +130,7 @@ public:
     void stop();
     void setEnabled(bool enable);
     bool isEnabled() const {return mEnabled;}
+    void setOnePulseMode(bool enabled);
     
     bool isReady() const;
     
@@ -139,6 +148,7 @@ public:
     void setCompare2(unsigned int value) {mTim->CCR2 = value;}
     void setCompare3(unsigned int value) {mTim->CCR3 = value;}
     void setCompare4(unsigned int value) {mTim->CCR4 = value;}
+    void setCompareValue(ChannelNumber ch, unsigned int value);
     
     void setUpdateEvent(NotifyEvent event)   {emitEvent[isrcUpdate] = event; enableInterrupt(isrcUpdate);}
     void setCC1Event(NotifyEvent event)      {emitEvent[isrcCC1] = event; enableInterrupt(isrcCC1);}
@@ -148,6 +158,13 @@ public:
     void setComEvent(NotifyEvent event)      {emitEvent[isrcCom] = event; enableInterrupt(isrcCom);}
     void setTriggerEvent(NotifyEvent event)  {emitEvent[isrcTrigger] = event; enableInterrupt(isrcTrigger);}
     void setBreakEvent(NotifyEvent event)    {emitEvent[isrcBreak] = event; enableInterrupt(isrcBreak);}
+    
+    void setCaptureEvent(ChannelNumber ch, NotifyEvent event);
+    void configCapture(ChannelNumber ch, Polarity pol);
+    unsigned int captureValue(ChannelNumber ch) const;
+    
+    void configPWM(ChannelNumber ch);
+    void setPWMEnabled(ChannelNumber ch, bool enabled);
 };
 
 #endif
