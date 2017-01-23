@@ -95,11 +95,11 @@ void SysTick_Handler(void)
     Application::sysTickHandler();
 }
 
-void HardFault_Handler(void)
-{
-    SysTick->CTRL = 0;
-    Application::startOnbBootloader();
-}
+//void HardFault_Handler(void)
+//{
+//    SysTick->CTRL = 0;
+//    Application::startOnbBootloader();
+//}
 
 void SystemInit(void) // on Reset_Handler
 {
