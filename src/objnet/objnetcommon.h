@@ -69,6 +69,7 @@ typedef enum
     svcRequestAllInfo   = 0xF8, //!< мастер хочет знать всё о девайсе и даже больше
     svcRequestObjInfo   = 0xF9, //!< мастер хочет знать дескрипторы всех зареганных объектов девайса
     svcAutoRequest      = 0xFA, //!< мастер говорит узлу, что хочет от него порой получать объект без лишних слов
+    svcUpgradeRequest   = 0xFE, //!< мастер просит включить бутлоадер
 } SvcOID;
 
 typedef enum

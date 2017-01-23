@@ -233,6 +233,7 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
 
             dev = new ObjnetDevice(netaddr);             // создаём объект с новым адресом
             dev->mAutoDelete = true;                     // раз автоматически создали - автоматически и удалим)
+            dev->mBusAddress = mac;
             if (localnet)                                // если девайс в текущей подсети...
             {
                 mLocalnetDevices[mac] = dev;             // ...запоминаем для поиска по маку
@@ -287,6 +288,9 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
 
         #ifdef QT_CORE_LIB
         emit devAdded(netaddr, ba);                 // устройство добавлено
+        #else
+        if (onDevAdded)
+            onDevAdded(netaddr, ba);
         #endif
 
         if (mAdjacentNode)                               // если мастер связан с узлом, то он не верхний

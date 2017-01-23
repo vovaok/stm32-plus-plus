@@ -97,7 +97,9 @@ public:
     #define BindObjectEx(obj, flags) bindObject(ObjectInfo(#obj, obj, flags)) // convenient macro
     #define BindDualObject(objRead, objWrite) bindObject(ObjectInfo(#objRead":"#objWrite, objRead, objWrite))
     #define BindMethod(method) bindObject(ObjectInfo(#method, CLOSURE(this, &method)))
+    #define BindMethodHidden(method) bindObject(ObjectInfo(#method, CLOSURE(this, &method), ObjectInfo::Hidden))
     #define BindMethodEx(name, object, method) bindObject(ObjectInfo(name, CLOSURE(object, &method)))
+    #define BindMethodHiddenEx(name, object, method) bindObject(ObjectInfo(name, CLOSURE(object, &method), ObjectInfo::Hidden))
 
     void sendForced(unsigned char oid);
 
@@ -106,7 +108,7 @@ signals:
     void polling();
     void upgradeRequest();
     void globalMessage(unsigned char aid);
-    void globalMessage(unsigned char aid, const QByteArray &ba);
+    void globalDataMessage(unsigned char aid, const QByteArray &ba);
 #else
     NotifyEvent onPolling;
     NotifyEvent onUpgradeRequest;

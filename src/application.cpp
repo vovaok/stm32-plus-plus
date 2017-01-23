@@ -80,6 +80,16 @@ bool Application::startOnbBootloader()
         NVIC->ICER[i] = 0xFFFFFFFF;
         NVIC->ICPR[i] = 0xFFFFFFFF;
     }
+#define __DISABLE_GPIO(x) GPIO##x->MODER = 0; GPIO##x->PUPDR = 0
+    __DISABLE_GPIO(A);
+    __DISABLE_GPIO(B);
+    __DISABLE_GPIO(C);
+    __DISABLE_GPIO(D);
+    __DISABLE_GPIO(E);
+    __DISABLE_GPIO(F);
+    __DISABLE_GPIO(G);
+    __DISABLE_GPIO(H);
+    __DISABLE_GPIO(I);
     __set_MSP(*ptr);
     f();
     return true; // po idee ne doljno suda zahodit

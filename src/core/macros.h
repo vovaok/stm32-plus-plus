@@ -10,6 +10,8 @@
 #define GLUE3_HELPER(x,y,z)     x##y##z
 #define GLUE3(x,y,z)            GLUE3_HELPER(x,y,z)
 
-#define ZEROING(var) memset(&var, 0, sizeof(var))
+#define ZEROING(var)    memset(&var, 0, sizeof(var))
+#define BOUND(l,x,h)    ((x)<(l)?(l):(x)>(h)?(h):(x))
+#define SAT(x,c)        BOUND(-(c),x,c)
 
 #endif

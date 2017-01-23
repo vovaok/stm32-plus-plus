@@ -119,6 +119,7 @@ public:
     */
     void setBusAddressFromPins(int bits, Gpio::PinName a0 = Gpio::noPin, ...);
     void setBusAddressFromPins(Gpio::PinName a0, Gpio::PinName a1=Gpio::noPin, Gpio::PinName a2=Gpio::noPin, Gpio::PinName a3=Gpio::noPin);
+    void setBusAddress(unsigned char startAddr, Gpio::PinName a0, Gpio::PinName a1=Gpio::noPin, Gpio::PinName a2=Gpio::noPin, Gpio::PinName a3=Gpio::noPin);
 
 //    void setRetranslateEvent(ObjnetMessageEvent event) {mRetranslateEvent = event;}
 //    ObjnetMessageEvent retranslateEvent() const {return mRetranslateEvent;}

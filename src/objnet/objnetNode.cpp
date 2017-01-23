@@ -264,8 +264,24 @@ void ObjnetNode::parseServiceMessage(CommonMessage &msg)
             }
         }
         break;
-
-        default:;
+        
+      case svcUpgradeRequest:
+      {
+        unsigned long classId = *reinterpret_cast<unsigned long*>(msg.data().data());
+        #ifndef QT_CORE_LIB
+        if (classId == mClass)
+        {
+            if (onUpgradeRequest)
+              onUpgradeRequest();
+            Application::startOnbBootloader();
+        }
+        #else
+        if (classId == mClass)
+            emit upgradeRequest();
+        #endif
+      } break;
+        
+      default:;
     }
 
     if (isConnected() && oid < mSvcObjects.size())
@@ -289,7 +305,7 @@ void ObjnetNode::parseMessage(CommonMessage &msg)
     {
     #ifdef QT_CORE_LIB
         if (msg.data().size())
-            emit globalDataMessage(msg.globalId().aid), msg.data());
+            emit globalDataMessage(msg.globalId().aid, msg.data());
         else
             emit globalMessage(msg.globalId().aid);
     #else

@@ -14,6 +14,7 @@ typedef enum
     // device types:      0x00XX0000
     // Controller group:
     cidMechanical       = 0x00010000,
+    cidOptical          = 0x00020000,
     // Sensor group:
     cidEncoder          = 0x00010000,
     cidIMU              = 0x00020000,
@@ -24,7 +25,9 @@ typedef enum
     
     // device subtypes:   0x0000XX00
     // Controller group:
+    cidGeneric          = 0x00000000,
     cidExoskeleton      = 0x00001300,
+    cidLED              = 0x00002300,
     // Sensor group:
     cidMagnetic         = 0x00000100,
     cidMEMS             = 0x00000200,
@@ -41,6 +44,8 @@ typedef enum
     // combinations:
     cidBrushedMotorController = cidActuator | cidBrushedMotor,
     cidExoskeletonController = cidController | cidMechanical | cidExoskeleton,
+    cidExoskeletonSensor = cidSensor | cidController | cidEncoder | cidIMU,
+    cidLedController = cidController | cidOptical | cidLED
 } ClassId;
 
 }

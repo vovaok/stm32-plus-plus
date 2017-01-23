@@ -7727,6 +7727,12 @@
     <name>$PROJ_DIR$\src\led7.h</name>
   </file>
   <file>
+    <name>$PROJ_DIR$\src\powermanager.cpp</name>
+  </file>
+  <file>
+    <name>$PROJ_DIR$\src\powermanager.h</name>
+  </file>
+  <file>
     <name>$PROJ_DIR$\src\pwminput.cpp</name>
   </file>
   <file>
