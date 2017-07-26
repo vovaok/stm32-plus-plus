@@ -201,7 +201,7 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
                 #endif
             }
             dev->mPresent = true;
-            dev->mTimeout = 5;
+            dev->mTimeout = 10;
         }
         break;
 

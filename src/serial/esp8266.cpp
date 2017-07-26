@@ -131,10 +131,11 @@ void ESP8266::parseLine(ByteArray &line)
     else if (line == ">" && mState != ReadyState)
     {
         mTransparentMode = true;
+        mState = Connected;
     }
     else if (line == "ready")
     {
-        setBaudrate(115200);
+        setBaudrate(460800);
         mState = ReadyState;
         mLastCmd = cmdNone;
         if (onReady)
@@ -295,7 +296,7 @@ void ESP8266::parseLine(ByteArray &line)
     else if (mUsart->baudrate() == 78400 && line.size() >= 4)
     {
         if (line[0]=='j' && line[1]=='u' && line[2]=='m' && line[3]=='p')
-            mUsart->setBaudrate(115200);
+            mUsart->setBaudrate(460800);
     }
     else if (mState == WaitForConnect && line.size() > 7)
     {

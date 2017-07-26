@@ -249,7 +249,10 @@ bool HardwareTimer::isReady() const
 void HardwareTimer::setEnabled(bool enable)
 {
     mEnabled = enable;
-    TIM_Cmd(mTim, enable? ENABLE: DISABLE);
+    if (enable)
+        mTim->CR1 |= TIM_CR1_CEN;
+    else
+        mTim->CR1 &= (uint16_t)~TIM_CR1_CEN;
 }
 
 void HardwareTimer::start()
@@ -260,6 +263,104 @@ void HardwareTimer::start()
 void HardwareTimer::stop()
 {
     setEnabled(false);
+}
+
+void HardwareTimer::setOnePulseMode(bool enabled)
+{
+    if (enabled)
+        mTim->CR1 |= TIM_CR1_OPM;
+    else
+        mTim->CR1 &= (uint16_t)~TIM_CR1_OPM;
+}
+//---------------------------------------------------------------------------
+
+void HardwareTimer::setCompareValue(ChannelNumber ch, unsigned int value)
+{
+    switch (ch)
+    {
+        case Ch1: mTim->CCR1 = value; break;
+        case Ch2: mTim->CCR2 = value; break;
+        case Ch3: mTim->CCR3 = value; break;
+        case Ch4: mTim->CCR4 = value; break;
+    }
+}
+//---------------------------------------------------------------------------
+
+void HardwareTimer::setCaptureEvent(ChannelNumber ch, NotifyEvent event)
+{
+    switch (ch)
+    {
+        case Ch1: setCC1Event(event); break;
+        case Ch2: setCC2Event(event); break;
+        case Ch3: setCC3Event(event); break;
+        case Ch4: setCC4Event(event); break;
+    }
+}
+
+void HardwareTimer::configCapture(ChannelNumber ch, Polarity pol)
+{
+    TIM_ICInitTypeDef ic;
+    ic.TIM_ICFilter = 2;
+    ic.TIM_ICPolarity = TIM_ICPolarity_Falling;
+    ic.TIM_ICPrescaler = TIM_ICPSC_DIV1;
+    ic.TIM_ICSelection = TIM_ICSelection_DirectTI;
+    switch (ch)
+    {
+        case Ch1: ic.TIM_Channel = TIM_Channel_1; break;
+        case Ch2: ic.TIM_Channel = TIM_Channel_2; break;
+        case Ch3: ic.TIM_Channel = TIM_Channel_3; break;
+        case Ch4: ic.TIM_Channel = TIM_Channel_4; break;
+    }
+    TIM_ICInit(tim(), &ic);
+}
+
+unsigned int HardwareTimer::captureValue(ChannelNumber ch) const
+{
+    switch (ch)
+    {
+        case Ch1: return mTim->CCR1;
+        case Ch2: return mTim->CCR2;
+        case Ch3: return mTim->CCR3;
+        case Ch4: return mTim->CCR4;
+    }
+    return -1;
+}
+
+void HardwareTimer::configPWM(ChannelNumber ch)
+{
+    TIM_OCInitTypeDef TIM_OCInitStructure;
+    TIM_OCInitStructure.TIM_OCMode = TIM_OCMode_PWM2;
+    TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Disable;
+    TIM_OCInitStructure.TIM_OutputNState = TIM_OutputNState_Disable;
+    TIM_OCInitStructure.TIM_Pulse = 0;
+    
+    TIM_OCInitStructure.TIM_OCPolarity = TIM_OCPolarity_High;//invert? TIM_OCPolarity_High: TIM_OCPolarity_Low ;
+    TIM_OCInitStructure.TIM_OCNPolarity = TIM_OCNPolarity_Low;
+    TIM_OCInitStructure.TIM_OCIdleState = TIM_OCIdleState_Reset;
+    TIM_OCInitStructure.TIM_OCNIdleState = TIM_OCIdleState_Reset;
+
+    switch (ch)
+    {
+        case Ch1: TIM_OC1Init(tim(), &TIM_OCInitStructure); TIM_OC1PreloadConfig(tim(), TIM_OCPreload_Enable); break;
+        case Ch2: TIM_OC2Init(tim(), &TIM_OCInitStructure); TIM_OC2PreloadConfig(tim(), TIM_OCPreload_Enable); break;
+        case Ch3: TIM_OC3Init(tim(), &TIM_OCInitStructure); TIM_OC3PreloadConfig(tim(), TIM_OCPreload_Enable); break;
+        case Ch4: TIM_OC4Init(tim(), &TIM_OCInitStructure); TIM_OC4PreloadConfig(tim(), TIM_OCPreload_Enable); break;
+    }
+}
+
+void HardwareTimer::setPWMEnabled(ChannelNumber ch, bool enabled)
+{
+    uint16_t channel = 0;
+    switch (ch)
+    {
+        case Ch1: channel = TIM_Channel_1; break;
+        case Ch2: channel = TIM_Channel_2; break;
+        case Ch3: channel = TIM_Channel_3; break;
+        case Ch4: channel = TIM_Channel_4; break;
+        default: return;
+    }
+    TIM_CCxCmd(tim(), channel, enabled? TIM_CCx_Enable: TIM_CCx_Disable);
+//    TIM_GenerateEvent(tim(), TIM_EventSource_COM); 
 }
 //---------------------------------------------------------------------------
 
