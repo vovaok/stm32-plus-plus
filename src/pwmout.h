@@ -9,9 +9,12 @@ class PwmOutput : public HardwareTimer
 private:
     int mPeriod;
     unsigned long mChMask;
+    static PwmOutput *mInstances[14];
   
 public:
     PwmOutput(TimerNumber timerNo, unsigned long pwmFreq);
+    
+    static PwmOutput *instance(TimerNumber timerNo);
     
     using HardwareTimer::setEnabled;
     

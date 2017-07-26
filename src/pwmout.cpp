@@ -1,9 +1,24 @@
 #include "pwmout.h"
 
+PwmOutput *PwmOutput::mInstances[14] = {0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L};
+
+PwmOutput *PwmOutput::instance(TimerNumber timerNo)
+{
+    if (timerNo < 14)
+    {
+        if (mInstances[timerNo])
+            return mInstances[timerNo];
+        return new PwmOutput(timerNo, 10_kHz);
+    }
+    return 0L;
+}
+
 PwmOutput::PwmOutput(TimerNumber timerNo, unsigned long pwmFreq) :
     HardwareTimer(timerNo, pwmFreq),
     mChMask(0)
 {  
+    mInstances[timerNo] = this;
+  
     TIM_CCPreloadControl(tim(), ENABLE);
     mPeriod = autoReloadRegister() + 1;
     setEnabled(true);
