@@ -81,13 +81,13 @@ void Buzzer::beep(int duration_ms)
 
 void Buzzer::beep(unsigned char note, int duration_ms)
 {
-    setFrequency(getFreqByNote(note) * 2);
+    setFrequency(getFreqByNote(note));
     beep(duration_ms);
 }
 
 void Buzzer::beep(Note note)
 {
-    setFrequency(getFreqByNote(note.note) * 2);
+    setFrequency(getFreqByNote(note.note));
     beep(note.duration_ms);
 }
 
