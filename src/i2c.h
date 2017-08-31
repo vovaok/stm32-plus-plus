@@ -6,21 +6,26 @@
 class I2c
 {
 private:
-   int mAddress;
-   int mClockSpeed;
-   I2C_TypeDef *mI2c;
+    int mAddress;
+    int mClockSpeed;
+    I2C_TypeDef *mI2c;
+    unsigned char lastAddress;
     
-  
 public:
-  
-  
-  I2c(int i2cNumber, int clockSpeed, int address, Gpio::Config pinSDA, Gpio::Config pinSCL);
-  void init(void);
-  void startTransmission(uint8_t transmissionDirection,  uint8_t slaveAddress);
-  void stopTransmission ();
-  void writeData(uint8_t data);
-  uint8_t readData();
+    I2c(int i2cNumber, int clockSpeed, int address, Gpio::Config pinSDA, Gpio::Config pinSCL);
+    void init(void);
+    bool startTransmission(uint8_t transmissionDirection, uint8_t slaveAddress);
+    bool stopTransmission();
+    bool writeData(uint8_t data);
+    bool readData(unsigned char *buf);
+    void setAcknowledge(bool state);
     
+    bool regRead(unsigned char address, unsigned char index, unsigned char *buffer);
+    bool multipleRead(unsigned char address, unsigned char index, unsigned char *buffer, unsigned char length);
+    bool regWrite(unsigned char address, unsigned char index, unsigned char byte);
+    bool multipleWrite(unsigned char address, unsigned char index, const unsigned char *buffer, unsigned char length);
+    
+    unsigned char failAddress;
 };
 
 #endif

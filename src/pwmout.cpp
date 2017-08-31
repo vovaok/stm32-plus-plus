@@ -70,6 +70,34 @@ void PwmOutput::configChannel(ChannelNumber chnum, Gpio::Config pin, Gpio::Confi
         mChMask |= ((unsigned long)chnum) << 16;
 }
 
+void PwmOutput::configChannelToggleMode(ChannelNumber chnum, Gpio::Config pin)
+{
+    bool chEnabled = (pin != Gpio::NoConfig);
+    Gpio::config(pin);
+    
+    TIM_OCInitTypeDef  TIM_OCInitStructure;
+    TIM_OCInitStructure.TIM_OCMode = TIM_OCMode_Toggle;
+    TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Disable;
+    TIM_OCInitStructure.TIM_OutputNState = TIM_OutputNState_Disable;
+    TIM_OCInitStructure.TIM_Pulse = 0;
+    
+    TIM_OCInitStructure.TIM_OCPolarity = TIM_OCPolarity_High;
+    TIM_OCInitStructure.TIM_OCNPolarity = TIM_OCNPolarity_Low;
+    TIM_OCInitStructure.TIM_OCIdleState = TIM_OCIdleState_Reset;
+    TIM_OCInitStructure.TIM_OCNIdleState = TIM_OCIdleState_Reset;
+
+    switch (chnum)
+    {
+        case Ch1: TIM_OC1Init(tim(), &TIM_OCInitStructure); TIM_OC1PreloadConfig(tim(), TIM_OCPreload_Enable); break;
+        case Ch2: TIM_OC2Init(tim(), &TIM_OCInitStructure); TIM_OC2PreloadConfig(tim(), TIM_OCPreload_Enable); break;
+        case Ch3: TIM_OC3Init(tim(), &TIM_OCInitStructure); TIM_OC3PreloadConfig(tim(), TIM_OCPreload_Enable); break;
+        case Ch4: TIM_OC4Init(tim(), &TIM_OCInitStructure); TIM_OC4PreloadConfig(tim(), TIM_OCPreload_Enable); break;
+    }
+    
+    if (chEnabled)
+        mChMask |= chnum;
+}
+
 void PwmOutput::setChannelEnabled(ChannelNumber chnum, bool enabled, bool complementaryEnabled)
 {
     uint16_t channel = 0;
@@ -135,4 +163,10 @@ void PwmOutput::setDutyCycle(int dutyCycle1, int dutyCycle2, int dutyCycle3, int
     if (mChMask & (Ch4 | (Ch4 << 16))) 
         setCompare4(dutyCycle4 * mPeriod >> 16);
     TIM_GenerateEvent(tim(), TIM_EventSource_COM);
+}
+
+void PwmOutput::setFrequency(int f_Hz)
+{
+    HardwareTimer::setFrequency(f_Hz);
+    mPeriod = autoReloadRegister() + 1;
 }

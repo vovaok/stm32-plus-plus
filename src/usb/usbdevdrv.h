@@ -77,6 +77,7 @@ public:
     uint32_t epClrStall(uint8_t epnum);
     uint32_t epFlush(uint8_t epnum);
     uint32_t getEpStatus(uint8_t epnum);
+//    uint32_t getEpXferCount(uint8_t epnum);
     void setEpStatus(uint8_t epnum, uint32_t Status);
     
     EndpointEvent dataOutStageEvent; // void dataOutStage(unsigned char epnum);

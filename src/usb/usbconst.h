@@ -7,22 +7,24 @@ namespace Usb
 typedef enum
 {
     UsbClassAudio       = 0x01,
-    UsbClassHid         = 0x03
+    UsbClassCdcControl  = 0x02,
+    UsbClassHid         = 0x03,
+    UsbClassCdcData     = 0x0A,
 } UsbClass;
   
-#define USB_DEVICE_CLASS_AUDIO                        0x01
-//#define USB_DEVICE_CLASS_HID                          0x03
+#define USB_DEVICE_CLASS_AUDIO                          0x01
+//#define USB_DEVICE_CLASS_HID                            0x03
 
 
-#define  USB_DESC_TYPE_DEVICE                              1
-#define  USB_DESC_TYPE_CONFIGURATION                       2
-#define  USB_DESC_TYPE_STRING                              3
-#define  USB_DESC_TYPE_INTERFACE                           4
-#define  USB_DESC_TYPE_ENDPOINT                            5
-#define  USB_DESC_TYPE_DEVICE_QUALIFIER                    6
-#define  USB_DESC_TYPE_OTHER_SPEED_CONFIGURATION           7
+#define USB_DESC_TYPE_DEVICE                               1
+#define USB_DESC_TYPE_CONFIGURATION                        2
+#define USB_DESC_TYPE_STRING                               3
+#define USB_DESC_TYPE_INTERFACE                            4
+#define USB_DESC_TYPE_ENDPOINT                             5
+#define USB_DESC_TYPE_DEVICE_QUALIFIER                     6
+#define USB_DESC_TYPE_OTHER_SPEED_CONFIGURATION            7
 
-#define  USB_DESC_TYPE_INTERFACE_COLLECTION                0x0b
+#define USB_DESC_TYPE_INTERFACE_COLLECTION              0x0b
 
 #define USB_REQ_RECIPIENT_DEVICE                        0x00
 #define USB_REQ_RECIPIENT_INTERFACE                     0x01

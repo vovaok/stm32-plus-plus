@@ -73,6 +73,9 @@ private:
 protected:
     void addChild(UsbNode *configuration);
     
+    virtual void classSetupRequest(const UsbSetupReq &req) {}
+    virtual void vendorSetupRequest(const UsbSetupReq &req) {}
+    
 public:
     UsbDevice(UsbCore core = OtgFs);
     ~UsbDevice();
@@ -176,6 +179,8 @@ public:
         \param serial String containing the serial number of the product.
     */
     void setSerialNumber(const wstring &serial);
+    
+    void setUsbSpecification(unsigned short spec);
 };
 
 }

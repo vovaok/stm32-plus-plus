@@ -1,7 +1,7 @@
 #ifndef _SERIALINTERFACE_H
 #define _SERIALINTERFACE_H
 
-#include <core/bytearray.h>
+#include "core/core.h"
 
 namespace Serial
 {
@@ -25,11 +25,13 @@ public:
   
     virtual bool open(OpenMode mode = ReadWrite) {mOpenMode = mode; return true;}
     virtual void close() {mOpenMode = NotOpen;}
-  
+      
     virtual int read(ByteArray &ba) = 0;
     virtual int write(const ByteArray &ba) = 0;
     
     inline bool isOpen() const {return mOpenMode != NotOpen;}
+    
+    NotifyEvent onReadyRead;
 };
 
 }

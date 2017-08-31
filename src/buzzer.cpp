@@ -4,7 +4,10 @@ unsigned short Buzzer::mNoteFreqs[12] = {8372, 8870, 9397, 9956, 10548, 11175, 1
 
 Buzzer::Buzzer(Gpio::Config pin) :
     mTime(0),
-    mEndFlag(false)
+    mEndFlag(false),
+    mPlayBuf(0L),
+    mPlaySize(0),
+    mPlayCnt(0)
 {
     TimerNumber tim = HardwareTimer::getTimerByPin(pin);
     mChan = HardwareTimer::getChannelByPin(pin);
@@ -15,8 +18,9 @@ Buzzer::Buzzer(Gpio::Config pin) :
         throw Exception::invalidPin;
     
     mPwm = new PwmOutput(tim, 1_kHz);
-    mPwm->configChannel(mChan, pin);
-    mPwm->setDutyCycle(mChan, 32768);
+    //mPwm->configChannel(mChan, pin);
+    mPwm->configChannelToggleMode(mChan, pin);
+//    mPwm->setDutyCycle(mChan, 32768);
     
     stmApp()->registerTaskEvent(EVENT(&Buzzer::task));
     stmApp()->registerTickEvent(EVENT(&Buzzer::tick));
@@ -30,6 +34,10 @@ void Buzzer::task()
         off();
         if (onBeepDone)
             onBeepDone();
+        if (mPlayCnt < mPlaySize)
+            beep(mPlayBuf[mPlayCnt++]);
+        else if (mPlayCnt && onPlayDone)
+            onPlayDone();
     }
 }
 
@@ -38,6 +46,8 @@ void Buzzer::tick(int dt)
     if (mTime > dt)
     {
         mTime -= dt;
+        if (mTime < 25)
+            off();
     }
     else if (mTime)
     {
@@ -71,8 +81,14 @@ void Buzzer::beep(int duration_ms)
 
 void Buzzer::beep(unsigned char note, int duration_ms)
 {
-    setFrequency(getFreqByNote(note));
+    setFrequency(getFreqByNote(note) * 2);
     beep(duration_ms);
+}
+
+void Buzzer::beep(Note note)
+{
+    setFrequency(getFreqByNote(note.note) * 2);
+    beep(note.duration_ms);
 }
 
 int Buzzer::getFreqByNote(unsigned char note)
@@ -81,3 +97,21 @@ int Buzzer::getFreqByNote(unsigned char note)
     note -= octave1 * 12;
     return mNoteFreqs[note] >> (10 - octave1);
 }
+//---------------------------------------------------------------------------
+
+void Buzzer::play(Note *buffer, int count)
+{
+    mPlayBuf = buffer;
+    mPlaySize = count;
+    mPlayCnt = 0;
+    if (mPlaySize)
+        beep(mPlayBuf[mPlayCnt++]);
+}
+
+void Buzzer::stop()
+{
+    mPlayBuf = 0L;
+    mPlaySize = 0;
+    mPlayCnt = 0;
+}
+//---------------------------------------------------------------------------

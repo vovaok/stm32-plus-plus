@@ -33,7 +33,8 @@ protected:
     void init();
     void deInit();
     void dataIn();
-    void dataOut();
+    void dataOut(int size);
+    void sof();
     
     friend class UsbDevice;
     

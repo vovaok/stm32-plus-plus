@@ -148,6 +148,11 @@ void UsbDevice::setSerialNumber(const wstring &serial)
 {
     mStrings[3] = StringDescriptor(serial).toByteArray();
 }
+
+void UsbDevice::setUsbSpecification(unsigned short spec)
+{
+    mDeviceDescriptor->setUsbSpecification(spec);
+}
 //---------------------------------------------------------------------------
 
 void UsbDevice::setTestMode(USB_OTG_DCTL_TypeDef dctl)
@@ -165,6 +170,7 @@ void UsbDevice::setupStage()
     UsbSetupReq req = *reinterpret_cast<UsbSetupReq*>(&mDev.dev.setup_packet);
     mDev.dev.in_ep[0].ctl_data_len = req.wLength;
     mDev.dev.device_state = USB_OTG_EP0_SETUP;
+//    printf("req 0x%02X\n", req.bmRequest);
     switch (req.bmRequest & 0x1F)
     {
         case USB_REQ_RECIPIENT_DEVICE: handleStdReq(req); break;
@@ -203,12 +209,13 @@ void UsbDevice::dataOutStage(unsigned char epnum)
     }
     else if (mEndpoints.count(epnum) && (mDev.dev.device_status == UsbOtgConfigured))
     {
-        mEndpoints[epnum]->dataOut();
+        mEndpoints[epnum]->dataOut(mDev.dev.out_ep[epnum].xfer_count);
     }
 }
 
 void UsbDevice::dataInStage(unsigned char epnum)
 {
+//    printf("data IN stage EP=0x%02X\n", epnum);
     USB_OTG_EP *ep;  
     if (epnum == 0) 
     {
@@ -327,16 +334,31 @@ void UsbDevice::devDisconnected()
 
 void UsbDevice::handleStdReq(const UsbSetupReq &req)
 {
-    switch (req.bRequest)
+    switch (req.bmRequest & USB_REQ_TYPE_MASK)
     {
-        case USB_REQ_GET_DESCRIPTOR:    getDescriptor(req); break;
-        case USB_REQ_SET_ADDRESS:       setAddress(req);    break;
-        case USB_REQ_SET_CONFIGURATION: setConfig(req);     break;
-        case USB_REQ_GET_CONFIGURATION: getConfig(req);     break;
-        case USB_REQ_GET_STATUS:        getStatus(req);     break;
-        case USB_REQ_SET_FEATURE:       setFeature(req);    break;
-        case USB_REQ_CLEAR_FEATURE:     clearFeature(req);  break;
-        default: ctlError(req);
+      case USB_REQ_TYPE_STANDARD: 
+//        printf("std req: 0x%02X\n", req.bRequest);
+        switch (req.bRequest)
+        {
+            case USB_REQ_GET_DESCRIPTOR:    getDescriptor(req); break;
+            case USB_REQ_SET_ADDRESS:       setAddress(req);    break;
+            case USB_REQ_SET_CONFIGURATION: setConfig(req);     break;
+            case USB_REQ_GET_CONFIGURATION: getConfig(req);     break;
+            case USB_REQ_GET_STATUS:        getStatus(req);     break;
+            case USB_REQ_SET_FEATURE:       setFeature(req);    break;
+            case USB_REQ_CLEAR_FEATURE:     clearFeature(req);  break;
+            default: ctlError(req);
+        }
+        break;
+        
+      case USB_REQ_TYPE_CLASS:
+        classSetupRequest(req);
+        break;
+        
+      case USB_REQ_TYPE_VENDOR:
+//        printf("vendor req\n");
+        vendorSetupRequest(req);
+        break;
     }
 }
 
@@ -409,8 +431,8 @@ void UsbDevice::handleStdEpReq(const UsbSetupReq &req)
                 if ((ep_addr != 0x00) && (ep_addr != 0x80)) 
                 {        
                     mDrv->epClrStall(ep_addr);
-                    if (mCurrentConfig)
-                        mCurrentConfig->setup(req);
+//                    if (mCurrentConfig)
+//                        mCurrentConfig->setup(req);
                 }
                 mDrv->ctlSendStatus();
             }

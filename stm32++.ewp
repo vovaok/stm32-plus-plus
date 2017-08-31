@@ -646,7 +646,7 @@
       <name>ILINK</name>
       <archiveVersion>0</archiveVersion>
       <data>
-        <version>16</version>
+        <version>17</version>
         <wantNonLocal>1</wantNonLocal>
         <debug>1</debug>
         <option>
@@ -929,6 +929,10 @@
         <option>
           <name>IlinkThreadsSlave</name>
           <state>1</state>
+        </option>
+        <option>
+          <name>IlinkLogCallGraph</name>
+          <state>0</state>
         </option>
       </data>
     </settings>
@@ -1603,7 +1607,7 @@
       <name>ILINK</name>
       <archiveVersion>0</archiveVersion>
       <data>
-        <version>16</version>
+        <version>17</version>
         <wantNonLocal>1</wantNonLocal>
         <debug>1</debug>
         <option>
@@ -1886,6 +1890,10 @@
         <option>
           <name>IlinkThreadsSlave</name>
           <state>1</state>
+        </option>
+        <option>
+          <name>IlinkLogCallGraph</name>
+          <state>0</state>
         </option>
       </data>
     </settings>
@@ -2560,7 +2568,7 @@
       <name>ILINK</name>
       <archiveVersion>0</archiveVersion>
       <data>
-        <version>16</version>
+        <version>17</version>
         <wantNonLocal>1</wantNonLocal>
         <debug>1</debug>
         <option>
@@ -2577,7 +2585,7 @@
         </option>
         <option>
           <name>IlinkOutputFile</name>
-          <state>###Unitialized###</state>
+          <state>stm32++.out</state>
         </option>
         <option>
           <name>IlinkDebugInfoEnable</name>
@@ -2843,6 +2851,10 @@
         <option>
           <name>IlinkThreadsSlave</name>
           <state>1</state>
+        </option>
+        <option>
+          <name>IlinkLogCallGraph</name>
+          <state>0</state>
         </option>
       </data>
     </settings>
@@ -3517,7 +3529,7 @@
       <name>ILINK</name>
       <archiveVersion>0</archiveVersion>
       <data>
-        <version>16</version>
+        <version>17</version>
         <wantNonLocal>1</wantNonLocal>
         <debug>1</debug>
         <option>
@@ -3800,6 +3812,10 @@
         <option>
           <name>IlinkThreadsSlave</name>
           <state>1</state>
+        </option>
+        <option>
+          <name>IlinkLogCallGraph</name>
+          <state>0</state>
         </option>
       </data>
     </settings>
@@ -4474,7 +4490,7 @@
       <name>ILINK</name>
       <archiveVersion>0</archiveVersion>
       <data>
-        <version>16</version>
+        <version>17</version>
         <wantNonLocal>1</wantNonLocal>
         <debug>1</debug>
         <option>
@@ -4757,6 +4773,10 @@
         <option>
           <name>IlinkThreadsSlave</name>
           <state>1</state>
+        </option>
+        <option>
+          <name>IlinkLogCallGraph</name>
+          <state>0</state>
         </option>
       </data>
     </settings>
@@ -5431,7 +5451,7 @@
       <name>ILINK</name>
       <archiveVersion>0</archiveVersion>
       <data>
-        <version>16</version>
+        <version>17</version>
         <wantNonLocal>1</wantNonLocal>
         <debug>1</debug>
         <option>
@@ -5714,6 +5734,10 @@
         <option>
           <name>IlinkThreadsSlave</name>
           <state>1</state>
+        </option>
+        <option>
+          <name>IlinkLogCallGraph</name>
+          <state>0</state>
         </option>
       </data>
     </settings>
@@ -6390,7 +6414,7 @@
       <name>ILINK</name>
       <archiveVersion>0</archiveVersion>
       <data>
-        <version>16</version>
+        <version>17</version>
         <wantNonLocal>1</wantNonLocal>
         <debug>1</debug>
         <option>
@@ -6674,6 +6698,10 @@
           <name>IlinkThreadsSlave</name>
           <state>1</state>
         </option>
+        <option>
+          <name>IlinkLogCallGraph</name>
+          <state>0</state>
+        </option>
       </data>
     </settings>
     <settings>
@@ -6868,7 +6896,22 @@
       <name>$PROJ_DIR$\src\serial\esp8266.h</name>
     </file>
     <file>
+      <name>$PROJ_DIR$\src\serial\serialframe.cpp</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\src\serial\serialframe.h</name>
+    </file>
+    <file>
       <name>$PROJ_DIR$\src\serial\serialinterface.h</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\src\serial\seriallink.cpp</name>
+      <excluded>
+        <configuration>stm32f407vg</configuration>
+      </excluded>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\src\serial\seriallink.h</name>
     </file>
   </group>
   <group>
@@ -6909,6 +6952,15 @@
       </file>
       <file>
         <name>$PROJ_DIR$\src\usb\usbAudio\usbaudiodesc.h</name>
+      </file>
+    </group>
+    <group>
+      <name>usbCdc</name>
+      <file>
+        <name>$PROJ_DIR$\src\usb\usbCdc\usbcdc.cpp</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\src\usb\usbCdc\usbcdc.h</name>
       </file>
     </group>
     <group>

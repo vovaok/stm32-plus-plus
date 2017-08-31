@@ -4,6 +4,7 @@ using namespace Usb;
 
 UsbInterface::UsbInterface(unsigned char classCode, unsigned char subclassCode, unsigned char protocolCode, string name) :
     UsbNode(UsbNode::NodeTypeInterface),
+    mCsInterface(0),
     mAltSetting(0)
 {
     mInterfaceName = name;

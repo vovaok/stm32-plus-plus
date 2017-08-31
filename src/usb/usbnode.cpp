@@ -28,8 +28,16 @@ void UsbNode::attachNode(UsbNode *node)
 {   
     node->mParent = this;
     node->mDevice = mDevice;
+    for (int i=0; i<node->mChildren.size(); i++)
+        node->mChildren[i]->mDevice = mDevice;
+//    if (node->mBaseDescriptor)
+//        node->updateDescriptorLength(node->mBaseDescriptor->length());
     if (node->mBaseDescriptor)
-        node->updateDescriptorLength(node->mBaseDescriptor->length());
+    {
+        ByteArray dummyBa;
+        node->readDescriptor(dummyBa, true);
+        node->updateDescriptorLength(dummyBa.size());
+    }
     addChild(node);
     mChildren.push_back(node);
     node->nodeAttached();

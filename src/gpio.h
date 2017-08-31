@@ -538,6 +538,9 @@ public:
     
     /*! что за нога? */
     PinName pin() const {return static_cast<Gpio::PinName>(mConfig.pin);}
+    
+    /*! Возвращает false, если при конфигурации нога задана как Gpio::noPin */
+    bool isValid() const {return mPin;}
 };
 
 #endif

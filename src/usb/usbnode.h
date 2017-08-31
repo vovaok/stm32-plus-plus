@@ -23,7 +23,8 @@ protected:
         NodeTypeInterface,
         NodeTypeAltSetting,
         NodeTypeCsInterface,
-        NodeTypeEndpoint
+        NodeTypeEndpoint,
+        NodeTypeFunc, // X3 est li takoe vawe
     } NodeType;
   
 private:

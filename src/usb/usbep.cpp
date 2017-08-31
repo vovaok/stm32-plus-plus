@@ -41,16 +41,20 @@ void UsbEndpoint::deInit()
     UsbNode::deInit();
 }
 
-void UsbEndpoint::dataOut()
+void UsbEndpoint::dataOut(int size)
 {
     if (mDataOutEvent)
-        mDataOutEvent(mRxBuffer);
+    {
+        ByteArray ba(mRxBuffer.data(), size);
+        mDataOutEvent(ba);
+    }
     if (device() && mRxBuffer.size())
         device()->driver()->epPrepareRx(mDescriptor->endpointAddress(), mRxBuffer.data(), mRxBuffer.size());
 }
 
 void UsbEndpoint::dataIn()
 {
+//    printf("dataIn\n");
     if ((mDescriptor->attributes() & 0x3) == TransferInterrupt)
     {
         /* Ensure that the FIFO is empty before a new transfer, this condition could 
@@ -64,12 +68,30 @@ void UsbEndpoint::dataIn()
 //    data = mRxBuffer;
 //}
 
+void UsbEndpoint::sof()
+{
+    if (mTxBuffer.size())
+    {
+        if (isIn() && (device()->deviceStatus() == UsbOtgConfigured))
+        {
+//            printf("perform TX, count=%d\n", mTxBuffer.size());
+            device()->driver()->epTx(mDescriptor->endpointAddress(), mTxBuffer.data(), mTxBuffer.size());
+            mTxBuffer.resize(0);
+        }
+    }
+}
+
 void UsbEndpoint::sendData(const ByteArray &data)
 {
-    mTxBuffer = data;
-    if (isIn() && (device()->deviceStatus() == UsbOtgConfigured))
-    {
-        device()->driver()->epTx(mDescriptor->endpointAddress(), mTxBuffer.data(), mTxBuffer.size());
-    }
+    mTxBuffer.append(data);
+//    printf("data buffered\n");
+  
+//    mTxBuffer = data;
+//    printf("sendData\n");
+//    if (isIn() && (device()->deviceStatus() == UsbOtgConfigured))
+//    {
+//        device()->driver()->epTx(mDescriptor->endpointAddress(), mTxBuffer.data(), mTxBuffer.size());
+//        mTxBuffer.clear();
+//    }
 }
 //---------------------------------------------------------------------------

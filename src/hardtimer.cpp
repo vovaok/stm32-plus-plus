@@ -114,8 +114,23 @@ HardwareTimer::HardwareTimer(TimerNumber timerNumber, unsigned int frequency_Hz)
     
     // deinit на всякий
     TIM_DeInit(mTim);
+    
     // инициализация тут:
-    setFrequency(frequency_Hz);
+    TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure;
+    unsigned int period = 0;  
+    unsigned int psc = 0;
+    if (frequency_Hz)
+    {
+        period = mInputClk / frequency_Hz;  
+        psc = period >> 16;
+    }
+    TIM_TimeBaseStructInit(&TIM_TimeBaseStructure);
+    TIM_TimeBaseStructure.TIM_Period = (period / (psc + 1)) - 1;
+    TIM_TimeBaseStructure.TIM_Prescaler = psc;
+    TIM_TimeBaseStructure.TIM_ClockDivision = 0;
+    TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
+    TIM_TimeBaseInit(mTim, &TIM_TimeBaseStructure);
+    
 }
 //---------------------------------------------------------------------------
 
@@ -218,7 +233,6 @@ void HardwareTimer::selectOutputTrigger(TrgSource source)
 
 void HardwareTimer::setFrequency(int frequency_Hz)
 {
-    TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure;
     unsigned int period = 0;  
     unsigned int psc = 0;
     if (frequency_Hz)
@@ -226,12 +240,8 @@ void HardwareTimer::setFrequency(int frequency_Hz)
         period = mInputClk / frequency_Hz;  
         psc = period >> 16;
     }
-    TIM_TimeBaseStructInit(&TIM_TimeBaseStructure);
-    TIM_TimeBaseStructure.TIM_Period = (period / (psc + 1)) - 1;
-    TIM_TimeBaseStructure.TIM_Prescaler = psc;
-    TIM_TimeBaseStructure.TIM_ClockDivision = 0;
-    TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
-    TIM_TimeBaseInit(mTim, &TIM_TimeBaseStructure);
+    mTim->ARR = (period / (psc + 1)) - 1;
+    mTim->PSC = psc;
 }
 //---------------------------------------------------------------------------
 
