@@ -83,8 +83,11 @@ void UsbEndpoint::sof()
 
 void UsbEndpoint::sendData(const ByteArray &data)
 {
-    mTxBuffer.append(data);
-//    printf("data buffered\n");
+    if (isIn() && (device()->deviceStatus() == UsbOtgConfigured))
+    {
+        mTxBuffer.append(data);
+//       printf("data buffered\n");
+    }
   
 //    mTxBuffer = data;
 //    printf("sendData\n");
