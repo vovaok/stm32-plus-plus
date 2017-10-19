@@ -28,6 +28,7 @@ typedef enum
     cidGeneric          = 0x00000000,
     cidExoskeleton      = 0x00001300,
     cidWheelchair       = 0x00001400,
+    cidHandExo          = 0x00001500,
     cidLED              = 0x00002300,
     cidMice             = 0x00006600,
     // Sensor group:
@@ -49,7 +50,8 @@ typedef enum
     cidWheelchairController = cidController | cidMechanical | cidWheelchair,
     cidExoskeletonSensor = cidSensor | cidController | cidEncoder | cidIMU,
     cidLedController = cidController | cidOptical | cidLED,
-    cidRotarod = cidController | cidMechanical | cidOptical | cidMice
+    cidRotarod = cidController | cidMechanical | cidOptical | cidMice,
+    cidHandExoController = cidController | cidMechanical | cidHandExo
 } ClassId;
 
 }
