@@ -7172,6 +7172,12 @@
     <name>$PROJ_DIR$\src\led7.h</name>
   </file>
   <file>
+    <name>$PROJ_DIR$\src\motorDC.cpp</name>
+  </file>
+  <file>
+    <name>$PROJ_DIR$\src\motorDC.h</name>
+  </file>
+  <file>
     <name>$PROJ_DIR$\src\powermanager.cpp</name>
   </file>
   <file>

@@ -99,6 +99,17 @@ unsigned short Spi::transferWord(unsigned short word)
     return mDev->DR;
 }
 
+void Spi::transfer(unsigned char* data,unsigned char size)
+{
+  for(int i =0; i<size; i++)
+  {
+    mDev->DR = data[i];
+    while (!(mDev->SR & 0x0001)); // wait for RX Not Empty
+    data[i] =  mDev->DR;
+  }
+
+}
+
 void Spi::transferWordAsync(unsigned short word)
 {
     mDev->DR = word;
