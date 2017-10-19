@@ -3,8 +3,8 @@
 
 
 MotorDC::MotorDC(PwmOutput *pwmIn) : slopePwm(0),mEnable(false),kpPos(0), kiPos(0), sSCur(0), kpCur(0),kiCur(0),
- mCurrent(0),mPosition(0),mSpeed(0),currentSlope(0.05),slopeValuePwm(1000),mPwm(0),sSPos(0),mEnableCurrentLoop(false),
- mCurrentLimit(12),mPwmCurrent(0),mEnableLoops(0),mEnablePositionLoop(0),inControlValue(0),
+ mCurrent(0),mPosition(0),mSpeed(0),currentSlope(0.05),slopeValuePwm(10000),mPwm(0),sSPos(0),mEnableCurrentLoop(false),
+ mCurrentLimit(12),mPwmCurrent(0),mEnableLoops(0),mEnablePositionLoop(0),inControlValue(0),mPwmLimit(65535),
  mEnableLimitsPosition(false),isLimitF(false),isLimitB(false)
   
  
@@ -32,12 +32,12 @@ MotorDC::MotorDC(PwmOutput *pwmIn) : slopePwm(0),mEnable(false),kpPos(0), kiPos(
     {
       if(value>maxPos)
         isLimitF = true;
-      else if(value<(maxPos-40))
+      else if(value<(maxPos-2))
         isLimitF = false;
       
       if(value<minPos)
         isLimitB = true;
-      else if(value>minPos+40)
+      else if(value>minPos+2)
         isLimitB = false;
     }
     else
@@ -140,9 +140,9 @@ void MotorDC::setEnable(bool enable)
 void MotorDC::setSpeed(int speed)
 {
 
-  if(abs(speed)>65000)
+  if(abs(speed)>mPwmLimit)
     erriCur=0;
-  speed = sat(speed,65000);
+  speed = sat(speed,mPwmLimit);
   //разгон торможение*******************
  
   

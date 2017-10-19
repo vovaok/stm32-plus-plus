@@ -24,6 +24,7 @@ private:
     float mCurrentLimit;
     float mPwmCurrent;
     float minPos,maxPos;
+    int mPwmLimit;
     bool mEnableLimitsPosition;
     
     bool isLimitF, isLimitB;
@@ -49,6 +50,7 @@ public:
     void setSlopePwmValue (int value) {slopeValuePwm = value;}
     void setCurrentLimitValue(float value) {mCurrentLimit = value;}
     void setControlValue(float value) {inControlValue = value;}
+    void setPwmLimit(int value) {mPwmLimit = value;}
     
     void setPositionLimits(float min,float max);
     void setPositionMinLimit(float min) {minPos = min;}
