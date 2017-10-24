@@ -73,6 +73,7 @@ public:
     void transferWordAsync(unsigned short word=0xFFFF);
 
     void setTransferCompleteEvent(SpiDataEvent e); 
+    void transfer(unsigned char*,unsigned char);
 };
 
 #endif
