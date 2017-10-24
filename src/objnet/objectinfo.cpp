@@ -186,6 +186,33 @@ ByteArray ObjectInfo::invoke(const ByteArray &ba)
 }
 //---------------------------------------------------------
 
+int ObjectInfo::sizeofType(ObjectInfo::Type type) const
+{
+    switch (type)
+    {
+        case Void:      return 0;
+        case Bool:      return 1;
+        case Int:       return 4;
+        case UInt:      return 4;
+        case LongLong:  return 8;
+        case ULongLong: return 8;
+        case Double:    return 8;
+        case Long:      return 4;
+        case Short:     return 2;
+        case Char:      return 1;
+        case ULong:     return 4;
+        case UShort:    return 2;
+        case UChar:     return 1;
+        case Float:     return 4;
+        case SChar:     return 1;
+
+        default:        return 0;
+//        String : return 0,  // QString B Qt, string B APMe
+//        Common : return 0, // Common - this is (Q)ByteArray
+    }
+}
+//---------------------------------------------------------
+
 #ifdef QT_CORE_LIB
 QVariant ObjectInfo::toVariant()
 {
@@ -196,6 +223,20 @@ QVariant ObjectInfo::toVariant()
 //    if (mDesc.type == String)
 //        return *reinterpret_cast<_String*>(mWritePtr);
 
+
+    if (mDesc.flags & Array)
+    {
+        int sz = sizeofType((Type)mDesc.wType);
+        if (sz)
+        {
+            int N = mDesc.writeSize / sz;
+            QList<QVariant> vec;
+            for (int i=0; i<N; i++)
+                vec << QVariant(mDesc.wType, reinterpret_cast<const char*>(mWritePtr) + sz*i);
+            return vec;
+        }
+        return QVariant();
+    }
     return QVariant(mDesc.wType, mWritePtr);
 }
 
