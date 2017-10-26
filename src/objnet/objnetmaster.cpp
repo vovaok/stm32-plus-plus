@@ -507,6 +507,18 @@ unsigned char ObjnetMaster::createNetAddress(unsigned char mac)
 }
 //---------------------------------------------------------------------------
 
+ObjnetDevice *ObjnetMaster::deviceBySerial(unsigned long serial)
+{
+    for (DeviceIterator it=mDevices.begin(); it!=mDevices.end(); it++)
+    {
+        ObjnetDevice *dev = it->second;
+        if (dev->serial() == serial)
+            return dev;
+    }
+    return 0L;
+}
+//---------------------------------------------------------------------------
+
 void ObjnetMaster::addDevice(unsigned char mac, ObjnetDevice *dev)
 {
     dev->mNetAddress = createNetAddress(mac);   // создаём объект с новым адресом

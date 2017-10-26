@@ -32,6 +32,7 @@ public:
         Hidden  = 0x10,
         Dual    = 0x20, // read from one location, write to another
         Function= 0x40, // function call
+        Array   = 0x80, // object is array
         
         Constant    = Read,
         ReadOnly    = Read,
@@ -136,6 +137,8 @@ private:
     friend class ObjnetDevice;
     friend class ObjnetStorage;
 
+    int sizeofType(Type type) const;
+
 public:
     ObjectInfo();
     
@@ -146,6 +149,10 @@ public:
     ObjectInfo(string name, const T &var, Flags flags=ReadOnly);
     template<typename Tr, typename Tw>
     ObjectInfo(string name, const Tr &varRead, Tw &varWrite, Flags flags=ReadWrite);
+    
+    // array binding:
+    template<typename T, int N>
+    ObjectInfo(string name, T (&var)[N], Flags flags=ReadWrite);
 
     // methods binding:
     template<class R>
@@ -171,6 +178,10 @@ public:
     inline bool isHidden() const {return mDesc.flags & Hidden;}
     inline bool isDual() const {return mDesc.flags & Dual;}
     inline bool isInvokable() const {return mDesc.flags & Function;}
+    inline bool isArray() const {return mDesc.flags & Array;}
+
+    inline int wCount() const {int sz = sizeofType((Type)mDesc.wType); return (isArray() && sz)? mDesc.writeSize / sz: 1;}
+    inline int rCount() const {int sz = sizeofType((Type)mDesc.rType); return (isArray() && sz)? mDesc.readSize / sz: 1;}
 
     #ifdef QT_CORE_LIB
     QVariant toVariant();
@@ -263,6 +274,31 @@ ObjectInfo::ObjectInfo(string name, const Tr &varRead, Tw &varWrite, Flags flags
         mDesc.wType = typeOfVar(varWrite);
     }
     mDesc.flags = flags | Dual;
+    mDesc.name = name;
+    mDesc.id = mAssignId++;
+}
+
+template<typename T, int N>
+ObjectInfo::ObjectInfo(string name, T (&var)[N], Flags flags) :
+    mReadPtr(0), mWritePtr(0),
+    mAutoPeriod(0), mAutoTime(0), mAutoReceiverAddr(0),
+    mIsDevice(false)
+{
+    size_t sz = sizeof(T) * N;
+    Type t = typeOfVar(var[0]);
+    if (flags & Read)
+    {
+        mReadPtr = &var;
+        mDesc.readSize = sz;
+        mDesc.rType = t;
+    }
+    if (flags & Write)
+    {
+        mWritePtr = &var;
+        mDesc.writeSize = sz;
+        mDesc.wType = t;
+    }
+    mDesc.flags = flags | Array;
     mDesc.name = name;
     mDesc.id = mAssignId++;
 }
