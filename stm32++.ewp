@@ -2988,7 +2988,7 @@
         </option>
         <option>
           <name>GenStdoutInterface</name>
-          <state>0</state>
+          <state>1</state>
         </option>
         <option>
           <name>GeneralMisraRules98</name>
@@ -3546,7 +3546,7 @@
         </option>
         <option>
           <name>IlinkOutputFile</name>
-          <state>###Unitialized###</state>
+          <state>stm32++.out</state>
         </option>
         <option>
           <name>IlinkDebugInfoEnable</name>
@@ -5843,7 +5843,7 @@
         </option>
         <option>
           <name>OGLastSavedByProductVersion</name>
-          <state>7.40.7.9864</state>
+          <state>7.50.3.10745</state>
         </option>
         <option>
           <name>GeneralEnableMisra</name>
@@ -6908,6 +6908,8 @@
       <name>$PROJ_DIR$\src\serial\seriallink.cpp</name>
       <excluded>
         <configuration>stm32f407vg</configuration>
+        <configuration>stm32f405rg</configuration>
+        <configuration>stm32f405rg_no-exceptions_no-rtti</configuration>
       </excluded>
     </file>
     <file>

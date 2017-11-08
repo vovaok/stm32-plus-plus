@@ -136,6 +136,8 @@ public:
     /*! Возвращает общее число не посланных из-за ошибки пакетов. */
     unsigned long packetsSendFailed() const {return mPacketsSendFailed;}
     
+    void setRxInterruptEnabled(bool enabled);
+    
     /*! Доступ к экземпляру класса по номеру периферии.
         \param [in] canNumber Номер периферии CAN, допустимые значения: 1 или 2.
         \return Указатель на экземпляр класса, если он создан. В противном случае возвращает 0.

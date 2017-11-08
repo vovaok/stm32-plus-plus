@@ -135,7 +135,7 @@ void ObjnetMaster::acceptServiceMessage(unsigned char sender, SvcOID oid, ByteAr
 //            {
                 ByteArray ba;
                 ba.append(supernetaddr);
-                mAdjacentNode->sendServiceMessage(sender, svcConnected, ba);
+                mAdjacentNode->sendServiceMessageSheduled(sender, svcConnected, ba);
 //            }
         }
         break;
@@ -370,7 +370,8 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
       case svcClass:
         if (dev)
             mDevices[netaddr]->setClassId(*reinterpret_cast<const unsigned long*>(msg.data().data()));
-
+        break;
+        
       case svcName:
         if (dev)
             mDevices[netaddr]->setName(string(msg.data().data(), msg.data().size()));

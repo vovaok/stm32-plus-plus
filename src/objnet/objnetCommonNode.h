@@ -43,6 +43,8 @@ private:
     ObjnetMessageEvent mMessageEvent;
 #endif
 
+    CommonMessage mSheduledMsg; // to be sent later
+    
     // fragmented receive buffers
     std::map<unsigned long, CommonMessageBuffer> mFragmentBuffer;
     unsigned char mFragmentSequenceNumber;
@@ -65,6 +67,7 @@ protected:
     virtual void parseMessage(CommonMessage &msg) = 0;
 
     bool sendServiceMessage(unsigned char receiver, SvcOID oid, const ByteArray &ba = ByteArray());
+    void sendServiceMessageSheduled(unsigned char receiver, SvcOID oid, const ByteArray &ba = ByteArray());
     bool sendServiceMessage(SvcOID oid, const ByteArray &ba = ByteArray());
     bool sendGlobalServiceMessage(StdAID aid);
     bool sendGlobalServiceDataMessage(unsigned char aid, const ByteArray &ba);

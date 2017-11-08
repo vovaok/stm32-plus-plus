@@ -9,6 +9,7 @@ ESP8266::ESP8266(Usart *usart, Gpio::PinName resetPin) :
     mReceiveSize(0), mTransmitSize(0),
     mServerActive(false),
     mWirelessMode(wmUnknown),
+    mBaudrate(460800),
     mState(ResetState),
     mLastCmd(cmdNone),
     mTimeout(0),
@@ -135,7 +136,7 @@ void ESP8266::parseLine(ByteArray &line)
     }
     else if (line == "ready")
     {
-        setBaudrate(460800);
+        setBaudrate(mBaudrate);
         mState = ReadyState;
         mLastCmd = cmdNone;
         if (onReady)
@@ -151,7 +152,8 @@ void ESP8266::parseLine(ByteArray &line)
             break;
                 
           case cmdUart:
-            mUsart->setBaudrate(mLastData);
+            mBaudrate = mLastData;
+            mUsart->setBaudrate(mBaudrate);
             mLastCmd = cmdNone;
             setEchoEnabled(false);
             break;
@@ -296,7 +298,7 @@ void ESP8266::parseLine(ByteArray &line)
     else if (mUsart->baudrate() == 78400 && line.size() >= 4)
     {
         if (line[0]=='j' && line[1]=='u' && line[2]=='m' && line[3]=='p')
-            mUsart->setBaudrate(460800);
+            mUsart->setBaudrate(mBaudrate);
     }
     else if (mState == WaitForConnect && line.size() > 7)
     {

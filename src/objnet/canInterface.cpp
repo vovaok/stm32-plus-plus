@@ -14,21 +14,28 @@ CanInterface::CanInterface(Can *can) :
 
 bool CanInterface::readRx(CanRxMsg &msg)
 {
+    bool result = false;
+    
+    mCan->setRxInterruptEnabled(false);
+    
     if (!mRxQueue.empty())
     {
         msg = mRxQueue.front();
         mRxQueue.pop();
-        return true;
+        result = true;
     }
     else if (mCan->receive(0, msg))
     {
-        return true;
+        result = true;
     }
     else if (mCan->receive(1, msg))
     {
-        return true; 
+        result = true; 
     }
-    return false;
+    
+    mCan->setRxInterruptEnabled(true);   
+    
+    return result;
 }
 
 bool CanInterface::writeRx(CanRxMsg &msg)

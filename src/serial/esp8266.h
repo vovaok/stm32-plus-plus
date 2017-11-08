@@ -62,6 +62,7 @@ private:
     int mTransmitSize;
     bool mServerActive;
     WirelessMode mWirelessMode;
+    int mBaudrate;
     State mState;
     Command mLastCmd;
     int mLastData;
@@ -102,6 +103,7 @@ public:
     void interruptTransparentMode();
     void reset();
     void setBaudrate(int baudrate);
+    void setDefaultBaudrate(int baudrate) {mBaudrate = baudrate;}
     void setEchoEnabled(bool enabled);
     void setAPMode(string ssid, string pass="");
     void saveTransLink(string translink_string);

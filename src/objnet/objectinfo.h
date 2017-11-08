@@ -95,7 +95,7 @@ public:
         unsigned char writeSize;
         string name;
 
-        void read(ByteArray &ba)
+        void read(ByteArray &ba) const
         {
             ba.append(id);
             ba.append(flags);
@@ -182,6 +182,8 @@ public:
 
     inline int wCount() const {int sz = sizeofType((Type)mDesc.wType); return (isArray() && sz)? mDesc.writeSize / sz: 1;}
     inline int rCount() const {int sz = sizeofType((Type)mDesc.rType); return (isArray() && sz)? mDesc.readSize / sz: 1;}
+
+    inline const Description &description() {return mDesc;}
 
     #ifdef QT_CORE_LIB
     QVariant toVariant();
