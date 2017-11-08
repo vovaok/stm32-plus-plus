@@ -35,6 +35,12 @@ void ObjnetCommonNode::task()
     // не выполняем задачу, пока физический адрес неправильный
     if (mBusAddress == 0xFF)
         return;
+    
+    if (mSheduledMsg.rawId())
+    {
+        if (sendCommonMessage(mSheduledMsg))
+            mSheduledMsg.setId(0);
+    }
 
     CommonMessage inMsg;
     while (mInterface->read(inMsg))
@@ -218,7 +224,7 @@ void ObjnetCommonNode::setBusAddress(unsigned char startAddress, Gpio::PinName a
 //---------------------------------------------------------------------------
 
 bool ObjnetCommonNode::sendCommonMessage(CommonMessage &msg)
-{
+{  
     int maxsize = mInterface->maxFrameSize();
     if (msg.data().size() <= maxsize)
     {
@@ -294,6 +300,23 @@ bool ObjnetCommonNode::sendServiceMessage(unsigned char receiver, SvcOID oid, co
     msg.setLocalId(id);
     msg.setData(ba);
     return sendCommonMessage(msg);
+}
+
+void ObjnetCommonNode::sendServiceMessageSheduled(unsigned char receiver, SvcOID oid, const ByteArray &ba)
+{
+    CommonMessage msg;
+    LocalMsgId id;
+    id.mac = route(receiver);
+    id.addr = receiver;
+    id.svc = 1;
+    id.sender = mNetAddress;
+    id.oid = oid;
+    msg.setLocalId(id);
+    msg.setData(ba);
+    
+    bool result = sendCommonMessage(msg);
+    if (!result)
+        mSheduledMsg = msg;
 }
 
 bool ObjnetCommonNode::sendServiceMessage(SvcOID oid, const ByteArray &ba)

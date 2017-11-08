@@ -55,7 +55,7 @@ Can::Can(int canNumber, int baudrate, Gpio::Config pinRx, Gpio::Config pinTx) :
     CAN_InitStructure.CAN_AWUM = DISABLE;
     CAN_InitStructure.CAN_NART = DISABLE;
     CAN_InitStructure.CAN_RFLM = DISABLE;
-    CAN_InitStructure.CAN_TXFP = DISABLE;
+    CAN_InitStructure.CAN_TXFP = ENABLE; //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! TX priority by transmit request order. This mode is very useful for segmented transmission.
     CAN_InitStructure.CAN_Mode = CAN_Mode_Normal;
     
     int APB1freq = Rcc::pClk1();
@@ -127,6 +127,8 @@ void Can::removeFilter(int number)
 }
 //---------------------------------------------------------------------------
 
+//static char canbuf[256][48];
+
 bool Can::send(CanTxMsg &msg)
 {
     msg.RTR = CAN_RTR_DATA;
@@ -136,6 +138,15 @@ bool Can::send(CanTxMsg &msg)
         mPacketsSendFailed++;
         return false;
     }
+          
+//    static unsigned char canbufcnt = 0;
+//        sprintf(canbuf[canbufcnt], "%08X: ", msg.ExtId);
+//        for (int i=0; i<msg.DLC; i++)
+//        {
+//            sprintf(canbuf[canbufcnt]+10+i*3, "%02X ", msg.Data[i]);
+//        }
+//        canbufcnt++;
+    
     mPacketsSent++;
     return true;
 }
@@ -147,7 +158,7 @@ bool Can::receive(unsigned char fifoNumber, CanRxMsg &msg)
     if ((CAN_MessagePending(mCan, fifoNumber)) > 0)
     {
         CAN_Receive(mCan, fifoNumber, &msg);
-        mPacketsReceived++;
+        mPacketsReceived++;        
         return true;
     }
     return false;
@@ -182,6 +193,11 @@ void Can::setReceiveEvent(CanReceiveEvent event)
     
     nvic.NVIC_IRQChannel = (mCan==CAN1)? CAN1_RX1_IRQn: (mCan==CAN2)? CAN2_RX1_IRQn: 0;
     NVIC_Init(&nvic);
+}
+
+void Can::setRxInterruptEnabled(bool enabled)
+{
+    CAN_ITConfig(mCan, CAN_IT_FF0 | CAN_IT_FF1, enabled? ENABLE: DISABLE);
 }
 
 void Can::setTransmitReadyEvent(NotifyEvent event)
