@@ -139,6 +139,7 @@ signals:
     void serviceRequest(unsigned char netAddress, SvcOID oid, const QByteArray &ba);
 
     void objectReceived(QString name, QVariant value);
+    void autoRequestAccepted(QString name, int periodMs);
 
     void ready();
 
