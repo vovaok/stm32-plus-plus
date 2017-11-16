@@ -437,6 +437,19 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
         }
         break;
 
+      case svcAutoRequest:
+        if (dev)
+        {
+            int period = *reinterpret_cast<int*>(msg.data().data());
+            unsigned char oid = msg.data()[4];
+            if (oid < dev->mObjects.size())
+            {
+                #ifdef QT_CORE_LIB
+                emit dev->autoRequestAccepted(dev->mObjects[oid]->name(), period);
+                #endif
+            }
+        }
+
       default:; // warning elimination
     }
 

@@ -41,6 +41,9 @@ private:
     _String mBuildDate;
     _String mCpuInfo;
     unsigned long mBurnCount;
+    
+    // количество экземпляров узлов (логических узлов) в одном физическом
+    static unsigned char mNodesCount;
 
     // словарь сервисных объектов:
     std::vector<ObjectInfo> mSvcObjects;

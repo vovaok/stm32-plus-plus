@@ -2,6 +2,8 @@
 
 using namespace Objnet;
 
+unsigned char ObjnetNode::mNodesCount = 0;
+
 ObjnetNode::ObjnetNode(ObjnetInterface *iface) :
     ObjnetCommonNode(iface),
     mNetState(netnStart),
@@ -32,6 +34,9 @@ ObjnetNode::ObjnetNode(ObjnetInterface *iface) :
     mCpuInfo = stmApp()->cpuInfo();
     mBurnCount = stmApp()->burnCount();
     #endif
+    
+    if (mNodesCount)
+        mSerial ^= rand();
 
     registerSvcObject(ObjectInfo("class", mClass, ObjectInfo::ReadOnly));
     registerSvcObject(ObjectInfo("name", mName));
@@ -42,6 +47,8 @@ ObjnetNode::ObjnetNode(ObjnetInterface *iface) :
     registerSvcObject(ObjectInfo("cpuInfo", mCpuInfo, ObjectInfo::ReadOnly));
     registerSvcObject(ObjectInfo("burnCount", mBurnCount));
     registerSvcObject(ObjectInfo("objCount", EVENT(&ObjnetNode::objectCount), ObjectInfo::ReadOnly));
+    
+    mNodesCount++;
 }
 //---------------------------------------------------------------------------
 
@@ -255,12 +262,23 @@ void ObjnetNode::parseServiceMessage(CommonMessage &msg)
       case svcAutoRequest:
         if (isConnected())
         {
-            int period = *reinterpret_cast<int*>(msg.data().data());
-            unsigned char oid = msg.data()[4];
-            if (oid < mObjects.size())
+            if (msg.data().size())
             {
-                mObjects[oid].mAutoPeriod = period;
-                mObjects[oid].mAutoReceiverAddr = remoteAddr;
+                unsigned char oid = msg.data()[4];
+                if (oid < mObjects.size())
+                {
+                    int period = *reinterpret_cast<int*>(msg.data().data());
+                    if (period >= 0)
+                    {
+                        mObjects[oid].mAutoPeriod = period;
+                        mObjects[oid].mAutoReceiverAddr = remoteAddr;
+                    }
+                    else
+                    {
+                        *reinterpret_cast<int*>(msg.data().data()) = mObjects[oid].mAutoPeriod;
+                        sendServiceMessage(remoteAddr, svcAutoRequest, msg.data());
+                    }
+                }
             }
         }
         break;

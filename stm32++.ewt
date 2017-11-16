@@ -7468,6 +7468,12 @@
       <name>$PROJ_DIR$\src\objnet\objnetstorage.h</name>
     </file>
     <file>
+      <name>$PROJ_DIR$\src\objnet\onbvirtualinterface.cpp</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\src\objnet\onbvirtualinterface.h</name>
+    </file>
+    <file>
       <name>$PROJ_DIR$\src\objnet\uartonbinterface.cpp</name>
     </file>
     <file>
