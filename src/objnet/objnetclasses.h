@@ -10,6 +10,7 @@ typedef enum
     cidController       = 0x01000000,
     cidSensor           = 0x02000000,
     cidActuator         = 0x04000000,
+    cidPult             = 0x08000000,
     
     // device types:      0x00XX0000
     // Controller group:
@@ -22,6 +23,9 @@ typedef enum
     cidBrushedMotor     = 0x00010000,
     cidBrushlessMotor   = 0x00020000,
     cidSteppingMotor    = 0x00030000,
+    // Pult group
+    cidRadio            = 0x00010000,
+    cidInfrared         = 0x00020000,
     
     // device subtypes:   0x0000XX00
     // Controller group:
@@ -41,6 +45,10 @@ typedef enum
     cidCurrent          = 0x00000800,
     cidTemperature      = 0x00001000,
     cidVoltage          = 0x00002000,
+    // pult:
+    cidButtons          = 0x00001000,
+    cidLeds             = 0x00002000,
+    cidAnalog           = 0x00004000,
     
     // implementations:   0x000000XX    
     
@@ -51,7 +59,8 @@ typedef enum
     cidExoskeletonSensor = cidSensor | cidController | cidEncoder | cidIMU,
     cidLedController = cidController | cidOptical | cidLED,
     cidRotarod = cidController | cidMechanical | cidOptical | cidMice,
-    cidHandExoController = cidController | cidMechanical | cidHandExo
+    cidHandExoController = cidController | cidMechanical | cidHandExo,
+    cidExoPult = cidPult | cidRadio | cidButtons | cidLeds
 } ClassId;
 
 }
