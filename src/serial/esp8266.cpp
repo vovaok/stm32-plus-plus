@@ -136,7 +136,7 @@ void ESP8266::parseLine(ByteArray &line)
     }
     else if (line == "ready")
     {
-        setBaudrate(mBaudrate);
+        //setBaudrate(mBaudrate);
         mState = ReadyState;
         mLastCmd = cmdNone;
         if (onReady)

@@ -19,6 +19,7 @@ typedef enum
     // Sensor group:
     cidEncoder          = 0x00010000,
     cidIMU              = 0x00020000,
+    cidBio              = 0x00030000,
     // Actuator group:
     cidBrushedMotor     = 0x00010000,
     cidBrushlessMotor   = 0x00020000,
@@ -38,6 +39,7 @@ typedef enum
     // Sensor group:
     cidMagnetic         = 0x00000100,
     cidMEMS             = 0x00000200,
+    cidEMG              = 0x00000300,
     // Actuator:
     cidPosition         = 0x00000100,
     cidSpeed            = 0x00000200,
@@ -60,7 +62,8 @@ typedef enum
     cidLedController = cidController | cidOptical | cidLED,
     cidRotarod = cidController | cidMechanical | cidOptical | cidMice,
     cidHandExoController = cidController | cidMechanical | cidHandExo,
-    cidExoPult = cidPult | cidRadio | cidButtons | cidLeds
+    cidExoPult = cidPult | cidRadio | cidButtons | cidLeds,
+    cidEmgSensor = cidSensor | cidBio | cidEMG,
 } ClassId;
 
 }

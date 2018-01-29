@@ -220,13 +220,14 @@ void ObjnetNode::parseServiceMessage(CommonMessage &msg)
 
       case svcWelcome:
       case svcWelcomeAgain:
-        for (unsigned int i=0; i<mObjects.size(); i++)
-        {
-            ObjectInfo &obj = mObjects[i];
-            obj.mAutoPeriod = 0;
-        }
         if (msg.data().size() == 1)
         {
+            for (unsigned int i=0; i<mObjects.size(); i++)
+            {
+                ObjectInfo &obj = mObjects[i];
+                obj.mAutoPeriod = 0;
+            }
+          
             mNetAddress = msg.data()[0];
             mNetState = netnAccepted;
             int len = mName.length();

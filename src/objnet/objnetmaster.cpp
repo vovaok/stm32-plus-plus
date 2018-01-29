@@ -86,6 +86,9 @@ void ObjnetMaster::onTimer()
                 }
                 #ifdef QT_CORE_LIB
                 emit devDisconnected(dev->mNetAddress);
+                #else
+                if (onDevDisconnected)
+                    onDevDisconnected(dev->mNetAddress);
                 #endif
             }
         }
@@ -103,7 +106,13 @@ void ObjnetMaster::onTimer()
             removeNatPair(supernetaddr, dev->mNetAddress);
         }
         #ifdef QT_CORE_LIB
+        emit devDisconnected(dev->mNetAddress);
         emit devRemoved(dev->mNetAddress);
+        #else
+        if (onDevDisconnected)
+            onDevDisconnected(dev->mNetAddress);
+        if (onDevRemoved)
+            onDevRemoved(dev->mNetAddress);
         #endif
         unsigned char mac = route(dev->mNetAddress);
         mRouteTable.erase(dev->mNetAddress);
@@ -198,6 +207,9 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
                 sendServiceMessage(netaddr, svcRequestObjInfo);
                 #ifdef QT_CORE_LIB
                 emit devConnected(dev->mNetAddress);
+                #else
+                if (onDevConnected)
+                    onDevConnected(dev->mNetAddress);
                 #endif
             }
             dev->mPresent = true;
@@ -322,6 +334,9 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
 //        sendServiceMessage(netaddr, svcRequestAllInfo);
         #ifdef QT_CORE_LIB
         emit devConnected(netaddr2);
+        #else
+        if (onDevConnected)
+            onDevConnected(netaddr2);
         #endif
         break;
       }
@@ -342,6 +357,9 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
         }
         #ifdef QT_CORE_LIB
         emit devDisconnected(netaddr);
+        #else
+        if (onDevDisconnected)
+            onDevDisconnected(netaddr);
         #endif
         break;
       }

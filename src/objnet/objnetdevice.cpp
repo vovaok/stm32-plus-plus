@@ -151,7 +151,9 @@ void ObjnetDevice::receiveObject(unsigned char oid, const ByteArray &ba)
         ObjectInfo *obj = mObjects[oid];
         if (obj)
         {
-            obj->write(ba);
+            bool res = obj->write(ba);
+//            if (!res)
+//                qDebug() << "failed to write obj" << obj->name();
             #ifndef QT_CORE_LIB
             if (onObjectReceived)
                 onObjectReceived(obj->name());

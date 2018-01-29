@@ -253,8 +253,23 @@ bool ObjectInfo::fromVariant(QVariant &v)
             const_cast<unsigned char*>(reinterpret_cast<const unsigned char*>(mReadPtr))[i] = ba[i];
         return true;
     }
-    for (int i=0; i<mDesc.readSize; i++)
-        const_cast<unsigned char*>(reinterpret_cast<const unsigned char*>(mReadPtr))[i] = reinterpret_cast<unsigned char*>(v.data())[i];
+    if (mDesc.flags & Array)
+    {
+        QVariantList list = v.toList();
+        int sz = sizeofType((Type)mDesc.rType);
+        int N = mDesc.readSize / sz;
+        for (int j=0; j<N && j<list.size(); j++)
+        {
+            QVariant v = list[j];
+            for (int i=0; i<mDesc.readSize; i++)
+                const_cast<unsigned char*>(reinterpret_cast<const unsigned char*>(mReadPtr))[i+j*sz] = reinterpret_cast<unsigned char*>(v.data())[i];
+        }
+    }
+    else
+    {
+        for (int i=0; i<mDesc.readSize; i++)
+            const_cast<unsigned char*>(reinterpret_cast<const unsigned char*>(mReadPtr))[i] = reinterpret_cast<unsigned char*>(v.data())[i];
+    }
     return true;
 }
 #endif
