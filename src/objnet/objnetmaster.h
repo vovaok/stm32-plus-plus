@@ -48,6 +48,9 @@ signals:
     void serviceMessageAccepted(unsigned char netAddress, SvcOID oid, const QByteArray &data);
 #else
     Closure<void(unsigned char, const ByteArray&)> onDevAdded;
+    Closure<void(unsigned char)> onDevConnected;
+    Closure<void(unsigned char)> onDevDisconnected;
+    Closure<void(unsigned char)> onDevRemoved;
 #endif
 
 #ifdef QT_CORE_LIB
