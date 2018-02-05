@@ -57,8 +57,16 @@ ByteArray &ByteArray::operator=(const ByteArray &other)
 //---------------------------------------------------------------------------
 
 void ByteArray::allocMore(int size)
-{
+{ 
     unsigned int desiredSize = mSize + size; // compute desired buffer size
+    if (mSize > mAllocSize)
+    {
+        while (1)
+        {
+           // WHAT bleat??
+        }
+    }
+    int oldAllocSize = mAllocSize;
     if (desiredSize <= mAllocSize)
         return;
 //    unsigned long _primask = __get_PRIMASK();
@@ -72,7 +80,8 @@ void ByteArray::allocMore(int size)
     {
         memcpy(temp, mData, mSize); // copy old data
         //__disable_irq();
-        delete mData;               // delete old buffer
+        delete [] mData;               // delete old buffer
+        oldAllocSize = 0;
         //__enable_irq();
     }
     mData = temp; 
@@ -125,17 +134,17 @@ void ByteArray::resize(int size)
 
 void ByteArray::clear()
 {
+//    unsigned long _primask = __get_PRIMASK();
+    __disable_irq();
     if (mData)
     {
-//        unsigned long _primask = __get_PRIMASK();
-        __disable_irq();
         delete [] mData;
-//        if (!_primask)
-            __enable_irq();
+        mData = 0L;
     }
-    mData = 0L;
     mSize = 0;
     mAllocSize = 0;
+//    if (!_primask)
+    __enable_irq();
 }
 //---------------------------------------------------------------------------
 
