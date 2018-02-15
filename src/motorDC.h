@@ -55,7 +55,7 @@ public:
     void setPositionLimits(float min,float max);
     void setPositionMinLimit(float min) {minPos = min;}
     void setPositionMaxLimit(float max) {maxPos = max;}
-    void setEnablePositionLimits(bool enable) {mEnableLimitsPosition = enable;}
+    void setEnablePositionLimits(bool enable) {mEnableLimitsPosition = enable; if (!enable) {isLimitF = false; isLimitB = false;}}
     
     //kp///ki
     void setKpPos(float value) {kpPos = value;}

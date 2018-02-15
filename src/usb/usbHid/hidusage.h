@@ -476,6 +476,7 @@ typedef enum
     Button13                    = 0x0D,
     Button14                    = 0x0E,
     Button15                    = 0x0F,
+    Button16                    = 0x10,
 } ButtonPage;
 
 typedef enum
