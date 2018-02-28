@@ -28,13 +28,13 @@ Spi::Spi(Gpio::Config sck, Gpio::Config miso, Gpio::Config mosi)
         
       case Spi2:
         mDev = SPI2;
-        RCC_APB2PeriphClockCmd(RCC_APB1Periph_SPI2, ENABLE);
+        RCC_APB1PeriphClockCmd(RCC_APB1Periph_SPI2, ENABLE);
         mIrq = SPI2_IRQn;
         break;
         
       case Spi3:
         mDev = SPI3;
-        RCC_APB2PeriphClockCmd(RCC_APB1Periph_SPI3, ENABLE);
+        RCC_APB1PeriphClockCmd(RCC_APB1Periph_SPI3, ENABLE);
         mIrq = SPI3_IRQn;
         break;
     }
