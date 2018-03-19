@@ -87,9 +87,11 @@ bool Application::startOnbBootloader()
     __DISABLE_GPIO(D);
     __DISABLE_GPIO(E);
     __DISABLE_GPIO(F);
+#if !defined(STM32F37X)
     __DISABLE_GPIO(G);
     __DISABLE_GPIO(H);
     __DISABLE_GPIO(I);
+#endif
     __set_MSP(*ptr);
     f();
     return true; // po idee ne doljno suda zahodit
@@ -113,6 +115,28 @@ void SysTick_Handler(void)
 
 void SystemInit(void) // on Reset_Handler
 {
+#if defined(STM32F37X)
+    /* FPU settings ------------------------------------------------------------*/
+  #if (__FPU_PRESENT == 1) && (__FPU_USED == 1)
+    SCB->CPACR |= ((3UL << 10*2)|(3UL << 11*2));  /* set CP10 and CP11 Full Access */
+  #endif
+    /* Set HSION bit */
+    RCC->CR |= (uint32_t)0x00000001;
+    /* Reset SW[1:0], HPRE[3:0], PPRE[2:0], ADCPRE, SDADCPRE and MCOSEL[2:0] bits */
+    RCC->CFGR &= (uint32_t)0x00FF0000;
+    /* Reset HSEON, CSSON and PLLON bits */
+    RCC->CR &= (uint32_t)0xFEF6FFFF;
+    /* Reset HSEBYP bit */
+    RCC->CR &= (uint32_t)0xFFFBFFFF;
+    /* Reset PLLSRC, PLLXTPRE, PLLMUL and USBPRE bits */
+    RCC->CFGR &= (uint32_t)0xFF80FFFF;
+    /* Reset PREDIV1[3:0] bits */
+    RCC->CFGR2 &= (uint32_t)0xFFFFFFF0;
+    /* Reset USARTSW[1:0], I2CSW and CECSW bits */
+    RCC->CFGR3 &= (uint32_t)0xFFF0F8C;
+    /* Disable all interrupts */
+    RCC->CIR = 0x00000000;
+#else  
     /* FPU settings ------------------------------------------------------------*/
     #if (__FPU_PRESENT == 1) && (__FPU_USED == 1)
     SCB->CPACR |= ((3UL << 10*2)|(3UL << 11*2));  /* set CP10 and CP11 Full Access */
@@ -130,6 +154,7 @@ void SystemInit(void) // on Reset_Handler
     RCC->CR &= (uint32_t)0xFFFBFFFF;
     /* Disable all interrupts */
     RCC->CIR = 0x00000000;
+#endif
 
     Rcc::configPll(0, CpuId::maxSysClk());
 

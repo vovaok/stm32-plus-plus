@@ -34,6 +34,31 @@
     #include "stm32f2xx_tim.h"
     #include "stm32f2xx_usart.h"
     #include "stm32f2xx_wwdg.h"
+    #include "misc.h" /* High level functions for NVIC and SysTick (add-on to CMSIS functions) */
+#elif defined(STM32F37X)
+	#include "stm32f37x_adc.h"
+	#include "stm32f37x_can.h"
+	#include "stm32f37x_cec.h"
+	#include "stm32f37x_crc.h"
+	#include "stm32f37x_comp.h"
+	#include "stm32f37x_dac.h"
+	#include "stm32f37x_dbgmcu.h"
+	#include "stm32f37x_dma.h"
+	#include "stm32f37x_exti.h"
+	#include "stm32f37x_flash.h"
+	#include "stm32f37x_gpio.h"
+	#include "stm32f37x_syscfg.h"
+	#include "stm32f37x_i2c.h"
+	#include "stm32f37x_iwdg.h"
+	#include "stm32f37x_pwr.h"
+	#include "stm32f37x_rcc.h"
+	#include "stm32f37x_rtc.h"
+	#include "stm32f37x_sdadc.h"
+	#include "stm32f37x_spi.h"
+	#include "stm32f37x_tim.h"
+	#include "stm32f37x_usart.h"
+	#include "stm32f37x_wwdg.h"
+	#include "stm32f37x_misc.h"
 #elif defined(STM32F4XX) | defined(STM32F40XX)
     #include "stm32f4xx.h"
     #include "stm32f4xx_adc.h"
@@ -61,6 +86,7 @@
     #include "stm32f4xx_tim.h"
     #include "stm32f4xx_usart.h"
     #include "stm32f4xx_wwdg.h"
+    #include "misc.h" /* High level functions for NVIC and SysTick (add-on to CMSIS functions) */
 #elif defined(STM32F427_437xx) || defined(STM32F429_439xx)
     #include "stm32f4xx.h"
     #include "stm32f4xx_adc.h"
@@ -92,9 +118,9 @@
     #include "stm32f4xx_tim.h"
     #include "stm32f4xx_usart.h"
     #include "stm32f4xx_wwdg.h"
+    #include "misc.h" /* High level functions for NVIC and SysTick (add-on to CMSIS functions) */
 #endif
 
-#include "misc.h" /* High level functions for NVIC and SysTick (add-on to CMSIS functions) */
 
 /* Exported types ------------------------------------------------------------*/
 /* Exported constants --------------------------------------------------------*/

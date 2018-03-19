@@ -8,6 +8,7 @@ HardwareTimer::HardwareTimer(TimerNumber timerNumber, unsigned int frequency_Hz)
     int clkDiv = 1;
     switch (timerNumber)
     {
+#if !defined(STM32F37X)
       case 1:
         RCC_APB2PeriphClockCmd(RCC_APB2Periph_TIM1, ENABLE);
         mTim = TIM1;
@@ -15,6 +16,7 @@ HardwareTimer::HardwareTimer(TimerNumber timerNumber, unsigned int frequency_Hz)
 //        mIrq = TIM1_IRQn;
         clkDiv = 0;
         break;
+#endif
         
       case 2:
         RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM2, ENABLE);
@@ -43,7 +45,11 @@ HardwareTimer::HardwareTimer(TimerNumber timerNumber, unsigned int frequency_Hz)
       case 6:
         RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM6, ENABLE);
         mTim = TIM6;
+#if !defined(STM32F37X)
         mIrq = TIM6_DAC_IRQn;
+#else
+        mIrq = TIM6_DAC1_IRQn;
+#endif
         break;
         
       case 7:
@@ -52,6 +58,7 @@ HardwareTimer::HardwareTimer(TimerNumber timerNumber, unsigned int frequency_Hz)
         mIrq = TIM7_IRQn;
         break;
         
+#if !defined(STM32F37X)        
       case 8:
         RCC_APB2PeriphClockCmd(RCC_APB2Periph_TIM8, ENABLE);
         mTim = TIM8;
@@ -80,23 +87,36 @@ HardwareTimer::HardwareTimer(TimerNumber timerNumber, unsigned int frequency_Hz)
         mIrq = TIM1_TRG_COM_TIM11_IRQn;
         clkDiv = 0;
         break;
+#endif
         
       case 12:
         RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM12, ENABLE);
         mTim = TIM12;
+#if !defined(STM32F37X)
         mIrq = TIM8_BRK_TIM12_IRQn;
+#else
+        mIrq = TIM12_IRQn;
+#endif
         break;
         
       case 13:
         RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM13, ENABLE);
         mTim = TIM13;
+#if !defined(STM32F37X)        
         mIrq = TIM8_UP_TIM13_IRQn;
+#else
+        mIrq = TIM13_IRQn;
+#endif
         break;
         
       case 14:
         RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM14, ENABLE);
         mTim = TIM14;
+#if !defined(STM32F37X)
         mIrq = TIM8_TRG_COM_TIM14_IRQn;
+#else
+        mIrq = TIM14_IRQn;
+#endif
         break;
         
       default:
@@ -138,6 +158,12 @@ TimerNumber HardwareTimer::getTimerByPin(Gpio::Config pinConfig)
 {
     switch (pinConfig)
     {
+#if defined(STM32F37X)
+        // TIM2   
+        case Gpio::TIM2_CH1_PA0: case Gpio::TIM2_CH2_PA1: case Gpio::TIM2_CH3_PA2: case Gpio::TIM2_CH4_PA3:
+        return Tim2;
+      
+#else
         // TIM1
         case Gpio::TIM1_BKIN_PA6: case Gpio::TIM1_CH1N_PA7: case Gpio::TIM1_CH1_PA8: case Gpio::TIM1_CH2_PA9:
         case Gpio::TIM1_CH3_PA10: case Gpio::TIM1_CH4_PA11: case Gpio::TIM1_ETR_PA12: case Gpio::TIM1_CH2N_PB0:
@@ -183,6 +209,7 @@ TimerNumber HardwareTimer::getTimerByPin(Gpio::Config pinConfig)
         case Gpio::TIM13_CH1_PA6: case Gpio::TIM13_CH1_PF8: return Tim13;
         // TIM14
         case Gpio::TIM14_CH1_PA7: case Gpio::TIM14_CH1_PF9: return Tim14; 
+#endif
         // NO TIMER
         default: return TimNone;
     }
@@ -192,6 +219,9 @@ ChannelNumber HardwareTimer::getChannelByPin(Gpio::Config pinConfig)
 {
     switch (pinConfig)
     {
+#if defined(STM32F37X)
+
+#else      
         // CH1
         case Gpio::TIM1_CH1N_PA7: case Gpio::TIM1_CH1_PA8: case Gpio::TIM1_CH1N_PB13: case Gpio::TIM1_CH1N_PE8:
         case Gpio::TIM1_CH1_PE9: case Gpio::TIM2_CH1_PA0: case Gpio::TIM2_CH1_PA5: case Gpio::TIM2_CH1_PA15: 
@@ -220,6 +250,7 @@ ChannelNumber HardwareTimer::getChannelByPin(Gpio::Config pinConfig)
         case Gpio::TIM3_CH4_PB1: case Gpio::TIM3_CH4_PC9: case Gpio::TIM4_CH4_PB9: case Gpio::TIM4_CH4_PD15:
         case Gpio::TIM5_CH4_PA3: case Gpio::TIM5_CH4_PI0: case Gpio::TIM8_CH4_PC9: case Gpio::TIM8_CH4_PI2:
         return Ch4;
+#endif
         // NO CHANNEL
         default: return ChNone;
     }
@@ -435,10 +466,8 @@ void TIM4_IRQHandler()
 
 void TIM5_IRQHandler()
 {
-    GPIOD->BSRRL = 1<<0;
     if (HardwareTimer::mTimers[5-1])
         HardwareTimer::mTimers[5-1]->handleInterrupt();
-    GPIOD->BSRRH = 1<<0;
 }
 
 void TIM6_DAC_IRQHandler()

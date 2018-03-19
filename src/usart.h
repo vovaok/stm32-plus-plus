@@ -2,7 +2,9 @@
 #define _USART_H
 
 #include "gpio.h"
-#include "dma.h"
+#if !defined(STM32F37X)
+    #include "dma.h"
+#endif
 #include "rcc.h"
 #include "serial/serialinterface.h"
 
@@ -14,18 +16,22 @@ typedef enum
     Usart1    = 1,
     Usart2    = 2,
     Usart3    = 3,
+#if !defined(STM32F37X)
     Usart4    = 4,
     Usart5    = 5,
     Usart6    = 6,
+#endif
 } UsartNo;
 //---------------------------------------------------------------------------
 
 extern "C" void USART1_IRQHandler();
 extern "C" void USART2_IRQHandler();
 extern "C" void USART3_IRQHandler();
+#if !defined(STM32F37X)
 extern "C" void UART4_IRQHandler();
 extern "C" void UART5_IRQHandler();
 extern "C" void USART6_IRQHandler();
+#endif
 //---------------------------------------------------------------------------
 
 class Usart : public SerialInterface
@@ -36,7 +42,9 @@ public:
         ParityNone  = USART_Parity_No,
         ParityEven  = USART_Parity_Even,
         ParityOdd   = USART_Parity_Odd,
+#if !defined(STM32F37X)
         StopBits0_5 = USART_StopBits_0_5,
+#endif
         StopBits1   = USART_StopBits_1,
         StopBits1_5 = USART_StopBits_1_5,
         StopBits2   = USART_StopBits_2,
@@ -48,17 +56,25 @@ public:
     } Config;
   
 private:
+    #if defined(STM32F37X) 
+    static Usart *mUsarts[3];
+    #else
     static Usart *mUsarts[6];
+    #endif
     USART_TypeDef *mDev;
     USART_InitTypeDef mConfig;
     bool mConfigured;
+#if !defined(STM32F37X) 
     bool mUseDmaRx, mUseDmaTx;
+#endif
     ByteArray mRxBuffer;
     ByteArray mTxBuffer;
+#if !defined(STM32F37X)
     Dma::DmaChannel mDmaChannelRx;
     Dma::DmaChannel mDmaChannelTx;
     Dma *mDmaRx;
     Dma *mDmaTx;
+#endif
     IRQn mIrq;
     int mRxPos;
     int mRxIrqDataCounter;
@@ -71,14 +87,19 @@ private:
     
     void commonConstructor(UsartNo number, int baudrate, Config config);
     void init();
+    
+#if !defined(STM32F37X)     
     void dmaTxComplete();
+#endif
     
     friend void USART1_IRQHandler();
     friend void USART2_IRQHandler();
     friend void USART3_IRQHandler();
+    #if !defined(STM32F37X)
     friend void UART4_IRQHandler();
     friend void UART5_IRQHandler();
     friend void USART6_IRQHandler();
+    #endif
     
     void handleInterrupt();
     
@@ -90,8 +111,10 @@ public:
     ~Usart();
     
     void setBufferSize(int size_bytes);
+#if !defined(STM32F37X)
     void setUseDmaRx(bool useDma);
     void setUseDmaTx(bool useDma);
+#endif
     void setLineEnd(ByteArray lineend);
     const ByteArray &lineEnd() const {return mLineEnd;}
     

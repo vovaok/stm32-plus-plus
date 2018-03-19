@@ -1,12 +1,21 @@
 #include "usart.h"
 
-Usart *Usart::mUsarts[6] = {0, 0, 0, 0, 0, 0};
+#if defined(STM32F37X) 
+    Usart *Usart::mUsarts[3] = {0, 0, 0};
+    #define SR ISR
+#else
+    Usart *Usart::mUsarts[6] = {0, 0, 0, 0, 0, 0};
+    #define RDR DR
+    #define TDR DR
+#endif
 //---------------------------------------------------------------------------
 
 Usart::Usart(UsartNo number, int baudrate, Config config, Gpio::Config pinTx, Gpio::Config pinRx) :
+#if !defined(STM32F37X)  
     mUseDmaRx(true), mUseDmaTx(true),
     mDmaRx(0L),
     mDmaTx(0L),
+#endif
     mRxPos(0),
     mRxIrqDataCounter(0),
     mRxBufferSize(64),
@@ -21,9 +30,11 @@ Usart::Usart(UsartNo number, int baudrate, Config config, Gpio::Config pinTx, Gp
 }
 
 Usart::Usart(Gpio::Config pinTx, Gpio::Config pinRx) :
+#if !defined(STM32F37X)  
     mUseDmaRx(true), mUseDmaTx(true),
     mDmaRx(0L),
     mDmaTx(0L),
+#endif
     mRxPos(0),
     mRxIrqDataCounter(0),
     mRxBufferSize(64),
@@ -49,27 +60,34 @@ void Usart::commonConstructor(UsartNo number, int baudrate, Config config)
       case Usart1:  
         mDev = USART1;
         RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART1, ENABLE);
+#if !defined(STM32F37X)
         mDmaChannelRx = Dma::ChannelUsart1_Rx;
         mDmaChannelTx = Dma::ChannelUsart1_Tx;
+#endif
         mIrq = USART1_IRQn;
         break;
         
       case Usart2:  
         mDev = USART2;
         RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART2, ENABLE);
+#if !defined(STM32F37X)        
         mDmaChannelRx = Dma::ChannelUsart2_Rx;
         mDmaChannelTx = Dma::ChannelUsart2_Tx;
+#endif
         mIrq = USART2_IRQn;
         break;
         
       case Usart3:  
         mDev = USART3;
         RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART3, ENABLE);
+#if !defined(STM32F37X)        
         mDmaChannelRx = Dma::ChannelUsart3_Rx;
         mDmaChannelTx = Dma::ChannelUsart3_Tx;
+#endif
         mIrq = USART3_IRQn;
         break;
         
+#if !defined(STM32F37X)       
       case Usart4:  
         mDev = UART4;
         RCC_APB1PeriphClockCmd(RCC_APB1Periph_UART4, ENABLE);
@@ -93,6 +111,7 @@ void Usart::commonConstructor(UsartNo number, int baudrate, Config config)
         mDmaChannelTx = Dma::ChannelUsart6_Tx;
         mIrq = USART6_IRQn;
         break;
+#endif
     }
     
     mUsarts[number-1] = this;
@@ -105,10 +124,12 @@ void Usart::commonConstructor(UsartNo number, int baudrate, Config config)
 
 Usart::~Usart()
 {
+#if !defined(STM32F37X)  
     if (mDmaRx)
         delete mDmaRx;
     if (mDmaTx)
         delete mDmaTx;
+#endif
     USART_DeInit(mDev);
 }
 //---------------------------------------------------------------------------
@@ -117,6 +138,25 @@ UsartNo Usart::getUsartByPin(Gpio::Config pin)
 {
     switch (pin)
     {
+#if defined(STM32F37X)
+        // USART1
+        case Gpio::USART1_CK_PA8: case Gpio::USART1_TX_PA9: case Gpio::USART1_RX_PA10: case Gpio::USART1_CTS_PA11:
+        case Gpio::USART1_RTS_PA12: case Gpio::USART1_TX_PB6: case Gpio::USART1_RX_PB7:
+        case Gpio::USART1_TX_PC4: case Gpio::USART1_RX_PC5: case Gpio::USART1_TX_PE0: case Gpio::USART1_RX_PE1:
+        return Usart1;
+        // USART2
+        case Gpio::USART2_CTS_PA0: case Gpio::USART2_RTS_PA1: case Gpio::USART2_TX_PA2: case Gpio::USART2_RX_PA3:
+        case Gpio::USART2_CK_PA4: case Gpio::USART2_TX_PB3: case Gpio::USART2_RX_PB4: case Gpio::USART2_CK_PB5:
+        case Gpio::USART2_CTS_PD3: case Gpio::USART2_RTS_PD4: case Gpio::USART2_TX_PD5: case Gpio::USART2_RX_PD6:
+        case Gpio::USART2_CK_PD7: case Gpio::USART2_CK_PF7:
+        return Usart2;
+        // USART3
+        case Gpio::USART3_CTS_PA13: case Gpio::USART3_TX_PB8: case Gpio::USART3_RX_PB9: case Gpio::USART3_TX_PB10: 
+        case Gpio::USART3_RTS_PB14: case Gpio::USART3_TX_PC10: case Gpio::USART3_RX_PC11: case Gpio::USART3_CK_PC12:
+        case Gpio::USART3_TX_PD8: case Gpio::USART3_RX_PD9: case Gpio::USART3_CK_PD10: case Gpio::USART3_CTS_PD11:
+        case Gpio::USART3_RTS_PD12: case Gpio::USART3_RX_PE15: case Gpio::USART3_RTS_PF6:
+        return Usart3;
+#else        
         // USART1
         case Gpio::USART1_CK_PA8: case Gpio::USART1_TX_PA9: case Gpio::USART1_RX_PA10: case Gpio::USART1_CTS_PA11:
         case Gpio::USART1_RTS_PA12: case Gpio::USART1_TX_PB6: case Gpio::USART1_RX_PB7:
@@ -143,6 +183,7 @@ UsartNo Usart::getUsartByPin(Gpio::Config pin)
         case Gpio::USART6_RTS_PG8: case Gpio::USART6_RX_PG9: case Gpio::USART6_RTS_PG12: case Gpio::USART6_CTS_PG13:
         case Gpio::USART6_TX_PG14: case Gpio::USART6_CTS_PG15:
         return Usart6;
+#endif
         // no usart
         default:
         return UsartNone;
@@ -184,7 +225,11 @@ void Usart::init()
 
     /*---------------------------- USART BRR Configuration -----------------------*/
     // Configure the USART Baud Rate
+    #if defined(STM32F37X)
+    apbclock = (mDev == USART1)? Rcc::pClk2(): Rcc::pClk1();
+    #else
     apbclock = ((mDev == USART1) || (mDev == USART6))? Rcc::pClk2(): Rcc::pClk1();
+    #endif
 
     // Determine the integer part
     if ((mDev->CR1 & USART_CR1_OVER8) != 0)
@@ -223,14 +268,16 @@ bool Usart::open(OpenMode mode)
     {
         mConfig.USART_Mode |= USART_Mode_Rx;
         mRxBuffer.resize(mRxBufferSize); ///////////////////////////////!!!!!! power of two only!!!!
+#if !defined(STM32F37X)
         if (mUseDmaRx)
         {
             if (!mDmaRx)
                 mDmaRx = Dma::getStreamForPeriph(mDmaChannelRx);
             mDmaRx->setCircularBuffer(mRxBuffer.data(), mRxBuffer.size());
-            mDmaRx->setSource((void*)&mDev->DR, 1);
+            mDmaRx->setSource((void*)&mDev->RDR, 1);
         }
         else
+#endif
         {
             NVIC_InitTypeDef NVIC_InitStructure;
             NVIC_InitStructure.NVIC_IRQChannel = mIrq;
@@ -246,17 +293,20 @@ bool Usart::open(OpenMode mode)
     {
         mConfig.USART_Mode |= USART_Mode_Tx;
         mTxBuffer.resize(mTxBufferSize);
+#if !defined(STM32F37X)
         if (mUseDmaTx)
         {
             if (!mDmaTx)
                 mDmaTx = Dma::getStreamForPeriph(mDmaChannelTx);
-            mDmaTx->setSink((void*)&mDev->DR, 1);
+            mDmaTx->setSink((void*)&mDev->TDR, 1);
             mDmaTx->setTransferCompleteEvent(EVENT(&Usart::dmaTxComplete));
         }
+#endif
     }
     
     init();
     
+#if !defined(STM32F37X)    
     if (mDmaRx && mUseDmaRx)
     {
         USART_DMACmd(mDev, USART_DMAReq_Rx, ENABLE);
@@ -268,6 +318,7 @@ bool Usart::open(OpenMode mode)
         USART_DMACmd(mDev, USART_DMAReq_Tx, ENABLE);
         (unsigned int&)mode |= Write;
     }
+#endif
     
     USART_Cmd(mDev, ENABLE);
     
@@ -277,6 +328,7 @@ bool Usart::open(OpenMode mode)
 
 void Usart::close()
 {
+#if !defined(STM32F37X)  
     if (mDmaRx)
     {
         USART_DMACmd(mDev, USART_DMAReq_Rx, DISABLE);
@@ -291,6 +343,7 @@ void Usart::close()
         delete mDmaTx;
         mDmaTx = 0L;
     }
+#endif
     
     USART_Cmd(mDev, DISABLE);
     SerialInterface::close();
@@ -301,17 +354,20 @@ static int written = 0;
 
 int Usart::write(const char *data, int size)
 {
+#if !defined(STM32F37X)   
     if (!mDmaTx)
+#endif
     {
         for (int i=0; i<size; i++)
         {
             while (!(mDev->SR & USART_FLAG_TC));
-            mDev->DR = data[i];
+            mDev->TDR = data[i];
         }
         while (!(mDev->SR & USART_FLAG_TC));
         return size;
     }
     
+#if !defined(STM32F37X)    
     //  write through DMA
     int mask = mTxBuffer.size() - 1;
     int curPos = (mTxReadPos - mDmaTx->dataCounter()) & mask;
@@ -338,6 +394,7 @@ int Usart::write(const char *data, int size)
     mTxReadPos = (mTxReadPos + sz) & mask;
     mDmaTx->start();
     return size;
+#endif
 }
 
 int Usart::write(const ByteArray &ba)
@@ -348,7 +405,11 @@ int Usart::write(const ByteArray &ba)
 int Usart::read(ByteArray &ba)
 {
     int mask = mRxBuffer.size() - 1;
+#if !defined(STM32F37X)    
     int curPos = mDmaRx? (mRxBuffer.size() - mDmaRx->dataCounter()): mRxIrqDataCounter;
+#else
+    int curPos = mRxIrqDataCounter;
+#endif    
     int read = (curPos - mRxPos) & mask;
     if (m7bits)
     {
@@ -368,7 +429,11 @@ int Usart::read(ByteArray &ba)
 bool Usart::canReadLine()
 {
     int mask = mRxBuffer.size() - 1;
+#if !defined(STM32F37X)    
     int curPos = mDmaRx? (mRxBuffer.size() - mDmaRx->dataCounter()): mRxIrqDataCounter;
+#else
+    int curPos = mRxIrqDataCounter;
+#endif
     int read = (curPos - mRxPos) & mask;
     unsigned char bitmask = m7bits? 0x7F: 0xFF;
     for (int i=mRxPos; i<mRxPos+read; i++)
@@ -391,7 +456,11 @@ bool Usart::canReadLine()
 int Usart::readLine(ByteArray &ba)
 {
     int mask = mRxBuffer.size() - 1;
+#if !defined(STM32F37X)    
     int curPos = mDmaRx? (mRxBuffer.size() - mDmaRx->dataCounter()): mRxIrqDataCounter;
+#else
+    int curPos = mRxIrqDataCounter;
+#endif    
     int read = (curPos - mRxPos) & mask;
     int i = mRxPos, endi = 0;
     unsigned char bitmask = m7bits? 0x7F: 0xFF;
@@ -411,6 +480,7 @@ int Usart::readLine(ByteArray &ba)
 }
 //---------------------------------------------------------------------------
 
+#if !defined(STM32F37X) 
 void Usart::dmaTxComplete()
 {
     int mask = mTxBuffer.size() - 1;
@@ -426,6 +496,7 @@ void Usart::dmaTxComplete()
     mTxReadPos = (mTxReadPos + sz) & mask;
     mDmaTx->start();
 }
+#endif
 //---------------------------------------------------------------------------
 
 void Usart::setBaudrate(int baudrate)
@@ -459,6 +530,7 @@ void Usart::setBufferSize(int size_bytes)
     mTxBufferSize = mRxBufferSize;
 }
 
+#if !defined(STM32F37X) 
 void Usart::setUseDmaRx(bool useDma)
 {
     if (isOpen())
@@ -472,6 +544,7 @@ void Usart::setUseDmaTx(bool useDma)
         throw Exception::resourceBusy;
     mUseDmaTx = useDma;
 }
+#endif
 
 void Usart::setLineEnd(ByteArray lineend)
 {
@@ -483,7 +556,7 @@ void Usart::handleInterrupt()
 {
     if (USART_GetITStatus(mDev, USART_IT_RXNE) == SET)
     {
-        mRxBuffer[mRxIrqDataCounter++] = mDev->DR & (uint16_t)0x01FF;
+        mRxBuffer[mRxIrqDataCounter++] = mDev->RDR & (uint16_t)0x01FF;
         if (mRxIrqDataCounter >= mRxBuffer.size())
             mRxIrqDataCounter = 0;
         //USART_ClearITPendingBit(mDev, USART_IT_RXNE);
@@ -513,6 +586,7 @@ void USART3_IRQHandler()
         Usart::mUsarts[2]->handleInterrupt();
 }
 
+#if !defined(STM32F37X)
 void UART4_IRQHandler()
 {
     if (Usart::mUsarts[3])
@@ -530,6 +604,7 @@ void USART6_IRQHandler()
     if (Usart::mUsarts[5])
         Usart::mUsarts[5]->handleInterrupt();
 }
+#endif
    
 #ifdef __cplusplus
 }
