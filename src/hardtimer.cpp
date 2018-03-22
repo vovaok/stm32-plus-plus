@@ -302,6 +302,16 @@ ChannelNumber HardwareTimer::getChannelByPin(Gpio::Config pinConfig)
 }
 //---------------------------------------------------------------------------
 
+void HardwareTimer::selectInputTrigger(InputTrigger trgi)
+{
+    mTim->SMCR = (mTim->SMCR & ~TIM_SMCR_TS) | (trgi & TIM_SMCR_TS);
+}
+
+void HardwareTimer::setSlaveMode(SlaveMode sms)
+{
+    mTim->SMCR = (mTim->SMCR & ~TIM_SMCR_SMS) | (sms & TIM_SMCR_SMS);
+}
+
 void HardwareTimer::selectOutputTrigger(TrgSource source)
 {
     TIM_SelectOutputTrigger(mTim, source);
@@ -412,7 +422,7 @@ unsigned int HardwareTimer::captureValue(ChannelNumber ch) const
     return -1;
 }
 
-void HardwareTimer::configPWM(ChannelNumber ch)
+void HardwareTimer::configPWM(ChannelNumber ch, bool inverted)
 {
     TIM_OCInitTypeDef TIM_OCInitStructure;
     TIM_OCInitStructure.TIM_OCMode = TIM_OCMode_PWM2;
@@ -420,7 +430,7 @@ void HardwareTimer::configPWM(ChannelNumber ch)
     TIM_OCInitStructure.TIM_OutputNState = TIM_OutputNState_Disable;
     TIM_OCInitStructure.TIM_Pulse = 0;
     
-    TIM_OCInitStructure.TIM_OCPolarity = TIM_OCPolarity_High;//invert? TIM_OCPolarity_High: TIM_OCPolarity_Low ;
+    TIM_OCInitStructure.TIM_OCPolarity = inverted? TIM_OCPolarity_Low: TIM_OCPolarity_High;
     TIM_OCInitStructure.TIM_OCNPolarity = TIM_OCNPolarity_Low;
     TIM_OCInitStructure.TIM_OCIdleState = TIM_OCIdleState_Reset;
     TIM_OCInitStructure.TIM_OCNIdleState = TIM_OCIdleState_Reset;

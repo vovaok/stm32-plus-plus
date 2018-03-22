@@ -470,6 +470,13 @@ public:
         TIM2_CH2_PA1 =      PINCONFIG(PA1,  modeAF | outPushPull | pullNone | speed50MHz, af1, 0x22), //!<.
         TIM2_CH3_PA2 =      PINCONFIG(PA2,  modeAF | outPushPull | pullNone | speed50MHz, af1, 0x23), //!<.
         TIM2_CH4_PA3 =      PINCONFIG(PA3,  modeAF | outPushPull | pullNone | speed50MHz, af1, 0x24), //!<.
+        // TIM12
+        TIM12_CH1_PB14 =    PINCONFIG(PB14, modeAF | outPushPull | pullNone | speed50MHz, af9, 0xc1),
+        TIM12_CH2_PB15 =    PINCONFIG(PB15, modeAF | outPushPull | pullNone | speed50MHz, af9, 0xc2),
+        // TIM15
+        TIM15_CH1_PB14 =    PINCONFIG(PB14, modeAF | outPushPull | pullNone | speed50MHz, af1, 0xf1),
+        TIM15_CH1N_PB15 =   PINCONFIG(PB15, modeAF | outPushPull | pullNone | speed50MHz, af2, 0xf1),
+        TIM15_CH2_PB15 =    PINCONFIG(PB15, modeAF | outPushPull | pullNone | speed50MHz, af1, 0xf2),
         
         // USART1
         USART1_CK_PA8 =     PINCONFIG(PA8,  modeAF | outPushPull | pullNone | speed50MHz, afUsart1, 0x10), //!<.

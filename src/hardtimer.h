@@ -62,28 +62,34 @@ public:
     
     typedef enum
     {
+        TsITR0      = 0,
+        TsITR1      = 1,
+        TsITR2      = 2,
+        TsITR3      = 3,
+        TsTI1F_ED   = 4,
+        TsTI1FP1    = 5,
+        TsTI2FP2    = 6
+    } InputTrigger;
+    
+    typedef enum
+    {
+        SmDisabled  = 0,
+        SmEncoder1  = 1,
+        SmEncoder2  = 2,
+        SmEncoder3  = 3,
+        SmReset     = 4,
+        SmGated     = 5,
+        SmTrigger   = 6,
+        SmExtClock  = 7
+    } SlaveMode;
+    
+    typedef enum
+    {
         None,
         Rising,
         Falling,
         BothEdge
     } Polarity;
-    
-//    typedef enum
-//    {
-//        CH1     = 0x01,
-//        CH2     = 0x02,
-//        CH3     = 0x04,
-//        CH4     = 0x08,
-//        CH1N    = 0x10,
-//        CH2N    = 0x20,
-//        CH3N    = 0x40,
-//        CH4N    = 0x80,
-//        CH12    = CH1 | CH2,
-//        CH123   = CH1 | CH2 | CH3,
-//        CH1234  = CH1 | CH2 | CH3 | CH4,
-//        CH123N  = CH123 | CH1N | CH2N | CH3N,
-//        CH_all  = 0xFF
-//    } ChannelPins;
       
 private:
     typedef enum
@@ -128,6 +134,8 @@ public:
     static TimerNumber getTimerByPin(Gpio::Config pinConfig);
     static ChannelNumber getChannelByPin(Gpio::Config pinConfig);
     
+    void selectInputTrigger(InputTrigger trgi);
+    void setSlaveMode(SlaveMode sms);
     void selectOutputTrigger(TrgSource source);
     void setFrequency(int frequency_Hz);
     
@@ -168,7 +176,7 @@ public:
     void configCapture(ChannelNumber ch, Polarity pol);
     unsigned int captureValue(ChannelNumber ch) const;
     
-    void configPWM(ChannelNumber ch);
+    void configPWM(ChannelNumber ch, bool inverted=false);
     void setPWMEnabled(ChannelNumber ch, bool enabled);
 };
 
