@@ -9801,9 +9801,6 @@
     <name>$PROJ_DIR$\src\dac4xx.h</name>
   </file>
   <file>
-    <name>$PROJ_DIR$\src\dma.cpp</name>
-  </file>
-  <file>
     <name>$PROJ_DIR$\src\dma.h</name>
   </file>
   <file>
@@ -9813,16 +9810,31 @@
     <name>$PROJ_DIR$\src\dma37x.h</name>
   </file>
   <file>
+    <name>$PROJ_DIR$\src\dma4xx.cpp</name>
+  </file>
+  <file>
+    <name>$PROJ_DIR$\src\dma4xx.h</name>
+  </file>
+  <file>
     <name>$PROJ_DIR$\src\encoder.cpp</name>
   </file>
   <file>
     <name>$PROJ_DIR$\src\encoder.h</name>
   </file>
   <file>
-    <name>$PROJ_DIR$\src\flash.cpp</name>
+    <name>$PROJ_DIR$\src\flash.h</name>
   </file>
   <file>
-    <name>$PROJ_DIR$\src\flash.h</name>
+    <name>$PROJ_DIR$\src\flash37x.cpp</name>
+  </file>
+  <file>
+    <name>$PROJ_DIR$\src\flash37x.h</name>
+  </file>
+  <file>
+    <name>$PROJ_DIR$\src\flash4xx.cpp</name>
+  </file>
+  <file>
+    <name>$PROJ_DIR$\src\flash4xx.h</name>
   </file>
   <file>
     <name>$PROJ_DIR$\src\gpio.cpp</name>
@@ -9895,6 +9907,12 @@
   </file>
   <file>
     <name>$PROJ_DIR$\src\rgbled.h</name>
+  </file>
+  <file>
+    <name>$PROJ_DIR$\src\sdadc.cpp</name>
+  </file>
+  <file>
+    <name>$PROJ_DIR$\src\sdadc.h</name>
   </file>
   <file>
     <name>$PROJ_DIR$\src\spi.cpp</name>

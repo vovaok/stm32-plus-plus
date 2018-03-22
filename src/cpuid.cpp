@@ -3,7 +3,7 @@
 #if defined(STM32F37X)
 const unsigned long * const  CpuId::mSignature = (const unsigned long*) 0x1FFFF7AC;
 const unsigned short * const CpuId::mFlashSize = (const unsigned short*)0x1FFFF7CC;
-const unsigned short * const CpuId::mPackage   = (const unsigned short*)0x1FFF7BF0;
+const unsigned short * const CpuId::mPackage   = (const unsigned short*)0x1FFFF7AC; // signature instead of package
 const unsigned long * const  CpuId::mCpuId     = (const unsigned long*) 0xE0042000;
 #else
 const unsigned long * const  CpuId::mSignature = (const unsigned long*) 0x1FFF7A10;

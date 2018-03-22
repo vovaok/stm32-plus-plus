@@ -268,16 +268,18 @@ bool Usart::open(OpenMode mode)
     {
         mConfig.USART_Mode |= USART_Mode_Rx;
         mRxBuffer.resize(mRxBufferSize); ///////////////////////////////!!!!!! power of two only!!!!
-#if !defined(STM32F37X)
         if (mUseDmaRx)
         {
             if (!mDmaRx)
+#if defined(STM32F37X)
+                mDmaRx = new Dma(mDmaChannelRx);
+#else
                 mDmaRx = Dma::getStreamForPeriph(mDmaChannelRx);
+#endif
             mDmaRx->setCircularBuffer(mRxBuffer.data(), mRxBuffer.size());
             mDmaRx->setSource((void*)&mDev->RDR, 1);
         }
         else
-#endif
         {
             NVIC_InitTypeDef NVIC_InitStructure;
             NVIC_InitStructure.NVIC_IRQChannel = mIrq;
@@ -293,20 +295,21 @@ bool Usart::open(OpenMode mode)
     {
         mConfig.USART_Mode |= USART_Mode_Tx;
         mTxBuffer.resize(mTxBufferSize);
-#if !defined(STM32F37X)
         if (mUseDmaTx)
         {
             if (!mDmaTx)
+#if defined(STM32F37X)
+                mDmaTx = new Dma(mDmaChannelTx);
+#else              
                 mDmaTx = Dma::getStreamForPeriph(mDmaChannelTx);
+#endif
             mDmaTx->setSink((void*)&mDev->TDR, 1);
             mDmaTx->setTransferCompleteEvent(EVENT(&Usart::dmaTxComplete));
         }
-#endif
     }
     
     init();
-    
-#if !defined(STM32F37X)    
+       
     if (mDmaRx && mUseDmaRx)
     {
         USART_DMACmd(mDev, USART_DMAReq_Rx, ENABLE);
@@ -318,7 +321,6 @@ bool Usart::open(OpenMode mode)
         USART_DMACmd(mDev, USART_DMAReq_Tx, ENABLE);
         (unsigned int&)mode |= Write;
     }
-#endif
     
     USART_Cmd(mDev, ENABLE);
     
@@ -327,8 +329,7 @@ bool Usart::open(OpenMode mode)
 }
 
 void Usart::close()
-{
-#if !defined(STM32F37X)  
+{ 
     if (mDmaRx)
     {
         USART_DMACmd(mDev, USART_DMAReq_Rx, DISABLE);
@@ -343,7 +344,6 @@ void Usart::close()
         delete mDmaTx;
         mDmaTx = 0L;
     }
-#endif
     
     USART_Cmd(mDev, DISABLE);
     SerialInterface::close();
@@ -353,10 +353,8 @@ void Usart::close()
 static int written = 0;
 
 int Usart::write(const char *data, int size)
-{
-#if !defined(STM32F37X)   
+{  
     if (!mDmaTx)
-#endif
     {
         for (int i=0; i<size; i++)
         {
@@ -366,8 +364,7 @@ int Usart::write(const char *data, int size)
         while (!(mDev->SR & USART_FLAG_TC));
         return size;
     }
-    
-#if !defined(STM32F37X)    
+       
     //  write through DMA
     int mask = mTxBuffer.size() - 1;
     int curPos = (mTxReadPos - mDmaTx->dataCounter()) & mask;
@@ -394,7 +391,6 @@ int Usart::write(const char *data, int size)
     mTxReadPos = (mTxReadPos + sz) & mask;
     mDmaTx->start();
     return size;
-#endif
 }
 
 int Usart::write(const ByteArray &ba)
@@ -404,12 +400,8 @@ int Usart::write(const ByteArray &ba)
 
 int Usart::read(ByteArray &ba)
 {
-    int mask = mRxBuffer.size() - 1;
-#if !defined(STM32F37X)    
+    int mask = mRxBuffer.size() - 1;   
     int curPos = mDmaRx? (mRxBuffer.size() - mDmaRx->dataCounter()): mRxIrqDataCounter;
-#else
-    int curPos = mRxIrqDataCounter;
-#endif    
     int read = (curPos - mRxPos) & mask;
     if (m7bits)
     {
@@ -428,12 +420,8 @@ int Usart::read(ByteArray &ba)
 
 bool Usart::canReadLine()
 {
-    int mask = mRxBuffer.size() - 1;
-#if !defined(STM32F37X)    
+    int mask = mRxBuffer.size() - 1;  
     int curPos = mDmaRx? (mRxBuffer.size() - mDmaRx->dataCounter()): mRxIrqDataCounter;
-#else
-    int curPos = mRxIrqDataCounter;
-#endif
     int read = (curPos - mRxPos) & mask;
     unsigned char bitmask = m7bits? 0x7F: 0xFF;
     for (int i=mRxPos; i<mRxPos+read; i++)
@@ -455,12 +443,8 @@ bool Usart::canReadLine()
 
 int Usart::readLine(ByteArray &ba)
 {
-    int mask = mRxBuffer.size() - 1;
-#if !defined(STM32F37X)    
-    int curPos = mDmaRx? (mRxBuffer.size() - mDmaRx->dataCounter()): mRxIrqDataCounter;
-#else
-    int curPos = mRxIrqDataCounter;
-#endif    
+    int mask = mRxBuffer.size() - 1;  
+    int curPos = mDmaRx? (mRxBuffer.size() - mDmaRx->dataCounter()): mRxIrqDataCounter;   
     int read = (curPos - mRxPos) & mask;
     int i = mRxPos, endi = 0;
     unsigned char bitmask = m7bits? 0x7F: 0xFF;
@@ -480,7 +464,6 @@ int Usart::readLine(ByteArray &ba)
 }
 //---------------------------------------------------------------------------
 
-#if !defined(STM32F37X) 
 void Usart::dmaTxComplete()
 {
     int mask = mTxBuffer.size() - 1;
@@ -496,7 +479,6 @@ void Usart::dmaTxComplete()
     mTxReadPos = (mTxReadPos + sz) & mask;
     mDmaTx->start();
 }
-#endif
 //---------------------------------------------------------------------------
 
 void Usart::setBaudrate(int baudrate)
@@ -530,7 +512,6 @@ void Usart::setBufferSize(int size_bytes)
     mTxBufferSize = mRxBufferSize;
 }
 
-#if !defined(STM32F37X) 
 void Usart::setUseDmaRx(bool useDma)
 {
     if (isOpen())
@@ -544,7 +525,6 @@ void Usart::setUseDmaTx(bool useDma)
         throw Exception::resourceBusy;
     mUseDmaTx = useDma;
 }
-#endif
 
 void Usart::setLineEnd(ByteArray lineend)
 {

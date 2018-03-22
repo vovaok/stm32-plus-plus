@@ -3,8 +3,13 @@
 using namespace Objnet;
 
 ObjnetStorage* ObjnetStorage::mSelf = 0L;
+#if defined(STM32F37X)
+Flash::Sector ObjnetStorage::mSector1 = (Flash::Sector)126;
+Flash::Sector ObjnetStorage::mSector2 = (Flash::Sector)127;
+#else
 Flash::Sector ObjnetStorage::mSector1 = Flash::Sector10;
 Flash::Sector ObjnetStorage::mSector2 = Flash::Sector11;
+#endif
 
 void ObjnetStorage::setFlashSectors(Flash::Sector sector1, Flash::Sector sector2)
 {

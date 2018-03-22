@@ -2962,7 +2962,7 @@
         </option>
         <option>
           <name>OGLastSavedByProductVersion</name>
-          <state>7.40.7.9864</state>
+          <state>7.50.3.10745</state>
         </option>
         <option>
           <name>GeneralEnableMisra</name>
@@ -3070,7 +3070,7 @@
         </option>
         <option>
           <name>CCDefines</name>
-          <state>STM32F4XX</state>
+          <state>STM32F40XX</state>
         </option>
         <option>
           <name>CCPreprocFile</name>
@@ -3548,7 +3548,7 @@
         </option>
         <option>
           <name>IlinkOutputFile</name>
-          <state>###Unitialized###</state>
+          <state>stm32++.out</state>
         </option>
         <option>
           <name>IlinkDebugInfoEnable</name>
@@ -9088,28 +9088,57 @@
   </file>
   <file>
     <name>$PROJ_DIR$\src\dac37x.cpp</name>
+    <excluded>
+      <configuration>stm32f407zg</configuration>
+      <configuration>stm32f407vg</configuration>
+      <configuration>stm32f405rg</configuration>
+      <configuration>stm32f405rg_no-exceptions_no-rtti</configuration>
+    </excluded>
   </file>
   <file>
     <name>$PROJ_DIR$\src\dac37x.h</name>
+    <excluded>
+      <configuration>stm32f407zg</configuration>
+      <configuration>stm32f407vg</configuration>
+      <configuration>stm32f405rg</configuration>
+      <configuration>stm32f405rg_no-exceptions_no-rtti</configuration>
+    </excluded>
   </file>
   <file>
     <name>$PROJ_DIR$\src\dac4xx.h</name>
-  </file>
-  <file>
-    <name>$PROJ_DIR$\src\dma.cpp</name>
-    <excluded>
-      <configuration>stm32f373xB</configuration>
-      <configuration>stm32f373xB_no-exceptions_no-rtti</configuration>
-    </excluded>
   </file>
   <file>
     <name>$PROJ_DIR$\src\dma.h</name>
   </file>
   <file>
     <name>$PROJ_DIR$\src\dma37x.cpp</name>
+    <excluded>
+      <configuration>stm32f407zg</configuration>
+      <configuration>stm32f407vg</configuration>
+      <configuration>stm32f405rg</configuration>
+      <configuration>stm32f405rg_no-exceptions_no-rtti</configuration>
+    </excluded>
   </file>
   <file>
     <name>$PROJ_DIR$\src\dma37x.h</name>
+    <excluded>
+      <configuration>stm32f407zg</configuration>
+      <configuration>stm32f407vg</configuration>
+      <configuration>stm32f405rg</configuration>
+      <configuration>stm32f405rg_no-exceptions_no-rtti</configuration>
+    </excluded>
+  </file>
+  <file>
+    <name>$PROJ_DIR$\src\dma4xx.cpp</name>
+    <excluded>
+      <configuration>stm32f373xB</configuration>
+    </excluded>
+  </file>
+  <file>
+    <name>$PROJ_DIR$\src\dma4xx.h</name>
+    <excluded>
+      <configuration>stm32f373xB</configuration>
+    </excluded>
   </file>
   <file>
     <name>$PROJ_DIR$\src\encoder.cpp</name>
@@ -9118,17 +9147,27 @@
     <name>$PROJ_DIR$\src\encoder.h</name>
   </file>
   <file>
-    <name>$PROJ_DIR$\src\flash.cpp</name>
+    <name>$PROJ_DIR$\src\flash.h</name>
     <excluded>
-      <configuration>stm32f373xB</configuration>
       <configuration>stm32f373xB_no-exceptions_no-rtti</configuration>
     </excluded>
   </file>
   <file>
-    <name>$PROJ_DIR$\src\flash.h</name>
+    <name>$PROJ_DIR$\src\flash37x.cpp</name>
+  </file>
+  <file>
+    <name>$PROJ_DIR$\src\flash37x.h</name>
+  </file>
+  <file>
+    <name>$PROJ_DIR$\src\flash4xx.cpp</name>
     <excluded>
       <configuration>stm32f373xB</configuration>
-      <configuration>stm32f373xB_no-exceptions_no-rtti</configuration>
+    </excluded>
+  </file>
+  <file>
+    <name>$PROJ_DIR$\src\flash4xx.h</name>
+    <excluded>
+      <configuration>stm32f373xB</configuration>
     </excluded>
   </file>
   <file>
@@ -9226,6 +9265,12 @@
   </file>
   <file>
     <name>$PROJ_DIR$\src\rgbled.h</name>
+  </file>
+  <file>
+    <name>$PROJ_DIR$\src\sdadc.cpp</name>
+  </file>
+  <file>
+    <name>$PROJ_DIR$\src\sdadc.h</name>
   </file>
   <file>
     <name>$PROJ_DIR$\src\spi.cpp</name>

@@ -2,9 +2,7 @@
 #define _USART_H
 
 #include "gpio.h"
-#if !defined(STM32F37X)
-    #include "dma.h"
-#endif
+#include "dma.h"
 #include "rcc.h"
 #include "serial/serialinterface.h"
 
@@ -64,17 +62,13 @@ private:
     USART_TypeDef *mDev;
     USART_InitTypeDef mConfig;
     bool mConfigured;
-#if !defined(STM32F37X) 
     bool mUseDmaRx, mUseDmaTx;
-#endif
     ByteArray mRxBuffer;
     ByteArray mTxBuffer;
-#if !defined(STM32F37X)
     Dma::DmaChannel mDmaChannelRx;
     Dma::DmaChannel mDmaChannelTx;
     Dma *mDmaRx;
     Dma *mDmaTx;
-#endif
     IRQn mIrq;
     int mRxPos;
     int mRxIrqDataCounter;
@@ -87,10 +81,8 @@ private:
     
     void commonConstructor(UsartNo number, int baudrate, Config config);
     void init();
-    
-#if !defined(STM32F37X)     
+       
     void dmaTxComplete();
-#endif
     
     friend void USART1_IRQHandler();
     friend void USART2_IRQHandler();
@@ -111,10 +103,9 @@ public:
     ~Usart();
     
     void setBufferSize(int size_bytes);
-#if !defined(STM32F37X)
     void setUseDmaRx(bool useDma);
     void setUseDmaTx(bool useDma);
-#endif
+    
     void setLineEnd(ByteArray lineend);
     const ByteArray &lineEnd() const {return mLineEnd;}
     

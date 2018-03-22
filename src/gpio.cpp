@@ -7,11 +7,11 @@
 
 unsigned char Gpio::mPinsUsed[140]; // assuming all items = 0 at startup
 
-Gpio::Gpio(PinName pin, Flags flags, PinAF altFunction)
+Gpio::Gpio(PinName pin, Flags flags/*, PinAF altFunction*/)
 {
     mConfig.pin = pin;
     mConfig.flags = flags;
-    mConfig.af = altFunction;
+//    mConfig.af = altFunction;
     mPort = getPortByNumber(mConfig.portNumber);
     mPin = pin==noPin? 0: (1 << mConfig.pinNumber);
     config(mConfig.config);

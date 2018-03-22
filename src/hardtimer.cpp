@@ -119,6 +119,38 @@ HardwareTimer::HardwareTimer(TimerNumber timerNumber, unsigned int frequency_Hz)
 #endif
         break;
         
+#if defined(STM32F37X)
+      case 15:  
+        RCC_APB2PeriphClockCmd(RCC_APB2Periph_TIM15, ENABLE);
+        mTim = TIM15;
+        mIrq = TIM15_IRQn;
+        break;
+        
+      case 16:  
+        RCC_APB2PeriphClockCmd(RCC_APB2Periph_TIM16, ENABLE);
+        mTim = TIM16;
+        mIrq = TIM16_IRQn;
+        break;
+        
+      case 17:  
+        RCC_APB2PeriphClockCmd(RCC_APB2Periph_TIM17, ENABLE);
+        mTim = TIM17;
+        mIrq = TIM17_IRQn;
+        break;
+        
+      case 18:  
+        RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM18, ENABLE);
+        mTim = TIM18;
+        mIrq = TIM18_DAC2_IRQn;
+        break;
+        
+      case 19:  
+        RCC_APB2PeriphClockCmd(RCC_APB2Periph_TIM19, ENABLE);
+        mTim = TIM19;
+        mIrq = TIM19_IRQn;
+        break;
+#endif
+        
       default:
         return;
     }
@@ -156,14 +188,14 @@ HardwareTimer::HardwareTimer(TimerNumber timerNumber, unsigned int frequency_Hz)
 
 TimerNumber HardwareTimer::getTimerByPin(Gpio::Config pinConfig)
 {
+    #if defined(STM32F37X)
+  
+    return static_cast<TimerNumber>(GpioConfigGetPeriphNumber(pinConfig));
+  
+    #else
+  
     switch (pinConfig)
-    {
-#if defined(STM32F37X)
-        // TIM2   
-        case Gpio::TIM2_CH1_PA0: case Gpio::TIM2_CH2_PA1: case Gpio::TIM2_CH3_PA2: case Gpio::TIM2_CH4_PA3:
-        return Tim2;
-      
-#else
+    {      
         // TIM1
         case Gpio::TIM1_BKIN_PA6: case Gpio::TIM1_CH1N_PA7: case Gpio::TIM1_CH1_PA8: case Gpio::TIM1_CH2_PA9:
         case Gpio::TIM1_CH3_PA10: case Gpio::TIM1_CH4_PA11: case Gpio::TIM1_ETR_PA12: case Gpio::TIM1_CH2N_PB0:
@@ -209,19 +241,31 @@ TimerNumber HardwareTimer::getTimerByPin(Gpio::Config pinConfig)
         case Gpio::TIM13_CH1_PA6: case Gpio::TIM13_CH1_PF8: return Tim13;
         // TIM14
         case Gpio::TIM14_CH1_PA7: case Gpio::TIM14_CH1_PF9: return Tim14; 
-#endif
         // NO TIMER
         default: return TimNone;
     }
+    
+    #endif
 }
 
 ChannelNumber HardwareTimer::getChannelByPin(Gpio::Config pinConfig)
 {
+    #if defined(STM32F37X)
+
+    switch (GpioConfigGetPeriphChannel(pinConfig))
+    {
+        case 1: return Ch1;
+        case 2: return Ch2;
+        case 3: return Ch3;
+        case 4: return Ch4;
+        default: return ChNone;
+    }
+  
+    #else    
+    
     switch (pinConfig)
     {
-#if defined(STM32F37X)
-
-#else      
+    
         // CH1
         case Gpio::TIM1_CH1N_PA7: case Gpio::TIM1_CH1_PA8: case Gpio::TIM1_CH1N_PB13: case Gpio::TIM1_CH1N_PE8:
         case Gpio::TIM1_CH1_PE9: case Gpio::TIM2_CH1_PA0: case Gpio::TIM2_CH1_PA5: case Gpio::TIM2_CH1_PA15: 
@@ -250,10 +294,11 @@ ChannelNumber HardwareTimer::getChannelByPin(Gpio::Config pinConfig)
         case Gpio::TIM3_CH4_PB1: case Gpio::TIM3_CH4_PC9: case Gpio::TIM4_CH4_PB9: case Gpio::TIM4_CH4_PD15:
         case Gpio::TIM5_CH4_PA3: case Gpio::TIM5_CH4_PI0: case Gpio::TIM8_CH4_PC9: case Gpio::TIM8_CH4_PI2:
         return Ch4;
-#endif
         // NO CHANNEL
         default: return ChNone;
     }
+    
+    #endif
 }
 //---------------------------------------------------------------------------
 
