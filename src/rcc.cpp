@@ -84,10 +84,10 @@ void Rcc::configPll(unsigned long hseValue, unsigned long sysClk)
             // calculate hseValue
             fr1 -= fr0;
             hseValue = ((16 * 30) * loopCount + fr1 / 2) / fr1;
-#if defined(STM32F429_439xx)
-#warning RCC FUCKING HACK!!! Tak ne doljno bit!!
-            hseValue = (hseValue + 2) / 4;      
-#endif
+//#if defined(STM32F429_439xx)
+//#warning RCC FUCKING HACK!!! Tak ne doljno bit!!
+//            hseValue = (hseValue + 2);// / 4;      
+//#endif
             hseValue *= 1000000;
         }
         
