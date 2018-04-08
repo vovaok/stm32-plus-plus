@@ -29,6 +29,13 @@ class ObjnetInterface : public QObject
 private:
 
 protected:
+//    typedef enum
+//    {
+//        IfUnknown = 0
+//        IfCan,
+//        IfUsbHid,
+//        IfUart
+//    } Type;
     int mMaxFrameSize; //!< Maximal data size in frame
 
 public:

@@ -13,7 +13,8 @@ Usart::Usart(UsartNo number, int baudrate, Config config, Gpio::Config pinTx, Gp
     mTxPos(0),
     mTxReadPos(0),
     mTxBufferSize(64),
-    mLineEnd("\n")
+    mLineEnd("\n"),
+    mHalfDuplex(false)
 {  
     Gpio::config(pinRx);
     Gpio::config(pinTx);
@@ -30,7 +31,8 @@ Usart::Usart(Gpio::Config pinTx, Gpio::Config pinRx) :
     mTxPos(0),
     mTxReadPos(0),
     mTxBufferSize(64),
-    mLineEnd("\n")
+    mLineEnd("\n"),
+    mHalfDuplex(false)
 {
     UsartNo number = UsartNone;
     if (pinTx != Gpio::NoConfig)
@@ -40,6 +42,13 @@ Usart::Usart(Gpio::Config pinTx, Gpio::Config pinRx) :
     Gpio::config(pinRx);
     Gpio::config(pinTx);
     commonConstructor(number, 57600, Mode8N1);
+        
+    if (pinRx == Gpio::NoConfig) // if only TX pin is given
+    {
+        // half-duplex mode:
+        mDev->CR3 |= USART_CR3_HDSEL;
+        mHalfDuplex = true;
+    }
 }
 
 void Usart::commonConstructor(UsartNo number, int baudrate, Config config)
@@ -300,7 +309,7 @@ void Usart::close()
 static int written = 0;
 
 int Usart::write(const char *data, int size)
-{
+{  
     if (!mDmaTx)
     {
         for (int i=0; i<size; i++)
@@ -336,6 +345,13 @@ int Usart::write(const char *data, int size)
         sz = mTxBufferSize - mTxReadPos;
     mDmaTx->setSingleBuffer(mTxBuffer.data() + mTxReadPos, sz);
     mTxReadPos = (mTxReadPos + sz) & mask;
+    
+    if (mHalfDuplex)
+        mDev->CR1 &= ~USART_CR1_RE;
+    
+//    if (mHalfDuplex)
+//        mDev->CR1 |= USART_CR1_RWU;
+    
     mDmaTx->start();
     return size;
 }
@@ -420,6 +436,11 @@ void Usart::dmaTxComplete()
     if (!sz)
     {
         mDmaTx->stop();
+        if (mHalfDuplex)
+        {
+            while (!(mDev->SR & USART_SR_TC)); // wait for last byte is being written
+            mDev->CR1 |= USART_CR1_RE;
+        }
         return;
     }
     mDmaTx->setSingleBuffer(mTxBuffer.data() + mTxReadPos, sz);
