@@ -7769,7 +7769,7 @@
         </option>
         <option>
           <name>OGLastSavedByProductVersion</name>
-          <state>7.40.7.9864</state>
+          <state>7.50.3.10745</state>
         </option>
         <option>
           <name>GeneralEnableMisra</name>
@@ -8846,6 +8846,7 @@
         <configuration>stm32f407vg</configuration>
         <configuration>stm32f405rg</configuration>
         <configuration>stm32f405rg_no-exceptions_no-rtti</configuration>
+        <configuration>stm32f429zi</configuration>
       </excluded>
     </file>
     <file>
@@ -8859,7 +8860,6 @@
       <configuration>stm32f373xB_no-exceptions_no-rtti</configuration>
       <configuration>stm32f407zg</configuration>
       <configuration>stm32f427ii</configuration>
-      <configuration>stm32f429zi</configuration>
     </excluded>
     <group>
       <name>otgDriver</name>
@@ -9093,6 +9093,7 @@
       <configuration>stm32f407vg</configuration>
       <configuration>stm32f405rg</configuration>
       <configuration>stm32f405rg_no-exceptions_no-rtti</configuration>
+      <configuration>stm32f429zi</configuration>
     </excluded>
   </file>
   <file>
@@ -9102,6 +9103,7 @@
       <configuration>stm32f407vg</configuration>
       <configuration>stm32f405rg</configuration>
       <configuration>stm32f405rg_no-exceptions_no-rtti</configuration>
+      <configuration>stm32f429zi</configuration>
     </excluded>
   </file>
   <file>
@@ -9117,6 +9119,7 @@
       <configuration>stm32f407vg</configuration>
       <configuration>stm32f405rg</configuration>
       <configuration>stm32f405rg_no-exceptions_no-rtti</configuration>
+      <configuration>stm32f429zi</configuration>
     </excluded>
   </file>
   <file>
@@ -9126,6 +9129,7 @@
       <configuration>stm32f407vg</configuration>
       <configuration>stm32f405rg</configuration>
       <configuration>stm32f405rg_no-exceptions_no-rtti</configuration>
+      <configuration>stm32f429zi</configuration>
     </excluded>
   </file>
   <file>
@@ -9154,9 +9158,15 @@
   </file>
   <file>
     <name>$PROJ_DIR$\src\flash37x.cpp</name>
+    <excluded>
+      <configuration>stm32f429zi</configuration>
+    </excluded>
   </file>
   <file>
     <name>$PROJ_DIR$\src\flash37x.h</name>
+    <excluded>
+      <configuration>stm32f429zi</configuration>
+    </excluded>
   </file>
   <file>
     <name>$PROJ_DIR$\src\flash4xx.cpp</name>

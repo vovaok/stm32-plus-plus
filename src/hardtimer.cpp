@@ -1,6 +1,6 @@
 #include "hardtimer.h"
 
-HardwareTimer* HardwareTimer::mTimers[14] = {0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L};
+HardwareTimer* HardwareTimer::mTimers[19] = {0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L};
 
 HardwareTimer::HardwareTimer(TimerNumber timerNumber, unsigned int frequency_Hz) :
   mEnabled(false)
@@ -304,7 +304,7 @@ ChannelNumber HardwareTimer::getChannelByPin(Gpio::Config pinConfig)
 
 void HardwareTimer::selectInputTrigger(InputTrigger trgi)
 {
-    mTim->SMCR = (mTim->SMCR & ~TIM_SMCR_TS) | (trgi & TIM_SMCR_TS);
+    mTim->SMCR = (mTim->SMCR & ~TIM_SMCR_TS) | ((trgi<<4) & TIM_SMCR_TS);
 }
 
 void HardwareTimer::setSlaveMode(SlaveMode sms)
@@ -577,6 +577,12 @@ void TIM14_IRQHandler()
 {
     if (HardwareTimer::mTimers[14-1])
         HardwareTimer::mTimers[14-1]->handleInterrupt();
+}
+
+void TIM15_IRQHandler()
+{
+    if (HardwareTimer::mTimers[15-1])
+        HardwareTimer::mTimers[15-1]->handleInterrupt();
 }
 
 #ifdef __cplusplus

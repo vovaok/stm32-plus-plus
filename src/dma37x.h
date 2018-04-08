@@ -7,8 +7,17 @@
 
 typedef struct
 {
+  __IO uint32_t CCR;          //!< DMA channel x configuration register
+  __IO uint32_t CNDTR;        //!< DMA channel x number of data register 
+  __IO uint32_t CPAR;         //!< DMA channel x peripheral address register
+  __IO uint32_t CMAR;         //!< DMA channel x memory address register 
+  __IO uint32_t _RESERVED;
+} DMA_Channel;
+
+typedef struct
+{
     DMA_TypeDef status;
-    DMA_Channel_TypeDef channel[7];
+    DMA_Channel channel[7];
 } DmaPeriph;
 
 #if defined(DMA1)
@@ -23,8 +32,8 @@ typedef struct
 //--------------------------------------------------------------------------
 
 #define FOR_EACH_DMA(f) \
-    f(1,0) f(1,1) f(1,2) f(1,3) f(1,4) f(1,5) f(1,6)\
-    f(2,0) f(2,1) f(2,2) f(2,3) f(2,4)
+    f(1,1) f(1,2) f(1,3) f(1,4) f(1,5) f(1,6) f(1,7)\
+    f(2,1) f(2,2) f(2,3) f(2,4) f(2,5)
 #define DECLARE_DMA_IRQ_HANDLER(x,y) extern "C" void DMA##x##_Channel##y##_IRQHandler();
 #define DECLARE_FRIEND(x,y) friend void DMA##x##_Channel##y##_IRQHandler();
       
@@ -113,7 +122,7 @@ private:
     static Dma *mDma1Channels[7];
     static Dma *mDma2Channels[5];
     DmaPeriph *mDma;
-    DMA_Channel_TypeDef *mDmaChan;
+    DMA_Channel *mDmaChan;
     unsigned char mChannel;
     
     IRQn mIrq;

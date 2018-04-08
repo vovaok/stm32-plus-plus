@@ -41,7 +41,7 @@ SDAdc::SDAdc(Gpio::Config regularChannelP, Gpio::Config regularChannelM)
     
     /* Set the SDADC divider: The SDADC should run @6MHz */
     /* If Sysclk is 72MHz, SDADC divider should be 12 */
-    RCC_SDADCCLKConfig(RCC_SDADCCLK_SYSCLK_Div12);
+    RCC_SDADCCLKConfig(RCC_SDADCCLK_SYSCLK_Div48);
     
     Gpio::config(regularChannelP);
     Gpio::config(regularChannelM);
@@ -55,8 +55,8 @@ SDAdc::SDAdc(Gpio::Config regularChannelP, Gpio::Config regularChannelM)
     mDev->CR2 &= ~SDADC_CR2_RCH;
     mDev->CR2 |= (GpioConfigGetPeriphChannel(regularChannelP) << 16) & SDADC_CR2_RCH;
     
-    // enable fast conversion by default:
-    mDev->CR2 |= SDADC_CR2_FAST;
+//    // enable fast conversion by default:
+//    mDev->CR2 |= SDADC_CR2_FAST;
 }
 //---------------------------------------------------------------------------
 
@@ -96,7 +96,7 @@ void SDAdc::setEnabled(bool enabled)
 
 void SDAdc::startConversion()
 {
-    if (!mDev->JCHGR) // if there aren't injected channels
+    //if (!mDev->JCHGR) // if there aren't injected channels
     {
         // start regular conversion:
         mDev->CR2 |= SDADC_CR2_RSWSTART;
@@ -105,7 +105,7 @@ void SDAdc::startConversion()
     
 void SDAdc::startContinuousMode()
 {
-    if (!mDev->JCHGR) // if there aren't injected channels
+   // if (!mDev->JCHGR) // if there aren't injected channels
     {
         // enable continuous mode for regular channel:
         mDev->CR2 |= SDADC_CR2_RCONT;
@@ -116,7 +116,7 @@ void SDAdc::startContinuousMode()
 
 void SDAdc::stopContinuousMode()
 {
-    if (!mDev->JCHGR) // if there aren't injected channels
+  //  if (!mDev->JCHGR) // if there aren't injected channels
     {
         // disable continuous mode for regular channel:
         mDev->CR2 &= ~SDADC_CR2_RCONT;

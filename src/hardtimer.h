@@ -128,7 +128,7 @@ public:
     */
     HardwareTimer(TimerNumber timerNumber, unsigned int frequency_Hz=0);
     
-    static HardwareTimer* mTimers[14]; // should be private
+    static HardwareTimer* mTimers[19]; // should be private
     void handleInterrupt(); // should be private
     
     static TimerNumber getTimerByPin(Gpio::Config pinConfig);

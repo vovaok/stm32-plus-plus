@@ -10,8 +10,10 @@ private:
     static unsigned long mHseValue;
     static unsigned long mPllM;
     static unsigned long mPllN;
+#if !defined(STM32F37X)
     static unsigned long mPllP;
     static unsigned long mPllQ;
+#endif
     static unsigned long mSysClk;
     static unsigned long mAHBClk;
     static unsigned long mAPB1Clk;

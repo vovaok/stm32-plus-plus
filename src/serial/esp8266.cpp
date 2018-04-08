@@ -25,10 +25,10 @@ ESP8266::ESP8266(Usart *usart, Gpio::PinName resetPin) :
     mUsart->setBaudrate(78400);
     mUsart->setConfig(Usart::Mode8N1);
     mUsart->setBufferSize(4096); // 1024 for 3 ms!!
-#if !defined(STM32F37X)     
-    mUsart->setUseDmaRx(true);
-    mUsart->setUseDmaTx(true);
-#endif
+//#if defined(STM32F37X)     
+//    mUsart->setUseDmaRx(false);
+//    mUsart->setUseDmaTx(false);
+//#endif
     mUsart->setLineEnd("\r\n");
     mUsart->open(ReadWrite);
     
@@ -36,7 +36,7 @@ ESP8266::ESP8266(Usart *usart, Gpio::PinName resetPin) :
     mResetPin->write(1);
     
     mTimer.setTimeoutEvent(EVENT(&ESP8266::onTimer));
-    mTimer.start(1000);
+    mTimer.start(3000);
 }
 
 void ESP8266::task()

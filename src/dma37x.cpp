@@ -87,12 +87,15 @@ void Dma::start(int size)
 
 void Dma::stop(bool wait)
 {
-    mDmaChan->CCR &= ~DMA_CCR_EN; // disable channel
-    if (wait)
+    if (mDmaChan->CCR & DMA_CCR_EN) // if channel is enabled
     {
-        // wait for Transfer Complete flag status:
-        while (!(mDma->status.IFCR & (DMA_ISR_TCIF1 << (mChannel*4))));
-    }    
+        mDmaChan->CCR &= ~DMA_CCR_EN; // disable channel
+        if (wait)
+        {
+            // wait for Transfer Complete flag status:
+            while (!(mDma->status.ISR & (DMA_ISR_TCIF1 << (mChannel*4))));
+        }
+    }
 }
 
 void Dma::setEnabled(bool enable)
@@ -122,9 +125,10 @@ void Dma::setTransferCompleteEvent(NotifyEvent event)
 
 void Dma::handleInterrupt()
 {
-    bool sts = mDma->status.IFCR & (DMA_ISR_TCIF1 << (mChannel*4)); // get Transfer Complete flag status
-    mDma->status.IFCR = (DMA_IFCR_CTCIF1 << (mChannel*4)); // reset Transfer Complete flag
-   
+    bool sts = mDma->status.ISR & (DMA_ISR_TCIF1 << (mChannel*4)); // get Transfer Complete flag status
+    //mDma->status.IFCR = (DMA_IFCR_CTCIF1 << (mChannel*4)); // reset Transfer Complete flag
+    mDma->status.IFCR = (DMA_IFCR_CGIF1 << (mChannel*4)); // reset global status flag
+    
     if (sts && mOnTransferComplete)
         mOnTransferComplete(); 
 }
@@ -138,7 +142,7 @@ void Dma::handleInterrupt()
 #define DEFINE_DMA_IRQ_HANDLER(x,y) \
 void DMA##x##_Channel##y##_IRQHandler() \
 { \
-    Dma::mDma##x##Channels[y]->handleInterrupt(); \
+    Dma::mDma##x##Channels[y-1]->handleInterrupt(); \
 }
     
 FOR_EACH_DMA(DEFINE_DMA_IRQ_HANDLER)    
