@@ -90,7 +90,7 @@ void Dma::stop(bool wait)
     if (mDmaChan->CCR & DMA_CCR_EN) // if channel is enabled
     {
         mDmaChan->CCR &= ~DMA_CCR_EN; // disable channel
-        if (wait)
+        if (wait && mDmaChan->CNDTR) // wait if there is unsent data
         {
             // wait for Transfer Complete flag status:
             while (!(mDma->status.ISR & (DMA_ISR_TCIF1 << (mChannel*4))));

@@ -78,6 +78,7 @@ private:
     int mTxBufferSize;
     ByteArray mLineEnd;
     bool m7bits;
+    bool mHalfDuplex;
     
     void commonConstructor(UsartNo number, int baudrate, Config config);
     void init();
@@ -122,6 +123,8 @@ public:
     void setBaudrate(int baudrate);
     int baudrate() const {return mConfig.USART_BaudRate;}
     void setConfig(Config config);
+    
+    bool isHalfDuplex() const {return mHalfDuplex;}
 };
 
 #endif

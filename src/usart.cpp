@@ -3,6 +3,7 @@
 #if defined(STM32F37X) 
     Usart *Usart::mUsarts[3] = {0, 0, 0};
     #define SR ISR
+    #define USART_SR_TC USART_ISR_TC
 #else
     Usart *Usart::mUsarts[6] = {0, 0, 0, 0, 0, 0};
     #define RDR DR
@@ -10,7 +11,7 @@
 #endif
 //---------------------------------------------------------------------------
 
-Usart::Usart(UsartNo number, int baudrate, Config config, Gpio::Config pinTx, Gpio::Config pinRx) : 
+Usart::Usart(UsartNo number, int baudrate, Config config, Gpio::Config pinTx, Gpio::Config pinRx) :
     mUseDmaRx(true), mUseDmaTx(true),
     mDmaRx(0L),
     mDmaTx(0L),
@@ -20,14 +21,15 @@ Usart::Usart(UsartNo number, int baudrate, Config config, Gpio::Config pinTx, Gp
     mTxPos(0),
     mTxReadPos(0),
     mTxBufferSize(64),
-    mLineEnd("\n")
+    mLineEnd("\n"),
+    mHalfDuplex(false)
 {  
     Gpio::config(pinRx);
     Gpio::config(pinTx);
     commonConstructor(number, baudrate, config);
 }
 
-Usart::Usart(Gpio::Config pinTx, Gpio::Config pinRx) :  
+Usart::Usart(Gpio::Config pinTx, Gpio::Config pinRx) :
     mUseDmaRx(true), mUseDmaTx(true),
     mDmaRx(0L),
     mDmaTx(0L),
@@ -37,7 +39,8 @@ Usart::Usart(Gpio::Config pinTx, Gpio::Config pinRx) :
     mTxPos(0),
     mTxReadPos(0),
     mTxBufferSize(64),
-    mLineEnd("\n")
+    mLineEnd("\n"),
+    mHalfDuplex(false)
 {
     UsartNo number = UsartNone;
     if (pinTx != Gpio::NoConfig)
@@ -53,6 +56,7 @@ Usart::Usart(Gpio::Config pinTx, Gpio::Config pinRx) :
     {
         // half-duplex mode:
         mDev->CR3 |= USART_CR3_HDSEL;
+        mHalfDuplex = true;
     }
 }
 
@@ -88,7 +92,7 @@ void Usart::commonConstructor(UsartNo number, int baudrate, Config config)
         
       case Usart3:  
         mDev = USART3;
-        RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART3, ENABLE);       
+        RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART3, ENABLE);
 #if defined(STM32F37X)
         mDmaChannelRx = Dma::Channel3_USART3_RX;
         mDmaChannelTx = Dma::Channel2_USART3_TX;
@@ -135,7 +139,7 @@ void Usart::commonConstructor(UsartNo number, int baudrate, Config config)
 }
 
 Usart::~Usart()
-{ 
+{
     if (mDmaRx)
         delete mDmaRx;
     if (mDmaTx)
@@ -241,6 +245,10 @@ void Usart::init()
     apbclock = ((mDev == USART1) || (mDev == USART6))? Rcc::pClk2(): Rcc::pClk1();
     #endif
 
+#if defined(STM32F37X)
+    tmpreg = apbclock / mConfig.USART_BaudRate;
+    
+#else
     // Determine the integer part
     if ((mDev->CR1 & USART_CR1_OVER8) != 0)
     {
@@ -262,9 +270,12 @@ void Usart::init()
         tmpreg |= ((((fractionaldivider * 8) + 50) / 100)) & ((uint8_t)0x07);
     else
         tmpreg |= ((((fractionaldivider * 16) + 50) / 100)) & ((uint8_t)0x0F);
-
+#endif
+    
+    mDev->CR1 &= ~(USART_CR1_UE);
     // Write to USART BRR register
     mDev->BRR = (uint16_t)tmpreg;
+    mDev->CR1 |= (USART_CR1_UE);
 }
 //---------------------------------------------------------------------------
 
@@ -295,8 +306,8 @@ bool Usart::open(OpenMode mode)
         {
             NVIC_InitTypeDef NVIC_InitStructure;
             NVIC_InitStructure.NVIC_IRQChannel = mIrq;
-            NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 2;
-            NVIC_InitStructure.NVIC_IRQChannelSubPriority = 2;
+            NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
+            NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
             NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
             NVIC_Init(&NVIC_InitStructure);
             
@@ -321,7 +332,7 @@ bool Usart::open(OpenMode mode)
     }
     
     init();
-       
+    
     if (mDmaRx && mUseDmaRx)
     {
         USART_DMACmd(mDev, USART_DMAReq_Rx, ENABLE);
@@ -341,7 +352,7 @@ bool Usart::open(OpenMode mode)
 }
 
 void Usart::close()
-{ 
+{
     if (mDmaRx)
     {
         USART_DMACmd(mDev, USART_DMAReq_Rx, DISABLE);
@@ -376,7 +387,7 @@ int Usart::write(const char *data, int size)
         while (!(mDev->SR & USART_FLAG_TC));
         return size;
     }
-       
+    
     //  write through DMA
     int mask = mTxBuffer.size() - 1;
     int curPos = (mTxReadPos - mDmaTx->dataCounter()) & mask;
@@ -401,6 +412,13 @@ int Usart::write(const char *data, int size)
         sz = mTxBufferSize - mTxReadPos;
     mDmaTx->setSingleBuffer(mTxBuffer.data() + mTxReadPos, sz);
     mTxReadPos = (mTxReadPos + sz) & mask;
+    
+    if (mHalfDuplex)
+        mDev->CR1 &= ~USART_CR1_RE;
+    
+//    if (mHalfDuplex)
+//        mDev->CR1 |= USART_CR1_RWU;
+    
     mDmaTx->start();
     return size;
 }
@@ -412,7 +430,7 @@ int Usart::write(const ByteArray &ba)
 
 int Usart::read(ByteArray &ba)
 {
-    int mask = mRxBuffer.size() - 1;   
+    int mask = mRxBuffer.size() - 1;
     int curPos = mDmaRx? (mRxBuffer.size() - mDmaRx->dataCounter()): mRxIrqDataCounter;
     int read = (curPos - mRxPos) & mask;
     if (m7bits)
@@ -432,7 +450,7 @@ int Usart::read(ByteArray &ba)
 
 bool Usart::canReadLine()
 {
-    int mask = mRxBuffer.size() - 1;  
+    int mask = mRxBuffer.size() - 1;
     int curPos = mDmaRx? (mRxBuffer.size() - mDmaRx->dataCounter()): mRxIrqDataCounter;
     int read = (curPos - mRxPos) & mask;
     unsigned char bitmask = m7bits? 0x7F: 0xFF;
@@ -455,8 +473,8 @@ bool Usart::canReadLine()
 
 int Usart::readLine(ByteArray &ba)
 {
-    int mask = mRxBuffer.size() - 1;  
-    int curPos = mDmaRx? (mRxBuffer.size() - mDmaRx->dataCounter()): mRxIrqDataCounter;   
+    int mask = mRxBuffer.size() - 1;
+    int curPos = mDmaRx? (mRxBuffer.size() - mDmaRx->dataCounter()): mRxIrqDataCounter;
     int read = (curPos - mRxPos) & mask;
     int i = mRxPos, endi = 0;
     unsigned char bitmask = m7bits? 0x7F: 0xFF;
@@ -485,6 +503,12 @@ void Usart::dmaTxComplete()
     if (!sz)
     {
         mDmaTx->stop();
+        if (mHalfDuplex)
+        {
+            
+            while (!(mDev->SR & USART_SR_TC)); // wait for last byte is being written
+            mDev->CR1 |= USART_CR1_RE;
+        }
         return;
     }
     mDmaTx->setSingleBuffer(mTxBuffer.data() + mTxReadPos, sz);
@@ -546,6 +570,12 @@ void Usart::setLineEnd(ByteArray lineend)
 
 void Usart::handleInterrupt()
 {
+    if (mDev->SR & USART_ISR_ORE)
+    {
+        // overrun
+        mDev->ICR = USART_ICR_ORECF;
+    }
+  
     if (USART_GetITStatus(mDev, USART_IT_RXNE) == SET)
     {
         mRxBuffer[mRxIrqDataCounter++] = mDev->RDR & (uint16_t)0x01FF;

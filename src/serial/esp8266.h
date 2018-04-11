@@ -46,6 +46,8 @@ private:
         cmdConnectToAp,
         cmdIpMux,
         cmdIpServer,
+        cmdCwjap,
+        cmdCipsta
     } Command;
     
     typedef enum
@@ -67,6 +69,10 @@ private:
     Command mLastCmd;
     int mLastData;
     int mTimeout;
+    
+    int mDefMode;
+    string mStaSSID, mStaPass;
+    string mStaIp, mStaGateway, mStaNetmask;
     
     ByteArray mOutBuffer, mInBuffer, mLineBuffer;
     
@@ -106,6 +112,7 @@ public:
     void setDefaultBaudrate(int baudrate) {mBaudrate = baudrate;}
     void setEchoEnabled(bool enabled);
     void setAPMode(string ssid, string pass="");
+    void setStationMode(string ssid, string pass="");
     void saveTransLink(string translink_string);
     void setOnbStaMode(string autoConnIp);
     void autoConnectToAp(string ssid_and_pass);

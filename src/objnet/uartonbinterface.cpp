@@ -1,12 +1,15 @@
 #include "uartonbinterface.h"
 
+#define SWONB_BUSY_TIMEOUT  2
+
 using namespace Objnet;
 
 UartOnbInterface::UartOnbInterface(SerialInterface *serialInterface) :
     mInterface(serialInterface),
     mReadCnt(0),
     mWriteTimer(30),
-    cs(0), esc(0), cmd_acc(0)
+    cs(0), esc(0), cmd_acc(0),
+    mHdBusyTimeout(0)
 { 
     mMaxFrameSize = 64;
     stmApp()->registerTaskEvent(EVENT(&UartOnbInterface::task));
@@ -20,9 +23,13 @@ void UartOnbInterface::task()
     ByteArray ba;
     if (mInterface->read(ba))
     {
+//        char sbuf[10];
+//        string s;
         for (int i=0; i<ba.size(); i++)
         {
             char byte = ba[i];
+//            sprintf(sbuf, "0x%02X ", byte);
+//            s += sbuf;
             switch (byte)
             {
               case '\\':
@@ -58,28 +65,59 @@ void UartOnbInterface::task()
                 cs += byte;
             }
         }
+//        s += '\n';
+//        printf(s.c_str());
     }
     
-    if (mUnsendBuffer.size())
+    if (!mHdBusyTimeout)
     {
-        if (mInterface->write(mUnsendBuffer) > 0)
-            mUnsendBuffer.resize(0);
-    }
-    
-    if (mWriteTimer >= 30)
-    {
-        mWriteTimer = 0;
-        while (readTx(mCurTxMsg))
+        if (mUnsendBuffer.size())
         {
-            ByteArray ba;
-            unsigned long id = mCurTxMsg.id;
-            ba.append(reinterpret_cast<const char*>(&id), 4);
-            ba.append(mCurTxMsg.data, mCurTxMsg.size);
-            mUnsendBuffer = encode(ba);
+//            printf("unsend buffer write");
             if (mInterface->write(mUnsendBuffer) > 0)
+            {
                 mUnsendBuffer.resize(0);
-            else
-                break;
+                if (mInterface->isHalfDuplex())
+                    mHdBusyTimeout = SWONB_BUSY_TIMEOUT;
+            }
+        }
+        
+        if (mInterface->isHalfDuplex())
+            mWriteTimer = 30;
+        
+        if (mWriteTimer >= 30)
+        {
+            mWriteTimer = 0;
+            while (readTx(mCurTxMsg))
+            {
+                ByteArray ba;
+                unsigned long id = mCurTxMsg.id;
+                ba.append(reinterpret_cast<const char*>(&id), 4);
+                ba.append(mCurTxMsg.data, mCurTxMsg.size);
+                mUnsendBuffer = encode(ba);
+                
+//                string s = ">> ";
+//                char sbuf[10];
+//                for (int i=0; i<mUnsendBuffer.size(); i++)
+//                {
+//                    sprintf(sbuf, "0x%02X ", mUnsendBuffer[i]);
+//                    s += sbuf;
+//                }
+//                s += '\n';
+//                printf(s.c_str());
+                
+                if (mInterface->write(mUnsendBuffer) > 0)
+                {
+                    mUnsendBuffer.resize(0);
+                    if (mInterface->isHalfDuplex())
+                    {
+                        mHdBusyTimeout = SWONB_BUSY_TIMEOUT;
+                        break;
+                    }
+                }
+                else
+                    break;
+            }
         }
     }
 }
@@ -87,6 +125,8 @@ void UartOnbInterface::task()
 void UartOnbInterface::tick(int dt)
 {
     mWriteTimer += dt;
+    if (mHdBusyTimeout)
+        --mHdBusyTimeout;
 }
 //---------------------------------------------------------------------------
 
@@ -159,6 +199,8 @@ ByteArray UartOnbInterface::encode(const ByteArray &ba)
 
 void UartOnbInterface::msgReceived(const ByteArray &ba)
 {
+    mHdBusyTimeout = 0;
+    
     UartOnbMessage msg;
     msg.id = *reinterpret_cast<const unsigned long*>(ba.data());
     msg.size = ba.size() - 4;

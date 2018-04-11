@@ -69,6 +69,7 @@ protected:
     bool sendServiceMessage(unsigned char receiver, SvcOID oid, const ByteArray &ba = ByteArray());
     void sendServiceMessageSheduled(unsigned char receiver, SvcOID oid, const ByteArray &ba = ByteArray());
     bool sendServiceMessage(SvcOID oid, const ByteArray &ba = ByteArray());
+    bool sendServiceMessageToMac(unsigned char mac, SvcOID oid, const ByteArray &ba = ByteArray());
     bool sendGlobalServiceMessage(StdAID aid);
     bool sendGlobalServiceDataMessage(unsigned char aid, const ByteArray &ba);
     virtual void parseServiceMessage(CommonMessage &msg) = 0;

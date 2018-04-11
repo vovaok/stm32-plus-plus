@@ -46,6 +46,8 @@ private:
     ByteArray encode(const ByteArray &ba);
     
     void msgReceived(const ByteArray &ba);
+    
+    int mHdBusyTimeout; // busy timeout for half-duplex mode
   
 public:
     UartOnbInterface(SerialInterface *serialInterface);

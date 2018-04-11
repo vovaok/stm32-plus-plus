@@ -10,6 +10,7 @@ ObjnetDevice::ObjnetDevice(unsigned char netaddr) :
     mPresent(false),
     mTimeout(5),
     mAutoDelete(false),
+    mBusType(BusUnknown),
     mObjectCount(0)
 //    mStateChanged(false),
 //    mOrphanCount(0),
