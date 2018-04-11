@@ -78,6 +78,7 @@ public:
     void selectTrigger(Trigger trigger, Edge edge);
     
     void addChannel(int channel, SampleTime sampleTime = SampleTime_3Cycles);
+    void addChannel(int channel, Gpio::PinName pin, SampleTime sampleTime = SampleTime_3Cycles);
     
     void setEnabled(bool enable);
     bool isEnabled() const {return mEnabled;}

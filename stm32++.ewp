@@ -1038,7 +1038,7 @@
         </option>
         <option>
           <name>OGLastSavedByProductVersion</name>
-          <state>7.40.7.9864</state>
+          <state>7.50.3.10745</state>
         </option>
         <option>
           <name>GeneralEnableMisra</name>
@@ -1146,7 +1146,7 @@
         </option>
         <option>
           <name>CCDefines</name>
-          <state>STM32F4XX</state>
+          <state>STM32F40XX</state>
         </option>
         <option>
           <name>CCPreprocFile</name>
@@ -1624,7 +1624,7 @@
         </option>
         <option>
           <name>IlinkOutputFile</name>
-          <state>###Unitialized###</state>
+          <state>stm32++.out</state>
         </option>
         <option>
           <name>IlinkDebugInfoEnable</name>
@@ -6913,6 +6913,7 @@
     <file>
       <name>$PROJ_DIR$\src\serial\seriallink.cpp</name>
       <excluded>
+        <configuration>stm32f407zg</configuration>
         <configuration>stm32f407vg</configuration>
         <configuration>stm32f405rg</configuration>
         <configuration>stm32f405rg_no-exceptions_no-rtti</configuration>
@@ -6925,7 +6926,6 @@
   <group>
     <name>usb</name>
     <excluded>
-      <configuration>stm32f407zg</configuration>
       <configuration>stm32f427ii</configuration>
       <configuration>stm32f429zi</configuration>
     </excluded>
