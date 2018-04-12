@@ -27,10 +27,10 @@ ESP8266::ESP8266(Usart *usart, Gpio::PinName resetPin) :
     mUsart->setBaudrate(78400);
     mUsart->setConfig(Usart::Mode8N1);
     mUsart->setBufferSize(1024); // 1024 for 3 ms!!
-//#if defined(STM32F37X)     
-//    mUsart->setUseDmaRx(false);
-//    mUsart->setUseDmaTx(false);
-//#endif
+#if defined(STM32F37X)     
+    mUsart->setUseDmaRx(false);
+    mUsart->setUseDmaTx(false);
+#endif
     mUsart->setLineEnd("\r\n");
     mUsart->open(ReadWrite);
     
@@ -131,6 +131,8 @@ void ESP8266::task()
             if (line.size() > 2)
             {
                 line.resize(line.size() - 2);
+                if (line[0] == 0x0A)
+                    line.remove(0, 1);
                 parseLine(line);
             }
         }
@@ -141,6 +143,20 @@ void ESP8266::parseLine(ByteArray &line)
 {
 //    if (onReceiveLine)
 //        onReceiveLine(string(line.data(), line.size()));
+  
+//    if (line.size() < 10)
+  
+//    {
+//        string ss = ">>";
+//        char buf[10];
+//        for (int i=0; i<line.size(); i++)
+//        {
+//            sprintf(buf, "0x%02X ", line[i]);
+//            ss += buf;
+//        }
+//        ss += "\n";
+//        printf(ss.c_str());
+//    }
   
     if (line.size() >= 2 && line[0] == 'A' && line[1] == 'T')
     {

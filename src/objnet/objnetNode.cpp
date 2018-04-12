@@ -10,6 +10,7 @@ ObjnetNode::ObjnetNode(ObjnetInterface *iface) :
     mNetTimeout(0),
     mCurrentRemoteAddress(0x00),
     mObjInfoSendCount(-1),
+    mTimestamp(0),
     mClass(0xFFFF0000),
     mName("<node>"),
     mFullName("<Generic objnet node>"),
@@ -231,6 +232,7 @@ void ObjnetNode::parseServiceMessage(CommonMessage &msg)
             {
                 ObjectInfo &obj = mObjects[i];
                 obj.mAutoPeriod = 0;
+                obj.mTimedRequest = false;
             }
           
             mNetAddress = msg.data()[0];
@@ -266,23 +268,26 @@ void ObjnetNode::parseServiceMessage(CommonMessage &msg)
         break;
 
       case svcAutoRequest:
+      case svcTimedRequest:
         if (isConnected())
         {
             if (msg.data().size())
             {
-                unsigned char oid = msg.data()[4];
-                if (oid < mObjects.size())
+                unsigned char _oid = msg.data()[4];
+                if (_oid < mObjects.size())
                 {
                     int period = *reinterpret_cast<int*>(msg.data().data());
                     if (period >= 0)
                     {
-                        mObjects[oid].mAutoPeriod = period;
-                        mObjects[oid].mAutoReceiverAddr = remoteAddr;
+                        mObjects[_oid].mAutoPeriod = period;
+                        mObjects[_oid].mAutoReceiverAddr = remoteAddr;
+                        if (oid == svcTimedRequest)
+                            mObjects[_oid].mTimedRequest = true;
                     }
                     else
                     {
-                        *reinterpret_cast<int*>(msg.data().data()) = mObjects[oid].mAutoPeriod;
-                        sendServiceMessage(remoteAddr, svcAutoRequest, msg.data());
+                        *reinterpret_cast<int*>(msg.data().data()) = mObjects[_oid].mAutoPeriod;
+                        sendServiceMessage(remoteAddr, oid, msg.data());
                     }
                 }
             }
@@ -387,6 +392,7 @@ void ObjnetNode::onTimeoutTimer()
             ObjectInfo &obj = mObjects[oid];
             obj.mAutoPeriod = 0;
             obj.mAutoTime = 0;
+            obj.mTimedRequest = false;
         }
     }
 }
@@ -394,7 +400,7 @@ void ObjnetNode::onTimeoutTimer()
 
 void ObjnetNode::onSendTimer()
 {
-    for (unsigned int oid=0; oid<mObjects.size(); oid++)
+    for (unsigned char oid=0; oid<mObjects.size(); oid++)
     {
         ObjectInfo &obj = mObjects[oid];
         if (obj.mAutoPeriod)
@@ -403,10 +409,23 @@ void ObjnetNode::onSendTimer()
             if (obj.mAutoTime >= obj.mAutoPeriod)
             {
                 obj.mAutoTime = 0;
-                sendMessage(obj.mAutoReceiverAddr, oid, obj.read());
+                if (obj.mTimedRequest)
+                {
+                    ByteArray ba;
+                    ba.append(reinterpret_cast<const char*>(&oid), sizeof(unsigned char));
+                    ba.append('\0'); // reserved byte
+                    ba.append(reinterpret_cast<const char*>(&mTimestamp), sizeof(unsigned long));
+                    ba.append(obj.read());
+                    sendServiceMessage(obj.mAutoReceiverAddr, svcTimedObject, ba);
+                }
+                else // usual request
+                {
+                    sendMessage(obj.mAutoReceiverAddr, oid, obj.read());
+                }
             }
         }
     }
+    mTimestamp++;
 }
 
 void ObjnetNode::sendForced(unsigned char oid)

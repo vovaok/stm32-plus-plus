@@ -128,6 +128,7 @@ private:
     void *mWritePtr;
     int mAutoPeriod, mAutoTime; // automatic transmission period
     unsigned char mAutoReceiverAddr; // address of receiver for automatic transmission
+    bool mTimedRequest; // если синхронизованный объект
     Description mDesc;
     bool mIsDevice;
     static int mAssignId;

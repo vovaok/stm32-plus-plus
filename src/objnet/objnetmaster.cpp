@@ -506,7 +506,15 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
         }
         break;
 
+      case svcTimedObject:
+        if (dev)
+        {
+            dev->receiveTimedObject(msg.data());
+        }
+        break;
+
       case svcAutoRequest:
+      case svcTimedRequest:
         if (dev)
         {
             int period = *reinterpret_cast<int*>(msg.data().data());

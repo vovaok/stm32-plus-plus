@@ -171,6 +171,37 @@ void ObjnetDevice::receiveObject(unsigned char oid, const ByteArray &ba)
     }
 }
 
+void ObjnetDevice::receiveTimedObject(const ByteArray &ba)
+{
+    unsigned char oid = ba[0];
+//    unsigned char reserve = ba[1];
+    unsigned long timestamp = *reinterpret_cast<const unsigned long*>(ba.data() + 2);
+    ByteArray objba = ba.mid(6);
+    if (oid < mObjects.size())
+    {
+        ObjectInfo *obj = mObjects[oid];
+        if (obj)
+        {
+            bool res = obj->write(objba);
+//            if (!res)
+//                qDebug() << "failed to write obj" << obj->name();
+            #ifndef QT_CORE_LIB
+#warning timed object not available in IAR (poka 4to)
+            if (onObjectReceived)
+                onObjectReceived(obj->name());
+            #else
+            emit timedObjectReceived(obj->name(), timestamp, obj->toVariant());
+            #endif
+        }
+        else
+        {
+            #ifdef QT_CORE_LIB
+            qDebug() << "no such object";
+            #endif
+        }
+    }
+}
+
 void ObjnetDevice::receiveGlobalMessage(unsigned char aid)
 {
 #ifdef QT_CORE_LIB
@@ -221,6 +252,21 @@ void ObjnetDevice::autoRequest(_String name, int periodMs)
         ba.append(oid);
         #ifdef QT_CORE_LIB
         emit serviceRequest(mNetAddress, svcAutoRequest, ba);
+        #endif
+    }
+}
+
+void ObjnetDevice::timedRequest(_String name, int periodMs)
+{
+    map<string, ObjectInfo>::iterator it = mObjMap.find(_fromString(name));
+    if (it != mObjMap.end() && it->second.flags())
+    {
+        unsigned char oid = it->second.mDesc.id;
+        ByteArray ba;
+        ba.append(reinterpret_cast<const char*>(&periodMs), sizeof(int));
+        ba.append(oid);
+        #ifdef QT_CORE_LIB
+        emit serviceRequest(mNetAddress, svcTimedRequest, ba);
         #endif
     }
 }

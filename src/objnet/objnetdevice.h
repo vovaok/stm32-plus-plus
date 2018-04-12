@@ -68,6 +68,7 @@ protected:
     void setClassId(unsigned long classId) {mClass = classId; mClassValid = true;}
 
     void receiveObject(unsigned char oid, const ByteArray &ba);
+    void receiveTimedObject(const ByteArray &ba);
     void receiveGlobalMessage(unsigned char aid);
 
 public:
@@ -132,6 +133,7 @@ public:
     void requestObject(_String name);
     void sendObject(_String name);
     void autoRequest(_String name, int periodMs);
+    void timedRequest(_String name, int periodMs);
 
 #ifdef QT_CORE_LIB
 signals:
@@ -140,6 +142,7 @@ signals:
     void serviceRequest(unsigned char netAddress, SvcOID oid, const QByteArray &ba);
 
     void objectReceived(QString name, QVariant value);
+    void timedObjectReceived(QString name, unsigned long timestamp, QVariant value);
     void autoRequestAccepted(QString name, int periodMs);
 
     void ready();
