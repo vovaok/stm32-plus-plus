@@ -333,6 +333,20 @@ bool ObjnetCommonNode::sendServiceMessage(SvcOID oid, const ByteArray &ba)
     return sendCommonMessage(msg);
 }
 
+bool ObjnetCommonNode::sendServiceMessageToMac(unsigned char mac, SvcOID oid, const ByteArray &ba)
+{
+    CommonMessage msg;
+    LocalMsgId id;
+    id.mac = mac;
+    id.addr = 0x7F;
+    id.svc = 1;
+    id.sender = mNetAddress;
+    id.oid = oid;
+    msg.setLocalId(id);
+    msg.setData(ba);
+    return sendCommonMessage(msg);
+}
+
 bool ObjnetCommonNode::sendGlobalMessage(unsigned char aid)
 {
     CommonMessage msg;

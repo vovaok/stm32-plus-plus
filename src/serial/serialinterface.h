@@ -30,6 +30,7 @@ public:
     virtual int write(const ByteArray &ba) = 0;
     
     inline bool isOpen() const {return mOpenMode != NotOpen;}
+    virtual bool isHalfDuplex() const {return false;}
     
     NotifyEvent onReadyRead;
 };

@@ -3,7 +3,11 @@
 
 #include <string.h>
 #include "coreexception.h"
-#include "stm32f4xx.h"
+#if defined(STM32F37X)
+    #include "stm32f37x.h"
+#else
+    #include "stm32f4xx.h"
+#endif
 #include "core_cm4.h"
 
 class ByteArray

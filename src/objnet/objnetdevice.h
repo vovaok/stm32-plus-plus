@@ -44,7 +44,7 @@ protected:
 //    bool mStateChanged;
 //    unsigned char mChildrenCount;
 //    unsigned char mOrphanCount; // not processed children
-
+    
     unsigned long mClass;
     string mName;
     string mFullName;
@@ -54,6 +54,7 @@ protected:
     string mCpuInfo;
     unsigned long mBurnCount;
     unsigned char mObjectCount;
+    BusType mBusType;
 
     vector<ObjectInfo*> mObjects;
     map<string, ObjectInfo> mObjMap;

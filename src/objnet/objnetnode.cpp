@@ -180,6 +180,11 @@ void ObjnetNode::parseServiceMessage(CommonMessage &msg)
 //            mNetAddress = 0x00;
 //            mNetState = netnConnecting;
             mNetState = netnStart;
+            if (mAdjacentNode) // remote addr
+            {
+#warning DOBAVIT if SWONB then enumerate()
+//                mAdjacentNode->acceptServiceMessage(remoteAddr, aidConnReset);
+            }
             break;
             
           case aidUpgradeStart:

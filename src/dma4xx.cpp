@@ -1,4 +1,4 @@
-#include "dma.h"
+#include "dma4xx.h"
 
 #define DMA_FLAG_MASK(i) (DMA_FLAG_TCIF##i | DMA_FLAG_HTIF##i | DMA_FLAG_TEIF##i | DMA_FLAG_DMEIF##i | DMA_FLAG_FEIF##i)
 #define DMA_FLAG_TC(i) (DMA_FLAG_TCIF##i)

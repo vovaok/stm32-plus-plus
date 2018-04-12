@@ -57,6 +57,7 @@ typedef enum
     svcBurnCount        = 0x07, //!< без комментариев..
     svcObjectCount      = 0x08, //!< число объектов
     // можно добавить что-нибудь ещё..
+    svcBusType          = 0x09, //!< тип шины физического уровня
     svcObjectInfo       = 0x80, //!< описание объекта
 
     svcEcho             = 0xF0, //!< узел напоминает мастеру, что он здесь
@@ -74,6 +75,15 @@ typedef enum
 
 typedef enum
 {
+    BusUnknown  = 0,
+    BusCan      = 1,
+    BusUsbHid   = 2,
+    BusWifi     = 3,
+    BusSwonb    = 4
+} BusType;
+
+typedef enum
+{
     netAddrUniversal    = 0x7F,
     netAddrInvalid      = 0xFF
 } NetAddress;
@@ -88,14 +98,15 @@ struct LocalMsgId
     unsigned char svc: 1;       //!< message is service
     unsigned char mac: 4;       //!< receiver bus address (physical)
     const unsigned char local: 1; //!< local area message (inside the bus) = 1
+    unsigned char _not_used: 3; //!< reserved bits in CAN 2.0B spec
     /*! Конструктор обнуляет. */
     LocalMsgId() :
-      oid(0), sender(0), frag(0), addr(0), svc(0), mac(0), local(1)
+      oid(0), sender(0), frag(0), addr(0), svc(0), mac(0), local(1), _not_used(0)
     {
     }
     /*! Неявный конструктор. */
     LocalMsgId(const unsigned long &data) :
-      local(1)
+      local(1), _not_used(0)
     {
         *reinterpret_cast<unsigned long*>(this) = data;
     }
@@ -114,14 +125,15 @@ struct GlobalMsgId
     unsigned char svc: 1;   //!< message is service
     unsigned char mac: 4;   //!< own bus address (physical)
     unsigned char local: 1; //!< local area message (inside the bus) = 0
+    unsigned char _not_used: 3; //!< reserved bits in CAN 2.0B spec
     /*! Конструктор обнуляет. */
     GlobalMsgId() :
-      aid(0), res(0), addr(0), svc(0), mac(0), local(0)
+      aid(0), res(0), addr(0), svc(0), mac(0), local(0), _not_used(0)
     {
     }
     /*! Неявный конструктор. */
     GlobalMsgId(const unsigned long &data) :
-      local(0)
+      local(0), _not_used(0)
     {
         *reinterpret_cast<unsigned long*>(this) = data;
     }

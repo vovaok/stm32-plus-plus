@@ -28,7 +28,12 @@ typedef enum
     Tim11   = 11,
     Tim12   = 12,
     Tim13   = 13,
-    Tim14   = 14
+    Tim14   = 14,
+    Tim15   = 15,
+    Tim16   = 16,
+    Tim17   = 17,
+    Tim18   = 18,
+    Tim19   = 19,
 } TimerNumber;
 
 typedef enum
@@ -57,28 +62,34 @@ public:
     
     typedef enum
     {
+        TsITR0      = 0,
+        TsITR1      = 1,
+        TsITR2      = 2,
+        TsITR3      = 3,
+        TsTI1F_ED   = 4,
+        TsTI1FP1    = 5,
+        TsTI2FP2    = 6
+    } InputTrigger;
+    
+    typedef enum
+    {
+        SmDisabled  = 0,
+        SmEncoder1  = 1,
+        SmEncoder2  = 2,
+        SmEncoder3  = 3,
+        SmReset     = 4,
+        SmGated     = 5,
+        SmTrigger   = 6,
+        SmExtClock  = 7
+    } SlaveMode;
+    
+    typedef enum
+    {
         None,
         Rising,
         Falling,
         BothEdge
     } Polarity;
-    
-//    typedef enum
-//    {
-//        CH1     = 0x01,
-//        CH2     = 0x02,
-//        CH3     = 0x04,
-//        CH4     = 0x08,
-//        CH1N    = 0x10,
-//        CH2N    = 0x20,
-//        CH3N    = 0x40,
-//        CH4N    = 0x80,
-//        CH12    = CH1 | CH2,
-//        CH123   = CH1 | CH2 | CH3,
-//        CH1234  = CH1 | CH2 | CH3 | CH4,
-//        CH123N  = CH123 | CH1N | CH2N | CH3N,
-//        CH_all  = 0xFF
-//    } ChannelPins;
       
 private:
     typedef enum
@@ -110,19 +121,21 @@ protected:
     unsigned long inputClk() const {return mInputClk;}
   
 public:
-    /*! Инициализация аппаратного таймера.
-        \param timerNumber Номер аппаратного таймера.
-        \param frequency_Hz Частота таймера в герцах. Для красоты можно использовать макросы _Hz, _kHz, _MHz.
-                            Если задать частоту 0, то таймер будет проинициализирован без предделителя и с максимальным периодом.
+    /*! РРЅРёС†РёР°Р»РёР·Р°С†РёСЏ Р°РїРїР°СЂР°С‚РЅРѕРіРѕ С‚Р°Р№РјРµСЂР°.
+        \param timerNumber РќРѕРјРµСЂ Р°РїРїР°СЂР°С‚РЅРѕРіРѕ С‚Р°Р№РјРµСЂР°.
+        \param frequency_Hz Р§Р°СЃС‚РѕС‚Р° С‚Р°Р№РјРµСЂР° РІ РіРµСЂС†Р°С…. Р”Р»СЏ РєСЂР°СЃРѕС‚С‹ РјРѕР¶РЅРѕ РёСЃРїРѕР»СЊР·РѕРІР°С‚СЊ РјР°РєСЂРѕСЃС‹ _Hz, _kHz, _MHz.
+                            Р•СЃР»Рё Р·Р°РґР°С‚СЊ С‡Р°СЃС‚РѕС‚Сѓ 0, С‚Рѕ С‚Р°Р№РјРµСЂ Р±СѓРґРµС‚ РїСЂРѕРёРЅРёС†РёР°Р»РёР·РёСЂРѕРІР°РЅ Р±РµР· РїСЂРµРґРґРµР»РёС‚РµР»СЏ Рё СЃ РјР°РєСЃРёРјР°Р»СЊРЅС‹Рј РїРµСЂРёРѕРґРѕРј.
     */
     HardwareTimer(TimerNumber timerNumber, unsigned int frequency_Hz=0);
     
-    static HardwareTimer* mTimers[14]; // should be private
+    static HardwareTimer* mTimers[19]; // should be private
     void handleInterrupt(); // should be private
     
     static TimerNumber getTimerByPin(Gpio::Config pinConfig);
     static ChannelNumber getChannelByPin(Gpio::Config pinConfig);
     
+    void selectInputTrigger(InputTrigger trgi);
+    void setSlaveMode(SlaveMode sms);
     void selectOutputTrigger(TrgSource source);
     void setFrequency(int frequency_Hz);
     
@@ -163,7 +176,7 @@ public:
     void configCapture(ChannelNumber ch, Polarity pol);
     unsigned int captureValue(ChannelNumber ch) const;
     
-    void configPWM(ChannelNumber ch);
+    void configPWM(ChannelNumber ch, bool inverted=false);
     void setPWMEnabled(ChannelNumber ch, bool enabled);
 };
 
