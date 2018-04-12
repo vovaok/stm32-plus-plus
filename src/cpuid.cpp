@@ -1,9 +1,16 @@
 #include "cpuid.h"
 
+#if defined(STM32F37X)
+const unsigned long * const  CpuId::mSignature = (const unsigned long*) 0x1FFFF7AC;
+const unsigned short * const CpuId::mFlashSize = (const unsigned short*)0x1FFFF7CC;
+const unsigned short * const CpuId::mPackage   = (const unsigned short*)0x1FFFF7AC; // signature instead of package
+const unsigned long * const  CpuId::mCpuId     = (const unsigned long*) 0xE0042000;
+#else
 const unsigned long * const  CpuId::mSignature = (const unsigned long*) 0x1FFF7A10;
 const unsigned short * const CpuId::mFlashSize = (const unsigned short*)0x1FFF7A22;
 const unsigned short * const CpuId::mPackage   = (const unsigned short*)0x1FFF7BF0;
 const unsigned long * const  CpuId::mCpuId     = (const unsigned long*) 0xE0042000;
+#endif
 //---------------------------------------------------------------------------
 
 unsigned long CpuId::signature(int part)
@@ -45,6 +52,7 @@ const char *CpuId::name()
         case 0x421: return "STM32F446xx";
         case 0x423: return "STM32F401xB/C";
         case 0x431: return "STM32F411xC/E";
+        case 0x432: return "STM32F37xxx";
         case 0x433: return "STM32F401xD/E";
         case 0x434: return "STM32F469_479";
         case 0x458: return "STM32F410";
@@ -58,6 +66,7 @@ char CpuId::revision()
     switch (revId())
     {
         case 0x1000: return 'A';
+        case 0x2000: return 'B';
         case 0x1001: return 'Z';
         case 0x1003: return 'Y';
         default: return '?';
@@ -73,6 +82,7 @@ unsigned long CpuId::maxSysClk()
         case 0x421: return 180000000; // "STM32F446xx"
         case 0x423: return 84000000;  // "STM32F401xB/C";
         case 0x431: return 100000000; // "STM32F411xC/E";
+        case 0x432: return 72000000;  // "STM32F37xxx"
         case 0x433: return 84000000;  // "STM32F401xD/E";
         case 0x434: return 180000000; // "STM32F469_479";
         case 0x458: return 100000000; // "STM32F410"

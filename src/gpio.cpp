@@ -1,12 +1,17 @@
 #include "gpio.h"
 
+#if defined(STM32F37X)
+#define BSRRL   BSRR
+#define BSRRH   BRR
+#endif
+
 unsigned char Gpio::mPinsUsed[140]; // assuming all items = 0 at startup
 
-Gpio::Gpio(PinName pin, Flags flags, PinAF altFunction)
+Gpio::Gpio(PinName pin, Flags flags/*, PinAF altFunction*/)
 {
     mConfig.pin = pin;
     mConfig.flags = flags;
-    mConfig.af = altFunction;
+    mConfig.af = 0;//altFunction;
     mPort = getPortByNumber(mConfig.portNumber);
     mPin = pin==noPin? 0: (1 << mConfig.pinNumber);
     config(mConfig.config);
@@ -58,7 +63,11 @@ void Gpio::config(const Config &conf)
         mask = 1 << c.pinNumber;
         usePin(c);
         
-        RCC_AHB1PeriphClockCmd(1 << c.portNumber, ENABLE); 
+#if !defined(STM32F37X)
+        RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA << c.portNumber, ENABLE); 
+#else
+        RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOA << c.portNumber, ENABLE); 
+#endif
         
         if (c.afNumber != afNone)
             GPIO_PinAFConfig(port, c.pinNumber, c.afNumber);
@@ -67,7 +76,11 @@ void Gpio::config(const Config &conf)
     {        
         mask = c.mask;
         
-        RCC_AHB1PeriphClockCmd(1 << c.portNumber, ENABLE); 
+#if !defined(STM32F37X)
+        RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA << c.portNumber, ENABLE); 
+#else
+        RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOA << c.portNumber, ENABLE); 
+#endif
         
         for (int pin=0; pin<16; pin++)
         {
@@ -148,9 +161,11 @@ GPIO_TypeDef *Gpio::getPortByNumber(int port)
         case 0x3: return GPIOD;
         case 0x4: return GPIOE;
         case 0x5: return GPIOF;
+#if !defined(STM32F37X)
         case 0x6: return GPIOG;
         case 0x7: return GPIOH;
         case 0x8: return GPIOI;
+#endif
         default: return 0L;
     }
 }

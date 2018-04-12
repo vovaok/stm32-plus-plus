@@ -478,7 +478,7 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
         if (dev)
         {
             dev->mObjectCount = msg.data()[0];
-            if (mSwonbMode)
+            if (dev->mBusType == BusSwonb)
             {
                 ByteArray oba;
                 oba.resize(1);
@@ -486,6 +486,30 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
                 {
                     oba[0] = i;
                     sendServiceMessage(netaddr, svcObjectInfo, oba);
+                }
+            }
+        }
+        break;
+        
+      case svcBusType:
+        if (dev)
+        {
+            dev->mBusType = (BusType)msg.data().data()[0];
+            if (dev->mBusType == BusSwonb)
+            {
+                if (!dev->isInfoValid())
+                {
+                    // request all info manually:
+                    sendServiceMessage(netaddr, svcClass);
+                    sendServiceMessage(netaddr, svcName);
+                    sendServiceMessage(netaddr, svcFullName);
+                    sendServiceMessage(netaddr, svcSerial);
+                    sendServiceMessage(netaddr, svcVersion);
+                    sendServiceMessage(netaddr, svcBuildDate);
+                    sendServiceMessage(netaddr, svcCpuInfo);
+                    sendServiceMessage(netaddr, svcBurnCount);
+                    sendServiceMessage(netaddr, svcObjectCount);
+                    //sendServiceMessage(netaddr, svcBusType); // but why?
                 }
             }
         }
@@ -498,7 +522,15 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
         }
         break;
 
+      case svcTimedObject:
+        if (dev)
+        {
+            dev->receiveTimedObject(msg.data());
+        }
+        break;
+
       case svcAutoRequest:
+      case svcTimedRequest:
         if (dev)
         {
             int period = *reinterpret_cast<int*>(msg.data().data());

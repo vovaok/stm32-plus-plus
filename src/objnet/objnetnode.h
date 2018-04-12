@@ -31,6 +31,7 @@ private:
     int mNetTimeout;
     unsigned char mCurrentRemoteAddress;
     int mObjInfoSendCount; // variable for counting of info objects sended
+    unsigned long mTimestamp;
 
     // objnet related parameters:
     unsigned long mClass;

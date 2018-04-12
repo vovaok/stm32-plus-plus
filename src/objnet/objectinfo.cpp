@@ -7,6 +7,7 @@ int ObjectInfo::mAssignId = 0;
 ObjectInfo::ObjectInfo() :
     mReadPtr(0L), mWritePtr(0L),
     mAutoPeriod(0), mAutoTime(0),
+    mTimedRequest(false),
     mIsDevice(false)
 {
 }
@@ -14,6 +15,7 @@ ObjectInfo::ObjectInfo() :
 #ifndef QT_CORE_LIB
 template<> ObjectInfo::ObjectInfo<void>(string name, Closure<void(void)> event, ObjectInfo::Flags flags) :
     mAutoPeriod(0), mAutoTime(0), mAutoReceiverAddr(0),
+    mTimedRequest(false),
     mIsDevice(false)
 {
     mDesc.readSize = 0; // no return

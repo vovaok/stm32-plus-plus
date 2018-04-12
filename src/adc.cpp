@@ -143,6 +143,20 @@ void Adc::addChannel(int channel, SampleTime sampleTime)
     mBuffer.resize(mChannelCount*2);
     mChannelResultMap[channel] = mChannelCount - 1;
 }
+
+void Adc::addChannel(int channel, Gpio::PinName pin, SampleTime sampleTime)
+{
+    Gpio::config(pin, Gpio::modeAnalog);
+    
+    if (mEnabled)
+        throw Exception::resourceBusy;
+    
+    mConfig.ADC_NbrOfConversion = ++mChannelCount;
+    ADC_Init(mAdc, &mConfig);
+    ADC_RegularChannelConfig(mAdc, channel, mChannelCount, sampleTime);
+    mBuffer.resize(mChannelCount*2);
+    mChannelResultMap[channel] = mChannelCount - 1;
+}
 //---------------------------------------------------------------------------
 
 void Adc::setEnabled(bool enable)

@@ -46,6 +46,8 @@ private:
         cmdConnectToAp,
         cmdIpMux,
         cmdIpServer,
+        cmdCwjap,
+        cmdCipsta
     } Command;
     
     typedef enum
@@ -67,6 +69,11 @@ private:
     Command mLastCmd;
     int mLastData;
     int mTimeout;
+    int mIpMode;
+    
+    int mDefMode;
+    string mStaSSID, mStaPass;
+    string mStaIp, mStaGateway, mStaNetmask;
     
     ByteArray mOutBuffer, mInBuffer, mLineBuffer;
     
@@ -77,6 +84,8 @@ private:
     void task();
     void parseLine(ByteArray &line);
     void onTimer();
+    
+    void cipStart(const char *host, unsigned short port);
   
 public:
     ESP8266(Usart *usart, Gpio::PinName resetPin);
@@ -106,6 +115,7 @@ public:
     void setDefaultBaudrate(int baudrate) {mBaudrate = baudrate;}
     void setEchoEnabled(bool enabled);
     void setAPMode(string ssid, string pass="");
+    void setStationMode(string ssid, string pass="");
     void saveTransLink(string translink_string);
     void setOnbStaMode(string autoConnIp);
     void autoConnectToAp(string ssid_and_pass);

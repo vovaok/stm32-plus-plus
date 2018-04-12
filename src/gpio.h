@@ -8,7 +8,18 @@
 /*! Pin configuration macro.
     Intended for internal use.
 */
+
+#if defined (STM32F37X)
+#define PINCONFIG(pin, flags, af, periph) ((pin) | ((flags)<<8) | ((af)<<16) | ((periph)<<24))
+#define GpioConfigGetPeriph(cfg) (cfg >> 24)
+#define GpioConfigGetPeriphNumber(cfg) (cfg >> 28)
+#define GpioConfigGetPeriphChannel(cfg) ((cfg >> 24) & 0xF)
+#else
 #define PINCONFIG(pin, flags, af) ((pin) | ((flags)<<8) | ((af)<<16))
+#endif
+#define GpioConfigGetAF(cfg) ((cfg >> 16) & 0xFF)
+#define GpioConfigGetFlags(cfg) ((cfg >> 8) & 0xFF)
+#define GpioConfigGetName(cfg) (cfg & 0xFF)
 
 /*! GPIO pin class.
     Provides easy interface for pin configuration, including alternate functions.
@@ -47,12 +58,14 @@ public:
         PE8  = 0x48, PE9  = 0x49, PE10 = 0x4A, PE11 = 0x4B, PE12 = 0x4C, PE13 = 0x4D, PE14 = 0x4E, PE15 = 0x4F,
         PF0  = 0x50, PF1  = 0x51, PF2  = 0x52, PF3  = 0x53, PF4  = 0x54, PF5  = 0x55, PF6  = 0x56, PF7  = 0x57,
         PF8  = 0x58, PF9  = 0x59, PF10 = 0x5A, PF11 = 0x5B, PF12 = 0x5C, PF13 = 0x5D, PF14 = 0x5E, PF15 = 0x5F,
+#if !defined(STM32F37X)
         PG0  = 0x60, PG1  = 0x61, PG2  = 0x62, PG3  = 0x63, PG4  = 0x64, PG5  = 0x65, PG6  = 0x66, PG7  = 0x67,
         PG8  = 0x68, PG9  = 0x69, PG10 = 0x6A, PG11 = 0x6B, PG12 = 0x6C, PG13 = 0x6D, PG14 = 0x6E, PG15 = 0x6F,
         PH0  = 0x70, PH1  = 0x71, PH2  = 0x72, PH3  = 0x73, PH4  = 0x74, PH5  = 0x75, PH6  = 0x76, PH7  = 0x77,
         PH8  = 0x78, PH9  = 0x79, PH10 = 0x7A, PH11 = 0x7B, PH12 = 0x7C, PH13 = 0x7D, PH14 = 0x7E, PH15 = 0x7F,
         PI0  = 0x80, PI1  = 0x81, PI2  = 0x82, PI3  = 0x83, PI4  = 0x84, PI5  = 0x85, PI6  = 0x86, PI7  = 0x87,
         PI8  = 0x88, PI9  = 0x89, PI10 = 0x8A, PI11 = 0x8B, //!< ...up to PORTI pin 11
+#endif
         noPin = 0xFF  //!< no pin choosed
     } PinName;
     
@@ -67,9 +80,11 @@ public:
         portD = 0x30,
         portE = 0x40,
         portF = 0x50,
+#if !defined(STM32F37X)        
         portG = 0x60,
         portH = 0x70,
         portI = 0x80,
+#endif
         noPort = 0xFF
     } PortName;
     
@@ -99,6 +114,7 @@ public:
         Gpio alternate function numbers.
         AF numbers are aliased by peripheral names for convenience.
     */
+#if !defined(STM32F37X)
     typedef enum
     {
         afNone = 0xFF, //!< no alternate function
@@ -118,10 +134,48 @@ public:
         afDcmi = 13,/*!<.*/
         afEventOut = 15/*!<.*/
     } PinAF;
+#else
+    typedef enum
+    {
+        afNone = 0xFF, //!< no alternate function
+        af0 = 0,
+        af1 = 1,
+        af2 = 2,
+        af3 = 3,
+        af4 = 4,
+        af5 = 5,
+        af6 = 6,
+        af7 = 7, afUsart1 = 7, afUsart2 = 7, afUsart3 = 7,
+        af8 = 8,
+        af9 = 9,
+        af10 = 10,
+        af11 = 11,
+        af12 = 12,
+        af13 = 13,
+        af14 = 14,
+        af15 = 15,
+//        afRtc50Hz = 0,/*!<.*/ afMco = 0,/*!<.*/ afTamper = 0,/*!<.*/ afSjw = 0,/*!<.*/ afTrace = 0,/*!<.*/
+//        afTim2 = 1,/*!<.*/ afTim15 = 1,/*!<.*/  afTim16 = 1,/*!<.*/  afTim17 = 1,/*!<.*/ 
+//        afTim3 = 2,/*!<.*/ afTim4 = 2,/*!<.*/ afTim5 = 2,/*!<.*/ afTim13 = 2,/*!<.*/ afTim14 = 2,/*!<.*/  afTim19 = 2,/*!<.*/ 
+//        afTsc = 3,/*!<.*/ 
+//        afI2C1 = 4,/*!<.*/ afI2C2 = 4,/*!<.*/ afI2C3 = 4,/*!<.*/
+//        afSpi1 = 5,/*!<.*/ afSpi2 = 5,/*!<.*/
+//        afSpi3 = 6,/*!<.*/
+//        afUsart1 = 7,/*!<.*/ afUsart2 = 7,/*!<.*/ afUsart3 = 7,/*!<.*/ afI2S3ext = 7,/*!<.*/
+//        afUart4 = 8,/*!<.*/ afUart5 = 8,/*!<.*/ afUsart6 = 8,/*!<.*/
+//        afCan = 9,/*!<.*/  afTim12 = 9,/*!<.*/ afTim13 = 9,/*!<.*/ afTim14 = 9,/*!<.*/
+//        afOtgFs = 10,/*!<.*/ afOtgHs = 10,/*!<.*/
+//        afEth = 11,/*!<.*/
+//        afFsmc = 12,/*!<.*/ afOtgHsFs = 12,/*!<.*/ afSdio = 12,/*!<.*/
+//        afDcmi = 13,/*!<.*/
+//        afEventOut = 15/*!<.*/
+    } PinAF;
+#endif
     
     /*! Predefined pin configurations.
         You can construct a pin with one of these configurations.
     */
+#if !defined(STM32F37X)
     typedef enum
     {
         NoConfig =          PINCONFIG(noPin, flagsDefault, afNone), //!< empty configuration
@@ -405,6 +459,122 @@ public:
         OTG_HS_ULPI_NXT_PH4=PINCONFIG(PH4,  modeAF | speed100MHz, afOtgHs), //!<.
         OTG_HS_ULPI_DIR_PI11=PINCONFIG(PI11,modeAF | speed100MHz, afOtgHs), //!<.\n to be continued....
     } Config;
+#else
+    
+    typedef enum
+    {
+        NoConfig =          PINCONFIG(noPin, flagsDefault, afNone, 0x00), //!< empty configuration
+        // timers
+        // TIM2
+        TIM2_CH1_PA0 =      PINCONFIG(PA0,  modeAF | outPushPull | pullNone | speed50MHz, af1, 0x21), //!<.
+        TIM2_CH2_PA1 =      PINCONFIG(PA1,  modeAF | outPushPull | pullNone | speed50MHz, af1, 0x22), //!<.
+        TIM2_CH3_PA2 =      PINCONFIG(PA2,  modeAF | outPushPull | pullNone | speed50MHz, af1, 0x23), //!<.
+        TIM2_CH4_PA3 =      PINCONFIG(PA3,  modeAF | outPushPull | pullNone | speed50MHz, af1, 0x24), //!<.
+        // TIM12
+        TIM12_CH1_PB14 =    PINCONFIG(PB14, modeAF | outPushPull | pullNone | speed50MHz, af9, 0xc1),
+        TIM12_CH2_PB15 =    PINCONFIG(PB15, modeAF | outPushPull | pullNone | speed50MHz, af9, 0xc2),
+        // TIM15
+        TIM15_CH1_PB14 =    PINCONFIG(PB14, modeAF | outPushPull | pullNone | speed50MHz, af1, 0xf1),
+        TIM15_CH1N_PB15 =   PINCONFIG(PB15, modeAF | outPushPull | pullNone | speed50MHz, af2, 0xf1),
+        TIM15_CH2_PB15 =    PINCONFIG(PB15, modeAF | outPushPull | pullNone | speed50MHz, af1, 0xf2),
+        
+        // USART1
+        USART1_CK_PA8 =     PINCONFIG(PA8,  modeAF | outPushPull | pullNone | speed50MHz, afUsart1, 0x10), //!<.
+        USART1_TX_PA9 =     PINCONFIG(PA9,  modeAF | outPushPull | pullNone | speed50MHz, afUsart1, 0x10), //!<.
+        USART1_RX_PA10 =    PINCONFIG(PA10, modeAF | outPushPull | pullNone | speed50MHz, afUsart1, 0x10), //!<.
+        USART1_CTS_PA11 =   PINCONFIG(PA11, modeAF | outPushPull | pullNone | speed50MHz, afUsart1, 0x10), //!<.
+        USART1_RTS_PA12 =   PINCONFIG(PA12, modeAF | outPushPull | pullNone | speed50MHz, afUsart1, 0x10), //!<.
+        USART1_TX_PB6 =     PINCONFIG(PB6,  modeAF | outPushPull | pullNone | speed50MHz, afUsart1, 0x10), //!<.
+        USART1_RX_PB7  =    PINCONFIG(PB7,  modeAF | outPushPull | pullNone | speed50MHz, afUsart1, 0x10), //!<.
+        USART1_TX_PC4 =     PINCONFIG(PC4,  modeAF | outPushPull | pullNone | speed50MHz, afUsart1, 0x10), //!<.
+        USART1_RX_PC5  =    PINCONFIG(PC5,  modeAF | outPushPull | pullNone | speed50MHz, afUsart1, 0x10), //!<.
+        USART1_TX_PE0 =     PINCONFIG(PE0,  modeAF | outPushPull | pullNone | speed50MHz, afUsart1, 0x10), //!<.
+        USART1_RX_PE1  =    PINCONFIG(PE1,  modeAF | outPushPull | pullNone | speed50MHz, afUsart1, 0x10), //!<.
+        // USART2
+        USART2_CTS_PA0 =    PINCONFIG(PA0,  modeAF | outPushPull | pullNone | speed50MHz, afUsart2, 0x20), //!<.
+        USART2_RTS_PA1 =    PINCONFIG(PA1,  modeAF | outPushPull | pullNone | speed50MHz, afUsart2, 0x20), //!<.
+        USART2_TX_PA2 =     PINCONFIG(PA2,  modeAF | outPushPull | pullNone | speed50MHz, afUsart2, 0x20), //!<.
+        USART2_RX_PA3 =     PINCONFIG(PA3,  modeAF | outPushPull | pullNone | speed50MHz, afUsart2, 0x20), //!<.
+        USART2_CK_PA4 =     PINCONFIG(PA4,  modeAF | outPushPull | pullNone | speed50MHz, afUsart2, 0x20), //!<.
+        USART2_TX_PB3 =     PINCONFIG(PB3,  modeAF | outPushPull | pullNone | speed50MHz, afUsart2, 0x20), //!<.
+        USART2_RX_PB4 =     PINCONFIG(PB4,  modeAF | outPushPull | pullNone | speed50MHz, afUsart2, 0x20), //!<.
+        USART2_CK_PB5 =     PINCONFIG(PB5,  modeAF | outPushPull | pullNone | speed50MHz, afUsart2, 0x20), //!<.
+        USART2_CTS_PD3 =    PINCONFIG(PD3,  modeAF | outPushPull | pullNone | speed50MHz, afUsart2, 0x20), //!<.
+        USART2_RTS_PD4 =    PINCONFIG(PD4,  modeAF | outPushPull | pullNone | speed50MHz, afUsart2, 0x20), //!<.
+        USART2_TX_PD5 =     PINCONFIG(PD5,  modeAF | outPushPull | pullNone | speed50MHz, afUsart2, 0x20), //!<.
+        USART2_RX_PD6 =     PINCONFIG(PD6,  modeAF | outPushPull | pullNone | speed50MHz, afUsart2, 0x20), //!<.
+        USART2_CK_PD7 =     PINCONFIG(PD7,  modeAF | outPushPull | pullNone | speed50MHz, afUsart2, 0x20), //!<.
+        USART2_CK_PF7 =     PINCONFIG(PF7,  modeAF | outPushPull | pullNone | speed50MHz, afUsart2, 0x20), //!<.
+        // USART 3
+        USART3_CTS_PA13 =   PINCONFIG(PA13, modeAF | outPushPull | pullNone | speed50MHz, afUsart3, 0x30), //!<.
+        USART3_TX_PB8 =     PINCONFIG(PB8,  modeAF | outPushPull | pullNone | speed50MHz, afUsart3, 0x30), //!<.
+        USART3_RX_PB9 =     PINCONFIG(PB9,  modeAF | outPushPull | pullNone | speed50MHz, afUsart3, 0x30), //!<.
+        USART3_TX_PB10 =    PINCONFIG(PB10, modeAF | outPushPull | pullNone | speed50MHz, afUsart3, 0x30), //!<.
+        USART3_RTS_PB14 =   PINCONFIG(PB14, modeAF | outPushPull | pullNone | speed50MHz, afUsart3, 0x30), //!<.
+        USART3_TX_PC10 =    PINCONFIG(PC10, modeAF | outPushPull | pullNone | speed50MHz, afUsart3, 0x30), //!<.
+        USART3_RX_PC11 =    PINCONFIG(PC11, modeAF | outPushPull | pullNone | speed50MHz, afUsart3, 0x30), //!<.
+        USART3_CK_PC12 =    PINCONFIG(PC12, modeAF | outPushPull | pullNone | speed50MHz, afUsart3, 0x30), //!<.
+        USART3_TX_PD8 =     PINCONFIG(PD8,  modeAF | outPushPull | pullNone | speed50MHz, afUsart3, 0x30), //!<.
+        USART3_RX_PD9 =     PINCONFIG(PD9,  modeAF | outPushPull | pullNone | speed50MHz, afUsart3, 0x30), //!<.
+        USART3_CK_PD10 =    PINCONFIG(PD10, modeAF | outPushPull | pullNone | speed50MHz, afUsart3, 0x30), //!<.
+        USART3_CTS_PD11 =   PINCONFIG(PD11, modeAF | outPushPull | pullNone | speed50MHz, afUsart3, 0x30), //!<.
+        USART3_RTS_PD12 =   PINCONFIG(PD12, modeAF | outPushPull | pullNone | speed50MHz, afUsart3, 0x30), //!<.
+        USART3_RX_PE15 =    PINCONFIG(PE15, modeAF | outPushPull | pullNone | speed50MHz, afUsart3, 0x30), //!<.
+        USART3_RTS_PF6 =    PINCONFIG(PF6,  modeAF | outPushPull | pullNone | speed50MHz, afUsart3, 0x30), //!<.
+        
+        // DAC1
+        DAC1_OUT1_PA4 =     PINCONFIG(PA4,  modeAnalog, afNone, 0x11),
+        DAC1_OUT2_PA5 =     PINCONFIG(PA5,  modeAnalog, afNone, 0x12),
+        DAC2_OUT1_PA6 =     PINCONFIG(PA6,  modeAnalog, afNone, 0x21),
+        
+        // SDADC1
+        SDADC1_AIN0P =      PINCONFIG(PE12, modeAnalog, afNone, 0x10),
+        SDADC1_AIN0M =      PINCONFIG(PE13, modeAnalog, afNone, 0x10),
+        SDADC1_AIN1P =      PINCONFIG(PE11, modeAnalog, afNone, 0x11),
+        SDADC1_AIN2P =      PINCONFIG(PE10, modeAnalog, afNone, 0x12),
+        SDADC1_AIN2M =      PINCONFIG(PE11, modeAnalog, afNone, 0x12),
+        SDADC1_AIN3P =      PINCONFIG(PE7,  modeAnalog, afNone, 0x13),
+        SDADC1_AIN4P =      PINCONFIG(PB2,  modeAnalog, afNone, 0x14),
+        SDADC1_AIN4M =      PINCONFIG(PE7,  modeAnalog, afNone, 0x14),
+        SDADC1_AIN5P =      PINCONFIG(PB1,  modeAnalog, afNone, 0x15),
+        SDADC1_AIN6P =      PINCONFIG(PB0,  modeAnalog, afNone, 0x16),
+        SDADC1_AIN6M =      PINCONFIG(PB1,  modeAnalog, afNone, 0x16),   
+        SDADC1_AIN7P =      PINCONFIG(PE9,  modeAnalog, afNone, 0x17),
+        SDADC1_AIN8P =      PINCONFIG(PE8,  modeAnalog, afNone, 0x18),
+        SDADC1_AIN8M =      PINCONFIG(PE9,  modeAnalog, afNone, 0x18),
+        // SDADC2
+        SDADC2_AIN0P =      PINCONFIG(PE15, modeAnalog, afNone, 0x20),
+        SDADC2_AIN0M =      PINCONFIG(PB10, modeAnalog, afNone, 0x20),
+        SDADC2_AIN1P =      PINCONFIG(PE14, modeAnalog, afNone, 0x21),
+        SDADC2_AIN2P =      PINCONFIG(PE13, modeAnalog, afNone, 0x22),
+        SDADC2_AIN2M =      PINCONFIG(PE14, modeAnalog, afNone, 0x22),
+        SDADC2_AIN3P =      PINCONFIG(PE12, modeAnalog, afNone, 0x23),
+        SDADC2_AIN4P =      PINCONFIG(PE11, modeAnalog, afNone, 0x24),
+        SDADC2_AIN4M =      PINCONFIG(PE12, modeAnalog, afNone, 0x24),
+        SDADC2_AIN5P =      PINCONFIG(PE7,  modeAnalog, afNone, 0x25),
+        SDADC2_AIN6P =      PINCONFIG(PB2,  modeAnalog, afNone, 0x26),  
+        SDADC2_AIN6M =      PINCONFIG(PE7,  modeAnalog, afNone, 0x26),
+        SDADC2_AIN7P =      PINCONFIG(PE9,  modeAnalog, afNone, 0x27),
+        SDADC2_AIN8P =      PINCONFIG(PE8,  modeAnalog, afNone, 0x28),
+        SDADC2_AIN8M =      PINCONFIG(PE9,  modeAnalog, afNone, 0x28), 
+        // SDADC3
+        SDADC3_AIN0P =      PINCONFIG(PD14, modeAnalog, afNone, 0x30),
+        SDADC3_AIN0M =      PINCONFIG(PD15, modeAnalog, afNone, 0x30),
+        SDADC3_AIN1P =      PINCONFIG(PD13, modeAnalog, afNone, 0x31),
+        SDADC3_AIN2P =      PINCONFIG(PD12, modeAnalog, afNone, 0x32),
+        SDADC3_AIN2M =      PINCONFIG(PD13, modeAnalog, afNone, 0x32),
+        SDADC3_AIN3P =      PINCONFIG(PD11, modeAnalog, afNone, 0x33),
+        SDADC3_AIN4P =      PINCONFIG(PD10, modeAnalog, afNone, 0x34),
+        SDADC3_AIN4M =      PINCONFIG(PD11, modeAnalog, afNone, 0x34),
+        SDADC3_AIN5P =      PINCONFIG(PD9,  modeAnalog, afNone, 0x35),
+        SDADC3_AIN6P =      PINCONFIG(PD8,  modeAnalog, afNone, 0x36),
+        SDADC3_AIN6M =      PINCONFIG(PD9,  modeAnalog, afNone, 0x36),
+        SDADC3_AIN7P =      PINCONFIG(PB15, modeAnalog, afNone, 0x37),    
+        SDADC3_AIN8P =      PINCONFIG(PB14, modeAnalog, afNone, 0x38),
+        SDADC3_AIN8M =      PINCONFIG(PB15, modeAnalog, afNone, 0x38),
+} Config;
+    
+#endif
     
 private:
     typedef union
@@ -415,6 +585,7 @@ private:
             unsigned char pin;
             unsigned char flags;
             unsigned char af;
+            unsigned char periph; // peripheral index
         };
         struct
         {
@@ -426,6 +597,8 @@ private:
             unsigned char speed: 2;
             unsigned char manyPins: 1; // several pins of port used, 'mPin' variable contains mask
             unsigned char afNumber;
+            unsigned char channel: 4;
+            unsigned char periphNumber: 4;
         };
         struct
         {
@@ -450,7 +623,7 @@ public:
         You should use it if there is not necessary configuration available.
         But other constructor is more convenient.
     */
-    Gpio(PinName pin, Flags flags = flagsDefault, PinAF altFunction = afNone);
+    Gpio(PinName pin, Flags flags = flagsDefault/*, PinAF altFunction = afNone*/);
     
     /*! Constructor with predefined pin configuration.
         Convenient for fast configuration.
@@ -486,60 +659,85 @@ public:
     */
     static void config(int count, Config conf1, ...);
     
-    /*! Изменение конфигурации как вход без подтяжки.
-        По идее, можно вызывать в любое время.
+    /*! РџРѕР»СѓС‡РµРЅРёРµ РЅРѕРјРµСЂР° Р±Р»РѕРєР° РїРµСЂРёС„РµСЂРёРё.
+        РќРѕРјРµСЂ РїРµСЂРёС„РµСЂРёРё РѕРїСЂРµРґРµР»СЏРµС‚СЃСЏ РїРѕ РєРѕРЅС„РёРіСѓСЂР°С†РёРё, РїРµСЂРµРґР°РЅРЅРѕР№ РІ РєРѕРЅСЃС‚СЂСѓРєС‚РѕСЂ.
+        \return Р·РЅР°С‡РµРЅРёРµ РЅРѕРјРµСЂР° Р±Р»РѕРєР° РїРµСЂРёС„РµСЂРёРё. 
+        \example
+        Gpio thePin(Gpio::TIM2_CH1_PA0);
+        int timerNumber = thePin.periphNumber(); // timerNumber will be 2
+    */
+    inline unsigned char periphNumber() const {return mConfig.periphNumber;}
+    
+    /*! РџРѕР»СѓС‡РµРЅРёРµ РЅРѕРјРµСЂР° РєР°РЅР°Р»Р° РїРµСЂРёС„РµСЂРёРё.
+        РљР°РЅР°Р» РїРµСЂРёС„РµСЂРёРё РѕРїСЂРµРґРµР»СЏРµС‚СЃСЏ РїРѕ РєРѕРЅС„РёРіСѓСЂР°С†РёРё, РїРµСЂРµРґР°РЅРЅРѕР№ РІ РєРѕРЅСЃС‚СЂСѓРєС‚РѕСЂ.
+        \return Р·РЅР°С‡РµРЅРёРµ РЅРѕРјРµСЂР° РєР°РЅР°Р»Р° РїРµСЂРёС„РµСЂРёРё.
+        Р•СЃР»Рё РґР°РЅРЅС‹Р№ Р±Р»РѕРє РїРµСЂРёС„РµСЂРёРё РЅРµ РёРјРµРµС‚ РєР°РЅР°Р»РѕРІ, РІРѕР·РІСЂР°С‰Р°РµРјРѕРµ Р·РЅР°С‡РµРЅРёРµ СЂР°РІРЅРѕ 0.
+        \example
+        Gpio thePin(Gpio::TIM2_CH1_PA0);
+        int channelNumber = thePin.channelNumber(); // channelNumber will be 1
+    */
+    inline unsigned char channelNumber() const {return mConfig.channel;}
+    
+    /*! РР·РјРµРЅРµРЅРёРµ РєРѕРЅС„РёРіСѓСЂР°С†РёРё РєР°Рє РІС…РѕРґ Р±РµР· РїРѕРґС‚СЏР¶РєРё.
+        РџРѕ РёРґРµРµ, РјРѕР¶РЅРѕ РІС‹Р·С‹РІР°С‚СЊ РІ Р»СЋР±РѕРµ РІСЂРµРјСЏ.
     */
     void setAsInput();
     
-    /*! Изменение конфигурации как вход с подтяжкой к питанию.
-        По идее, можно вызывать в любое время.
+    /*! РР·РјРµРЅРµРЅРёРµ РєРѕРЅС„РёРіСѓСЂР°С†РёРё РєР°Рє РІС…РѕРґ СЃ РїРѕРґС‚СЏР¶РєРѕР№ Рє РїРёС‚Р°РЅРёСЋ.
+        РџРѕ РёРґРµРµ, РјРѕР¶РЅРѕ РІС‹Р·С‹РІР°С‚СЊ РІ Р»СЋР±РѕРµ РІСЂРµРјСЏ.
     */
     void setAsInputPullUp();
     
-    /*! Изменение конфигурации как вход с подтяжкой к земле.
-        По идее, можно вызывать в любое время.
+    /*! РР·РјРµРЅРµРЅРёРµ РєРѕРЅС„РёРіСѓСЂР°С†РёРё РєР°Рє РІС…РѕРґ СЃ РїРѕРґС‚СЏР¶РєРѕР№ Рє Р·РµРјР»Рµ.
+        РџРѕ РёРґРµРµ, РјРѕР¶РЅРѕ РІС‹Р·С‹РІР°С‚СЊ РІ Р»СЋР±РѕРµ РІСЂРµРјСЏ.
     */
     void setAsInputPullDown();
     
-    /*! Изменение конфигурации как выход.
-        По идее, можно вызывать в любое время.
+    /*! РР·РјРµРЅРµРЅРёРµ РєРѕРЅС„РёРіСѓСЂР°С†РёРё РєР°Рє РІС‹С…РѕРґ.
+        РџРѕ РёРґРµРµ, РјРѕР¶РЅРѕ РІС‹Р·С‹РІР°С‚СЊ РІ Р»СЋР±РѕРµ РІСЂРµРјСЏ.
     */
     void setAsOutput();
     
-    /*! Изменение конфигурации как выход с открытым стоком.
-        По идее, можно вызывать в любое время.
+    /*! РР·РјРµРЅРµРЅРёРµ РєРѕРЅС„РёРіСѓСЂР°С†РёРё РєР°Рє РІС‹С…РѕРґ СЃ РѕС‚РєСЂС‹С‚С‹Рј СЃС‚РѕРєРѕРј.
+        РџРѕ РёРґРµРµ, РјРѕР¶РЅРѕ РІС‹Р·С‹РІР°С‚СЊ РІ Р»СЋР±РѕРµ РІСЂРµРјСЏ.
     */
     void setAsOutputOpenDrain();
     
-    /*! Чтение состояния ноги. 
-        \return \c true, если на ноге 1, \c false, если 0. Что логично.
+    /*! Р§С‚РµРЅРёРµ СЃРѕСЃС‚РѕСЏРЅРёСЏ РЅРѕРіРё. 
+        \return \c true, РµСЃР»Рё РЅР° РЅРѕРіРµ 1, \c false, РµСЃР»Рё 0. Р§С‚Рѕ Р»РѕРіРёС‡РЅРѕ.
     */
     bool read() const;
     
-    /*! Запись состояния ноги.
-        \param value \c true, чтобы выставить 1, \c false - 0. И это нормально.
+    /*! Р—Р°РїРёСЃСЊ СЃРѕСЃС‚РѕСЏРЅРёСЏ РЅРѕРіРё.
+        \param value \c true, С‡С‚РѕР±С‹ РІС‹СЃС‚Р°РІРёС‚СЊ 1, \c false - 0. Р СЌС‚Рѕ РЅРѕСЂРјР°Р»СЊРЅРѕ.
     */
     void write(bool value);
     
-    /*! Установка ноги в 1 */
-    inline void set() {mPort->BSRRL = mPin;}
-    
-    /*! Сброс ноги в 0 */
+#if defined (STM32F37X)
+    /*! РЈСЃС‚Р°РЅРѕРІРєР° РЅРѕРіРё РІ 1 */
+    inline void set() {mPort->BSRR = mPin;}   
+    /*! РЎР±СЂРѕСЃ РЅРѕРіРё РІ 0 */
+    inline void reset() {mPort->BRR = mPin;}
+#else
+    /*! РЈСЃС‚Р°РЅРѕРІРєР° РЅРѕРіРё РІ 1 */
+    inline void set() {mPort->BSRRL = mPin;}   
+    /*! РЎР±СЂРѕСЃ РЅРѕРіРё РІ 0 */
     inline void reset() {mPort->BSRRH = mPin;}
+#endif
     
-    /*! Инверсия состояния ноги */
+    /*! РРЅРІРµСЂСЃРёСЏ СЃРѕСЃС‚РѕСЏРЅРёСЏ РЅРѕРіРё */
     inline void toggle() {mPort->ODR ^= mPin;}
     
-    /*! запись порта*/
+    /*! Р·Р°РїРёСЃСЊ РїРѕСЂС‚Р°*/
     void writePort(unsigned short value);
 
-    /*! чтение порта*/
+    /*! С‡С‚РµРЅРёРµ РїРѕСЂС‚Р°*/
     unsigned short readPort();
     
-    /*! что за нога? */
+    /*! С‡С‚Рѕ Р·Р° РЅРѕРіР°? */
     PinName pin() const {return static_cast<Gpio::PinName>(mConfig.pin);}
     
-    /*! Возвращает false, если при конфигурации нога задана как Gpio::noPin */
+    /*! Р’РѕР·РІСЂР°С‰Р°РµС‚ false, РµСЃР»Рё РїСЂРё РєРѕРЅС„РёРіСѓСЂР°С†РёРё РЅРѕРіР° Р·Р°РґР°РЅР° РєР°Рє Gpio::noPin */
     bool isValid() const {return mPin;}
 };
 

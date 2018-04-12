@@ -1,6 +1,6 @@
 #include "uartonbinterface.h"
 
-#define SWONB_BUSY_TIMEOUT  10
+#define SWONB_BUSY_TIMEOUT  2
 
 using namespace Objnet;
 
@@ -81,6 +81,9 @@ void UartOnbInterface::task()
                     mHdBusyTimeout = SWONB_BUSY_TIMEOUT;
             }
         }
+        
+        if (mInterface->isHalfDuplex())
+            mWriteTimer = 30;
         
         if (mWriteTimer >= 30)
         {
