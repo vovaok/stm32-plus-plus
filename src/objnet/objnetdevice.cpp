@@ -292,3 +292,18 @@ void ObjnetDevice::sendObject(QString name, QVariant value)
 }
 #endif
 //---------------------------------------------------------
+
+_String ObjnetDevice::busTypeName() const
+{
+    switch (mBusType)
+    {
+        case BusUnknown:    return "unknown";
+        case BusCan:        return "CAN";
+        case BusUsbHid:     return "USB HID";
+        case BusWifi:       return "WiFi";
+        case BusSwonb:      return "SWONB";
+        case BusVirtual:    return "virtual";
+        default:            return "unknown";
+    }
+}
+//---------------------------------------------------------

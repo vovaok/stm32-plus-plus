@@ -74,6 +74,7 @@ typedef enum
     svcAutoRequest      = 0xFA, //!< мастер говорит узлу, что хочет от него порой получать объект без лишних слов
     svcTimedRequest     = 0xFB, //!< мастер говорит узлу, что хочет получать объект с timestamp'ом
     svcUpgradeRequest   = 0xFE, //!< мастер просит включить бутлоадер
+    svcFail             = 0xFF, //!< узел сообщает мастеру, что это фиаско братан (типа запрос не поддерживается)
 } SvcOID;
 
 typedef enum
@@ -82,7 +83,8 @@ typedef enum
     BusCan      = 1,
     BusUsbHid   = 2,
     BusWifi     = 3,
-    BusSwonb    = 4
+    BusSwonb    = 4,
+    BusVirtual  = 5,
 } BusType;
 
 typedef enum

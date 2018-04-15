@@ -1444,6 +1444,10 @@
         <loadFlag>0</loadFlag>
       </plugin>
       <plugin>
+        <file>$TOOLKIT_DIR$\plugins\middleware\PercepioTraceExporter\PercepioTraceExportPlugin.ewplugin</file>
+        <loadFlag>0</loadFlag>
+      </plugin>
+      <plugin>
         <file>$TOOLKIT_DIR$\plugins\rtos\AVIX\AVIX.ENU.ewplugin</file>
         <loadFlag>0</loadFlag>
       </plugin>
@@ -2952,6 +2956,10 @@
     <debuggerPlugins>
       <plugin>
         <file>$TOOLKIT_DIR$\plugins\middleware\HCCWare\HCCWare.ewplugin</file>
+        <loadFlag>0</loadFlag>
+      </plugin>
+      <plugin>
+        <file>$TOOLKIT_DIR$\plugins\middleware\PercepioTraceExporter\PercepioTraceExportPlugin.ewplugin</file>
         <loadFlag>0</loadFlag>
       </plugin>
       <plugin>
@@ -4466,6 +4474,10 @@
         <loadFlag>0</loadFlag>
       </plugin>
       <plugin>
+        <file>$TOOLKIT_DIR$\plugins\middleware\PercepioTraceExporter\PercepioTraceExportPlugin.ewplugin</file>
+        <loadFlag>0</loadFlag>
+      </plugin>
+      <plugin>
         <file>$TOOLKIT_DIR$\plugins\rtos\AVIX\AVIX.ENU.ewplugin</file>
         <loadFlag>0</loadFlag>
       </plugin>
@@ -5974,6 +5986,10 @@
     <debuggerPlugins>
       <plugin>
         <file>$TOOLKIT_DIR$\plugins\middleware\HCCWare\HCCWare.ewplugin</file>
+        <loadFlag>0</loadFlag>
+      </plugin>
+      <plugin>
+        <file>$TOOLKIT_DIR$\plugins\middleware\PercepioTraceExporter\PercepioTraceExportPlugin.ewplugin</file>
         <loadFlag>0</loadFlag>
       </plugin>
       <plugin>
@@ -7488,6 +7504,10 @@
         <loadFlag>0</loadFlag>
       </plugin>
       <plugin>
+        <file>$TOOLKIT_DIR$\plugins\middleware\PercepioTraceExporter\PercepioTraceExportPlugin.ewplugin</file>
+        <loadFlag>0</loadFlag>
+      </plugin>
+      <plugin>
         <file>$TOOLKIT_DIR$\plugins\rtos\AVIX\AVIX.ENU.ewplugin</file>
         <loadFlag>0</loadFlag>
       </plugin>
@@ -8996,6 +9016,10 @@
     <debuggerPlugins>
       <plugin>
         <file>$TOOLKIT_DIR$\plugins\middleware\HCCWare\HCCWare.ewplugin</file>
+        <loadFlag>0</loadFlag>
+      </plugin>
+      <plugin>
+        <file>$TOOLKIT_DIR$\plugins\middleware\PercepioTraceExporter\PercepioTraceExportPlugin.ewplugin</file>
         <loadFlag>0</loadFlag>
       </plugin>
       <plugin>
@@ -10510,6 +10534,10 @@
         <loadFlag>0</loadFlag>
       </plugin>
       <plugin>
+        <file>$TOOLKIT_DIR$\plugins\middleware\PercepioTraceExporter\PercepioTraceExportPlugin.ewplugin</file>
+        <loadFlag>0</loadFlag>
+      </plugin>
+      <plugin>
         <file>$TOOLKIT_DIR$\plugins\rtos\AVIX\AVIX.ENU.ewplugin</file>
         <loadFlag>0</loadFlag>
       </plugin>
@@ -12021,6 +12049,10 @@
         <loadFlag>0</loadFlag>
       </plugin>
       <plugin>
+        <file>$TOOLKIT_DIR$\plugins\middleware\PercepioTraceExporter\PercepioTraceExportPlugin.ewplugin</file>
+        <loadFlag>0</loadFlag>
+      </plugin>
+      <plugin>
         <file>$TOOLKIT_DIR$\plugins\rtos\AVIX\AVIX.ENU.ewplugin</file>
         <loadFlag>0</loadFlag>
       </plugin>
@@ -13529,6 +13561,10 @@
     <debuggerPlugins>
       <plugin>
         <file>$TOOLKIT_DIR$\plugins\middleware\HCCWare\HCCWare.ewplugin</file>
+        <loadFlag>0</loadFlag>
+      </plugin>
+      <plugin>
+        <file>$TOOLKIT_DIR$\plugins\middleware\PercepioTraceExporter\PercepioTraceExportPlugin.ewplugin</file>
         <loadFlag>0</loadFlag>
       </plugin>
       <plugin>

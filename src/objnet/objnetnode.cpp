@@ -36,6 +36,8 @@ ObjnetNode::ObjnetNode(ObjnetInterface *iface) :
     mBurnCount = stmApp()->burnCount();
     #endif
     
+    mBusType = iface->busType();
+    
     if (mNodesCount)
         mSerial ^= rand();
 
@@ -48,6 +50,7 @@ ObjnetNode::ObjnetNode(ObjnetInterface *iface) :
     registerSvcObject(ObjectInfo("cpuInfo", mCpuInfo, ObjectInfo::ReadOnly));
     registerSvcObject(ObjectInfo("burnCount", mBurnCount));
     registerSvcObject(ObjectInfo("objCount", EVENT(&ObjnetNode::objectCount), ObjectInfo::ReadOnly));
+    registerSvcObject(ObjectInfo("busType", mBusType, ObjectInfo::ReadOnly));
     
     mNodesCount++;
 }
@@ -183,7 +186,6 @@ void ObjnetNode::parseServiceMessage(CommonMessage &msg)
             mNetState = netnStart;
             if (mAdjacentNode) // remote addr
             {
-#warning DOBAVIT if SWONB then enumerate()
 //                mAdjacentNode->acceptServiceMessage(remoteAddr, aidConnReset);
             }
             break;

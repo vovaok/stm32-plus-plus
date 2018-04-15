@@ -7,6 +7,7 @@ CanInterface::CanInterface(Can *can) :
     mCurFilterFifo(0)
 { 
     mMaxFrameSize = 8;
+    mBusType = BusCan;
     mCan->setReceiveEvent(EVENT(&CanInterface::receiveHandler));
     mCan->setTransmitReadyEvent(EVENT(&CanInterface::transmitHandler));
 }

@@ -42,6 +42,7 @@ private:
     _String mBuildDate;
     _String mCpuInfo;
     unsigned long mBurnCount;
+    unsigned char mBusType; // BusType
     
     // количество экземпляров узлов (логических узлов) в одном физическом
     static unsigned char mNodesCount;

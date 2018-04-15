@@ -92,6 +92,8 @@ public:
     _String buildDate() const {return _toString(mBuildDate);}
     _String cpuInfo() const {return _toString(mCpuInfo);}
     int burnCount() const {return mBurnCount;}
+    BusType busType() const {return mBusType;}
+    _String busTypeName() const;
 
     int objectCount() const {return mObjectCount;}
     ObjectInfo *objectInfo(unsigned char oid) {if (oid < mObjects.size()) return mObjects[oid]; return 0L;}

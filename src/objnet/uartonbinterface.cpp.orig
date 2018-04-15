@@ -1,6 +1,10 @@
 #include "uartonbinterface.h"
 
+<<<<<<< HEAD
+#define SWONB_BUSY_TIMEOUT  10
+=======
 #define SWONB_BUSY_TIMEOUT  2
+>>>>>>> 82a44b24363e4dffdd2554fc0d7bc72b68e4d437
 
 using namespace Objnet;
 
@@ -12,9 +16,6 @@ UartOnbInterface::UartOnbInterface(SerialInterface *serialInterface) :
     mHdBusyTimeout(0)
 { 
     mMaxFrameSize = 64;
-    mBusType = BusWifi;
-    if (serialInterface->isHalfDuplex())
-        mBusType = BusSwonb;
     stmApp()->registerTaskEvent(EVENT(&UartOnbInterface::task));
     stmApp()->registerTickEvent(EVENT(&UartOnbInterface::tick));
     mInterface->open(ReadWrite);
@@ -85,9 +86,12 @@ void UartOnbInterface::task()
             }
         }
         
+<<<<<<< HEAD
+=======
         if (mInterface->isHalfDuplex())
             mWriteTimer = 30;
         
+>>>>>>> 82a44b24363e4dffdd2554fc0d7bc72b68e4d437
         if (mWriteTimer >= 30)
         {
             mWriteTimer = 0;

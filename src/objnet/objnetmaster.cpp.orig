@@ -49,12 +49,7 @@ void ObjnetMaster::task()
     if (mAdjacentNode)
     {
         if (!mAdjIfConnected && mAdjacentNode->isConnected())
-        {
-            if (mSwonbMode)
-                swonbEnumerate(); // re-enumerate nodes
-            else
-                sendGlobalServiceMessage((StdAID)(aidConnReset | aidPropagationDown)); // reset subnet state on adjacent node connection
-        }
+            sendGlobalServiceMessage((StdAID)(aidConnReset | aidPropagationDown)); // reset subnet state on adjacent node connection
         mAdjIfConnected = mAdjacentNode->isConnected(); // store previous value of connection state
     }
 
@@ -483,7 +478,11 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
         if (dev)
         {
             dev->mObjectCount = msg.data()[0];
+<<<<<<< HEAD
+            if (mSwonbMode)
+=======
             if (dev->mBusType == BusSwonb)
+>>>>>>> 82a44b24363e4dffdd2554fc0d7bc72b68e4d437
             {
                 ByteArray oba;
                 oba.resize(1);
@@ -494,6 +493,8 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
                 }
             }
         }
+<<<<<<< HEAD
+=======
         break;
         
       case svcBusType:
@@ -518,6 +519,7 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
                 }
             }
         }
+>>>>>>> 82a44b24363e4dffdd2554fc0d7bc72b68e4d437
         break;
 
       case svcObjectInfo:
