@@ -112,7 +112,7 @@ void UartOnbInterface::task()
                 if (mInterface->write(mUnsendBuffer) > 0)
                 {
                     mUnsendBuffer.resize(0);
-                    if (mInterface->isHalfDuplex())
+                    if (mInterface->isHalfDuplex() && (id & 0x10000000)) // in half-duplex mode: if message is local => wait response
                     {
                         mHdBusyTimeout = SWONB_BUSY_TIMEOUT;
                         break;
