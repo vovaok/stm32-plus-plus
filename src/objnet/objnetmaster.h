@@ -67,7 +67,7 @@ public:
     void reset();
 
     void setName(string name) {mName = name;}
-    void setSwonbMode(bool enabled) {mSwonbMode = true;}
+    void setSwonbMode(bool enabled) {mSwonbMode = enabled;}
 
     bool isConnected() const {return !mDevices.empty();}
 

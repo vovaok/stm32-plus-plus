@@ -53,6 +53,9 @@ Dac::Dac(Gpio::Config out1, Gpio::Config out2) :
     Gpio::config(out2);
     
     setResolution(mResolution);
+    
+    mDac->CR |= DAC_CR_BOFF1;
+    mDac->CR |= DAC_CR_BOFF2;
 }
 
 Dac::~Dac()
