@@ -38,6 +38,9 @@ ObjnetNode::ObjnetNode(ObjnetInterface *iface) :
     
     mBusType = iface->busType();
     
+    if (mBusType == BusSwonb)
+        mSendTimer.stop();
+    
     if (mNodesCount)
         mSerial ^= rand();
 
@@ -75,13 +78,25 @@ void ObjnetNode::task()
     switch (mNetState)
     {
       case netnStart:
-//        mInterface->flush();
-        mNetAddress = 0xFF;
-        mTimer.stop();
+        if (mBusType == BusSwonb)
+        {
+            mNetAddress = 0xFF;
+            mNetTimeout = 0;
+        }
+        else
+        {
+//            mInterface->flush();
+            mNetAddress = 0xFF;
+            mTimer.stop();
+        }
         break;
 
       case netnConnecting:
-        if (!mTimer.isActive())
+        if (mBusType == BusSwonb)
+        {
+            mNetTimeout = 0;
+        }
+        else if (!mTimer.isActive())
         {
             ByteArray ba;
             ba.append(mBusAddress);
@@ -91,32 +106,53 @@ void ObjnetNode::task()
         break;
 
       case netnDisconnecting:
-        //mInterface->flush();
-        mTimer.stop();
-        mNetState = netnStart;
+        if (mBusType == BusSwonb)
+        {
+            mNetTimeout = 0;
+            mNetState = netnStart;
+        }
+        else
+        {
+            //mInterface->flush();
+            mTimer.stop();
+            mNetState = netnStart;
+        }
         break;
 
       case netnAccepted:
-      {
-        mTimer.stop();
-        mNetState = netnReady;
+        if (mBusType == BusSwonb)
+        {
+            mNetTimeout = 0;
+            mNetState = netnReady;
+        }
+        else
+        {
+            mTimer.stop();
+            mNetState = netnReady;
+        }
         break;
-      }
 
       case netnReady:
-        if (!mTimer.isActive())
+        if (mBusType == BusSwonb)
         {
-            mTimer.start();
+          
         }
-        while (mObjInfoSendCount >= 0 && mObjInfoSendCount < (int)mObjects.size())
+        else
         {
-            ByteArray ba;
-            mObjects[mObjInfoSendCount].mDesc.read(ba);
-            bool success = sendServiceMessage(mCurrentRemoteAddress, svcObjectInfo, ba);
-            if (success)
-                mObjInfoSendCount++;
-            else
-                break;
+            if (!mTimer.isActive())
+            {
+                mTimer.start();
+            }
+            while (mObjInfoSendCount >= 0 && mObjInfoSendCount < (int)mObjects.size())
+            {
+                ByteArray ba;
+                mObjects[mObjInfoSendCount].mDesc.read(ba);
+                bool success = sendServiceMessage(mCurrentRemoteAddress, svcObjectInfo, ba);
+                if (success)
+                    mObjInfoSendCount++;
+                else
+                    break;
+            }
         }
         break;
     }
@@ -164,11 +200,12 @@ void ObjnetNode::parseServiceMessage(CommonMessage &msg)
           case aidPollNodes:
             if (isConnected())
             {
-                sendServiceMessage(svcEcho);
+                if (mBusType != BusSwonb)
+                    sendServiceMessage(svcEcho);
                 if (mNetState == netnReady)
                     mNetTimeout = 0;
             }
-            else
+            else if (mBusType != BusSwonb)
             {
                 mNetState = netnConnecting;
             }
@@ -221,31 +258,50 @@ void ObjnetNode::parseServiceMessage(CommonMessage &msg)
     switch (oid)
     {
       case svcHello:
-//        mNetState = netnConnecting;
-        mNetState = netnStart;
-        mInterface->flush();
+        if (mBusType == BusSwonb)
+        {
+            mNetState = netnConnecting;
+            ByteArray ba;
+            ba.append(mBusAddress);
+            sendServiceMessage(svcHello, ba);
+        }
+        else
+        {
+//            mNetState = netnConnecting;
+            mNetState = netnStart;
+            mInterface->flush();
+        }
         break;
 
       case svcWelcome:
       case svcWelcomeAgain:
         if (msg.data().size() == 1)
         {
-            for (unsigned int i=0; i<mObjects.size(); i++)
+            if (mBusType == BusSwonb)
             {
-                ObjectInfo &obj = mObjects[i];
-                obj.mAutoPeriod = 0;
-                obj.mTimedRequest = false;
+                mNetAddress = msg.data()[0];
+                mNetState = netnAccepted;
+                sendServiceMessage(remoteAddr, svcEcho);
             }
-          
-            mNetAddress = msg.data()[0];
-            mNetState = netnAccepted;
-            int len = mName.length();
-            if (len > 8)
-                len = 8;
-            // send different info
-            sendServiceMessage(remoteAddr, svcClass, ByteArray(reinterpret_cast<const char*>(&mClass), sizeof(mClass)));
-            sendServiceMessage(remoteAddr, svcName, ByteArray(_fromString(mName).c_str(), len));
-            sendServiceMessage(remoteAddr, svcEcho); // echo at the end of info
+            else
+            {
+                for (unsigned int i=0; i<mObjects.size(); i++)
+                {
+                    ObjectInfo &obj = mObjects[i];
+                    obj.mAutoPeriod = 0;
+                    obj.mTimedRequest = false;
+                }
+              
+                mNetAddress = msg.data()[0];
+                mNetState = netnAccepted;
+                int len = mName.length();
+                if (len > 8)
+                    len = 8;
+                // send different info
+                sendServiceMessage(remoteAddr, svcClass, ByteArray(reinterpret_cast<const char*>(&mClass), sizeof(mClass)));
+                sendServiceMessage(remoteAddr, svcName, ByteArray(_fromString(mName).c_str(), len));
+                sendServiceMessage(remoteAddr, svcEcho); // echo at the end of info
+            }
         }
         else if (mAdjacentNode) // remote addr
         {
@@ -253,8 +309,23 @@ void ObjnetNode::parseServiceMessage(CommonMessage &msg)
         }
         break;
 
+      case svcObjectInfo:
+      {
+        unsigned char _oid = msg.data()[0];
+        if (_oid < mObjects.size())
+        {
+            ByteArray ba;
+            mObjects[_oid].mDesc.read(ba);
+            sendServiceMessage(remoteAddr, svcObjectInfo, ba);
+        }
+      } break;
+        
       case svcRequestAllInfo:
-        if (isConnected())
+        if (mBusType == BusSwonb)
+        {
+            sendServiceMessage(remoteAddr, svcBusType, mSvcObjects[svcBusType].read());
+        }
+        else if (isConnected())
         {
             for (size_t i=2; i<mSvcObjects.size(); i++)
                 sendServiceMessage(remoteAddr, (SvcOID)i, mSvcObjects[i].read());
@@ -262,7 +333,11 @@ void ObjnetNode::parseServiceMessage(CommonMessage &msg)
         break;
 
       case svcRequestObjInfo:
-        if (isConnected())
+        if (mBusType == BusSwonb)
+        {
+            sendServiceMessage(remoteAddr, svcFail);
+        }
+        else if (isConnected())
         {
             mCurrentRemoteAddress = remoteAddr;
             mObjInfoSendCount = 0; // initiate object info sending task
@@ -271,7 +346,11 @@ void ObjnetNode::parseServiceMessage(CommonMessage &msg)
 
       case svcAutoRequest:
       case svcTimedRequest:
-        if (isConnected())
+        if (mBusType == BusSwonb)
+        {
+          
+        }
+        else if (isConnected())
         {
             if (msg.data().size())
             {
@@ -362,7 +441,7 @@ void ObjnetNode::parseMessage(CommonMessage &msg)
         else if (msg.data().size()) // write
         {
             obj.write(msg.data());
-            if (obj.isDual())
+            if (obj.isDual() || (mBusType == BusSwonb))
                 sendMessage(remoteAddr, oid, obj.read());
             #ifdef __ICCARM__
             else if (obj.isStorable())
@@ -379,12 +458,19 @@ void ObjnetNode::parseMessage(CommonMessage &msg)
 
 void ObjnetNode::onTimeoutTimer()
 {
+    if (mBusType == BusSwonb)
+    {
+        mNetTimeout += mTimer.interval();
+        return;
+    }
+  
     if (mNetState == netnConnecting)
     {
         mNetState = netnDisconnecting;
     }
 
     mNetTimeout += mTimer.interval();
+    
     if (mNetTimeout >= 1000)
     {
         mNetState = netnStart;
