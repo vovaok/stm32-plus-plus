@@ -122,3 +122,33 @@ void Dac::setValue(unsigned short value1, unsigned short value2)
     *mData = val;
 }
 //---------------------------------------------------------------------------
+
+void Dac::selectTrigger(Trigger trigger)
+{
+    if (mChannels & Channel1)
+    {
+        mDac->CR &= ~(DAC_CR_TSEL1 | DAC_CR_TEN1);
+        mDac->CR |= trigger;
+    }
+    if (mChannels & Channel2)
+    {
+        mDac->CR &= ~(DAC_CR_TSEL2 | DAC_CR_TEN2);
+        mDac->CR |= (trigger << 16);
+    }
+}
+//---------------------------------------------------------------------------
+
+void Dac::configDma(Dma *dma)
+{ 
+    int dataSize = mResolution==Res8bit? 1: 2;
+    if (mChannels == ChannelBoth)
+        dataSize *= 2;
+    
+    dma->setSink((void*)mData, dataSize);
+  
+    if (mChannels == Channel1 || mChannels == ChannelBoth)
+        mDac->CR |= DAC_CR_DMAEN1;
+    else if (mChannels == Channel2)
+        mDac->CR |= DAC_CR_DMAEN2;
+}
+//---------------------------------------------------------------------------

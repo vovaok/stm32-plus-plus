@@ -5,7 +5,15 @@ HardwareTimer* HardwareTimer::mTimers[19] = {0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L,
 HardwareTimer::HardwareTimer(TimerNumber timerNumber, unsigned int frequency_Hz) :
   mEnabled(false)
 {
-    int clkDiv = 1;
+    unsigned int pclk1 = Rcc::pClk1();
+    unsigned int pclk2 = Rcc::pClk2();
+#if defined(STM32F37X)
+    if (pclk1 != Rcc::hClk())
+        pclk1 *= 2;
+    if (pclk2 != Rcc::hClk())
+        pclk2 *= 2;
+#endif
+    mInputClk = pclk2;
     switch (timerNumber)
     {
 #if !defined(STM32F37X)
@@ -14,7 +22,6 @@ HardwareTimer::HardwareTimer(TimerNumber timerNumber, unsigned int frequency_Hz)
         mTim = TIM1;
 #warning TIM1_IRQ not implemented
 //        mIrq = TIM1_IRQn;
-        clkDiv = 0;
         break;
 #endif
         
@@ -22,29 +29,34 @@ HardwareTimer::HardwareTimer(TimerNumber timerNumber, unsigned int frequency_Hz)
         RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM2, ENABLE);
         mTim = TIM2;
         mIrq = TIM2_IRQn;
+        mInputClk = pclk1;
         break;
         
       case 3:
         RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3, ENABLE);
         mTim = TIM3;
         mIrq = TIM3_IRQn;
+        mInputClk = pclk1;
         break;
         
       case 4:
         RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM4, ENABLE);
         mTim = TIM4;
         mIrq = TIM4_IRQn;
+        mInputClk = pclk1;
         break;
         
       case 5:
         RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM5, ENABLE);
         mTim = TIM5;
         mIrq = TIM5_IRQn;
+        mInputClk = pclk1;
         break;
         
       case 6:
         RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM6, ENABLE);
         mTim = TIM6;
+        mInputClk = pclk1;
 #if !defined(STM32F37X)
         mIrq = TIM6_DAC_IRQn;
 #else
@@ -56,6 +68,7 @@ HardwareTimer::HardwareTimer(TimerNumber timerNumber, unsigned int frequency_Hz)
         RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM7, ENABLE);
         mTim = TIM7;
         mIrq = TIM7_IRQn;
+        mInputClk = pclk1;
         break;
         
 #if !defined(STM32F37X)        
@@ -64,14 +77,12 @@ HardwareTimer::HardwareTimer(TimerNumber timerNumber, unsigned int frequency_Hz)
         mTim = TIM8;
 #warning TIM8_IRQ not implemented
 //        mIrq = TIM8_IRQn;
-        clkDiv = 0;
         break;
         
       case 9:
         RCC_APB2PeriphClockCmd(RCC_APB2Periph_TIM9, ENABLE);
         mTim = TIM9;
         mIrq = TIM1_BRK_TIM9_IRQn;
-        clkDiv = 0;
         break;
         
       case 10:
@@ -85,13 +96,13 @@ HardwareTimer::HardwareTimer(TimerNumber timerNumber, unsigned int frequency_Hz)
         RCC_APB2PeriphClockCmd(RCC_APB2Periph_TIM11, ENABLE);
         mTim = TIM11;
         mIrq = TIM1_TRG_COM_TIM11_IRQn;
-        clkDiv = 0;
         break;
 #endif
         
       case 12:
         RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM12, ENABLE);
         mTim = TIM12;
+        mInputClk = pclk1;
 #if !defined(STM32F37X)
         mIrq = TIM8_BRK_TIM12_IRQn;
 #else
@@ -102,6 +113,7 @@ HardwareTimer::HardwareTimer(TimerNumber timerNumber, unsigned int frequency_Hz)
       case 13:
         RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM13, ENABLE);
         mTim = TIM13;
+        mInputClk = pclk1;
 #if !defined(STM32F37X)        
         mIrq = TIM8_UP_TIM13_IRQn;
 #else
@@ -112,6 +124,7 @@ HardwareTimer::HardwareTimer(TimerNumber timerNumber, unsigned int frequency_Hz)
       case 14:
         RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM14, ENABLE);
         mTim = TIM14;
+        mInputClk = pclk1;
 #if !defined(STM32F37X)
         mIrq = TIM8_TRG_COM_TIM14_IRQn;
 #else
@@ -142,6 +155,7 @@ HardwareTimer::HardwareTimer(TimerNumber timerNumber, unsigned int frequency_Hz)
         RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM18, ENABLE);
         mTim = TIM18;
         mIrq = TIM18_DAC2_IRQn;
+        mInputClk = pclk1;
         break;
         
       case 19:  
@@ -159,7 +173,6 @@ HardwareTimer::HardwareTimer(TimerNumber timerNumber, unsigned int frequency_Hz)
         throw Exception::resourceBusy; // ALARM!! this timer already in use!
     
     mTimers[timerNumber-1] = this;
-    mInputClk = Rcc::sysClk() >> clkDiv;
     
     for (int i=0; i<8; i++)
         mEnabledIrq[i] = false;
