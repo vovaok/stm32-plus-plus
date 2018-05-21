@@ -89,7 +89,7 @@ HardwareTimer::HardwareTimer(TimerNumber timerNumber, unsigned int frequency_Hz)
         RCC_APB2PeriphClockCmd(RCC_APB2Periph_TIM10, ENABLE);
         mTim = TIM10;
         mIrq = TIM1_UP_TIM10_IRQn;
-        clkDiv = 0;
+        mInputClk = pclk1; // or pclk2 ? 
         break;
         
       case 11:
