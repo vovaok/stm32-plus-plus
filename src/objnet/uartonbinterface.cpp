@@ -204,33 +204,30 @@ void UartOnbInterface::msgReceived(const ByteArray &ba)
 {
     mHdBusyTimeout = 0;
     
-    UartOnbMessage msg;
-    msg.id = *reinterpret_cast<const unsigned long*>(ba.data());
-    msg.size = ba.size() - 4;
-    for (int i=0; i<msg.size; i++)
-        msg.data[i] = ba[i+4];
-    writeRx(msg);
+    unsigned long id = *reinterpret_cast<const unsigned long*>(ba.data());  
+    bool accept = false;
+    if (!mFilters.size())
+        accept = true;
+    int fcnt = mFilters.size();
+    for (int i=0; i<fcnt; i++)
+    {
+        Filter &f = mFilters[i];
+        if ((f.id & f.mask) == (id & f.mask))
+        {
+            accept = true;
+            break;
+        }
+    }
     
-//    unsigned long id = *reinterpret_cast<const unsigned long*>(ba.data());  
-//    bool accept = false;
-//    if (!mFilters.size())
-//        accept = true;
-//    foreach (Filter f, mFilters)
-//    {
-//        if ((f.id & f.mask) == (id & f.mask))
-//        {
-//            accept = true;
-//            break;
-//        }
-//    }
-//
-//    if (accept)
-//    {
-//        CommonMessage msg;
-//        msg.setId(id);
-//        msg.setData(QByteArray(ba.data()+4, ba.size()));
-//        mRxQueue << msg;
-//    }
+    if (accept)
+    {    
+        UartOnbMessage msg;
+        msg.id = *reinterpret_cast<const unsigned long*>(ba.data());
+        msg.size = ba.size() - 4;
+        for (int i=0; i<msg.size; i++)
+            msg.data[i] = ba[i+4];
+        writeRx(msg);
+    }
 }
 //---------------------------------------------------------------------------
 
@@ -273,11 +270,14 @@ int UartOnbInterface::availableWriteCount()
 
 int UartOnbInterface::addFilter(unsigned long id, unsigned long mask)
 {
-    return 0;
+    Filter f = {id & 0x1FFFFFFF, mask & 0x1FFFFFFF};
+    mFilters.push_back(f);
+    return mFilters.size();
 }
 
 void UartOnbInterface::removeFilter(int number)
 {
-   
+    if (number >= 0 && number < mFilters.size())
+        mFilters.erase(mFilters.begin() + number);
 }
 //---------------------------------------------------------------------------

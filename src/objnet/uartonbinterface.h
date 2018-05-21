@@ -28,6 +28,13 @@ private:
     ByteArray mUnsendBuffer;
     UartOnbMessage mCurMsg, mCurTxMsg;
     
+    typedef struct
+    {
+        unsigned long id;
+        unsigned long mask;
+    } Filter;
+    std::vector<Filter> mFilters;
+    
     std::queue<UartOnbMessage> mTxQueue;
     std::queue<UartOnbMessage> mRxQueue;
     const static int mTxQueueSize = 32;

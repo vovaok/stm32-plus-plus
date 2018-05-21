@@ -1,8 +1,10 @@
 #include "objnetdevice.h"
+#include "objnetmaster.h"
 
 using namespace Objnet;
 
 ObjnetDevice::ObjnetDevice(unsigned char netaddr) :
+    mMaster(0L),
     mClassValid(false),
     mNameValid(false),
     mInfoValidCnt(0),
@@ -304,6 +306,32 @@ _String ObjnetDevice::busTypeName() const
         case BusSwonb:      return "SWONB";
         case BusVirtual:    return "virtual";
         default:            return "unknown";
+    }
+}
+//---------------------------------------------------------
+
+void ObjnetDevice::changeName(_String name)
+{
+    if (mMaster)
+    {
+#ifdef QT_CORE_LIB
+        ByteArray ba(name.toLocal8Bit());
+#else
+        ByteArray ba(name.c_str());
+#endif
+        if (ba.size() > 8)
+            ba.resize(8);
+        mMaster->sendServiceRequest(mNetAddress, svcName, ba);
+    }
+}
+
+void ObjnetDevice::changeBusAddress(unsigned char mac)
+{
+    if (mMaster)
+    {
+        ByteArray ba;
+        ba.append(mac);
+        mMaster->sendServiceRequest(mNetAddress, svcBusAddress, ba);
     }
 }
 //---------------------------------------------------------

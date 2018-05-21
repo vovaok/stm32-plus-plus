@@ -70,55 +70,59 @@ void ObjnetMaster::onTimer()
 {
     sendGlobalServiceMessage(aidPollNodes);
     
+    std::vector<unsigned char> macsToRemove;
+    
     if (mSwonbMode)
     {
+        // remove all devices
         if (mCurMac)
         {
-            for (; mCurMac<16; mCurMac++)
-                sendServiceMessageToMac(mCurMac, svcHello);
-//            mCurMac++;
-            mCurMac = 0; // temporary!! or not?
-//            mCurMac &= 0xF;
-        }
-        return;
-    }
-    
-//    sendGlobalServiceMessage(aidPollNodes);
-    
-    std::vector<unsigned char> macsToRemove;
-    for (DeviceIterator it=mDevices.begin(); it!=mDevices.end(); it++)
-    {
-        ObjnetDevice *dev = it->second;
-        if (dev->mTimeout)
-            dev->mTimeout--;
-        if (dev->mPresent && !dev->mTimeout)
-        {
-            dev->mPresent = false;
-            dev->mObjectCount = 0;
-            if (dev->mAutoDelete)
+            for (DeviceIterator it=mDevices.begin(); it!=mDevices.end(); it++)
             {
                 macsToRemove.push_back(it->first);
             }
-            else
+        }
+    }
+    else
+    {
+        for (DeviceIterator it=mDevices.begin(); it!=mDevices.end(); it++)
+        {
+            ObjnetDevice *dev = it->second;
+            if (dev->mTimeout)
+                dev->mTimeout--;
+            if (dev->mPresent && !dev->mTimeout)
             {
-                if (mAdjacentNode)
+                dev->mPresent = false;
+                dev->mObjectCount = 0;
+                if (dev->mAutoDelete)
                 {
-                    ByteArray ba;
-                    ba.append(dev->mNetAddress);
-                    mAdjacentNode->acceptServiceMessage(0, svcDisconnected, &ba);
+                    macsToRemove.push_back(it->first);
                 }
-                #ifdef QT_CORE_LIB
-                emit devDisconnected(dev->mNetAddress);
-                #else
-                if (onDevDisconnected)
-                    onDevDisconnected(dev->mNetAddress);
-                #endif
+                else
+                {
+                    if (mAdjacentNode)
+                    {
+                        ByteArray ba;
+                        ba.append(dev->mNetAddress);
+                        mAdjacentNode->acceptServiceMessage(0, svcDisconnected, &ba);
+                    }
+                    #ifdef QT_CORE_LIB
+                    emit devDisconnected(dev->mNetAddress);
+                    #else
+                    if (onDevDisconnected)
+                        onDevDisconnected(dev->mNetAddress);
+                    #endif
+                }
             }
         }
     }
+    
+    
     // удаляем отсутствующие девайсы, если у них включено автоудаление
     for (std::vector<unsigned char>::iterator it=macsToRemove.begin(); it!=macsToRemove.end(); it++)
     {
+        if (!mDevices.count(*it))
+            continue;
         ObjnetDevice *dev = mDevices[*it];
         if (mAdjacentNode)
         {
@@ -142,6 +146,19 @@ void ObjnetMaster::onTimer()
         mLocalnetDevices[mac] = 0L;
         delete dev;
         mDevices.erase(*it);
+    }
+    
+    if (mSwonbMode)
+    {
+        if (mCurMac)
+        {
+            for (; mCurMac<16; mCurMac++)
+                sendServiceMessageToMac(mCurMac, svcHello);
+//            mCurMac++;
+            mCurMac = 0; // temporary!! or not?
+//            mCurMac &= 0xF;
+        }
+        return;
     }
 }
 //---------------------------------------------------------------------------
@@ -280,6 +297,7 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
             }
 
             dev = new ObjnetDevice(netaddr);             // создаём объект с новым адресом
+            dev->mMaster = this;
             dev->mAutoDelete = true;                     // раз автоматически создали - автоматически и удалим)
             dev->mBusAddress = mac;
             if (localnet)                                // если девайс в текущей подсети...
@@ -301,6 +319,7 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
         if (dev)
         {
             netaddr = dev->netAddress();
+            dev->mLocalBusAddress = ba[0];
         }
 
         if (localnet)                          // если это девайс текущей подсети...

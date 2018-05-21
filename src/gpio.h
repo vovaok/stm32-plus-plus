@@ -293,7 +293,7 @@ public:
         TIM14_CH1_PF9 =     PINCONFIG(PF9,  modeAF | outPushPull | pullNone | speed50MHz, afTim14), //!<.        
         // USART1
         USART1_CK_PA8 =     PINCONFIG(PA8,  modeAF | outPushPull | pullNone | speed50MHz, afUsart1), //!<.
-        USART1_TX_PA9 =     PINCONFIG(PA9,  modeAF | outPushPull | pullNone | speed50MHz, afUsart1), //!<.
+        USART1_TX_PA9 =     PINCONFIG(PA9,  modeAF | outPushPull | pullUp | speed50MHz, afUsart1), //!<.
         USART1_RX_PA10 =    PINCONFIG(PA10, modeAF | outPushPull | pullNone | speed50MHz, afUsart1), //!<.
         USART1_CTS_PA11 =   PINCONFIG(PA11, modeAF | outPushPull | pullNone | speed50MHz, afUsart1), //!<.
         USART1_RTS_PA12 =   PINCONFIG(PA12, modeAF | outPushPull | pullNone | speed50MHz, afUsart1), //!<.

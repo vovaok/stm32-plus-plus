@@ -16,6 +16,7 @@
 namespace Objnet
 {
 
+class ObjnetMaster; // forward declaration
 
 #ifndef QT_CORE_LIB
 class ObjnetDevice {
@@ -35,6 +36,8 @@ protected:
 //        ObjectInfo::Description desc;
 //        ByteArray value;
 //    } ObjnetObject;
+  
+    ObjnetMaster *mMaster;
 
     unsigned char mNetAddress;
     unsigned char mBusAddress;
@@ -55,6 +58,7 @@ protected:
     unsigned long mBurnCount;
     unsigned char mObjectCount;
     BusType mBusType;
+    unsigned char mLocalBusAddress;
 
     vector<ObjectInfo*> mObjects;
     map<string, ObjectInfo> mObjMap;
@@ -94,9 +98,13 @@ public:
     int burnCount() const {return mBurnCount;}
     BusType busType() const {return mBusType;}
     _String busTypeName() const;
+    unsigned char localBusAddress() const {return mLocalBusAddress;}
 
     int objectCount() const {return mObjectCount;}
     ObjectInfo *objectInfo(unsigned char oid) {if (oid < mObjects.size()) return mObjects[oid]; return 0L;}
+    
+    void changeName(_String name);
+    void changeBusAddress(unsigned char mac);
 
     #ifndef QT_CORE_LIB
 

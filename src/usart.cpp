@@ -419,6 +419,12 @@ int Usart::write(const char *data, int size)
 //    if (mHalfDuplex)
 //        mDev->CR1 |= USART_CR1_RWU;
     
+//    if (mHalfDuplex)
+//    {
+//        // wait for line idle:
+//        while (!(mDev->SR & USART_SR_IDLE));
+//    }
+    
     mDmaTx->start();
     return size;
 }
