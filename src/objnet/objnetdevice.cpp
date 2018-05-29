@@ -223,6 +223,8 @@ void ObjnetDevice::requestObject(_String name)
         unsigned char oid = it->second.mDesc.id;
         #ifdef QT_CORE_LIB
         emit requestObject(mNetAddress, oid);
+        #else
+        masterRequestObject(mNetAddress, oid);
         #endif
     }
 }
@@ -238,6 +240,8 @@ void ObjnetDevice::sendObject(_String name)
         {
             #ifdef QT_CORE_LIB
             emit sendObject(mNetAddress, oid, obj->read());
+            #else
+            masterSendObject(mNetAddress, oid, obj->read());
             #endif
         }
     }

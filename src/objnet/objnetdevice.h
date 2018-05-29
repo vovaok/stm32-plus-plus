@@ -65,6 +65,8 @@ protected:
     vector<ByteArray> mObjBuffers;
 
     void prepareObject(const ObjectInfo::Description &desc); //only master calls
+    Closure<void(unsigned char, unsigned char)> masterRequestObject;
+    Closure<void(unsigned char, unsigned char, const ByteArray&)> masterSendObject;
 
     friend class ObjnetMaster;
 
@@ -122,6 +124,20 @@ public:
             info.mWritePtr = &var;
             info.mReadPtr = &var;
             info.mDesc.wType = info.mDesc.rType = t;
+            return true;
+        }
+        return false;
+    }
+    
+    template<typename Tr, typename Tw>
+    bool bindVariable(_String name, Tr &rVar, Tw &wVar)
+    {
+        ObjectInfo &info = mObjMap[_fromString(name)];
+        if ((((sizeof(rVar) == info.mDesc.readSize)) && (sizeof(wVar) == info.mDesc.writeSize)) || !info.mDesc.flags)
+        {
+            info.mWritePtr = &wVar;
+            info.mReadPtr = &rVar;
+            info.mDesc.wType = info.mDesc.rType = ObjectInfo::Common;
             return true;
         }
         return false;

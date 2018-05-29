@@ -257,13 +257,13 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
                 {
                     sendServiceMessage(netaddr, svcRequestAllInfo);
                     sendServiceMessage(netaddr, svcRequestObjInfo);
+                    #ifdef QT_CORE_LIB
+                    emit devConnected(dev->mNetAddress);
+                    #else
+                    if (onDevConnected)
+                        onDevConnected(dev->mNetAddress);
+                    #endif
                 }
-                #ifdef QT_CORE_LIB
-                emit devConnected(dev->mNetAddress);
-                #else
-                if (onDevConnected)
-                    onDevConnected(dev->mNetAddress);
-                #endif
             }
             dev->mPresent = true;
             dev->mTimeout = 10;
@@ -300,6 +300,12 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
             dev->mMaster = this;
             dev->mAutoDelete = true;                     // раз автоматически создали - автоматически и удалим)
             dev->mBusAddress = mac;
+            dev->masterRequestObject = EVENT(&ObjnetMaster::requestObject);
+            dev->masterSendObject = EVENT(&ObjnetMaster::sendObject);
+            if (mSwonbMode)
+            {
+                dev->mBusType = BusSwonb;
+            }
             if (localnet)                                // если девайс в текущей подсети...
             {
                 mLocalnetDevices[mac] = dev;             // ...запоминаем для поиска по маку
@@ -447,7 +453,20 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
         
       case svcName:
         if (dev)
-            mDevices[netaddr]->setName(string(msg.data().data(), msg.data().size()));
+        {
+            string name(msg.data().data(), msg.data().size());
+            name.resize(strlen(name.c_str()));
+            mDevices[netaddr]->setName(name);
+            if (mSwonbMode)
+            {
+                #ifdef QT_CORE_LIB
+                emit devConnected(dev->mNetAddress);
+                #else
+                if (onDevConnected)
+                    onDevConnected(dev->mNetAddress);
+                #endif
+            }
+        }
         break;
 
       case svcFullName:
