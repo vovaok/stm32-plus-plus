@@ -3,6 +3,7 @@
 
 #include "stm32_conf.h"
 #include "gpio.h"
+#include "dma.h"
 
 class Dac
 {
@@ -41,12 +42,12 @@ public:
     ~Dac();
     
     void setResolution(Resolution resolution);
-//    void selectTrigger(Trigger trigger);
+    void selectTrigger(Trigger trigger);
     inline void setValue(unsigned short value) {*mData = value;}
     void setValue(unsigned short value1, unsigned short value2);
     void setEnabled(bool enabled);
     bool isEnabled() const {return mEnabled;}
     
-//    void configDma(Dma *dma);
+    void configDma(Dma *dma);
 };
 #endif
