@@ -37,8 +37,8 @@ private:
     
     std::queue<UartOnbMessage> mTxQueue;
     std::queue<UartOnbMessage> mRxQueue;
-    const static int mTxQueueSize = 32;
-    const static int mRxQueueSize = 32;
+    const static int mTxQueueSize = 64;
+    const static int mRxQueueSize = 64;
     
     bool readRx(UartOnbMessage &msg);
     bool writeRx(UartOnbMessage &msg);
