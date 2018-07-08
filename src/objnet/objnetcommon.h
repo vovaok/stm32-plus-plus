@@ -38,6 +38,7 @@ typedef enum
     aidUpgradeSetPage   = 0x33, //!< установка текущей страницы
     aidUpgradeData      = 0x34, //!< собственно, сама прошивка (см. протокол)
     aidUpgradeAddress   = 0x35, //!< адрес начала прошивки
+    aidUpgradeProbe     = 0x36, //!< мастер после отправки страницы спрашивает, всё ли ок
     aidUpgradeRepeat    = 0x38, //!< запрос повтора страницы
     aidUpgradePageDone  = 0x39, //!< прошиваемые устройства говорят, что всё хорошо
     aidUpgradeAccepted  = 0x3A, //!< прошиваемые устройства обозначают себя
