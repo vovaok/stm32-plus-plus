@@ -77,7 +77,7 @@ void ESP8266::task()
                         if (mTransmitSize && mLastCmd == cmdIpSendBuf)
                         {
                             char cmd[32];
-                            printf("send req repeat, sz=%d\n", mTransmitSize);
+                            //printf("send req repeat, sz=%d\n", mTransmitSize);
                             sprintf(cmd, "AT+CIPSENDBUF=%d", mTransmitSize);
                             sendCmd(cmd);
                         }
