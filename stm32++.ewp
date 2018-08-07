@@ -1624,7 +1624,7 @@
         </option>
         <option>
           <name>IlinkOutputFile</name>
-          <state>###Unitialized###</state>
+          <state>stm32++.out</state>
         </option>
         <option>
           <name>IlinkDebugInfoEnable</name>
@@ -2587,7 +2587,7 @@
         </option>
         <option>
           <name>IlinkOutputFile</name>
-          <state>###Unitialized###</state>
+          <state>stm32++.out</state>
         </option>
         <option>
           <name>IlinkDebugInfoEnable</name>
@@ -6433,7 +6433,7 @@
         </option>
         <option>
           <name>IlinkOutputFile</name>
-          <state>###Unitialized###</state>
+          <state>stm32++.out</state>
         </option>
         <option>
           <name>IlinkDebugInfoEnable</name>
@@ -9108,6 +9108,9 @@
   </file>
   <file>
     <name>$PROJ_DIR$\src\dac4xx.h</name>
+    <excluded>
+      <configuration>stm32f373xB_no-exceptions_no-rtti</configuration>
+    </excluded>
   </file>
   <file>
     <name>$PROJ_DIR$\src\dma.h</name>
@@ -9136,12 +9139,14 @@
     <name>$PROJ_DIR$\src\dma4xx.cpp</name>
     <excluded>
       <configuration>stm32f373xB</configuration>
+      <configuration>stm32f373xB_no-exceptions_no-rtti</configuration>
     </excluded>
   </file>
   <file>
     <name>$PROJ_DIR$\src\dma4xx.h</name>
     <excluded>
       <configuration>stm32f373xB</configuration>
+      <configuration>stm32f373xB_no-exceptions_no-rtti</configuration>
     </excluded>
   </file>
   <file>
@@ -9172,12 +9177,14 @@
     <name>$PROJ_DIR$\src\flash4xx.cpp</name>
     <excluded>
       <configuration>stm32f373xB</configuration>
+      <configuration>stm32f373xB_no-exceptions_no-rtti</configuration>
     </excluded>
   </file>
   <file>
     <name>$PROJ_DIR$\src\flash4xx.h</name>
     <excluded>
       <configuration>stm32f373xB</configuration>
+      <configuration>stm32f373xB_no-exceptions_no-rtti</configuration>
     </excluded>
   </file>
   <file>

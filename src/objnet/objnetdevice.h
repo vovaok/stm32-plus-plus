@@ -129,6 +129,21 @@ public:
         return false;
     }
     
+    template<typename T, int N>
+    bool bindVariable(_String name, T (&var)[N])
+    {
+        ObjectInfo &info = mObjMap[_fromString(name)];
+        ObjectInfo::Type t = typeOfVar(var[0]);
+        if ((t == info.mDesc.wType && sizeof(var) == info.mDesc.writeSize) || !info.mDesc.flags)
+        {
+            info.mWritePtr = &var;
+            info.mReadPtr = &var;
+            info.mDesc.wType = info.mDesc.rType = t;
+            return true;
+        }
+        return false;
+    }
+    
     template<typename Tr, typename Tw>
     bool bindVariable(_String name, Tr &rVar, Tw &wVar)
     {
