@@ -30,6 +30,7 @@ private:
 
 protected:
     int mMaxFrameSize; //!< Maximal data size in frame
+    BusType mBusType;
 
 public:
     virtual ~ObjnetInterface() {}
@@ -94,6 +95,7 @@ public:
     virtual void removeFilter(int number) = 0;
 
     int maxFrameSize() const {return mMaxFrameSize;}
+    BusType busType() const {return mBusType;}
 };
 
 }

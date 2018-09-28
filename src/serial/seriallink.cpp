@@ -1,4 +1,4 @@
-#include "uartlink.h"
+#include "seriallink.h"
 
 UartLink::UartLink(UartInterface *iface) :
     UartFrame(iface),

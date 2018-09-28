@@ -62,7 +62,9 @@ void ObjnetCommonNode::task()
             }
             else
             {
+                #ifndef _MSC_VER
                 #warning poka x3 s global messagami
+                #endif
                 #ifndef QT_CORE_LIB
                 if (mGlobalMessageEvent)
                     mGlobalMessageEvent(inMsg);
@@ -324,6 +326,20 @@ bool ObjnetCommonNode::sendServiceMessage(SvcOID oid, const ByteArray &ba)
     CommonMessage msg;
     LocalMsgId id;
     id.mac = 0;
+    id.addr = 0x7F;
+    id.svc = 1;
+    id.sender = mNetAddress;
+    id.oid = oid;
+    msg.setLocalId(id);
+    msg.setData(ba);
+    return sendCommonMessage(msg);
+}
+
+bool ObjnetCommonNode::sendServiceMessageToMac(unsigned char mac, SvcOID oid, const ByteArray &ba)
+{
+    CommonMessage msg;
+    LocalMsgId id;
+    id.mac = mac;
     id.addr = 0x7F;
     id.svc = 1;
     id.sender = mNetAddress;

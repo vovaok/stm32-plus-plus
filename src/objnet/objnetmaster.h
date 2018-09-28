@@ -27,6 +27,8 @@ private:
     unsigned char mAssignNetAddress; // network address for assigning to nodes (a la DHCP)
     bool mAdjIfConnected; // connection state of adjacent interface
     string mName;
+    bool mSwonbMode;
+    int mCurMac; // for swonb mode
 
 protected:
     void task();
@@ -65,6 +67,7 @@ public:
     void reset();
 
     void setName(string name) {mName = name;}
+    void setSwonbMode(bool enabled) {mSwonbMode = enabled;}
 
     bool isConnected() const {return !mDevices.empty();}
 
@@ -77,6 +80,9 @@ public:
     void requestClassId(unsigned char netAddress) {sendServiceMessage(netAddress, svcClass);}
     void requestDevInfo(unsigned char netAddress) {sendServiceMessage(netAddress, svcRequestAllInfo);}
     void requestObjInfo(unsigned char netAddress) {sendServiceMessage(netAddress, svcRequestObjInfo);}
+    
+    void swonbEnumerate() {mCurMac = 1;}
+    void swonbTryConnect(unsigned char mac) {sendServiceMessageToMac(mac, svcHello);}
 
 #ifdef QT_CORE_LIB
 public slots:

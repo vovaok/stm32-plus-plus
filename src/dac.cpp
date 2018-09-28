@@ -12,10 +12,19 @@ Dac::Dac(Channels channels, Resolution resolution) :
         mAlign = DAC_Align_12b_L;
 
     // GPIOA clock enable (to be used with DAC)
-    RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE);
+#if !defined(STM32F37X)
+    RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE); 
+#else
+    RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOA, ENABLE); 
+#endif
 
     // DAC Periph clock enable
-    RCC_APB1PeriphClockCmd(RCC_APB1Periph_DAC, ENABLE);
+#if !defined(STM32F37X)
+     RCC_APB1PeriphClockCmd(RCC_APB1Periph_DAC, ENABLE);
+#else
+     RCC_APB1PeriphClockCmd(RCC_APB1Periph_DAC1, ENABLE); 
+#endif
+    
 
     /* DAC pin(s) configuration */
     uint32_t dacPins = ((mChannels & Channel1)? GPIO_Pin_4: 0) | 

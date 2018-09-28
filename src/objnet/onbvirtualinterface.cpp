@@ -5,6 +5,7 @@ using namespace Objnet;
 OnbVirtualInterface::OnbVirtualInterface()
 {
     mMaxFrameSize = 256;
+    mBusType = BusVirtual;
 }
 
 bool OnbVirtualInterface::testFilter(unsigned long id)

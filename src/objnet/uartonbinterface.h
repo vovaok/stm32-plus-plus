@@ -28,10 +28,17 @@ private:
     ByteArray mUnsendBuffer;
     UartOnbMessage mCurMsg, mCurTxMsg;
     
+    typedef struct
+    {
+        unsigned long id;
+        unsigned long mask;
+    } Filter;
+    std::vector<Filter> mFilters;
+    
     std::queue<UartOnbMessage> mTxQueue;
     std::queue<UartOnbMessage> mRxQueue;
-    const static int mTxQueueSize = 32;
-    const static int mRxQueueSize = 32;
+    const static int mTxQueueSize = 160;
+    const static int mRxQueueSize = 64;
     
     bool readRx(UartOnbMessage &msg);
     bool writeRx(UartOnbMessage &msg);
@@ -46,6 +53,8 @@ private:
     ByteArray encode(const ByteArray &ba);
     
     void msgReceived(const ByteArray &ba);
+    
+    int mHdBusyTimeout; // busy timeout for half-duplex mode
   
 public:
     UartOnbInterface(SerialInterface *serialInterface);

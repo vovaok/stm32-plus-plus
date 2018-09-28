@@ -38,6 +38,7 @@ typedef enum
     aidUpgradeSetPage   = 0x33, //!< установка текущей страницы
     aidUpgradeData      = 0x34, //!< собственно, сама прошивка (см. протокол)
     aidUpgradeAddress   = 0x35, //!< адрес начала прошивки
+    aidUpgradeProbe     = 0x36, //!< мастер после отправки страницы спрашивает, всё ли ок
     aidUpgradeRepeat    = 0x38, //!< запрос повтора страницы
     aidUpgradePageDone  = 0x39, //!< прошиваемые устройства говорят, что всё хорошо
     aidUpgradeAccepted  = 0x3A, //!< прошиваемые устройства обозначают себя
@@ -57,7 +58,11 @@ typedef enum
     svcBurnCount        = 0x07, //!< без комментариев..
     svcObjectCount      = 0x08, //!< число объектов
     // можно добавить что-нибудь ещё..
+    svcBusType          = 0x09, //!< тип шины физического уровня
+    svcBusAddress       = 0x0A, //!< физический адрес (можно поменять)
     svcObjectInfo       = 0x80, //!< описание объекта
+    
+    svcTimedObject      = 0x90, //!< ответ узла синхронизованным объектом
 
     svcEcho             = 0xF0, //!< узел напоминает мастеру, что он здесь
     svcHello            = 0xF1, //!< сообщение узла, что он пришёл с приветом, либо мастер играет в юща и спрашивает узла: "А вы, собственно, кто?"
@@ -69,8 +74,20 @@ typedef enum
     svcRequestAllInfo   = 0xF8, //!< мастер хочет знать всё о девайсе и даже больше
     svcRequestObjInfo   = 0xF9, //!< мастер хочет знать дескрипторы всех зареганных объектов девайса
     svcAutoRequest      = 0xFA, //!< мастер говорит узлу, что хочет от него порой получать объект без лишних слов
+    svcTimedRequest     = 0xFB, //!< мастер говорит узлу, что хочет получать объект с timestamp'ом
     svcUpgradeRequest   = 0xFE, //!< мастер просит включить бутлоадер
+    svcFail             = 0xFF, //!< узел сообщает мастеру, что это фиаско братан (типа запрос не поддерживается)
 } SvcOID;
+
+typedef enum
+{
+    BusUnknown  = 0,
+    BusCan      = 1,
+    BusUsbHid   = 2,
+    BusWifi     = 3,
+    BusSwonb    = 4,
+    BusVirtual  = 5,
+} BusType;
 
 typedef enum
 {
@@ -88,14 +105,15 @@ struct LocalMsgId
     unsigned char svc: 1;       //!< message is service
     unsigned char mac: 4;       //!< receiver bus address (physical)
     const unsigned char local: 1; //!< local area message (inside the bus) = 1
+    unsigned char _not_used: 3; //!< reserved bits in CAN 2.0B spec
     /*! Конструктор обнуляет. */
     LocalMsgId() :
-      oid(0), sender(0), frag(0), addr(0), svc(0), mac(0), local(1)
+      oid(0), sender(0), frag(0), addr(0), svc(0), mac(0), local(1), _not_used(0)
     {
     }
     /*! Неявный конструктор. */
     LocalMsgId(const unsigned long &data) :
-      local(1)
+      local(1), _not_used(0)
     {
         *reinterpret_cast<unsigned long*>(this) = data;
     }
@@ -114,14 +132,15 @@ struct GlobalMsgId
     unsigned char svc: 1;   //!< message is service
     unsigned char mac: 4;   //!< own bus address (physical)
     unsigned char local: 1; //!< local area message (inside the bus) = 0
+    unsigned char _not_used: 3; //!< reserved bits in CAN 2.0B spec
     /*! Конструктор обнуляет. */
     GlobalMsgId() :
-      aid(0), res(0), addr(0), svc(0), mac(0), local(0)
+      aid(0), res(0), addr(0), svc(0), mac(0), local(0), _not_used(0)
     {
     }
     /*! Неявный конструктор. */
     GlobalMsgId(const unsigned long &data) :
-      local(0)
+      local(0), _not_used(0)
     {
         *reinterpret_cast<unsigned long*>(this) = data;
     }

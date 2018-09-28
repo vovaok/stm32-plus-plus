@@ -31,6 +31,7 @@ private:
     int mNetTimeout;
     unsigned char mCurrentRemoteAddress;
     int mObjInfoSendCount; // variable for counting of info objects sended
+    unsigned long mTimestamp;
 
     // objnet related parameters:
     unsigned long mClass;
@@ -41,6 +42,7 @@ private:
     _String mBuildDate;
     _String mCpuInfo;
     unsigned long mBurnCount;
+    unsigned char mBusType; // BusType
     
     // количество экземпляров узлов (логических узлов) в одном физическом
     static unsigned char mNodesCount;

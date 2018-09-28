@@ -16,6 +16,7 @@
 namespace Objnet
 {
 
+class ObjnetMaster; // forward declaration
 
 #ifndef QT_CORE_LIB
 class ObjnetDevice {
@@ -35,6 +36,8 @@ protected:
 //        ObjectInfo::Description desc;
 //        ByteArray value;
 //    } ObjnetObject;
+  
+    ObjnetMaster *mMaster;
 
     unsigned char mNetAddress;
     unsigned char mBusAddress;
@@ -44,7 +47,7 @@ protected:
 //    bool mStateChanged;
 //    unsigned char mChildrenCount;
 //    unsigned char mOrphanCount; // not processed children
-
+    
     unsigned long mClass;
     string mName;
     string mFullName;
@@ -54,12 +57,16 @@ protected:
     string mCpuInfo;
     unsigned long mBurnCount;
     unsigned char mObjectCount;
+    BusType mBusType;
+    unsigned char mLocalBusAddress;
 
     vector<ObjectInfo*> mObjects;
     map<string, ObjectInfo> mObjMap;
     vector<ByteArray> mObjBuffers;
 
     void prepareObject(const ObjectInfo::Description &desc); //only master calls
+    Closure<void(unsigned char, unsigned char)> masterRequestObject;
+    Closure<void(unsigned char, unsigned char, const ByteArray&)> masterSendObject;
 
     friend class ObjnetMaster;
 
@@ -67,6 +74,7 @@ protected:
     void setClassId(unsigned long classId) {mClass = classId; mClassValid = true;}
 
     void receiveObject(unsigned char oid, const ByteArray &ba);
+    void receiveTimedObject(const ByteArray &ba);
     void receiveGlobalMessage(unsigned char aid);
 
 public:
@@ -90,9 +98,15 @@ public:
     _String buildDate() const {return _toString(mBuildDate);}
     _String cpuInfo() const {return _toString(mCpuInfo);}
     int burnCount() const {return mBurnCount;}
+    BusType busType() const {return mBusType;}
+    _String busTypeName() const;
+    unsigned char localBusAddress() const {return mLocalBusAddress;}
 
     int objectCount() const {return mObjectCount;}
     ObjectInfo *objectInfo(unsigned char oid) {if (oid < mObjects.size()) return mObjects[oid]; return 0L;}
+    
+    void changeName(_String name);
+    void changeBusAddress(unsigned char mac);
 
     #ifndef QT_CORE_LIB
 
@@ -114,6 +128,35 @@ public:
         }
         return false;
     }
+    
+    template<typename T, int N>
+    bool bindVariable(_String name, T (&var)[N])
+    {
+        ObjectInfo &info = mObjMap[_fromString(name)];
+        ObjectInfo::Type t = typeOfVar(var[0]);
+        if ((t == info.mDesc.wType && sizeof(var) == info.mDesc.writeSize) || !info.mDesc.flags)
+        {
+            info.mWritePtr = &var;
+            info.mReadPtr = &var;
+            info.mDesc.wType = info.mDesc.rType = t;
+            return true;
+        }
+        return false;
+    }
+    
+    template<typename Tr, typename Tw>
+    bool bindVariable(_String name, Tr &rVar, Tw &wVar)
+    {
+        ObjectInfo &info = mObjMap[_fromString(name)];
+        if ((((sizeof(rVar) == info.mDesc.readSize)) && (sizeof(wVar) == info.mDesc.writeSize)) || !info.mDesc.flags)
+        {
+            info.mWritePtr = &wVar;
+            info.mReadPtr = &rVar;
+            info.mDesc.wType = info.mDesc.rType = ObjectInfo::Common;
+            return true;
+        }
+        return false;
+    }
 
     template<class T, class P0>
     bool bindMethod(_String name, T *objptr, void (T::*method)(P0))
@@ -131,6 +174,7 @@ public:
     void requestObject(_String name);
     void sendObject(_String name);
     void autoRequest(_String name, int periodMs);
+    void timedRequest(_String name, int periodMs);
 
 #ifdef QT_CORE_LIB
 signals:
@@ -139,6 +183,7 @@ signals:
     void serviceRequest(unsigned char netAddress, SvcOID oid, const QByteArray &ba);
 
     void objectReceived(QString name, QVariant value);
+    void timedObjectReceived(QString name, unsigned long timestamp, QVariant value);
     void autoRequestAccepted(QString name, int periodMs);
 
     void ready();

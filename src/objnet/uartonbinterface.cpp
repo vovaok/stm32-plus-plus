@@ -1,14 +1,20 @@
 #include "uartonbinterface.h"
 
+#define SWONB_BUSY_TIMEOUT  2
+
 using namespace Objnet;
 
 UartOnbInterface::UartOnbInterface(SerialInterface *serialInterface) :
     mInterface(serialInterface),
     mReadCnt(0),
     mWriteTimer(30),
-    cs(0), esc(0), cmd_acc(0)
+    cs(0), esc(0), cmd_acc(0),
+    mHdBusyTimeout(0)
 { 
     mMaxFrameSize = 64;
+    mBusType = BusWifi;
+    if (serialInterface->isHalfDuplex())
+        mBusType = BusSwonb;
     stmApp()->registerTaskEvent(EVENT(&UartOnbInterface::task));
     stmApp()->registerTickEvent(EVENT(&UartOnbInterface::tick));
     mInterface->open(ReadWrite);
@@ -20,9 +26,13 @@ void UartOnbInterface::task()
     ByteArray ba;
     if (mInterface->read(ba))
     {
+//        char sbuf[10];
+//        string s;
         for (int i=0; i<ba.size(); i++)
         {
             char byte = ba[i];
+//            sprintf(sbuf, "0x%02X ", byte);
+//            s += sbuf;
             switch (byte)
             {
               case '\\':
@@ -58,28 +68,59 @@ void UartOnbInterface::task()
                 cs += byte;
             }
         }
+//        s += '\n';
+//        printf(s.c_str());
     }
     
-    if (mUnsendBuffer.size())
+    if (!mHdBusyTimeout)
     {
-        if (mInterface->write(mUnsendBuffer) > 0)
-            mUnsendBuffer.resize(0);
-    }
-    
-    if (mWriteTimer >= 30)
-    {
-        mWriteTimer = 0;
-        while (readTx(mCurTxMsg))
+        if (mUnsendBuffer.size())
         {
-            ByteArray ba;
-            unsigned long id = mCurTxMsg.id;
-            ba.append(reinterpret_cast<const char*>(&id), 4);
-            ba.append(mCurTxMsg.data, mCurTxMsg.size);
-            mUnsendBuffer = encode(ba);
+//            printf("unsend buffer write");
             if (mInterface->write(mUnsendBuffer) > 0)
+            {
                 mUnsendBuffer.resize(0);
-            else
-                break;
+                if (mInterface->isHalfDuplex())
+                    mHdBusyTimeout = SWONB_BUSY_TIMEOUT;
+            }
+        }
+        
+        if (mInterface->isHalfDuplex())
+            mWriteTimer = 30;
+        
+        if (mWriteTimer >= 30)
+        {
+            mWriteTimer = 0;
+            while (readTx(mCurTxMsg))
+            {
+                ByteArray ba;
+                unsigned long id = mCurTxMsg.id;
+                ba.append(reinterpret_cast<const char*>(&id), 4);
+                ba.append(mCurTxMsg.data, mCurTxMsg.size);
+                mUnsendBuffer = encode(ba);
+                
+//                string s = ">> ";
+//                char sbuf[10];
+//                for (int i=0; i<mUnsendBuffer.size(); i++)
+//                {
+//                    sprintf(sbuf, "0x%02X ", mUnsendBuffer[i]);
+//                    s += sbuf;
+//                }
+//                s += '\n';
+//                printf(s.c_str());
+                
+                if (mInterface->write(mUnsendBuffer) > 0)
+                {
+                    mUnsendBuffer.resize(0);
+                    if (mInterface->isHalfDuplex() && (id & 0x10000000)) // in half-duplex mode: if message is local => wait response
+                    {
+                        mHdBusyTimeout = SWONB_BUSY_TIMEOUT;
+                        break;
+                    }
+                }
+                else
+                    break;
+            }
         }
     }
 }
@@ -87,6 +128,8 @@ void UartOnbInterface::task()
 void UartOnbInterface::tick(int dt)
 {
     mWriteTimer += dt;
+    if (mHdBusyTimeout)
+        --mHdBusyTimeout;
 }
 //---------------------------------------------------------------------------
 
@@ -108,6 +151,7 @@ bool UartOnbInterface::writeRx(UartOnbMessage &msg)
         mRxQueue.push(msg);
         return true;
     }
+    printf("ONB RX full\n");
     return false;
 }
 
@@ -129,6 +173,7 @@ bool UartOnbInterface::writeTx(UartOnbMessage &msg)
         mTxQueue.push(msg);
         return true;
     }
+    printf("ONB TX full\n");
     return false;
 }
 //---------------------------------------------------------------------------
@@ -159,33 +204,32 @@ ByteArray UartOnbInterface::encode(const ByteArray &ba)
 
 void UartOnbInterface::msgReceived(const ByteArray &ba)
 {
-    UartOnbMessage msg;
-    msg.id = *reinterpret_cast<const unsigned long*>(ba.data());
-    msg.size = ba.size() - 4;
-    for (int i=0; i<msg.size; i++)
-        msg.data[i] = ba[i+4];
-    writeRx(msg);
+    mHdBusyTimeout = 0;
     
-//    unsigned long id = *reinterpret_cast<const unsigned long*>(ba.data());  
-//    bool accept = false;
-//    if (!mFilters.size())
-//        accept = true;
-//    foreach (Filter f, mFilters)
-//    {
-//        if ((f.id & f.mask) == (id & f.mask))
-//        {
-//            accept = true;
-//            break;
-//        }
-//    }
-//
-//    if (accept)
-//    {
-//        CommonMessage msg;
-//        msg.setId(id);
-//        msg.setData(QByteArray(ba.data()+4, ba.size()));
-//        mRxQueue << msg;
-//    }
+    unsigned long id = *reinterpret_cast<const unsigned long*>(ba.data());  
+    bool accept = false;
+    if (!mFilters.size())
+        accept = true;
+    int fcnt = mFilters.size();
+    for (int i=0; i<fcnt; i++)
+    {
+        Filter &f = mFilters[i];
+        if ((f.id & f.mask) == (id & f.mask))
+        {
+            accept = true;
+            break;
+        }
+    }
+    
+    if (accept)
+    {    
+        UartOnbMessage msg;
+        msg.id = *reinterpret_cast<const unsigned long*>(ba.data());
+        msg.size = ba.size() - 4;
+        for (int i=0; i<msg.size; i++)
+            msg.data[i] = ba[i+4];
+        writeRx(msg);
+    }
 }
 //---------------------------------------------------------------------------
 
@@ -228,11 +272,14 @@ int UartOnbInterface::availableWriteCount()
 
 int UartOnbInterface::addFilter(unsigned long id, unsigned long mask)
 {
-    return 0;
+    Filter f = {id & 0x1FFFFFFF, mask & 0x1FFFFFFF};
+    mFilters.push_back(f);
+    return mFilters.size();
 }
 
 void UartOnbInterface::removeFilter(int number)
 {
-   
+    if (number >= 0 && number < mFilters.size())
+        mFilters.erase(mFilters.begin() + number);
 }
 //---------------------------------------------------------------------------

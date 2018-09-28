@@ -189,6 +189,7 @@ class Unit : public Item
 public:
     typedef enum
     {
+        none    = 0x00000000,
         cm      = 0x00000011,
         g       = 0x00000101,
         s       = 0x00001001,

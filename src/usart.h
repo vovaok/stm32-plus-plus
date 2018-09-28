@@ -14,18 +14,22 @@ typedef enum
     Usart1    = 1,
     Usart2    = 2,
     Usart3    = 3,
+#if !defined(STM32F37X)
     Usart4    = 4,
     Usart5    = 5,
     Usart6    = 6,
+#endif
 } UsartNo;
 //---------------------------------------------------------------------------
 
 extern "C" void USART1_IRQHandler();
 extern "C" void USART2_IRQHandler();
 extern "C" void USART3_IRQHandler();
+#if !defined(STM32F37X)
 extern "C" void UART4_IRQHandler();
 extern "C" void UART5_IRQHandler();
 extern "C" void USART6_IRQHandler();
+#endif
 //---------------------------------------------------------------------------
 
 class Usart : public SerialInterface
@@ -36,7 +40,9 @@ public:
         ParityNone  = USART_Parity_No,
         ParityEven  = USART_Parity_Even,
         ParityOdd   = USART_Parity_Odd,
+#if !defined(STM32F37X)
         StopBits0_5 = USART_StopBits_0_5,
+#endif
         StopBits1   = USART_StopBits_1,
         StopBits1_5 = USART_StopBits_1_5,
         StopBits2   = USART_StopBits_2,
@@ -48,7 +54,11 @@ public:
     } Config;
   
 private:
+    #if defined(STM32F37X) 
+    static Usart *mUsarts[3];
+    #else
     static Usart *mUsarts[6];
+    #endif
     USART_TypeDef *mDev;
     USART_InitTypeDef mConfig;
     bool mConfigured;
@@ -68,17 +78,21 @@ private:
     int mTxBufferSize;
     ByteArray mLineEnd;
     bool m7bits;
+    bool mHalfDuplex;
     
     void commonConstructor(UsartNo number, int baudrate, Config config);
     void init();
+       
     void dmaTxComplete();
     
     friend void USART1_IRQHandler();
     friend void USART2_IRQHandler();
     friend void USART3_IRQHandler();
+    #if !defined(STM32F37X)
     friend void UART4_IRQHandler();
     friend void UART5_IRQHandler();
     friend void USART6_IRQHandler();
+    #endif
     
     void handleInterrupt();
     
@@ -92,6 +106,7 @@ public:
     void setBufferSize(int size_bytes);
     void setUseDmaRx(bool useDma);
     void setUseDmaTx(bool useDma);
+    
     void setLineEnd(ByteArray lineend);
     const ByteArray &lineEnd() const {return mLineEnd;}
     
@@ -108,6 +123,8 @@ public:
     void setBaudrate(int baudrate);
     int baudrate() const {return mConfig.USART_BaudRate;}
     void setConfig(Config config);
+    
+    bool isHalfDuplex() const {return mHalfDuplex;}
 };
 
 #endif

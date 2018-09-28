@@ -1,5 +1,7 @@
 #include "bytearray.h"
 
+//#define ASSERT_SIZE()   if (mSize > mAllocSize) while (1)
+
 ByteArray::ByteArray() :
     mData(0L),
     mSize(0),
@@ -37,7 +39,9 @@ ByteArray::ByteArray(int size, char ch) :
     mAllocSize(0)
 {
     allocMore(size);
+//    ASSERT_SIZE();
     mSize = size;
+//    ASSERT_SIZE();
     char *p = mData;
     while (size--)
         *p++ = ch;
@@ -57,14 +61,17 @@ ByteArray &ByteArray::operator=(const ByteArray &other)
 //---------------------------------------------------------------------------
 
 void ByteArray::allocMore(int size)
-{
+{ 
     unsigned int desiredSize = mSize + size; // compute desired buffer size
+//    ASSERT_SIZE();
+    int oldAllocSize = mAllocSize;
     if (desiredSize <= mAllocSize)
         return;
-//    unsigned long _primask = __get_PRIMASK();
+    unsigned long _primask = __get_PRIMASK();
     __disable_irq();
     while (mAllocSize < desiredSize) // compute nearest allocation size
         mAllocSize = mAllocSize? (mAllocSize << 1): 16; // minimum size = 16 bytes
+//    ASSERT_SIZE();
     //__disable_irq();
     char *temp = new char[mAllocSize]; // allocate new buffer
     //__enable_irq();
@@ -72,11 +79,12 @@ void ByteArray::allocMore(int size)
     {
         memcpy(temp, mData, mSize); // copy old data
         //__disable_irq();
-        delete mData;               // delete old buffer
+        delete [] mData;               // delete old buffer
+        oldAllocSize = 0;
         //__enable_irq();
     }
     mData = temp; 
-//    if (!_primask)
+    if (!_primask)
         __enable_irq();
 }
 //---------------------------------------------------------------------------
@@ -86,9 +94,11 @@ ByteArray &ByteArray::append(const void *data, unsigned int size)
     if (size > 0)
     {
         allocMore(size); // relocate buffer by <size> bytes
+//        ASSERT_SIZE();
         const unsigned char *dataptr = reinterpret_cast<const unsigned char*>(data);
         char *mdataptr = mData + mSize;
         mSize += size;
+//        ASSERT_SIZE();
         while (size--)
             *mdataptr++ = *dataptr++;
 //        memcpy(mData + mSize, data, size); // copy new data    
@@ -110,32 +120,48 @@ ByteArray &ByteArray::append(const ByteArray &ba)
 ByteArray &ByteArray::append(char byte)
 {
     allocMore(1);
+//    ASSERT_SIZE();
     mData[mSize++] = byte;
+//    ASSERT_SIZE();
     return *this;
 }
 //---------------------------------------------------------------------------
 
 void ByteArray::resize(int size)
 {
-    if (size > mAllocSize)
-        allocMore(size - mAllocSize);
+//    unsigned long _primask = __get_PRIMASK();
+//    __disable_irq();
+    int addsize = size - mSize;
+    if (size > mSize)
+    {
+        allocMore(size - mSize);
+//        ASSERT_SIZE();
+    }
+    int oldSize = mSize;
     mSize = size;
+//    ASSERT_SIZE();
+    size = oldSize;
+    oldSize = addsize;
+//    if (!_primask)
+//        __enable_irq();
 }
 //---------------------------------------------------------------------------
 
 void ByteArray::clear()
 {
+    unsigned long _primask = __get_PRIMASK();
+    __disable_irq();
     if (mData)
     {
-//        unsigned long _primask = __get_PRIMASK();
-        __disable_irq();
         delete [] mData;
-//        if (!_primask)
-            __enable_irq();
+        mData = 0L;
     }
-    mData = 0L;
     mSize = 0;
+//    ASSERT_SIZE();
     mAllocSize = 0;
+//    ASSERT_SIZE();
+    if (!_primask)
+        __enable_irq();
 }
 //---------------------------------------------------------------------------
 
@@ -146,12 +172,14 @@ ByteArray &ByteArray::remove(int index, int count)
         if (index + count >= mSize)
         {
             mSize = index;
+//            ASSERT_SIZE();
         }
         else
         {
             const char *srcptr = mData + index + count;
             char *destptr = mData + index;
             mSize -= count;
+//            ASSERT_SIZE();
             count = mSize;
             while (count--)
                 *destptr++ = *srcptr++;

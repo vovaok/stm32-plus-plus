@@ -6,6 +6,7 @@ UsbHidOnbInterface::UsbHidOnbInterface(UsbInterface *usbif)
 {
     mSeqNo = 0;
     mMaxFrameSize = 8;
+    mBusType = BusUsbHid;
     
     ByteArray hidReport;
     fillReportDescriptor(hidReport);
