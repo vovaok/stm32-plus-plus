@@ -28,6 +28,8 @@ void Application::exec()
     if (SysTick_Config((Rcc::sysClk() / 1000) * mSysClkPeriod) != 0)
         throw Exception::badSoBad;
     
+    __enable_interrupt();
+    
     // main loop
     while(1)
     {
@@ -81,8 +83,10 @@ bool Application::startOnbBootloader()
         NVIC->ICPR[i] = 0xFFFFFFFF;
     }
 #define __DISABLE_GPIO(x) GPIO##x->MODER = 0; GPIO##x->PUPDR = 0
-    __DISABLE_GPIO(A);
-    __DISABLE_GPIO(B);
+    //__DISABLE_GPIO(A);
+    GPIOA->MODER &= 0x3C000000; GPIOA->PUPDR &= 0x3C000000;
+    //__DISABLE_GPIO(B);
+    GPIOB->MODER &= 0x000000C0; GPIOB->PUPDR &= 0x000000C0;
     __DISABLE_GPIO(C);
     __DISABLE_GPIO(D);
     __DISABLE_GPIO(E);

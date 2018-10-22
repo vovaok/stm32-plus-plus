@@ -62,7 +62,9 @@ void ObjnetCommonNode::task()
             }
             else
             {
+                #ifndef _MSC_VER
                 #warning poka x3 s global messagami
+                #endif
                 #ifndef QT_CORE_LIB
                 if (mGlobalMessageEvent)
                     mGlobalMessageEvent(inMsg);

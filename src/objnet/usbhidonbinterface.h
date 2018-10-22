@@ -36,8 +36,8 @@ private:
     
     std::deque<UsbHidOnbMessage> mTxQueue;
     std::deque<UsbHidOnbMessage> mRxQueue;
-    const static int mTxQueueSize = 32;
-    const static int mRxQueueSize = 32;
+    const static int mTxQueueSize = 128;
+    const static int mRxQueueSize = 64;
     unsigned char mSeqNo;
     
     bool readRx(UsbHidOnbMessage &msg);

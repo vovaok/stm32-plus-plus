@@ -82,6 +82,7 @@ public:
     void requestObjInfo(unsigned char netAddress) {sendServiceMessage(netAddress, svcRequestObjInfo);}
     
     void swonbEnumerate() {mCurMac = 1;}
+    void swonbTryConnect(unsigned char mac) {sendServiceMessageToMac(mac, svcHello);}
 
 #ifdef QT_CORE_LIB
 public slots:

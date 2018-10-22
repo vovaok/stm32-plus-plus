@@ -330,7 +330,9 @@ ObjectInfo::ObjectInfo(string name, Closure<R(void)> event, ObjectInfo::Flags fl
     mDesc.id = mAssignId++;
 }
 
+#ifndef QT_CORE_LIB
 template<> ObjectInfo::ObjectInfo<void>(string name, Closure<void(void)> event, ObjectInfo::Flags flags);
+#endif
 
 template<class P0>
 ObjectInfo::ObjectInfo(string name, Closure<void(P0)> event, ObjectInfo::Flags flags) :

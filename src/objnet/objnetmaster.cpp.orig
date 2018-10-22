@@ -49,7 +49,12 @@ void ObjnetMaster::task()
     if (mAdjacentNode)
     {
         if (!mAdjIfConnected && mAdjacentNode->isConnected())
-            sendGlobalServiceMessage((StdAID)(aidConnReset | aidPropagationDown)); // reset subnet state on adjacent node connection
+        {
+            if (mSwonbMode)
+                swonbEnumerate(); // re-enumerate nodes
+            else
+                sendGlobalServiceMessage((StdAID)(aidConnReset | aidPropagationDown)); // reset subnet state on adjacent node connection
+        }
         mAdjIfConnected = mAdjacentNode->isConnected(); // store previous value of connection state
     }
 
@@ -65,55 +70,59 @@ void ObjnetMaster::onTimer()
 {
     sendGlobalServiceMessage(aidPollNodes);
     
+    std::vector<unsigned char> macsToRemove;
+    
     if (mSwonbMode)
     {
+        // remove all devices
         if (mCurMac)
         {
-            for (; mCurMac<16; mCurMac++)
-                sendServiceMessageToMac(mCurMac, svcHello);
-//            mCurMac++;
-            mCurMac = 0; // temporary!! or not?
-//            mCurMac &= 0xF;
-        }
-        return;
-    }
-    
-//    sendGlobalServiceMessage(aidPollNodes);
-    
-    std::vector<unsigned char> macsToRemove;
-    for (DeviceIterator it=mDevices.begin(); it!=mDevices.end(); it++)
-    {
-        ObjnetDevice *dev = it->second;
-        if (dev->mTimeout)
-            dev->mTimeout--;
-        if (dev->mPresent && !dev->mTimeout)
-        {
-            dev->mPresent = false;
-            dev->mObjectCount = 0;
-            if (dev->mAutoDelete)
+            for (DeviceIterator it=mDevices.begin(); it!=mDevices.end(); it++)
             {
                 macsToRemove.push_back(it->first);
             }
-            else
+        }
+    }
+    else
+    {
+        for (DeviceIterator it=mDevices.begin(); it!=mDevices.end(); it++)
+        {
+            ObjnetDevice *dev = it->second;
+            if (dev->mTimeout)
+                dev->mTimeout--;
+            if (dev->mPresent && !dev->mTimeout)
             {
-                if (mAdjacentNode)
+                dev->mPresent = false;
+                dev->mObjectCount = 0;
+                if (dev->mAutoDelete)
                 {
-                    ByteArray ba;
-                    ba.append(dev->mNetAddress);
-                    mAdjacentNode->acceptServiceMessage(0, svcDisconnected, &ba);
+                    macsToRemove.push_back(it->first);
                 }
-                #ifdef QT_CORE_LIB
-                emit devDisconnected(dev->mNetAddress);
-                #else
-                if (onDevDisconnected)
-                    onDevDisconnected(dev->mNetAddress);
-                #endif
+                else
+                {
+                    if (mAdjacentNode)
+                    {
+                        ByteArray ba;
+                        ba.append(dev->mNetAddress);
+                        mAdjacentNode->acceptServiceMessage(0, svcDisconnected, &ba);
+                    }
+                    #ifdef QT_CORE_LIB
+                    emit devDisconnected(dev->mNetAddress);
+                    #else
+                    if (onDevDisconnected)
+                        onDevDisconnected(dev->mNetAddress);
+                    #endif
+                }
             }
         }
     }
+    
+    
     // удаляем отсутствующие девайсы, если у них включено автоудаление
     for (std::vector<unsigned char>::iterator it=macsToRemove.begin(); it!=macsToRemove.end(); it++)
     {
+        if (!mDevices.count(*it))
+            continue;
         ObjnetDevice *dev = mDevices[*it];
         if (mAdjacentNode)
         {
@@ -137,6 +146,19 @@ void ObjnetMaster::onTimer()
         mLocalnetDevices[mac] = 0L;
         delete dev;
         mDevices.erase(*it);
+    }
+    
+    if (mSwonbMode)
+    {
+        if (mCurMac)
+        {
+            for (; mCurMac<16; mCurMac++)
+                sendServiceMessageToMac(mCurMac, svcHello);
+//            mCurMac++;
+            mCurMac = 0; // temporary!! or not?
+//            mCurMac &= 0xF;
+        }
+        return;
     }
 }
 //---------------------------------------------------------------------------
@@ -218,30 +240,40 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
                 //unsigned char mac = msg.localId().mac;
 //                if (mLocalnetDevices[mac] == dev) // if device is in local network
                 dev->mInfoValidCnt = 0;
-                if (mSwonbMode)
-                {
-                    // request all info manually:
-                    sendServiceMessage(netaddr, svcClass);
-                    sendServiceMessage(netaddr, svcName);
-                    sendServiceMessage(netaddr, svcFullName);
-                    sendServiceMessage(netaddr, svcSerial);
-                    sendServiceMessage(netaddr, svcVersion);
-                    sendServiceMessage(netaddr, svcBuildDate);
-                    sendServiceMessage(netaddr, svcCpuInfo);
-                    sendServiceMessage(netaddr, svcBurnCount);
-                    sendServiceMessage(netaddr, svcObjectCount);
-                }
-                else
-                {
+//                if (mSwonbMode)
+//                {
+//                    // request all info manually:
+//                    sendServiceMessage(netaddr, svcClass);
+//                    sendServiceMessage(netaddr, svcName);
+//                    sendServiceMessage(netaddr, svcFullName);
+//                    sendServiceMessage(netaddr, svcSerial);
+//                    sendServiceMessage(netaddr, svcVersion);
+//                    sendServiceMessage(netaddr, svcBuildDate);
+//                    sendServiceMessage(netaddr, svcCpuInfo);
+//                    sendServiceMessage(netaddr, svcBurnCount);
+//                    sendServiceMessage(netaddr, svcObjectCount);
+//                }
+//                else
+//                {
                     sendServiceMessage(netaddr, svcRequestAllInfo);
                     sendServiceMessage(netaddr, svcRequestObjInfo);
+<<<<<<< Updated upstream
+                    #ifdef QT_CORE_LIB
+                    emit devConnected(dev->mNetAddress);
+                    #else
+                    if (onDevConnected)
+                        onDevConnected(dev->mNetAddress);
+                    #endif
                 }
+=======
+//                }
                 #ifdef QT_CORE_LIB
                 emit devConnected(dev->mNetAddress);
                 #else
                 if (onDevConnected)
                     onDevConnected(dev->mNetAddress);
                 #endif
+>>>>>>> Stashed changes
             }
             dev->mPresent = true;
             dev->mTimeout = 10;
@@ -275,8 +307,15 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
             }
 
             dev = new ObjnetDevice(netaddr);             // создаём объект с новым адресом
+            dev->mMaster = this;
             dev->mAutoDelete = true;                     // раз автоматически создали - автоматически и удалим)
             dev->mBusAddress = mac;
+            dev->masterRequestObject = EVENT(&ObjnetMaster::requestObject);
+            dev->masterSendObject = EVENT(&ObjnetMaster::sendObject);
+            if (mSwonbMode)
+            {
+                dev->mBusType = BusSwonb;
+            }
             if (localnet)                                // если девайс в текущей подсети...
             {
                 mLocalnetDevices[mac] = dev;             // ...запоминаем для поиска по маку
@@ -296,6 +335,7 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
         if (dev)
         {
             netaddr = dev->netAddress();
+            dev->mLocalBusAddress = ba[0];
         }
 
         if (localnet)                          // если это девайс текущей подсети...
@@ -423,7 +463,20 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
         
       case svcName:
         if (dev)
-            mDevices[netaddr]->setName(string(msg.data().data(), msg.data().size()));
+        {
+            string name(msg.data().data(), msg.data().size());
+            name.resize(strlen(name.c_str()));
+            mDevices[netaddr]->setName(name);
+            if (mSwonbMode)
+            {
+                #ifdef QT_CORE_LIB
+                emit devConnected(dev->mNetAddress);
+                #else
+                if (onDevConnected)
+                    onDevConnected(dev->mNetAddress);
+                #endif
+            }
+        }
         break;
 
       case svcFullName:
@@ -478,11 +531,7 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
         if (dev)
         {
             dev->mObjectCount = msg.data()[0];
-<<<<<<< HEAD
-            if (mSwonbMode)
-=======
             if (dev->mBusType == BusSwonb)
->>>>>>> 82a44b24363e4dffdd2554fc0d7bc72b68e4d437
             {
                 ByteArray oba;
                 oba.resize(1);
@@ -493,8 +542,6 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
                 }
             }
         }
-<<<<<<< HEAD
-=======
         break;
         
       case svcBusType:
@@ -519,7 +566,6 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
                 }
             }
         }
->>>>>>> 82a44b24363e4dffdd2554fc0d7bc72b68e4d437
         break;
 
       case svcObjectInfo:

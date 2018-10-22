@@ -151,6 +151,7 @@ bool UartOnbInterface::writeRx(UartOnbMessage &msg)
         mRxQueue.push(msg);
         return true;
     }
+    printf("ONB RX full\n");
     return false;
 }
 
@@ -172,6 +173,7 @@ bool UartOnbInterface::writeTx(UartOnbMessage &msg)
         mTxQueue.push(msg);
         return true;
     }
+    printf("ONB TX full\n");
     return false;
 }
 //---------------------------------------------------------------------------

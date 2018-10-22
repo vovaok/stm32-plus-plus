@@ -11,10 +11,10 @@ private:
     unsigned char mR, mG, mB;
     
 public:
-    RgbLed(Gpio::Config pinR, Gpio::Config pinG, Gpio::Config pinB, int pwmFrequency=1 _kHz);
-    void setR(unsigned char value);
-    void setG(unsigned char value);
-    void setB(unsigned char value);
+    RgbLed(Gpio::Config pinR, Gpio::Config pinG, Gpio::Config pinB, int pwmFrequency=1 _kHz, bool inverted=false);
+    void setR(int value);
+    void setG(int value);
+    void setB(int value);
     void setRgb(unsigned char r, unsigned char g, unsigned char b);
     
     unsigned char r() const {return mR;}
