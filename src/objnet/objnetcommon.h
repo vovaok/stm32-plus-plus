@@ -86,6 +86,7 @@ typedef enum
     BusWifi     = 3,
     BusSwonb    = 4,
     BusVirtual  = 5,
+    BusRadio    = 6
 } BusType;
 
 typedef enum

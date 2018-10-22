@@ -43,6 +43,7 @@ public:
     bool isGlobal() const {return !((LocalMsgId&)mId).local;}
     ByteArray &data() {return mBa;}
     void setData(const ByteArray &ba) {mBa = ba;}
+    int size() const {return mBa.size();}
 };
 //---------------------------------------------------------------------------
 
