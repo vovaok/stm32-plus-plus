@@ -20,8 +20,6 @@ HardwareTimer::HardwareTimer(TimerNumber timerNumber, unsigned int frequency_Hz)
       case 1:
         RCC_APB2PeriphClockCmd(RCC_APB2Periph_TIM1, ENABLE);
         mTim = TIM1;
-#warning TIM1_IRQ not implemented
-//        mIrq = TIM1_IRQn;
         break;
 #endif
         
@@ -75,8 +73,6 @@ HardwareTimer::HardwareTimer(TimerNumber timerNumber, unsigned int frequency_Hz)
       case 8:
         RCC_APB2PeriphClockCmd(RCC_APB2Periph_TIM8, ENABLE);
         mTim = TIM8;
-#warning TIM8_IRQ not implemented
-//        mIrq = TIM8_IRQn;
         break;
         
       case 9:
@@ -201,70 +197,11 @@ HardwareTimer::HardwareTimer(TimerNumber timerNumber, unsigned int frequency_Hz)
 
 TimerNumber HardwareTimer::getTimerByPin(Gpio::Config pinConfig)
 {
-    #if defined(STM32F37X)
-  
     return static_cast<TimerNumber>(GpioConfigGetPeriphNumber(pinConfig));
-  
-    #else
-  
-    switch (pinConfig)
-    {      
-        // TIM1
-        case Gpio::TIM1_BKIN_PA6: case Gpio::TIM1_CH1N_PA7: case Gpio::TIM1_CH1_PA8: case Gpio::TIM1_CH2_PA9:
-        case Gpio::TIM1_CH3_PA10: case Gpio::TIM1_CH4_PA11: case Gpio::TIM1_ETR_PA12: case Gpio::TIM1_CH2N_PB0:
-        case Gpio::TIM1_CH3N_PB1: case Gpio::TIM1_BKIN_PB12: case Gpio::TIM1_CH1N_PB13: case Gpio::TIM1_CH2N_PB14:
-        case Gpio::TIM1_CH3N_PB15: case Gpio::TIM1_ETR_PE7: case Gpio::TIM1_CH1N_PE8: case Gpio::TIM1_CH1_PE9:
-        case Gpio::TIM1_CH2N_PE10: case Gpio::TIM1_CH2_PE11: case Gpio::TIM1_CH3N_PE12: case Gpio::TIM1_CH3_PE13:
-        case Gpio::TIM1_CH4_PE14: case Gpio::TIM1_BKIN_PE15: return Tim1;
-        // TIM2   
-        case Gpio::TIM2_CH1_PA0: case Gpio::TIM2_CH2_PA1: case Gpio::TIM2_CH3_PA2: case Gpio::TIM2_CH4_PA3:
-        case Gpio::TIM2_CH1_PA5: case Gpio::TIM2_CH1_PA15: case Gpio::TIM2_CH2_PB3: case Gpio::TIM2_CH3_PB10:
-        case Gpio::TIM2_CH4_PB11: /*case Gpio::TIM2_ETR_PA0: case Gpio::TIM2_ETR_PA5: case Gpio::TIM2_ETR_PA15:*/
-        return Tim2;
-        // TIM3
-        case Gpio::TIM3_CH1_PA6: case Gpio::TIM3_CH2_PA7: case Gpio::TIM3_CH3_PB0: case Gpio::TIM3_CH4_PB1:
-        case Gpio::TIM3_CH1_PB4: case Gpio::TIM3_CH2_PB5: case Gpio::TIM3_CH1_PC6: case Gpio::TIM3_CH2_PC7:
-        case Gpio::TIM3_CH3_PC8: case Gpio::TIM3_CH4_PC9: case Gpio::TIM3_ETR: return Tim3;
-        // TIM4
-        case Gpio::TIM4_CH1_PB6: case Gpio::TIM4_CH2_PB7: case Gpio::TIM4_CH3_PB8: case Gpio::TIM4_CH4_PB9:
-        case Gpio::TIM4_CH1_PD12: case Gpio::TIM4_CH2_PD13: case Gpio::TIM4_CH3_PD14: case Gpio::TIM4_CH4_PD15:
-        case Gpio::TIM4_ETR: return Tim4;
-        // TIM5
-        case Gpio::TIM5_CH1_PA0: case Gpio::TIM5_CH2_PA1: case Gpio::TIM5_CH3_PA2: case Gpio::TIM5_CH4_PA3:
-        case Gpio::TIM5_CH1_PH10: case Gpio::TIM5_CH2_PH11: case Gpio::TIM5_CH3_PH12: case Gpio::TIM5_CH4_PI0:
-        return Tim5;
-        // TIM8
-        case Gpio::TIM8_ETR_PA0: case Gpio::TIM8_CH1N_PA5: case Gpio::TIM8_BKIN_PA6: case Gpio::TIM8_CH1N_PA7:
-        case Gpio::TIM8_CH2N_PB0: case Gpio::TIM8_CH3N_PB1: case Gpio::TIM8_CH2N_PB14: case Gpio::TIM8_CH3N_PB15:
-        case Gpio::TIM8_CH1_PC6: case Gpio::TIM8_CH2_PC7: case Gpio::TIM8_CH3_PC8: case Gpio::TIM8_CH4_PC9:
-        case Gpio::TIM8_CH1N_PH13: case Gpio::TIM8_CH2N_PH14: case Gpio::TIM8_CH3N_PH15: case Gpio::TIM8_CH4_PI2:
-        case Gpio::TIM8_ETR_PI3: case Gpio::TIM8_BKIN_PI4: case Gpio::TIM8_CH1_PI5: case Gpio::TIM8_CH2_PI6:
-        case Gpio::TIM8_CH3_PI7: return Tim8;
-        // TIM9
-        case Gpio::TIM9_CH1_PA2: case Gpio::TIM9_CH2_PA3: case Gpio::TIM9_CH1_PE5: case Gpio::TIM9_CH2_PE6:
-        return Tim9;
-        // TIM10
-        case Gpio::TIM10_CH1_PB8: case Gpio::TIM10_CH1_PF6: return Tim10;
-        // TIM11
-        case Gpio::TIM11_CH1_PB9: case Gpio::TIM11_CH1_PF7: return Tim11;
-        // TIM12
-        case Gpio::TIM12_CH1_PB14: case Gpio::TIM12_CH2_PB15: case Gpio::TIM12_CH1_PH6: case Gpio::TIM12_CH2_PH9:
-        return Tim12;
-        // TIM13
-        case Gpio::TIM13_CH1_PA6: case Gpio::TIM13_CH1_PF8: return Tim13;
-        // TIM14
-        case Gpio::TIM14_CH1_PA7: case Gpio::TIM14_CH1_PF9: return Tim14; 
-        // NO TIMER
-        default: return TimNone;
-    }
-    
-    #endif
 }
 
 ChannelNumber HardwareTimer::getChannelByPin(Gpio::Config pinConfig)
 {
-    #if defined(STM32F37X)
-
     switch (GpioConfigGetPeriphChannel(pinConfig))
     {
         case 1: return Ch1;
@@ -273,45 +210,6 @@ ChannelNumber HardwareTimer::getChannelByPin(Gpio::Config pinConfig)
         case 4: return Ch4;
         default: return ChNone;
     }
-  
-    #else    
-    
-    switch (pinConfig)
-    {
-    
-        // CH1
-        case Gpio::TIM1_CH1N_PA7: case Gpio::TIM1_CH1_PA8: case Gpio::TIM1_CH1N_PB13: case Gpio::TIM1_CH1N_PE8:
-        case Gpio::TIM1_CH1_PE9: case Gpio::TIM2_CH1_PA0: case Gpio::TIM2_CH1_PA5: case Gpio::TIM2_CH1_PA15: 
-        case Gpio::TIM3_CH1_PA6: case Gpio::TIM3_CH1_PB4: case Gpio::TIM3_CH1_PC6: case Gpio::TIM4_CH1_PB6: 
-        case Gpio::TIM4_CH1_PD12: case Gpio::TIM5_CH1_PA0: case Gpio::TIM5_CH1_PH10: case Gpio::TIM8_CH1N_PA5:
-        case Gpio::TIM8_CH1N_PA7: case Gpio::TIM8_CH1_PC6: case Gpio::TIM8_CH1N_PH13: case Gpio::TIM8_CH1_PI5:
-        case Gpio::TIM9_CH1_PA2: case Gpio::TIM9_CH1_PE5: case Gpio::TIM10_CH1_PB8: case Gpio::TIM10_CH1_PF6:
-        case Gpio::TIM11_CH1_PB9: case Gpio::TIM11_CH1_PF7: case Gpio::TIM12_CH1_PB14: case Gpio::TIM12_CH1_PH6:
-        case Gpio::TIM13_CH1_PA6: case Gpio::TIM13_CH1_PF8: case Gpio::TIM14_CH1_PA7: case Gpio::TIM14_CH1_PF9:
-        return Ch1;
-        // CH2
-        case Gpio::TIM1_CH2_PA9: case Gpio::TIM1_CH2N_PB0: case Gpio::TIM1_CH2N_PB14: case Gpio::TIM1_CH2N_PE10:
-        case Gpio::TIM1_CH2_PE11: case Gpio::TIM2_CH2_PA1: case Gpio::TIM2_CH2_PB3: case Gpio::TIM3_CH2_PA7: 
-        case Gpio::TIM3_CH2_PB5: case Gpio::TIM3_CH2_PC7: case Gpio::TIM4_CH2_PB7: case Gpio::TIM4_CH2_PD13:
-        case Gpio::TIM5_CH2_PA1: case Gpio::TIM5_CH2_PH11: case Gpio::TIM8_CH2N_PB0: case Gpio::TIM8_CH2N_PB14: 
-        case Gpio::TIM8_CH2_PC7: case Gpio::TIM8_CH2N_PH14: case Gpio::TIM8_CH2_PI6: case Gpio::TIM9_CH2_PA3:
-        case Gpio::TIM9_CH2_PE6: case Gpio::TIM12_CH2_PB15: case Gpio::TIM12_CH2_PH9: return Ch2;        
-        // CH3
-        case Gpio::TIM1_CH3_PA10: case Gpio::TIM1_CH3N_PB1: case Gpio::TIM1_CH3N_PB15: case Gpio::TIM1_CH3N_PE12:
-        case Gpio::TIM1_CH3_PE13: case Gpio::TIM2_CH3_PA2: case Gpio::TIM2_CH3_PB10: case Gpio::TIM3_CH3_PB0:
-        case Gpio::TIM3_CH3_PC8: case Gpio::TIM4_CH3_PB8: case Gpio::TIM4_CH3_PD14: case Gpio::TIM5_CH3_PA2:
-        case Gpio::TIM5_CH3_PH12: case Gpio::TIM8_CH3N_PB1: case Gpio::TIM8_CH3N_PB15: case Gpio::TIM8_CH3_PC8:
-        case Gpio::TIM8_CH3N_PH15: case Gpio::TIM8_CH3_PI7: return Ch3;        
-        // CH4
-        case Gpio::TIM1_CH4_PA11: case Gpio::TIM1_CH4_PE14: case Gpio::TIM2_CH4_PA3: case Gpio::TIM2_CH4_PB11:
-        case Gpio::TIM3_CH4_PB1: case Gpio::TIM3_CH4_PC9: case Gpio::TIM4_CH4_PB9: case Gpio::TIM4_CH4_PD15:
-        case Gpio::TIM5_CH4_PA3: case Gpio::TIM5_CH4_PI0: case Gpio::TIM8_CH4_PC9: case Gpio::TIM8_CH4_PI2:
-        return Ch4;
-        // NO CHANNEL
-        default: return ChNone;
-    }
-    
-    #endif
 }
 //---------------------------------------------------------------------------
 
@@ -444,7 +342,7 @@ void HardwareTimer::configPWM(ChannelNumber ch, bool inverted)
     TIM_OCInitStructure.TIM_Pulse = 0;
     
     TIM_OCInitStructure.TIM_OCPolarity = inverted? TIM_OCPolarity_Low: TIM_OCPolarity_High;
-    TIM_OCInitStructure.TIM_OCNPolarity = TIM_OCNPolarity_Low;
+    TIM_OCInitStructure.TIM_OCNPolarity = inverted? TIM_OCNPolarity_Low: TIM_OCNPolarity_High;
     TIM_OCInitStructure.TIM_OCIdleState = TIM_OCIdleState_Reset;
     TIM_OCInitStructure.TIM_OCNIdleState = TIM_OCIdleState_Reset;
 
@@ -462,13 +360,34 @@ void HardwareTimer::setPWMEnabled(ChannelNumber ch, bool enabled)
     uint16_t channel = 0;
     switch (ch)
     {
-        case Ch1: channel = TIM_Channel_1; break;
-        case Ch2: channel = TIM_Channel_2; break;
-        case Ch3: channel = TIM_Channel_3; break;
-        case Ch4: channel = TIM_Channel_4; break;
+        case Ch1: channel = 1<<0; break;
+        case Ch2: channel = 1<<4; break;
+        case Ch3: channel = 1<<8; break;
+        case Ch4: channel = 1<<12; break;
         default: return;
     }
-    TIM_CCxCmd(tim(), channel, enabled? TIM_CCx_Enable: TIM_CCx_Disable);
+    if (enabled)
+        mTim->CCER |= channel;
+    else
+        mTim->CCER &= ~channel;
+//    TIM_CCxCmd(tim(), channel, enabled? TIM_CCx_Enable: TIM_CCx_Disable);
+//    TIM_GenerateEvent(tim(), TIM_EventSource_COM); 
+}
+
+void HardwareTimer::setComplementaryPWMEnabled(ChannelNumber ch, bool enabled)
+{
+    uint16_t channel = 0;
+    switch (ch)
+    {
+        case Ch1: channel = 1<<2; break;
+        case Ch2: channel = 1<<6; break;
+        case Ch3: channel = 1<<10; break;
+        default: return;
+    }
+    if (enabled)
+        mTim->CCER |= channel;
+    else
+        mTim->CCER &= ~channel;
 //    TIM_GenerateEvent(tim(), TIM_EventSource_COM); 
 }
 //---------------------------------------------------------------------------
@@ -477,6 +396,27 @@ void HardwareTimer::enableInterrupt(InterruptSource source)
 {
     mEnabledIrq[source] = true;
   
+    if (mTim == TIM1)
+    {
+        switch (source)
+        {
+          case isrcUpdate: mIrq = TIM1_UP_TIM10_IRQn; break;
+          case isrcCC1: case isrcCC2: case isrcCC3: case isrcCC4: mIrq = TIM1_CC_IRQn; break;
+          case isrcCom: case isrcTrigger: mIrq = TIM1_TRG_COM_TIM11_IRQn; break;
+          case isrcBreak: mIrq = TIM1_BRK_TIM9_IRQn; break;
+        }
+    }
+    else if (mTim == TIM8)
+    {
+        switch (source)
+        {
+          case isrcUpdate: mIrq = TIM8_UP_TIM13_IRQn; break;
+          case isrcCC1: case isrcCC2: case isrcCC3: case isrcCC4: mIrq = TIM8_CC_IRQn; break;
+          case isrcCom: case isrcTrigger: mIrq = TIM8_TRG_COM_TIM14_IRQn; break;
+          case isrcBreak: mIrq = TIM8_BRK_TIM12_IRQn; break;
+        }
+    }
+    
     NVIC_InitTypeDef NVIC_InitStructure;
     NVIC_InitStructure.NVIC_IRQChannel = mIrq;
     NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 2;
@@ -508,11 +448,29 @@ void HardwareTimer::handleInterrupt()
  extern "C" {
 #endif 
 
-//void TIM1_IRQHandler()
-//{
-//    if (HardwareTimer::mTimers[1-1])
-//        HardwareTimer::mTimers[1-1]->handleInterrupt();
-//}
+void TIM1_BRK_TIM9_IRQHandler()
+{
+    if (HardwareTimer::mTimers[1-1])
+        HardwareTimer::mTimers[1-1]->handleInterrupt();
+}
+
+void TIM1_UP_TIM10_IRQHandler()
+{
+    if (HardwareTimer::mTimers[1-1])
+        HardwareTimer::mTimers[1-1]->handleInterrupt();
+}
+
+void TIM1_TRG_COM_TIM11_IRQHandler()
+{
+    if (HardwareTimer::mTimers[1-1])
+        HardwareTimer::mTimers[1-1]->handleInterrupt();
+}
+
+void TIM1_CC_IRQHandler()
+{
+    if (HardwareTimer::mTimers[1-1])
+        HardwareTimer::mTimers[1-1]->handleInterrupt();
+}
    
 void TIM2_IRQHandler()
 {
@@ -550,11 +508,29 @@ void TIM7_IRQHandler()
         HardwareTimer::mTimers[7-1]->handleInterrupt();
 }
 
-//void TIM8_IRQHandler()
-//{
-//    if (HardwareTimer::mTimers[8-1])
-//        HardwareTimer::mTimers[8-1]->handleInterrupt();
-//}
+void TIM8_BRK_TIM12_IRQHandler()
+{
+    if (HardwareTimer::mTimers[8-1])
+        HardwareTimer::mTimers[8-1]->handleInterrupt();
+}
+
+void TIM8_UP_TIM13_IRQHandler()
+{
+    if (HardwareTimer::mTimers[8-1])
+        HardwareTimer::mTimers[8-1]->handleInterrupt();
+}
+
+void TIM8_TRG_COM_TIM14_IRQHandler()
+{
+    if (HardwareTimer::mTimers[8-1])
+        HardwareTimer::mTimers[8-1]->handleInterrupt();
+}
+
+void TIM8_CC_IRQHandler()
+{
+    if (HardwareTimer::mTimers[8-1])
+        HardwareTimer::mTimers[8-1]->handleInterrupt();
+}
 
 void TIM9_IRQHandler()
 {
