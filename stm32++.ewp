@@ -8809,6 +8809,12 @@
       <name>$PROJ_DIR$\src\objnet\onbvirtualinterface.h</name>
     </file>
     <file>
+      <name>$PROJ_DIR$\src\objnet\radioonbinterface.cpp</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\src\objnet\radioonbinterface.h</name>
+    </file>
+    <file>
       <name>$PROJ_DIR$\src\objnet\uartonbinterface.cpp</name>
     </file>
     <file>
@@ -8819,6 +8825,30 @@
     </file>
     <file>
       <name>$PROJ_DIR$\src\objnet\usbhidonbinterface.h</name>
+    </file>
+  </group>
+  <group>
+    <name>radio</name>
+    <file>
+      <name>$PROJ_DIR$\src\radio\cc1200.cpp</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\src\radio\cc1200.h</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\src\radio\cc1200_const.h</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\src\radio\radiointerface.cpp</name>
+      <excluded>
+        <configuration>stm32f405rg</configuration>
+      </excluded>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\src\radio\radiointerface.h</name>
+      <excluded>
+        <configuration>stm32f405rg</configuration>
+      </excluded>
     </file>
   </group>
   <group>

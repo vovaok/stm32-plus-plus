@@ -2,7 +2,10 @@
 
 Spi *Spi::mSpies[3] = {0L, 0L, 0L};
 
-Spi::Spi(Gpio::Config sck, Gpio::Config miso, Gpio::Config mosi)
+Spi::Spi(Gpio::Config sck, Gpio::Config miso, Gpio::Config mosi) :
+    mUseDmaRx(false), mUseDmaTx(false),
+    mDmaRx(0L),
+    mDmaTx(0L)
 {
     SpiNo no = getSpiByPin(sck);
     if (no == SpiNone)
@@ -24,18 +27,24 @@ Spi::Spi(Gpio::Config sck, Gpio::Config miso, Gpio::Config mosi)
         mDev = SPI1;
         RCC_APB2PeriphClockCmd(RCC_APB2Periph_SPI1, ENABLE); 
         mIrq = SPI1_IRQn;
+        mDmaChannelRx = Dma::ChannelSpi1_Rx;
+        mDmaChannelTx = Dma::ChannelSpi1_Tx;
         break;
         
       case Spi2:
         mDev = SPI2;
         RCC_APB1PeriphClockCmd(RCC_APB1Periph_SPI2, ENABLE);
         mIrq = SPI2_IRQn;
+        mDmaChannelRx = Dma::ChannelSpi2_Rx;
+        mDmaChannelTx = Dma::ChannelSpi2_Tx;
         break;
         
       case Spi3:
         mDev = SPI3;
         RCC_APB1PeriphClockCmd(RCC_APB1Periph_SPI3, ENABLE);
         mIrq = SPI3_IRQn;
+        mDmaChannelRx = Dma::ChannelSpi3_Rx;
+        mDmaChannelTx = Dma::ChannelSpi3_Tx;
         break;
     }
 }
@@ -81,12 +90,46 @@ void Spi::setConfig(Config cfg)
 
 void Spi::open()
 {
+    if (isOpen())
+        return;// false;
+    
+    if (mUseDmaRx)
+    {
+        if (!mDmaRx)
+            mDmaRx = Dma::getStreamForPeriph(mDmaChannelRx);
+        mDmaRx->setSource((void*)&mDev->DR, 1);
+        mDev->CR2 |= SPI_CR2_RXDMAEN;
+    }
+    
+    if (mUseDmaTx)
+    {
+        if (!mDmaTx)
+            mDmaTx = Dma::getStreamForPeriph(mDmaChannelTx);
+        mDmaTx->setSink((void*)&mDev->DR, 1);
+        mDev->CR2 |= SPI_CR2_TXDMAEN;
+    }   
+    
     mConfig.enable = 1;
-    mDev->CR1 = mConfig.word;
+    mDev->CR1 = mConfig.word;    
 }
 
 void Spi::close()
 {
+    if (mDmaRx)
+    {
+        mDev->CR2 &= ~SPI_CR2_RXDMAEN;
+        mDmaRx->stop(true);
+        delete mDmaRx;
+        mDmaRx = 0L;
+    }
+    if (mDmaTx)
+    {
+        mDev->CR2 &= ~SPI_CR2_TXDMAEN;
+        mDmaTx->stop(true);
+        delete mDmaTx;
+        mDmaTx = 0L;
+    }
+    
     mConfig.enable = 0;
     mDev->CR1 = mConfig.word;
 }
@@ -101,18 +144,48 @@ unsigned short Spi::transferWord(unsigned short word)
 
 void Spi::transfer(unsigned char* data,unsigned char size)
 {
-  for(int i =0; i<size; i++)
-  {
-    mDev->DR = data[i];
-    while (!(mDev->SR & 0x0001)); // wait for RX Not Empty
-    data[i] =  mDev->DR;
-  }
-
+    if (!mUseDmaRx && !mUseDmaTx)
+    {
+        for(int i =0; i<size; i++)
+        {
+            mDev->DR = data[i];
+            while (!(mDev->SR & 0x0001)); // wait for RX Not Empty
+            data[i] =  mDev->DR;
+        }
+    }
+    else
+    {
+        if (mUseDmaRx)
+        {
+            mDmaRx->setSingleBuffer(data, size);
+            mDmaRx->start();
+        }
+        if (mUseDmaTx)
+        {
+            mDmaTx->setSingleBuffer(data, size);
+            mDmaTx->start();
+        }
+    }
 }
 
 void Spi::transferWordAsync(unsigned short word)
 {
     mDev->DR = word;
+}
+//---------------------------------------------------------------------------
+
+void Spi::setUseDmaRx(bool useDma)
+{
+    if (isOpen())
+        throw Exception::resourceBusy;
+    mUseDmaRx = useDma;
+}
+
+void Spi::setUseDmaTx(bool useDma)
+{
+    if (isOpen())
+        throw Exception::resourceBusy;
+    mUseDmaTx = useDma;
 }
 //---------------------------------------------------------------------------
 

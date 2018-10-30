@@ -43,6 +43,7 @@ protected:
     unsigned char mBusAddress;
     bool mPresent;
     unsigned char mTimeout;
+    unsigned char mTempTimeout;
     bool mAutoDelete; // когда true, при отключении девайса от сети, он удаляется из списка (по умолчанию false, только мастер может установить true при создании объекта)
 //    bool mStateChanged;
 //    unsigned char mChildrenCount;
@@ -67,6 +68,7 @@ protected:
     void prepareObject(const ObjectInfo::Description &desc); //only master calls
     Closure<void(unsigned char, unsigned char)> masterRequestObject;
     Closure<void(unsigned char, unsigned char, const ByteArray&)> masterSendObject;
+    Closure<void(unsigned char, SvcOID, const ByteArray&)> masterServiceRequest;
 
     friend class ObjnetMaster;
 
@@ -75,6 +77,7 @@ protected:
 
     void receiveObject(unsigned char oid, const ByteArray &ba);
     void receiveTimedObject(const ByteArray &ba);
+    void receiveGroupedObject(const ByteArray &ba);
     void receiveGlobalMessage(unsigned char aid);
 
 public:
@@ -175,6 +178,7 @@ public:
     void sendObject(_String name);
     void autoRequest(_String name, int periodMs);
     void timedRequest(_String name, int periodMs);
+    void groupedRequest(std::vector<_String> names);
 
 #ifdef QT_CORE_LIB
 signals:

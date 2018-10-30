@@ -10,7 +10,7 @@ ObjnetDevice::ObjnetDevice(unsigned char netaddr) :
     mInfoValidCnt(0),
     mNetAddress(netaddr),
     mPresent(false),
-    mTimeout(5),
+    mTimeout(5), mTempTimeout(1),
     mAutoDelete(false),
     mBusType(BusUnknown),
     mObjectCount(0)
@@ -149,6 +149,7 @@ void ObjnetDevice::prepareObject(const ObjectInfo::Description &desc)
 
 void ObjnetDevice::receiveObject(unsigned char oid, const ByteArray &ba)
 {
+    mTempTimeout = 0;
     if (oid < mObjects.size())
     {
         ObjectInfo *obj = mObjects[oid];
@@ -204,6 +205,33 @@ void ObjnetDevice::receiveTimedObject(const ByteArray &ba)
     }
 }
 
+void ObjnetDevice::receiveGroupedObject(const ByteArray &ba)
+{
+    mTempTimeout = 0;
+  
+    for (int idx=0; idx<ba.size();)
+    {
+        unsigned char oid = ba[idx++];
+        if (oid < mObjects.size())
+        {
+            ObjectInfo *obj = mObjects[oid];
+            if (obj)
+            {
+                int sz = obj->description().writeSize;
+                ByteArray objBa = ba.mid(idx, sz);
+                idx += sz;
+                bool res = obj->write(objBa);
+                #ifndef QT_CORE_LIB
+                if (onObjectReceived)
+                    onObjectReceived(obj->name());
+                #else
+                emit objectReceived(obj->name(), obj->toVariant());
+                #endif
+            }
+        }
+    }
+}
+
 void ObjnetDevice::receiveGlobalMessage(unsigned char aid)
 {
 #ifdef QT_CORE_LIB
@@ -227,6 +255,8 @@ void ObjnetDevice::requestObject(_String name)
         masterRequestObject(mNetAddress, oid);
         #endif
     }
+    
+    mTempTimeout = 1;
 }
 
 void ObjnetDevice::sendObject(_String name)
@@ -245,6 +275,26 @@ void ObjnetDevice::sendObject(_String name)
             #endif
         }
     }
+}
+
+void ObjnetDevice::groupedRequest(std::vector<_String> names)
+{   
+    ByteArray ba;
+    int cnt = names.size();
+    for (int i=0; i<cnt; i++)
+    {
+        _String name = names[i];
+        map<string, ObjectInfo>::iterator it = mObjMap.find(_fromString(name));
+        if (it != mObjMap.end() && it->second.flags())
+            ba.append(it->second.mDesc.id);
+    }
+    #ifdef QT_CORE_LIB
+    emit serviceRequest(mNetAddress, svcGroupedRequest, ba);
+    #else
+    masterServiceRequest(mNetAddress, svcGroupedRequest, ba);
+    #endif
+    
+    mTempTimeout = 1;
 }
 
 void ObjnetDevice::autoRequest(_String name, int periodMs)

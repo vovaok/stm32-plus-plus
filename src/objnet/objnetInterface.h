@@ -15,6 +15,8 @@
 namespace Objnet
 {
 
+typedef Closure<void(unsigned char)> NakEvent;  
+  
 /*! Media access interface.
     Provide access to link layer of the network
 */
@@ -96,6 +98,8 @@ public:
 
     int maxFrameSize() const {return mMaxFrameSize;}
     BusType busType() const {return mBusType;}
+    
+    NakEvent nakEvent;
 };
 
 }

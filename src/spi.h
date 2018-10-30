@@ -2,6 +2,7 @@
 #define _SPI_H
 
 #include "gpio.h"
+#include "dma.h"
 
 typedef enum
 {
@@ -50,6 +51,11 @@ private:
     Config mConfig;
     IRQn mIrq;
     SpiDataEvent onTransferComplete;
+    Dma::DmaChannel mDmaChannelRx;
+    Dma::DmaChannel mDmaChannelTx;
+    Dma *mDmaRx;
+    Dma *mDmaTx;
+    bool mUseDmaRx, mUseDmaTx;
     
     friend void SPI1_IRQHandler(void);
     friend void SPI2_IRQHandler(void);
@@ -64,6 +70,9 @@ public:
     explicit Spi(Gpio::Config sck, Gpio::Config miso, Gpio::Config mosi);
     
     void setConfig(Config cfg);
+    
+    void setUseDmaRx(bool useDma);
+    void setUseDmaTx(bool useDma);
     
     void open();
     void close();

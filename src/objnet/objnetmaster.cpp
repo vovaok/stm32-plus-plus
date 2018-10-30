@@ -9,7 +9,8 @@ ObjnetMaster::ObjnetMaster(ObjnetInterface *iface) :
     mAssignNetAddress(1),
     mAdjIfConnected(false),
     mSwonbMode(false),
-    mCurMac(1)
+    mCurMac(1),
+    mSwonbReset(true)
 {
     for (int i=0; i<16; i++)
     {
@@ -18,8 +19,10 @@ ObjnetMaster::ObjnetMaster(ObjnetInterface *iface) :
     }
     setBusAddress(0);
     mNetAddress = 0x00;
+    
     #ifndef QT_CORE_LIB
     mTimer.setTimeoutEvent(EVENT(&ObjnetMaster::onTimer));
+    mInterface->nakEvent = EVENT(&ObjnetMaster::onNak);
     #else
     QObject::connect(&mTimer, SIGNAL(timeout()), this, SLOT(onTimer()));
     #endif
@@ -66,6 +69,14 @@ void ObjnetMaster::task()
     }
 }
 
+void ObjnetMaster::onNak(unsigned char mac)
+{
+    if (mLocalnetDevices[mac])
+    {
+        mLocalnetDevices[mac]->mPresent = false;
+    }
+}
+
 void ObjnetMaster::onTimer()
 {
     sendGlobalServiceMessage(aidPollNodes);
@@ -74,13 +85,11 @@ void ObjnetMaster::onTimer()
     
     if (mSwonbMode)
     {
-        // remove all devices
-        if (mCurMac)
-        {
-            for (DeviceIterator it=mDevices.begin(); it!=mDevices.end(); it++)
-            {
+        for (DeviceIterator it=mDevices.begin(); it!=mDevices.end(); it++)
+        {       
+            ObjnetDevice *dev = it->second;
+            if ((!dev->mPresent && dev->mAutoDelete) || mSwonbReset)
                 macsToRemove.push_back(it->first);
-            }
         }
     }
     else
@@ -150,14 +159,28 @@ void ObjnetMaster::onTimer()
     
     if (mSwonbMode)
     {
-        if (mCurMac)
+        if (mSwonbReset)
         {
-            for (; mCurMac<16; mCurMac++)
+            for (mCurMac=1; mCurMac<16; mCurMac++)
                 sendServiceMessageToMac(mCurMac, svcHello);
-//            mCurMac++;
-            mCurMac = 0; // temporary!! or not?
-//            mCurMac &= 0xF;
+            mCurMac = 0;
+            mSwonbReset = false;
         }
+        else
+        {
+            mCurMac++;
+            sendServiceMessageToMac(mCurMac, svcHello);
+            mCurMac &= 0xF;
+        }
+          
+//        if (mCurMac)
+//        {
+//            for (; mCurMac<16; mCurMac++)
+//                sendServiceMessageToMac(mCurMac, svcHello);
+////            mCurMac++;
+//            mCurMac = 0; // temporary!! or not?
+////            mCurMac &= 0xF;
+//        }
         return;
     }
 }
@@ -272,7 +295,7 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
 
       case svcHello:
       {
-        SvcOID welcomeCmd = svcWelcomeAgain;             // если девайс уже добавлен, команда будет svcW elcomeAgain
+        SvcOID welcomeCmd = svcWelcomeAgain;             // если девайс уже добавлен, команда будет svcWelcomeAgain
         ByteArray ba = msg.data();
         unsigned char mac = ba[0];
         bool localnet = (ba.size() == 1);
@@ -302,6 +325,7 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
             dev->mBusAddress = mac;
             dev->masterRequestObject = EVENT(&ObjnetMaster::requestObject);
             dev->masterSendObject = EVENT(&ObjnetMaster::sendObject);
+            dev->masterServiceRequest = EVENT(&ObjnetMaster::sendServiceRequest);
             if (mSwonbMode)
             {
                 dev->mBusType = BusSwonb;
@@ -368,7 +392,7 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
             onDevAdded(netaddr, ba);
         #endif
 
-        if (mAdjacentNode)                               // если мастер связан с узлом, то он не верхний
+        if (mAdjacentNode && welcomeCmd != svcWelcomeAgain)                               // если мастер связан с узлом, то он не верхний
         {
             if (mAdjacentNode->isConnected())            // и если смежный узел подключён к своему мастеру
             {
@@ -573,6 +597,13 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
             dev->receiveTimedObject(msg.data());
         }
         break;
+        
+      case svcGroupedObject:
+        if (dev)
+        {
+            dev->receiveGroupedObject(msg.data());
+        }
+        break;
 
       case svcAutoRequest:
       case svcTimedRequest:
@@ -685,6 +716,11 @@ void ObjnetMaster::addDevice(unsigned char mac, ObjnetDevice *dev)
 void ObjnetMaster::requestObject(unsigned char netAddress, unsigned char oid)
 {
     sendMessage(netAddress, oid);
+    unsigned char mac = route(netAddress);
+    if (mDevices[mac])
+    {
+        
+    }
 }
 
 void ObjnetMaster::sendObject(unsigned char netAddress, unsigned char oid, const ByteArray &ba)
