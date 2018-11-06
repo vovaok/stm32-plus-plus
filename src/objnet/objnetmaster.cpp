@@ -716,11 +716,11 @@ void ObjnetMaster::addDevice(unsigned char mac, ObjnetDevice *dev)
 void ObjnetMaster::requestObject(unsigned char netAddress, unsigned char oid)
 {
     sendMessage(netAddress, oid);
-    unsigned char mac = route(netAddress);
-    if (mDevices[mac])
-    {
+//    unsigned char mac = route(netAddress);
+//    if (mDevices[mac])
+//    {
         
-    }
+//    }
 }
 
 void ObjnetMaster::sendObject(unsigned char netAddress, unsigned char oid, const ByteArray &ba)
