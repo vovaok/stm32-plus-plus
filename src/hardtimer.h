@@ -178,6 +178,7 @@ public:
     
     void configPWM(ChannelNumber ch, bool inverted=false);
     void setPWMEnabled(ChannelNumber ch, bool enabled);
+    void setComplementaryPWMEnabled(ChannelNumber ch, bool enabled);
 };
 
 #endif

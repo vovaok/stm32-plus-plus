@@ -206,9 +206,9 @@ void Dma::start(int itemCount)
     if (itemCount)
     {
         DMA_SetCurrDataCounter(mStream, itemCount);
-        // clearing flags is necessary for enabling dma streaming
-        DMA_ClearFlag(mStream, mDmaFlagMask);
     }
+    // clearing flags is necessary for enabling dma streaming
+    DMA_ClearFlag(mStream, mDmaFlagMask);
     setEnabled(true);
 }
 

@@ -1,6 +1,6 @@
 #include "rgbled.h"
 
-RgbLed::RgbLed(Gpio::Config pinR, Gpio::Config pinG, Gpio::Config pinB, int pwmFrequency) :
+RgbLed::RgbLed(Gpio::Config pinR, Gpio::Config pinG, Gpio::Config pinB, int pwmFrequency, bool inverted) :
     mR(0), mG(0), mB(0)
 {
     TimerNumber tim = HardwareTimer::getTimerByPin(pinR);
@@ -10,34 +10,40 @@ RgbLed::RgbLed(Gpio::Config pinR, Gpio::Config pinG, Gpio::Config pinB, int pwmF
     
     if (tim == TimNone)
         throw Exception::invalidPeriph;
-    if (chR == ChNone || chG == ChNone || chB == ChNone)
-        throw Exception::invalidPin;
+//    if (chR == ChNone || chG == ChNone || chB == ChNone)
+//        throw Exception::invalidPin;
   
     pwm = new PwmOutput(tim, 1 _kHz);
-    pwm->configChannel(chR, pinR); 
-    pwm->configChannel(chG, pinG);
-    pwm->configChannel(chB, pinB);
+    if (chR != ChNone)
+        pwm->configChannel(chR, pinR, Gpio::NoConfig, inverted); 
+    if (chG != ChNone)
+        pwm->configChannel(chG, pinG, Gpio::NoConfig, inverted);
+    if (chB != ChNone)
+        pwm->configChannel(chB, pinB, Gpio::NoConfig, inverted);
 
-    for (int i=0; i<30000; i++);
+    //for (int i=0; i<30000; i++);
     pwm->setAllChannelsEnabled(true);
 }
 
-void RgbLed::setR(unsigned char value)
+void RgbLed::setR(int value)
 {
-    mR = value;
-    pwm->setDutyCycle(chR, value<<8);
+    mR = BOUND(0, value, 255);
+    if (chR != ChNone)
+        pwm->setDutyCycle(chR, value<<8);
 }
 
-void RgbLed::setG(unsigned char value)
+void RgbLed::setG(int value)
 {
-    mG = value;
-    pwm->setDutyCycle(chG, value<<8);
+    mG = BOUND(0, value, 255);
+    if (chG != ChNone)
+        pwm->setDutyCycle(chG, value<<8);
 }
 
-void RgbLed::setB(unsigned char value)
+void RgbLed::setB(int value)
 {
-    mB = value;
-    pwm->setDutyCycle(chB, value<<8);
+    mB = BOUND(0, value, 255);
+    if (chB != ChNone)
+        pwm->setDutyCycle(chB, value<<8);
 }
 
 void RgbLed::setRgb(unsigned char r, unsigned char g, unsigned char b)
@@ -45,9 +51,12 @@ void RgbLed::setRgb(unsigned char r, unsigned char g, unsigned char b)
     mR = r;
     mG = g;
     mB = b;
-    pwm->setDutyCycle(chR, r<<8);
-    pwm->setDutyCycle(chG, g<<8);
-    pwm->setDutyCycle(chB, b<<8);
+    if (chR != ChNone)
+        pwm->setDutyCycle(chR, r<<8);
+    if (chG != ChNone)
+        pwm->setDutyCycle(chG, g<<8);
+    if (chB != ChNone)
+        pwm->setDutyCycle(chB, b<<8);
 }
 //---------------------------------------------------------------------------
 

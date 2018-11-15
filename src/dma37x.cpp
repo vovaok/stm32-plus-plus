@@ -79,9 +79,9 @@ void Dma::start(int size)
     if (size)
     {
         mDmaChan->CNDTR = size; // set transfer byte count
-        // clearing flags is necessary for enabling dma streaming
-        mDma->status.IFCR = (DMA_IFCR_CGIF1 << (mChannel*4)); // reset global flag for the channel
     }
+    // clearing flags is necessary for enabling dma streaming
+    mDma->status.IFCR = (DMA_IFCR_CGIF1 << (mChannel*4)); // reset global flag for the channel
     mDmaChan->CCR |= DMA_CCR_EN; // enable channel
 }
 

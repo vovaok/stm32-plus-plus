@@ -348,7 +348,7 @@ void ObjnetNode::parseServiceMessage(CommonMessage &msg)
       case svcTimedRequest:
         if (mBusType == BusSwonb)
         {
-          
+            sendServiceMessage(remoteAddr, svcFail);
         }
         else if (isConnected())
         {
@@ -374,6 +374,23 @@ void ObjnetNode::parseServiceMessage(CommonMessage &msg)
             }
         }
         break;
+        
+      case svcGroupedRequest:
+      {
+        ByteArray ba;
+        int cnt = msg.data().size();
+        for (int i=0; i<cnt; i++)
+        {
+            unsigned char local_oid = msg.data()[i];
+            if (local_oid >= mSvcObjects.size())
+                continue;
+            ObjectInfo &obj = mObjects[local_oid];
+            ba.append(local_oid);
+            ba.append(obj.read());
+        }
+        sendServiceMessage(remoteAddr, svcGroupedObject, ba);
+        break;
+      }
         
       case svcUpgradeRequest:
       {

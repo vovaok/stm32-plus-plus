@@ -129,6 +129,7 @@ void Dac::configDma(Dma *dma)
         break;
         
       case ChannelBoth:
+        dataSize *= 2;
         address = (unsigned char*)&(DAC->DHR12RD) + mAlign;
         break;
     }
@@ -137,7 +138,7 @@ void Dac::configDma(Dma *dma)
     
     if (mChannels & Channel1)
         DAC_DMACmd(DAC_Channel_1, ENABLE);
-    if (mChannels & Channel2)
+    else if (mChannels & Channel2)
         DAC_DMACmd(DAC_Channel_2, ENABLE);
 }
 //---------------------------------------------------------------------------

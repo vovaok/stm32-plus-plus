@@ -11,6 +11,7 @@ typedef enum
     cidSensor           = 0x02000000,
     cidActuator         = 0x04000000,
     cidPult             = 0x08000000,
+    cidDongle           = 0x10000000,
     
     // device types:      0x00XX0000
     // Controller group:

@@ -29,6 +29,9 @@ private:
     string mName;
     bool mSwonbMode;
     int mCurMac; // for swonb mode
+    bool mSwonbReset;
+    
+    void onNak(unsigned char mac);
 
 protected:
     void task();
@@ -68,6 +71,7 @@ public:
 
     void setName(string name) {mName = name;}
     void setSwonbMode(bool enabled) {mSwonbMode = enabled;}
+    void setPollingInterval(int ms) {mTimer.setInterval(ms);}
 
     bool isConnected() const {return !mDevices.empty();}
 
@@ -81,7 +85,7 @@ public:
     void requestDevInfo(unsigned char netAddress) {sendServiceMessage(netAddress, svcRequestAllInfo);}
     void requestObjInfo(unsigned char netAddress) {sendServiceMessage(netAddress, svcRequestObjInfo);}
     
-    void swonbEnumerate() {mCurMac = 1;}
+    void swonbEnumerate() {mSwonbReset = true;}
     void swonbTryConnect(unsigned char mac) {sendServiceMessageToMac(mac, svcHello);}
 
 #ifdef QT_CORE_LIB
@@ -91,9 +95,9 @@ public slots:
     void sendObject(unsigned char netAddress, unsigned char oid, const ByteArray &ba);
     void sendServiceRequest(unsigned char netAddress, SvcOID oid, const ByteArray &ba)
     {
-        sendServiceMessage(netAddress, oid, ba);
+        sendServiceMessage(netAddress, (SvcOID)oid, ba);
     }
-    void sendServiceRequest(StdAID aid, bool propagation, const ByteArray &ba=ByteArray())
+    void sendGlobalRequest(StdAID aid, bool propagation, const ByteArray &ba=ByteArray())
     {
         if (propagation)
             aid = static_cast<StdAID>(aid | aidPropagationDown);
