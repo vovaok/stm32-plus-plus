@@ -82,6 +82,7 @@ public:
 
     void requestName(unsigned char netAddress) {sendServiceMessage(netAddress, svcName);}
     void requestClassId(unsigned char netAddress) {sendServiceMessage(netAddress, svcClass);}
+    void requestSerial(unsigned char netAddress) {sendServiceMessage(netAddress, svcSerial);}
     void requestDevInfo(unsigned char netAddress) {sendServiceMessage(netAddress, svcRequestAllInfo);}
     void requestObjInfo(unsigned char netAddress) {sendServiceMessage(netAddress, svcRequestObjInfo);}
     
