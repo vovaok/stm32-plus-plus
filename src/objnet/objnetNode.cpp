@@ -260,10 +260,17 @@ void ObjnetNode::parseServiceMessage(CommonMessage &msg)
       case svcHello:
         if (mBusType == BusSwonb)
         {
-            mNetState = netnConnecting;
-            ByteArray ba;
-            ba.append(mBusAddress);
-            sendServiceMessage(svcHello, ba);
+            if (isConnected())
+            {
+                sendServiceMessage(remoteAddr, svcEcho);
+            }
+            else
+            {
+                mNetState = netnConnecting;
+                ByteArray ba;
+                ba.append(mBusAddress);
+                sendServiceMessage(svcHello, ba);
+            }
         }
         else
         {
