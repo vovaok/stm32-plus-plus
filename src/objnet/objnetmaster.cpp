@@ -97,7 +97,7 @@ void ObjnetMaster::onTimer()
         for (DeviceIterator it=mDevices.begin(); it!=mDevices.end(); it++)
         {
             ObjnetDevice *dev = it->second;
-            if (dev->mTimeout)
+            if (dev->mIsLocal && dev->mTimeout)
                 dev->mTimeout--;
             if (dev->mPresent && !dev->mTimeout)
             {
@@ -332,6 +332,7 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
             }
             if (localnet)                                // если девайс в текущей подсети...
             {
+                dev->mIsLocal = true;
                 mLocalnetDevices[mac] = dev;             // ...запоминаем для поиска по маку
                 mNetAddrByMacCache[mac] = netaddr;       // и кэшируем адрес для возврата по маку (чтобы лишний раз не создавать)
             }
@@ -407,6 +408,8 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
       case svcConnected:
       {
         unsigned char netaddr2 = msg.data()[0];
+        if (netaddr2 == 0x7F)
+            break;
         if (mAdjacentNode)
         {
             unsigned char addr = mAdjacentNode->natRoute(netaddr2);
@@ -419,18 +422,32 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
         }
 //#warning if (localnet) '// nado dobavit!'
 //        sendServiceMessage(netaddr, svcRequestAllInfo);
-        #ifdef QT_CORE_LIB
-        emit devConnected(netaddr2);
-        #else
-        if (onDevConnected)
-            onDevConnected(netaddr2);
-        #endif
-        break;
+        ObjnetDevice *dev = mDevices[netaddr2];
+        if (dev)
+        {
+            if (dev->mPresent)
+            {
+                #ifdef QT_CORE_LIB
+                emit devConnected(netaddr2);
+                #else
+                if (onDevConnected)
+                    onDevConnected(netaddr2);
+                #endif
+                break;
+            }
+            else
+            {
+                requestClassId(netaddr2);
+                requestName(netaddr2);
+            }
+        }
       }
 
       case svcDisconnected:
       {
         unsigned char netaddr = msg.data()[0];
+        if (netaddr == 0x7F)
+            break;
         if (mAdjacentNode)
         {
             unsigned char addr = mAdjacentNode->natRoute(netaddr);
@@ -442,6 +459,11 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
                 removeNatPair(addr, netaddr);
             }
         }
+
+        ObjnetDevice *dev = mDevices[netaddr];
+        if (dev)
+            dev->mPresent = false;
+
         #ifdef QT_CORE_LIB
         emit devDisconnected(netaddr);
         #else
@@ -454,6 +476,8 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
       case svcKill:
       {
         unsigned char netaddr = msg.data()[0];
+        if (netaddr == 0x7F)
+            break;
         mRouteTable.erase(netaddr);
         if (mAdjacentNode)
         {
@@ -483,8 +507,9 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
             string name(msg.data().data(), msg.data().size());
             name.resize(strlen(name.c_str()));
             mDevices[netaddr]->setName(name);
-            if (mSwonbMode)
+            if (mSwonbMode || !dev->mPresent)
             {
+                dev->mPresent = true;
                 #ifdef QT_CORE_LIB
                 emit devConnected(dev->mNetAddress);
                 #else

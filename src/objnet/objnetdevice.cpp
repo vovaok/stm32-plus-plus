@@ -12,6 +12,7 @@ ObjnetDevice::ObjnetDevice(unsigned char netaddr) :
     mPresent(false),
     mTimeout(5), mTempTimeout(1),
     mAutoDelete(false),
+    mIsLocal(false),
     mBusType(BusUnknown),
     mObjectCount(0)
 //    mStateChanged(false),
@@ -324,6 +325,15 @@ void ObjnetDevice::timedRequest(_String name, int periodMs)
         #ifdef QT_CORE_LIB
         emit serviceRequest(mNetAddress, svcTimedRequest, ba);
         #endif
+    }
+}
+
+void ObjnetDevice::requestMetaInfo()
+{
+    if (mMaster)
+    {
+        mMaster->requestDevInfo(mNetAddress);
+        mMaster->requestObjInfo(mNetAddress);
     }
 }
 

@@ -452,7 +452,7 @@ void ObjnetNode::parseMessage(CommonMessage &msg)
         if (obj.isInvokable())
         {
             ByteArray ret = obj.invoke(msg.data());
-            if (ret.size())
+            if (ret.size() || mBusType == BusSwonb)
                 sendMessage(remoteAddr, oid, ret);
         }
         else if (msg.data().size()) // write
