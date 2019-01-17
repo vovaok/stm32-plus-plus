@@ -66,6 +66,8 @@ public:
         Пример использования: \code setReleaseEvent(EVENT(&MyClass::MyReleaseHandler)); \endcode
     */
     void setReleaseEvent(NotifyEvent event);
+    
+    using Gpio::read;
 };
 
 #endif

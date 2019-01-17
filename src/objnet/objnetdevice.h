@@ -38,6 +38,8 @@ protected:
 //    } ObjnetObject;
   
     ObjnetMaster *mMaster;
+    std::vector<ObjnetDevice*> mChildren;
+    ObjnetDevice *mParent;
 
     unsigned char mNetAddress;
     unsigned char mBusAddress;
@@ -45,7 +47,8 @@ protected:
     unsigned char mTimeout;
     unsigned char mTempTimeout;
     bool mAutoDelete; // когда true, при отключении девайса от сети, он удаляется из списка (по умолчанию false, только мастер может установить true при создании объекта)
-//    bool mStateChanged;
+    bool mIsLocal; // true когда девайс подключён непосредственно к подсети текущего мастера
+    //    bool mStateChanged;
 //    unsigned char mChildrenCount;
 //    unsigned char mOrphanCount; // not processed children
     
@@ -179,6 +182,8 @@ public:
     void autoRequest(_String name, int periodMs);
     void timedRequest(_String name, int periodMs);
     void groupedRequest(std::vector<_String> names);
+
+    void requestMetaInfo();
 
 #ifdef QT_CORE_LIB
 signals:

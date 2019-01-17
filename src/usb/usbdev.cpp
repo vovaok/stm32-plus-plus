@@ -784,6 +784,12 @@ void UsbDevice::bspEnableInterrupt()
 }
 //---------------------------------------------------------------------------
 
+void UsbDevice::stop()
+{
+    USB_OTG_StopDevice(&mDev);
+    mDev.regs.GREGS->GCCFG = 0;
+}
+
 //------------------------------ interrupts ---------------------------------
 #ifdef __cplusplus
  extern "C" {

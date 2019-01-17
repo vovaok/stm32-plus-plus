@@ -90,6 +90,8 @@ public:
     void connectEndpoint(UsbEndpoint *ep);
     void disconnectEndpoint(UsbEndpoint *ep);
     
+    void stop();
+    
     UsbConfiguration *defaultConfiguration() {return (UsbConfiguration*)first();}
     
     void ctlError(const UsbSetupReq &req);
