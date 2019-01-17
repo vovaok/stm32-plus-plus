@@ -38,6 +38,8 @@ protected:
 //    } ObjnetObject;
   
     ObjnetMaster *mMaster;
+    std::vector<ObjnetDevice*> mChildren;
+    ObjnetDevice *mParent;
 
     unsigned char mNetAddress;
     unsigned char mBusAddress;

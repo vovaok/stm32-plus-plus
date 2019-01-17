@@ -79,6 +79,45 @@ void ObjnetMaster::onNak(unsigned char mac)
     }
 }
 
+void ObjnetMaster::removeDevice(unsigned char netaddr)
+{
+    if (!mDevices.count(netaddr))
+        return;
+    ObjnetDevice *dev = mDevices[netaddr];
+
+    // recursively remove children
+    for (size_t i=0; i<dev->mChildren.size(); i++)
+    {
+        removeDevice(dev->mChildren[i]->mNetAddress);
+    }
+
+    if (mAdjacentNode)
+    {
+        unsigned char supernetaddr = mAdjacentNode->natRoute(dev->mNetAddress);
+        if (supernetaddr < 0x7F)
+        {
+            ByteArray ba;
+            ba.append(supernetaddr);
+            mAdjacentNode->acceptServiceMessage(0, svcKill, &ba);
+            removeNatPair(supernetaddr, dev->mNetAddress);
+        }
+    }
+    #ifdef QT_CORE_LIB
+    emit devDisconnected(dev->mNetAddress);
+    emit devRemoved(dev->mNetAddress);
+    #else
+    if (onDevDisconnected)
+        onDevDisconnected(dev->mNetAddress);
+    if (onDevRemoved)
+        onDevRemoved(dev->mNetAddress);
+    #endif
+    unsigned char mac = route(dev->mNetAddress);
+    mRouteTable.erase(dev->mNetAddress);
+    mLocalnetDevices[mac] = 0L;
+    delete dev;
+    mDevices.erase(netaddr);
+}
+
 void ObjnetMaster::onTimer()
 {
     sendGlobalServiceMessage(aidPollNodes);
@@ -134,34 +173,7 @@ void ObjnetMaster::onTimer()
     // удаляем отсутствующие девайсы, если у них включено автоудаление
     for (std::vector<unsigned char>::iterator it=addressesToRemove.begin(); it!=addressesToRemove.end(); it++)
     {
-        if (!mDevices.count(*it))
-            continue;
-        ObjnetDevice *dev = mDevices[*it];
-        if (mAdjacentNode)
-        {
-            unsigned char supernetaddr = mAdjacentNode->natRoute(dev->mNetAddress);
-            if (supernetaddr < 0x7F)
-            {
-                ByteArray ba;
-                ba.append(supernetaddr);
-                mAdjacentNode->acceptServiceMessage(0, svcKill, &ba);
-                removeNatPair(supernetaddr, dev->mNetAddress);
-            }
-        }
-        #ifdef QT_CORE_LIB
-        emit devDisconnected(dev->mNetAddress);
-        emit devRemoved(dev->mNetAddress);
-        #else
-        if (onDevDisconnected)
-            onDevDisconnected(dev->mNetAddress);
-        if (onDevRemoved)
-            onDevRemoved(dev->mNetAddress);
-        #endif
-        unsigned char mac = route(dev->mNetAddress);
-        mRouteTable.erase(dev->mNetAddress);
-        mLocalnetDevices[mac] = 0L;
-        delete dev;
-        mDevices.erase(*it);
+        removeDevice(*it);
     }
     
     if (mSwonbMode)
@@ -378,6 +390,12 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
             sendServiceMessage(tempaddr, welcomeCmd, outBa);     // тупо отправляем сообщение с присвоенными адресами
             ba[1] = netaddr;                        // теперь здесь адрес в этой подсети
             ba.append(tempaddr);
+            if (mDevices.count(tempaddr))
+            {
+                ObjnetDevice *par = mDevices[tempaddr];
+                par->mChildren.push_back(dev);
+                dev->mParent = par;
+            }
             if (mAdjacentNode)
             {
                 for (int i=2; i<ba.size(); i++)
@@ -467,16 +485,19 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
             }
         }
 
-        ObjnetDevice *dev = mDevices[netaddr];
-        if (dev)
-            dev->mPresent = false;
+        if (mDevices.count(netaddr))
+        {
+            ObjnetDevice *dev = mDevices[netaddr];
+            if (dev)
+                dev->mPresent = false;
 
-        #ifdef QT_CORE_LIB
-        emit devDisconnected(netaddr);
-        #else
-        if (onDevDisconnected)
-            onDevDisconnected(netaddr);
-        #endif
+            #ifdef QT_CORE_LIB
+            emit devDisconnected(netaddr);
+            #else
+            if (onDevDisconnected)
+                onDevDisconnected(netaddr);
+            #endif
+        }
         break;
       }
 
@@ -497,9 +518,14 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
                 removeNatPair(addr, netaddr);
             }
         }
-        #ifdef QT_CORE_LIB
-        emit devRemoved(netaddr);
-        #endif
+        if (mDevices.count(netaddr))
+        {
+            #ifdef QT_CORE_LIB
+            emit devRemoved(netaddr);
+            #endif
+//            ObjnetDevice *dev = mDevices[netaddr];
+//            dev->mChildren
+        }
         break;
       }
 

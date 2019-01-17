@@ -33,6 +33,8 @@ private:
     
     void onNak(unsigned char mac);
 
+    void removeDevice(unsigned char netaddr);
+
 protected:
     void task();
     void parseMessage(CommonMessage &msg);

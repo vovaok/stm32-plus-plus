@@ -418,7 +418,7 @@ void ObjnetNode::parseServiceMessage(CommonMessage &msg)
       default:;
     }
 
-    if (isConnected() && oid < mSvcObjects.size())
+    if (isConnected() && oid < (unsigned char)mSvcObjects.size())
     {
         ObjectInfo &obj = mSvcObjects[oid];
         if (msg.data().size()) // write

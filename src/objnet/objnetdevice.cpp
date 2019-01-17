@@ -8,6 +8,7 @@ ObjnetDevice::ObjnetDevice(unsigned char netaddr) :
     mClassValid(false),
     mNameValid(false),
     mInfoValidCnt(0),
+    mParent(0L),
     mNetAddress(netaddr),
     mPresent(false),
     mTimeout(5), mTempTimeout(1),
