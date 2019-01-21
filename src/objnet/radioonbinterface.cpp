@@ -1,6 +1,6 @@
 #include "radioonbinterface.h"
 
-#define RADIO_BUSY_TIMEOUT  5
+#define RADIO_BUSY_TIMEOUT  10
 
 using namespace Objnet;
 

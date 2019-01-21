@@ -389,7 +389,7 @@ void ObjnetNode::parseServiceMessage(CommonMessage &msg)
         for (int i=0; i<cnt; i++)
         {
             unsigned char local_oid = msg.data()[i];
-            if (local_oid >= mSvcObjects.size())
+            if (local_oid >= mObjects.size())
                 continue;
             ObjectInfo &obj = mObjects[local_oid];
             ba.append(local_oid);

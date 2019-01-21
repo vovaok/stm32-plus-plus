@@ -13,16 +13,17 @@ class Led : private Gpio
 {
 private:
     int mCountMig;
+    bool mInverted;
     
 public:
-    Led(Gpio::PinName pin);
+    Led(Gpio::PinName pin, bool inverted=false);
     Led(char portLetter, int pinNumber);
     
-    inline void on() {set();}
-    inline void off() {reset();}
+    inline void on() {mInverted? reset(): set();}
+    inline void off() {mInverted? set(): reset();}
     inline void toggle() {Gpio::toggle();}
-    inline bool state() const {return read();}
-    inline void setState(bool newState) {write(newState);}
+    inline bool state() const {return mInverted ^ read();}
+    inline void setState(bool newState) {write(newState ^ mInverted);}
     
     void toggleSkip(int count);
     void toggleSkip(int count1, int count2);

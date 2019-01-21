@@ -46,7 +46,7 @@ ByteArray ObjectInfo::read()
         if (str)
         {
             string s = _fromString(*str);
-            return ByteArray(s.c_str(), s.length());
+            return ByteArray(s.data(), s.length());
         }
         return ByteArray();
     }
