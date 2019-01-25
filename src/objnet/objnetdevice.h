@@ -110,9 +110,12 @@ public:
 
     int objectCount() const {return mObjectCount;}
     ObjectInfo *objectInfo(unsigned char oid) {if (oid < mObjects.size()) return mObjects[oid]; return 0L;}
-    
+    bool hasObject(_String name) {return mObjMap.find(_fromString(name)) != mObjMap.end();}
+
     void changeName(_String name);
     void changeBusAddress(unsigned char mac);
+
+    ObjnetDevice *parentDevice() {return mParent;}
 
     #ifndef QT_CORE_LIB
 

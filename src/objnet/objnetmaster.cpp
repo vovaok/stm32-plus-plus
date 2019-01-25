@@ -395,6 +395,7 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
                 ObjnetDevice *par = mDevices[tempaddr];
                 par->mChildren.push_back(dev);
                 dev->mParent = par;
+                qDebug() << "set parent for" << dev->netAddress() << "to" << par->netAddress();
             }
             if (mAdjacentNode)
             {
