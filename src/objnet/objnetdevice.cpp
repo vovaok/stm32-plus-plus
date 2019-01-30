@@ -390,6 +390,21 @@ void ObjnetDevice::changeName(_String name)
     }
 }
 
+void ObjnetDevice::changeFullName(_String name)
+{
+    if (mMaster)
+    {
+#ifdef QT_CORE_LIB
+        ByteArray ba(name.toUtf8());
+#else
+        ByteArray ba(name.c_str());
+#endif
+        if (ba.size() > 32)
+            ba.resize(32);
+        mMaster->sendServiceRequest(mNetAddress, svcFullName, ba);
+    }
+}
+
 void ObjnetDevice::changeBusAddress(unsigned char mac)
 {
     if (mMaster)

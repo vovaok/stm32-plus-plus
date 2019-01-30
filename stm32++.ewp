@@ -8842,13 +8842,17 @@
       <name>$PROJ_DIR$\src\radio\radiointerface.cpp</name>
       <excluded>
         <configuration>stm32f407zg</configuration>
+        <configuration>stm32f407vg</configuration>
         <configuration>stm32f405rg</configuration>
+        <configuration>stm32f405rg_no-exceptions_no-rtti</configuration>
       </excluded>
     </file>
     <file>
       <name>$PROJ_DIR$\src\radio\radiointerface.h</name>
       <excluded>
+        <configuration>stm32f407vg</configuration>
         <configuration>stm32f405rg</configuration>
+        <configuration>stm32f405rg_no-exceptions_no-rtti</configuration>
       </excluded>
     </file>
   </group>

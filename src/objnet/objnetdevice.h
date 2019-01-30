@@ -113,6 +113,7 @@ public:
     bool hasObject(_String name) {return mObjMap.find(_fromString(name)) != mObjMap.end();}
 
     void changeName(_String name);
+    void changeFullName(_String name);
     void changeBusAddress(unsigned char mac);
 
     ObjnetDevice *parentDevice() {return mParent;}
