@@ -34,12 +34,12 @@ typedef struct
     char const pre[12];
     unsigned long cid;
     unsigned short ver;
-    unsigned short burncount;
+    unsigned short pageSize;
     unsigned long length;
     unsigned long checksum;
     char timestamp[25];
 } __appinfo_t__;
-#define APP_DECLARE_BOOT_INFO() __root static const __appinfo_t__ __appinfo__ = {"__APPINFO__", APP_CLASS, APP_VERSION, APP_BURNCOUNT, 0xDeadFace, 0xBaadFeed, __TIMESTAMP__}
+#define APP_DECLARE_BOOT_INFO() __root static const __appinfo_t__ __appinfo__ = {"__APPINFO__", APP_CLASS, APP_VERSION, 0, 0xDeadFace, 0xBaadFeed, __TIMESTAMP__}
 //---------------------------------------------------------------------------
 
 extern "C" void SysTick_Handler();
