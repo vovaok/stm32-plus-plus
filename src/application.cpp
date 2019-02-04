@@ -23,7 +23,7 @@ void Application::sysTickHandler()
 
 void Application::exec()
 {       
-    RCC_ClockSecuritySystemCmd(ENABLE);
+    //RCC_ClockSecuritySystemCmd(ENABLE);
     // configure system clock to mSysClkPeriod milliseconds
     if (SysTick_Config((Rcc::sysClk() / 1000) * mSysClkPeriod) != 0)
         throw Exception::badSoBad;
