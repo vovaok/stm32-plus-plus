@@ -21,7 +21,10 @@ ObjnetCommonNode::ObjnetCommonNode(ObjnetInterface *iface) :
 //    QObject::connect(timer, SIGNAL(timeout()), SLOT(task()));
 //    timer->start(20);
 
-    QtConcurrent::run(&ObjnetCommonNode::task);
+    QtConcurrent::run([=](){
+        task();
+        QThread::msleep(20);
+    });
     #endif
 }
 
