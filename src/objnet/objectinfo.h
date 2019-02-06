@@ -17,12 +17,12 @@ using namespace std;
 
 namespace Objnet
 {
-  
+
 
 
 class ObjectInfo
 {
-public:  
+public:
     typedef enum
     {
         Volatile= 0x01,
@@ -33,7 +33,7 @@ public:
         Dual    = 0x20, // read from one location, write to another
         Function= 0x40, // function call
         Array   = 0x80, // object is array
-        
+
         Constant    = Read,
         ReadOnly    = Read,
         Measurement = Read | Volatile,
@@ -46,7 +46,7 @@ public:
         SecretSetting = Storage | Hidden,
         HiddenMeasurement = Measurement | Hidden
     } Flags;
-    
+
     typedef enum // KAK QVariant / QMetaType B Qt!!!
     {
         Void = 43,
@@ -64,11 +64,11 @@ public:
         UChar = 37,
         Float = 38,
         SChar = 40,
-      
+
         String = 10,  // QString B Qt, string B APMe
         Common = 12, // Common - this is (Q)ByteArray
     } Type; // KAK B Qt!!!
-    
+
     typedef bool Bool_t;
     typedef int Int_t;
     typedef unsigned int UInt_t;
@@ -80,11 +80,11 @@ public:
     typedef char Char_t;
     typedef unsigned long ULong_t;
     typedef unsigned short UShort_t;
-    typedef unsigned char UChar_t;    
+    typedef unsigned char UChar_t;
     typedef float Float_t;
     typedef signed char SChar_t;
     typedef string String_t;
-    
+
     struct Description
     {
         unsigned char id;
@@ -128,7 +128,7 @@ private:
     void *mWritePtr;
     int mAutoPeriod, mAutoTime; // automatic transmission period
     unsigned char mAutoReceiverAddr; // address of receiver for automatic transmission
-    bool mTimedRequest; // если синхронизованный объект
+    bool mTimedRequest; // РµСЃР»Рё СЃРёРЅС…СЂРѕРЅРёР·РѕРІР°РЅРЅС‹Р№ РѕР±СЉРµРєС‚
     Description mDesc;
     bool mIsDevice;
     static int mAssignId;
@@ -142,7 +142,7 @@ private:
 
 public:
     ObjectInfo();
-    
+
     // vars binding:
     template<typename T>
     ObjectInfo(string name, T &var, Flags flags=ReadWrite);
@@ -150,7 +150,7 @@ public:
     ObjectInfo(string name, const T &var, Flags flags=ReadOnly);
     template<typename Tr, typename Tw>
     ObjectInfo(string name, const Tr &varRead, Tw &varWrite, Flags flags=ReadWrite);
-    
+
     // array binding:
     template<typename T, int N>
     ObjectInfo(string name, T (&var)[N], Flags flags=ReadWrite);
@@ -171,7 +171,7 @@ public:
     Type rType() const {return static_cast<Type>(mDesc.rType);}
     Type wType() const {return static_cast<Type>(mDesc.wType);}
     Flags flags() const {return static_cast<Flags>(mDesc.flags);}
-    
+
     inline bool isVolatile() const {return mDesc.flags & Volatile;}
     inline bool isReadable() const {return mDesc.flags & Read;}
     inline bool isWritable() const {return mDesc.flags & Write;}
@@ -235,6 +235,8 @@ ObjectInfo::ObjectInfo(string name, T &var, Flags flags) :
     mDesc.name = name;
     mDesc.id = mAssignId++;
 }
+
+template<> ObjectInfo::ObjectInfo(string name, ByteArray &var, Flags flags);
 
 template<typename T>
 ObjectInfo::ObjectInfo(string name, const T &var, Flags flags) :
@@ -315,13 +317,13 @@ ObjectInfo::ObjectInfo(string name, Closure<R(void)> event, ObjectInfo::Flags fl
 {
     mDesc.readSize = sizeof(R);
     mDesc.writeSize = 0; // no param
-        
+
     if (mDesc.readSize)
         flags = static_cast<ObjectInfo::Flags>(flags | Read);
 
     // mReadPtr:mWritePtr contains variable of Closure<> type, not the pointer!!!
     *reinterpret_cast<Closure<R(void)>*>(&mReadPtr) = event;
-    
+
     R var;
     mDesc.rType = typeOfVar(var); // return type
     mDesc.wType = Void; // param type
@@ -329,9 +331,12 @@ ObjectInfo::ObjectInfo(string name, Closure<R(void)> event, ObjectInfo::Flags fl
     mDesc.name = name;
     mDesc.id = mAssignId++;
 }
-
+   
 #ifndef QT_CORE_LIB
 template<> ObjectInfo::ObjectInfo<void>(string name, Closure<void(void)> event, ObjectInfo::Flags flags);
+template<> ObjectInfo::ObjectInfo(string name, Closure<ByteArray(void)> event, ObjectInfo::Flags flags);
+template<> ObjectInfo::ObjectInfo(string name, Closure<void(ByteArray)> event, ObjectInfo::Flags flags);
+template<> ObjectInfo::ObjectInfo(string name, Closure<ByteArray(ByteArray)> event, ObjectInfo::Flags flags);
 #endif
 
 template<class P0>
@@ -341,13 +346,13 @@ ObjectInfo::ObjectInfo(string name, Closure<void(P0)> event, ObjectInfo::Flags f
 {
     mDesc.readSize = 0;
     mDesc.writeSize = sizeof(P0); // no param
-        
+
     if (mDesc.writeSize)
         flags = static_cast<ObjectInfo::Flags>(flags | Write);
 
     // mReadPtr:mWritePtr contains variable of Closure<> type, not the pointer!!!
     *reinterpret_cast<Closure<void(P0)>*>(&mReadPtr) = event;
-    
+
     P0 param;
     mDesc.rType = Void; // return type;
     mDesc.wType = typeOfVar(param); // param type
@@ -364,7 +369,7 @@ ObjectInfo::ObjectInfo(string name, Closure<R(P0)> event, ObjectInfo::Flags flag
 {
     mDesc.readSize = sizeof(R);
     mDesc.writeSize = sizeof(P0); // no param
-        
+
     if (mDesc.readSize)
         flags = static_cast<ObjectInfo::Flags>(flags | Read);
     if (mDesc.writeSize)
@@ -372,7 +377,7 @@ ObjectInfo::ObjectInfo(string name, Closure<R(P0)> event, ObjectInfo::Flags flag
 
     // mReadPtr:mWritePtr contains variable of Closure<> type, not the pointer!!!
     *reinterpret_cast<Closure<R(P0)>*>(&mReadPtr) = event;
-    
+
     R ret;
     P0 param;
     mDesc.rType = typeOfVar(ret); // return type;

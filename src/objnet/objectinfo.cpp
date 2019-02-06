@@ -12,6 +12,28 @@ ObjectInfo::ObjectInfo() :
 {
 }
 
+template<> ObjectInfo::ObjectInfo(string name, ByteArray &var, Flags flags) :
+    mReadPtr(0), mWritePtr(0),
+    mAutoPeriod(0), mAutoTime(0), mAutoReceiverAddr(0),
+    mIsDevice(false)
+{
+    if (flags & Read)
+    {
+        mReadPtr = &var;
+        mDesc.readSize = 0;
+        mDesc.rType = Common;
+    }
+    if (flags & Write)
+    {
+        mWritePtr = &var;
+        mDesc.writeSize = 0;
+        mDesc.wType = Common;
+    }
+    mDesc.flags = flags;
+    mDesc.name = name;
+    mDesc.id = mAssignId++;
+}
+
 #ifndef QT_CORE_LIB
 template<> ObjectInfo::ObjectInfo<void>(string name, Closure<void(void)> event, ObjectInfo::Flags flags) :
     mAutoPeriod(0), mAutoTime(0), mAutoReceiverAddr(0),
@@ -30,6 +52,69 @@ template<> ObjectInfo::ObjectInfo<void>(string name, Closure<void(void)> event, 
     mDesc.name = name;
     mDesc.id = mAssignId++;
 }
+
+template<>
+ObjectInfo::ObjectInfo(string name, Closure<ByteArray(void)> event, ObjectInfo::Flags flags) :
+    mReadPtr(0), mWritePtr(0),
+    mAutoPeriod(0), mAutoTime(0), mAutoReceiverAddr(0),
+    mIsDevice(false)
+{
+    mDesc.readSize = 0; // pure ByteArray
+    mDesc.writeSize = 0; // no param
+
+    flags = static_cast<ObjectInfo::Flags>(flags | Read);
+
+    // mReadPtr:mWritePtr contains variable of Closure<> type, not the pointer!!!
+    *reinterpret_cast<Closure<ByteArray(void)>*>(&mReadPtr) = event;
+
+    mDesc.rType = Common; // return type
+    mDesc.wType = Void; // param type
+    mDesc.flags = (flags | Function) & ~(Save | Write);
+    mDesc.name = name;
+    mDesc.id = mAssignId++;
+}
+
+template<>
+ObjectInfo::ObjectInfo(string name, Closure<void(ByteArray)> event, ObjectInfo::Flags flags) :
+    mReadPtr(0), mWritePtr(0),
+    mAutoPeriod(0), mAutoTime(0), mAutoReceiverAddr(0),
+    mIsDevice(false)
+{
+    mDesc.readSize = 0; // no return
+    mDesc.writeSize = 0; // pure ByteArray
+
+    flags = static_cast<ObjectInfo::Flags>(flags | Write);
+
+    // mReadPtr:mWritePtr contains variable of Closure<> type, not the pointer!!!
+    *reinterpret_cast<Closure<void(ByteArray)>*>(&mReadPtr) = event;
+
+    mDesc.rType = Void; // return type
+    mDesc.wType = Common; // param type
+    mDesc.flags = (flags | Function) & ~(Save | Read);
+    mDesc.name = name;
+    mDesc.id = mAssignId++;
+}
+
+template<>
+ObjectInfo::ObjectInfo(string name, Closure<ByteArray(ByteArray)> event, ObjectInfo::Flags flags) :
+    mReadPtr(0), mWritePtr(0),
+    mAutoPeriod(0), mAutoTime(0), mAutoReceiverAddr(0),
+    mIsDevice(false)
+{
+    mDesc.readSize = 0; // pure ByteArray
+    mDesc.writeSize = 0; // pure ByteArray
+
+    flags = static_cast<ObjectInfo::Flags>(flags | Read | Write);
+
+    // mReadPtr:mWritePtr contains variable of Closure<> type, not the pointer!!!
+    *reinterpret_cast<Closure<ByteArray(ByteArray)>*>(&mReadPtr) = event;
+
+    mDesc.rType = Common; // return type
+    mDesc.wType = Common; // param type
+    mDesc.flags = (flags | Function) & ~(Save);
+    mDesc.name = name;
+    mDesc.id = mAssignId++;
+}
 #endif
 //---------------------------------------------------------
 
@@ -38,7 +123,7 @@ ByteArray ObjectInfo::read()
     if ((mDesc.flags & Function) && !mIsDevice)
         return invoke(ByteArray());
     
-    if (!mDesc.readSize || !mReadPtr || !(mDesc.flags & Read))
+    if (!mReadPtr || !(mDesc.flags & Read))
         return ByteArray();
     if (mDesc.rType == String)
     {
@@ -49,6 +134,10 @@ ByteArray ObjectInfo::read()
             return ByteArray(s.data(), s.length());
         }
         return ByteArray();
+    }
+    else if (mDesc.rType == Common && mDesc.readSize == 0) // pure (Q)ByteArray
+    {
+        return *reinterpret_cast<const ByteArray*>(mReadPtr);
     }
     else
     {
@@ -61,7 +150,7 @@ bool ObjectInfo::write(const ByteArray &ba)
     if ((mDesc.flags & Function) && !mIsDevice)
         invoke(ba);
   
-    if (!mDesc.writeSize || !mWritePtr || !(mDesc.flags & Write))
+    if (!mWritePtr || !(mDesc.flags & Write))
         return false;
     if (mDesc.wType == String)
     {
@@ -73,6 +162,10 @@ bool ObjectInfo::write(const ByteArray &ba)
             *str = _toString(string(ba.data(), ba.size()));
         }
         return true;
+    }
+    else if (mDesc.wType == Common && mDesc.writeSize == 0) // pure (Q)ByteArray
+    {
+        *reinterpret_cast<ByteArray*>(mWritePtr) = ba;
     }
     else if ((size_t)ba.size() == mDesc.writeSize)
     {
@@ -111,6 +204,10 @@ ByteArray ObjectInfo::invoke(const ByteArray &ba)
                 CASE(Float);
                 CASE(SChar);
                 case String: (*reinterpret_cast<Closure<void(string)>*>(&mReadPtr))(string(ba.data(), ba.size())); break;
+                case Common:
+                    if (!mDesc.writeSize)
+                        (*reinterpret_cast<Closure<void(ByteArray)>*>(&mReadPtr))(ba);
+                    break;
                 #undef CASE
             }
             break;
@@ -136,6 +233,10 @@ ByteArray ObjectInfo::invoke(const ByteArray &ba)
                 CASEw(Tr, Float); \
                 CASEw(Tr, SChar); \
                 case String: result = (*reinterpret_cast<Closure<Tr##_t(string)>*>(&mReadPtr))(string(ba.data(), ba.size())); break; \
+                case Common: \
+                    if (!mDesc.writeSize) \
+                      result = (*reinterpret_cast<Closure<Tr##_t(ByteArray)>*>(&mReadPtr))(ba); \
+                    break; \
             } \
             ret.append(reinterpret_cast<const char*>(&result), sizeof(Tr##_t)); \
         } break
@@ -176,11 +277,27 @@ ByteArray ObjectInfo::invoke(const ByteArray &ba)
                 CASEw(String, Float); \
                 CASEw(String, SChar); \
                 case String: result = (*reinterpret_cast<Closure<string(string)>*>(&mReadPtr))(string(ba.data(), ba.size())); break;
+                case Common: \
+                    if (!mDesc.writeSize) \
+                      result = (*reinterpret_cast<Closure<string(ByteArray)>*>(&mReadPtr))(ba); \
+                    break; \
             }
             ret.append(result.c_str(), result.length()); 
           } break;
 //                    Common = 12,
         
+        case Common:
+          if (!mDesc.writeSize)
+          {
+            ByteArray result;
+            switch (mDesc.wType)
+            {
+                case Void: result = (*reinterpret_cast<Closure<ByteArray(void)>*>(&mReadPtr))(); break;
+                case Common: result = (*reinterpret_cast<Closure<ByteArray(ByteArray)>*>(&mReadPtr))(ba); break;
+            }
+            ret.append(result); 
+          }          
+          break;
     }
     #undef CASE
     #undef CASEw
@@ -220,7 +337,7 @@ QVariant ObjectInfo::toVariant()
 {
     if (!mWritePtr)
         return QVariant(); // "Invalid" type
-    if (mDesc.wType == Common)
+    if (mDesc.wType == Common && mDesc.writeSize)
         return ByteArray(reinterpret_cast<const char*>(mWritePtr), mDesc.writeSize);
 //    if (mDesc.type == String)
 //        return *reinterpret_cast<_String*>(mWritePtr);
@@ -246,13 +363,18 @@ bool ObjectInfo::fromVariant(QVariant &v)
 {
     if (mDesc.rType != v.type())
         return false;
-    if (mDesc.rType == Common)
+    if (mDesc.rType == Common && mDesc.readSize)
     {
         ByteArray ba = v.toByteArray();
         int sz = ba.size();
         sz = sz > mDesc.readSize? mDesc.readSize: sz;
         for (int i=0; i<sz; i++)
             const_cast<unsigned char*>(reinterpret_cast<const unsigned char*>(mReadPtr))[i] = ba[i];
+        return true;
+    }
+    else if (mDesc.rType == Common)
+    {
+        *const_cast<ByteArray*>(reinterpret_cast<const ByteArray*>(mReadPtr)) = *reinterpret_cast<ByteArray*>(v.data());
         return true;
     }
     if (mDesc.flags & Array)

@@ -1,4 +1,5 @@
 #include "objnetCommonNode.h"
+//#include <QtConcurrent/QtConcurrent>
 
 using namespace Objnet;
 
@@ -15,9 +16,15 @@ ObjnetCommonNode::ObjnetCommonNode(ObjnetInterface *iface) :
     #ifndef QT_CORE_LIB
     stmApp()->registerTaskEvent(EVENT(&ObjnetCommonNode::task));
     #else
+
     QTimer *timer = new QTimer(this);
     QObject::connect(timer, SIGNAL(timeout()), SLOT(task()));
-    timer->start(20);
+    timer->start(16);
+
+//    QtConcurrent::run([=](){
+//        task();
+//        QThread::msleep(16);
+//    });
     #endif
 }
 

@@ -87,7 +87,7 @@ void ObjnetDevice::prepareObject(const ObjectInfo::Description &desc)
     }
 
     mObjects[id] = obj;
-    if (!obj->mWritePtr && desc.writeSize)
+    if (!obj->mWritePtr && (desc.writeSize || desc.wType == ObjectInfo::Common))
     {
         if (desc.wType == ObjectInfo::String)
         {
@@ -98,6 +98,14 @@ void ObjnetDevice::prepareObject(const ObjectInfo::Description &desc)
             for (size_t i=0; i<sizeof(_String); i++)
                 reinterpret_cast<unsigned char*>(obj->mWritePtr)[i] = reinterpret_cast<unsigned char*>(&x3)[i];
         }
+        else if (desc.wType == ObjectInfo::Common && desc.writeSize == 0)
+        {
+            mObjBuffers[id].resize(sizeof(ByteArray));
+            obj->mWritePtr = mObjBuffers[id].data();
+            ByteArray x3;
+            for (size_t i=0; i<sizeof(ByteArray); i++)
+                reinterpret_cast<unsigned char*>(obj->mWritePtr)[i] = reinterpret_cast<unsigned char*>(&x3)[i];
+        }
         else
         {
             mObjBuffers[id].resize(desc.writeSize);
@@ -105,9 +113,12 @@ void ObjnetDevice::prepareObject(const ObjectInfo::Description &desc)
         }
     }
     
-    if (!obj->mReadPtr && desc.readSize)
+    if (!obj->mReadPtr && (desc.readSize || desc.rType == ObjectInfo::Common))
     {
-        int sz = (desc.rType == ObjectInfo::String)? sizeof(_String): desc.readSize;        
+        int sz = (desc.rType == ObjectInfo::String)? sizeof(_String): desc.readSize;
+        if ((desc.rType == ObjectInfo::Common && desc.readSize == 0))
+            sz = sizeof(ByteArray);
+
         if (desc.flags & ObjectInfo::Dual)
         {
             int osz = mObjBuffers[id].size();
@@ -115,13 +126,13 @@ void ObjnetDevice::prepareObject(const ObjectInfo::Description &desc)
             obj->mWritePtr = mObjBuffers[id].data();
             obj->mReadPtr = mObjBuffers[id].data() + osz;
         }
-        else if (desc.writeSize)
+        else if (desc.writeSize || desc.wType == ObjectInfo::Common)
         {
             obj->mReadPtr = mObjBuffers[id].data();
         }
         else
         {
-            mObjBuffers[id].resize(desc.readSize);
+            mObjBuffers[id].resize(sz);
             obj->mReadPtr = mObjBuffers[id].data();
         }
       
@@ -129,6 +140,12 @@ void ObjnetDevice::prepareObject(const ObjectInfo::Description &desc)
         {
             _String x3;
             for (size_t i=0; i<sizeof(_String); i++)
+                const_cast<unsigned char*>(reinterpret_cast<const unsigned char*>(obj->mReadPtr))[i] = reinterpret_cast<unsigned char*>(&x3)[i];
+        }
+        else if (desc.rType == ObjectInfo::Common && desc.readSize == 0)
+        {
+            ByteArray x3;
+            for (size_t i=0; i<sizeof(ByteArray); i++)
                 const_cast<unsigned char*>(reinterpret_cast<const unsigned char*>(obj->mReadPtr))[i] = reinterpret_cast<unsigned char*>(&x3)[i];
         }
     }
