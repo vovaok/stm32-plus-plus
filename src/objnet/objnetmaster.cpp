@@ -390,9 +390,10 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
             sendServiceMessage(tempaddr, welcomeCmd, outBa);     // тупо отправляем сообщение с присвоенными адресами
             ba[1] = netaddr;                        // теперь здесь адрес в этой подсети
             ba.append(tempaddr);
-            if (mDevices.count(tempaddr))
+            unsigned char paraddr = ba.size()>2? ba[2]: 0;
+            if (mDevices.count(paraddr))
             {
-                ObjnetDevice *par = mDevices[tempaddr];
+                ObjnetDevice *par = mDevices[paraddr];
                 par->mChildren.push_back(dev);
                 dev->mParent = par;
                 //qDebug() << "set parent for" << dev->netAddress() << "to" << par->netAddress();
