@@ -243,12 +243,19 @@ void CC1200::write(const unsigned char *data, unsigned char size)
     deselect();
 }
 
+//static __root unsigned char radioBuf[1024];
+//static unsigned int radioBufCnt = 0;
+
 void CC1200::read(unsigned char *data, unsigned char size)
 {  
     select();
     mStatus = mSpi->transferWord(0x80 | 0x40 | 0x3F);
     for (int i=0; i<size; i++)
+    {
         data[i] = mSpi->transferWord(0x00);
+//        if (radioBufCnt < 1024)
+//            radioBuf[radioBufCnt++] = data[i];
+    }
     deselect();
 }
 //---------------------------------------------------------------------------

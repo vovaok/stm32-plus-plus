@@ -8739,6 +8739,12 @@
     <file>
       <name>$PROJ_DIR$\src\core\macros.h</name>
     </file>
+    <file>
+      <name>$PROJ_DIR$\src\core\qdebug.cpp</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\src\core\qdebug.h</name>
+    </file>
   </group>
   <group>
     <name>objnet</name>
@@ -8887,6 +8893,12 @@
     </file>
     <file>
       <name>$PROJ_DIR$\src\serial\seriallink.h</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\src\serial\usbvcp.cpp</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\src\serial\usbvcp.h</name>
     </file>
   </group>
   <group>

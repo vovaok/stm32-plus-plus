@@ -4,6 +4,11 @@
 #include "coreexception.h"
 #include "macros.h"
 
+// NDEBUG is IAR predefined symbol in Release configuration
+#ifndef NDEBUG
+#include "qdebug.h"
+#endif
+
 #ifndef NO_CORE_SUPPORT
     #include "coretypes.h"
     #include "closure.h"

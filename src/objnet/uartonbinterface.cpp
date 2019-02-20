@@ -8,6 +8,7 @@ UartOnbInterface::UartOnbInterface(SerialInterface *serialInterface) :
     mInterface(serialInterface),
     mReadCnt(0),
     mWriteTimer(30),
+    mCurTxMac(0),
     cs(0), esc(0), cmd_acc(0),
     mHdBusyTimeout(0)
 { 
@@ -72,6 +73,13 @@ void UartOnbInterface::task()
 //        printf(s.c_str());
     }
     
+    if (mCurTxMac && !mHdBusyTimeout)
+    {
+        if (nakEvent)
+            nakEvent(mCurTxMac);
+        mCurTxMac = 0;
+    }
+    
     if (!mHdBusyTimeout)
     {
         if (mUnsendBuffer.size())
@@ -95,6 +103,10 @@ void UartOnbInterface::task()
             {
                 ByteArray ba;
                 unsigned long id = mCurTxMsg.id;
+                if (id & 0x10000000) // if msg is local
+                    mCurTxMac = (id >> 24) & 0xF;
+                else
+                    mCurTxMac = 0;
                 ba.append(reinterpret_cast<const char*>(&id), 4);
                 ba.append(mCurTxMsg.data, mCurTxMsg.size);
                 mUnsendBuffer = encode(ba);
@@ -204,6 +216,8 @@ ByteArray UartOnbInterface::encode(const ByteArray &ba)
 
 void UartOnbInterface::msgReceived(const ByteArray &ba)
 {
+    mCurTxMac = 0;
+  
     mHdBusyTimeout = 0;
     
     unsigned long id = *reinterpret_cast<const unsigned long*>(ba.data());  

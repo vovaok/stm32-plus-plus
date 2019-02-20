@@ -10,6 +10,8 @@ RadioOnbInterface::RadioOnbInterface(CC1200 *device) :
     mTxBusy(false), mRxBusy(false),
     mRssi(0), mLqi(0),
     mCurTxMac(0),
+    mBurstRx(false), mBurstTx(false),
+    mTxEnable(false),
     mHdBusyTimeout(0)
 {
     mMaxFrameSize = 120;
@@ -34,11 +36,13 @@ void RadioOnbInterface::task()
     if (rfStatus == CC1200::RX_FIFO_ERROR)
         cc1200->sendCommand(CC1200::SFRX); // flush RX FIFO on error
     
-    if (mCurTxMac && !mHdBusyTimeout)
+    if (mCurTxMac && !mHdBusyTimeout && !mBurstTx)
     {
         if (nakEvent)
             nakEvent(mCurTxMac);
         mCurTxMac = 0;
+        mBurstRx = false;
+//        mRxBusy = false;
     }
     
     if (ledTx)
@@ -70,9 +74,8 @@ void RadioOnbInterface::task()
             unsigned long id;
             CC1200::AppendedStatus sts;
             cc1200->read(reinterpret_cast<unsigned char *>(&id), 4);
-            mCurRxMsg.setId(id);
-//            if (id != 0x00800000)
-//                errorCount = 0;
+            mBurstRx = id & (0x80000000);
+            mCurRxMsg.setId(id & 0x1FFFFFFF);
             int datasize = mCurHdr.size - 5;
             mCurRxMsg.data().resize(datasize);
             if (datasize)
@@ -88,9 +91,13 @@ void RadioOnbInterface::task()
         }
         mCurHdr.size = 0;
         rfStatus = ((CC1200::Status)(cc1200->getStatus() & 0x70));
-        mRxBusy = false;
+        mRxBusy = mBurstRx;//false;
+        if (mBurstRx)
+            mRxBusy = true;
         mHdBusyTimeout = 0;
         mCurTxMac = 0;
+        if (!isMaster && !mCurRxMsg.isGlobal())
+            mTxEnable = true;
     }
     else
     {
@@ -101,23 +108,46 @@ void RadioOnbInterface::task()
     if (ledRx)
         ledRx->setState(mRxBusy);
     
+    if (isMaster)
+        mTxEnable = true;
+    
     bool sendflag = false;
-    if (!mHdBusyTimeout && !mTxBusy)
+    if (!mHdBusyTimeout && !mTxBusy && !mRxBusy && mTxEnable)
     {
         if (mUnsendBuffer.size())
         {
             if (trySend(mUnsendBuffer))
             {
                 mUnsendBuffer.resize(0);
-                mHdBusyTimeout = RADIO_BUSY_TIMEOUT;
                 sendflag = true;
+                bool msgislocal = mCurTxMsg.rawId() & 0x10000000;
+                if (isMaster && msgislocal && !mBurstTx)
+                    mHdBusyTimeout = RADIO_BUSY_TIMEOUT;
             }
         }
         else if (readTx(mCurTxMsg))
         {
             ByteArray ba;
-            unsigned long id = mCurTxMsg.rawId();
+            unsigned long id = mCurTxMsg.rawId() & 0x1FFFFFFF; // most significant 3 bits are not used in ONB
             unsigned char mac = mCurTxMsg.isGlobal()? 0: (0x10 | mCurTxMsg.localId().mac);
+            // if next message intended for the same address
+            mBurstTx = false;
+            if (!mTxQueue.empty())
+            {
+                CommonMessage &nextMsg = mTxQueue.front();
+                unsigned char nextmac = 0x10 | nextMsg.localId().mac;
+                mBurstTx = (mac == nextmac) && mac;
+            }
+            if (mBurstTx)
+            {
+                // set the burst flag
+                id |= 0x80000000;
+            }
+            else
+            {
+                mTxEnable = false;
+            }
+            
             mCurTxMac = mac & 0x0F;
             ba.append(mac);
             ba.append(reinterpret_cast<const char*>(&id), 4);
@@ -128,9 +158,15 @@ void RadioOnbInterface::task()
             {
                 mUnsendBuffer.resize(0);
                 sendflag = true;
-                if (id & 0x10000000) // in half-duplex mode: if message is local => wait response
+                bool msgislocal = (id & 0x10000000);
+                // in half-duplex mode: if message is local => wait response
+                if (isMaster && msgislocal && !mBurstTx)
                     mHdBusyTimeout = RADIO_BUSY_TIMEOUT;
             }
+        }
+        else
+        {
+            mBurstTx = false;
         }
     }
     

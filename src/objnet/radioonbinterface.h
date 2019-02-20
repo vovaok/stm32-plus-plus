@@ -19,6 +19,8 @@ private:
     CommonMessage mCurRxMsg, mCurTxMsg;
     CC1200::PayloadHeader mCurHdr;
     unsigned char mCurTxMac;
+    bool mBurstRx, mBurstTx;
+    bool mTxEnable;
     
     std::queue<CommonMessage> mTxQueue;
     std::queue<CommonMessage> mRxQueue;

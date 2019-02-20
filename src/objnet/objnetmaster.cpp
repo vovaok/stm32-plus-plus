@@ -19,6 +19,7 @@ ObjnetMaster::ObjnetMaster(ObjnetInterface *iface) :
     }
     setBusAddress(0);
     mNetAddress = 0x00;
+    mInterface->setMasterMode(true);
     
     #ifndef QT_CORE_LIB
     mTimer.setTimeoutEvent(EVENT(&ObjnetMaster::onTimer));
@@ -84,6 +85,8 @@ void ObjnetMaster::removeDevice(unsigned char netaddr)
     if (!mDevices.count(netaddr))
         return;
     ObjnetDevice *dev = mDevices[netaddr];
+    
+//    qDebug() << "remove" << dev->mName << (int)dev->mNetAddress;
 
     // recursively remove children
     for (size_t i=0; i<dev->mChildren.size(); i++)
@@ -103,10 +106,11 @@ void ObjnetMaster::removeDevice(unsigned char netaddr)
         }
     }
     #ifdef QT_CORE_LIB
-    emit devDisconnected(dev->mNetAddress);
+    if (dev->isPresent())
+        emit devDisconnected(dev->mNetAddress);
     emit devRemoved(dev->mNetAddress);
     #else
-    if (onDevDisconnected)
+    if (onDevDisconnected && dev->isPresent())
         onDevDisconnected(dev->mNetAddress);
     if (onDevRemoved)
         onDevRemoved(dev->mNetAddress);
@@ -180,6 +184,7 @@ void ObjnetMaster::onTimer()
     {
         if (mSwonbReset)
         {
+            sendGlobalServiceMessage(aidConnReset);
             for (mCurMac=1; mCurMac<16; mCurMac++)
                 sendServiceMessageToMac(mCurMac, svcHello);
             mCurMac = 0;
@@ -262,8 +267,10 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
       case svcEcho:
         if (!dev)
         {
-            sendGlobalServiceMessage(aidConnReset);
-            //sendServiceMessage(netaddr, svcHello); // reset node's connection state
+            //sendGlobalServiceMessage(aidConnReset);
+            ByteArray ba;
+            ba.append(0xFF);
+            sendServiceMessage(netaddr, svcHello, ba); // reset node's connection state
         }
         else
         {
@@ -314,6 +321,8 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
 
       case svcHello:
       {
+//        qDebug() << "device says hello" << (int)netaddr;
+        
         SvcOID welcomeCmd = svcWelcomeAgain;             // если девайс уже добавлен, команда будет svcWelcomeAgain
         ByteArray ba = msg.data();
         unsigned char mac = ba[0];
@@ -361,6 +370,8 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
             mDevices[netaddr] = dev;                     // запоминаем для поиска по адресу
             welcomeCmd = svcWelcome;                     // меняем команду на svcWelcome
 
+//            qDebug() << "create dev with address" << (int)dev->mNetAddress;
+            
             #ifdef QT_CORE_LIB
             QObject::connect(dev, SIGNAL(requestObject(unsigned char,unsigned char)), SLOT(requestObject(unsigned char,unsigned char)));
             QObject::connect(dev, SIGNAL(sendObject(unsigned char,unsigned char,QByteArray)), SLOT(sendObject(unsigned char,unsigned char,QByteArray)));
@@ -396,7 +407,7 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
                 ObjnetDevice *par = mDevices[paraddr];
                 par->mChildren.push_back(dev);
                 dev->mParent = par;
-                //qDebug() << "set parent for" << dev->netAddress() << "to" << par->netAddress();
+                //qDebug() << "set parent for" << (int)dev->netAddress() << "to" << (int)par->netAddress();
             }
             if (mAdjacentNode)
             {
@@ -424,8 +435,10 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
         {
             if (mAdjacentNode->isConnected())            // и если смежный узел подключён к своему мастеру
             {
+                //qDebug() << "say hello from" << (int)ba[1];
                 //ba[0] = mAdjacentNode->mBusAddress;                                // меняем физический адрес на свой
-                mAdjacentNode->sendServiceMessage(svcHello, ba);    // и отправляем дальше
+                bool result = mAdjacentNode->sendServiceMessage(svcHello, ba);    // и отправляем дальше
+                //qDebug() << "hello is" << (result?"":"not") << "said from" << (int)ba[1];
             }
         }
 
@@ -468,7 +481,7 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
                 requestName(netaddr2);
             }
         }
-      }
+      } break;
 
       case svcDisconnected:
       {
@@ -482,6 +495,7 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
             {
                 ByteArray ba;
                 ba.append(addr);
+//                qDebug() << "say disconnected" << (int)netaddr;
                 mAdjacentNode->acceptServiceMessage(0, svcDisconnected, &ba);
                 removeNatPair(addr, netaddr);
             }
@@ -505,29 +519,32 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
 
       case svcKill:
       {
-        unsigned char netaddr = msg.data()[0];
-        if (netaddr == 0x7F)
-            break;
-        mRouteTable.erase(netaddr);
-        if (mAdjacentNode)
-        {
-            unsigned char addr = mAdjacentNode->natRoute(netaddr);
-            if (addr != 0x7F)
-            {
-                ByteArray ba;
-                ba.append(addr);
-                mAdjacentNode->acceptServiceMessage(0, svcKill, &ba);
-                removeNatPair(addr, netaddr);
-            }
-        }
-        if (mDevices.count(netaddr))
-        {
-            #ifdef QT_CORE_LIB
-            emit devRemoved(netaddr);
-            #endif
+        unsigned char netaddr2 = msg.data()[0];
+        removeDevice(netaddr2);
+//        unsigned char netaddr = msg.data()[0];
+//        if (netaddr == 0x7F)
+//            break;
+//        mRouteTable.erase(netaddr);
+//        if (mAdjacentNode)
+//        {
+//            unsigned char addr = mAdjacentNode->natRoute(netaddr);
+//            if (addr != 0x7F)
+//            {
+//                ByteArray ba;
+//                ba.append(addr);
+//                mAdjacentNode->acceptServiceMessage(0, svcKill, &ba);
+//                removeNatPair(addr, netaddr);
+//            }
+//        }
+//        if (mDevices.count(netaddr))
+//        {
+//            #ifdef QT_CORE_LIB
+//            emit devRemoved(netaddr);
+//            #endif
 //            ObjnetDevice *dev = mDevices[netaddr];
 //            dev->mChildren
-        }
+            
+//        }
         break;
       }
 

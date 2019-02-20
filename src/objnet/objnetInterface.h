@@ -33,8 +33,10 @@ private:
 protected:
     int mMaxFrameSize; //!< Maximal data size in frame
     BusType mBusType;
+    bool isMaster; // master sets this flag to true
 
 public:
+    ObjnetInterface() : mMaxFrameSize(8), mBusType(BusUnknown), isMaster(false) {}
     virtual ~ObjnetInterface() {}
 
     /*! Place message msg into transmit queue.
@@ -100,6 +102,8 @@ public:
     BusType busType() const {return mBusType;}
     
     NakEvent nakEvent;
+    
+    void setMasterMode(bool enabled) {isMaster = enabled;}
 };
 
 }
