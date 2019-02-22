@@ -270,7 +270,7 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
             //sendGlobalServiceMessage(aidConnReset);
             ByteArray ba;
             ba.append(0xFF);
-            sendServiceMessage(netaddr, svcHello, ba); // reset node's connection state
+            sendServiceMessageToMac(mCurMac, svcHello, ba); // reset node's connection state
         }
         else
         {
@@ -350,7 +350,7 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
             dev = new ObjnetDevice(netaddr);             // создаём объект с новым адресом
             dev->mMaster = this;
             dev->mAutoDelete = true;                     // раз автоматически создали - автоматически и удалим)
-            dev->mBusAddress = mac;
+            dev->mBusAddress = ba[0];
             dev->masterRequestObject = EVENT(&ObjnetMaster::requestObject);
             dev->masterSendObject = EVENT(&ObjnetMaster::sendObject);
             dev->masterServiceRequest = EVENT(&ObjnetMaster::sendServiceRequest);
@@ -699,6 +699,9 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
       default:; // warning elimination
     }
 
+    if (oid < svcObjectInfo && dev)
+        dev->receiveServiceObject(oid, msg.data());
+    
     if (oid < svcEcho)
     {
         #ifdef QT_CORE_LIB

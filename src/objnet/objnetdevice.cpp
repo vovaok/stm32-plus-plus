@@ -166,6 +166,15 @@ void ObjnetDevice::prepareObject(const ObjectInfo::Description &desc)
 }
 //---------------------------------------------------------
 
+void ObjnetDevice::receiveServiceObject(unsigned char oid, const ByteArray &ba)
+{
+    // nado bi suda dobavit zapolnenie of service objects
+    #ifdef QT_CORE_LIB
+    if (oid < svcObjectInfo)
+        emit infoReceived(oid);
+    #endif
+}
+
 void ObjnetDevice::receiveObject(unsigned char oid, const ByteArray &ba)
 {
     mTempTimeout = 0;
@@ -346,6 +355,14 @@ void ObjnetDevice::timedRequest(_String name, int periodMs)
     }
 }
 
+void ObjnetDevice::requestInfo(unsigned char oid)
+{
+    if (mMaster)
+    {
+        mMaster->sendServiceRequest(mNetAddress, (SvcOID)oid, ByteArray());
+    }
+}
+
 void ObjnetDevice::requestMetaInfo()
 {
     if (mMaster)
@@ -404,6 +421,7 @@ void ObjnetDevice::changeName(_String name)
         if (ba.size() > 8)
             ba.resize(8);
         mMaster->sendServiceRequest(mNetAddress, svcName, ba);
+        mName = _fromString(name);
     }
 }
 
@@ -419,6 +437,7 @@ void ObjnetDevice::changeFullName(_String name)
         if (ba.size() > 32)
             ba.resize(32);
         mMaster->sendServiceRequest(mNetAddress, svcFullName, ba);
+        mFullName = _fromString(name);
     }
 }
 
@@ -429,6 +448,7 @@ void ObjnetDevice::changeBusAddress(unsigned char mac)
         ByteArray ba;
         ba.append(mac);
         mMaster->sendServiceRequest(mNetAddress, svcBusAddress, ba);
+        mBusAddress = mac;
     }
 }
 //---------------------------------------------------------
