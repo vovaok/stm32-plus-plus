@@ -275,6 +275,11 @@ void CC1200::send(const unsigned char *data, unsigned char size)
 {
     sendCommand(SFSTXON); // enable frequency synthesizer
     write(data, size);
+    Status sts;
+    do
+    {
+        sts = (CC1200::Status)(getStatus() & 0x70);
+    } while (sts != FSTXON);
     sendCommand(STX);
 }
 //---------------------------------------------------------------------------

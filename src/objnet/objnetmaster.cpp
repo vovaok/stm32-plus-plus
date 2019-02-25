@@ -192,9 +192,10 @@ void ObjnetMaster::onTimer()
         }
         else
         {
-            mCurMac++;
+            mCurMac = (mCurMac + 1) & 0xF;
+            if (!mCurMac)
+                mCurMac++;
             sendServiceMessageToMac(mCurMac, svcHello);
-            mCurMac &= 0xF;
         }
           
 //        if (mCurMac)
@@ -462,7 +463,7 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
         }
 //#warning if (localnet) '// nado dobavit!'
 //        sendServiceMessage(netaddr, svcRequestAllInfo);
-        ObjnetDevice *dev = mDevices[netaddr2];
+        ObjnetDevice *dev = mDevices.count(netaddr2)? mDevices[netaddr2]: 0L;
         if (dev)
         {
             if (dev->mPresent)
@@ -550,7 +551,7 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
 
       case svcClass:
         if (dev)
-            mDevices[netaddr]->setClassId(*reinterpret_cast<const unsigned long*>(msg.data().data()));
+            dev->setClassId(*reinterpret_cast<const unsigned long*>(msg.data().data()));
         break;
         
       case svcName:
@@ -558,7 +559,7 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
         {
             string name(msg.data().data(), msg.data().size());
             name.resize(strlen(name.c_str()));
-            mDevices[netaddr]->setName(name);
+            dev->setName(name);
             if (mSwonbMode || !dev->mPresent)
             {
                 dev->mPresent = true;
@@ -782,25 +783,20 @@ ObjnetDevice *ObjnetMaster::deviceBySerial(unsigned long serial)
 }
 //---------------------------------------------------------------------------
 
-void ObjnetMaster::addDevice(unsigned char mac, ObjnetDevice *dev)
-{
-    dev->mNetAddress = createNetAddress(mac);   // создаём объект с новым адресом
-    dev->mAutoDelete = false;                   // автоматически не удаляется, т.к. создан внешним объектом
-    mDevices[mac] = dev;                        // запоминаем для поиска по маку
-    #ifdef QT_CORE_LIB
-    emit devAdded(dev->mNetAddress, ByteArray().append(mac));
-    #endif
-}
+//void ObjnetMaster::addDevice(unsigned char mac, ObjnetDevice *dev)
+//{
+//    dev->mNetAddress = createNetAddress(mac);   // создаём объект с новым адресом
+//    dev->mAutoDelete = false;                   // автоматически не удаляется, т.к. создан внешним объектом
+//    mDevices[mac] = dev;                        // запоминаем для поиска по маку
+//    #ifdef QT_CORE_LIB
+//    emit devAdded(dev->mNetAddress, ByteArray().append(mac));
+//    #endif
+//}
 //---------------------------------------------------------------------------
 
 void ObjnetMaster::requestObject(unsigned char netAddress, unsigned char oid)
 {
     sendMessage(netAddress, oid);
-//    unsigned char mac = route(netAddress);
-//    if (mDevices[mac])
-//    {
-//        
-//    }
 }
 
 void ObjnetMaster::sendObject(unsigned char netAddress, unsigned char oid, const ByteArray &ba)

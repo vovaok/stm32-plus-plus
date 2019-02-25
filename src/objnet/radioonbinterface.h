@@ -15,12 +15,17 @@ private:
     Led *ledRx, *ledTx;
     bool mTxBusy, mRxBusy;
     int mRssi, mLqi;
-    ByteArray mUnsendBuffer;
+    ByteArray mTxBuffer;
     CommonMessage mCurRxMsg, mCurTxMsg;
     CC1200::PayloadHeader mCurHdr;
     unsigned char mCurTxMac;
     bool mBurstRx, mBurstTx;
-    bool mTxEnable;
+    int mRxSize;
+//    bool mTxEnable;
+    
+    CC1200::Status rfStatus;
+    
+    enum {stateIdle, stateTx, stateRx} mState;
     
     std::queue<CommonMessage> mTxQueue;
     std::queue<CommonMessage> mRxQueue;
@@ -29,6 +34,13 @@ private:
     
     bool writeRx(const CommonMessage &msg);
     bool readTx(CommonMessage &msg);
+    
+    void masterTask();
+    void nodeTask();
+    
+    void prepareTxBuffer();
+    bool parseRxBuffer();
+    
 public: 
     void task();
     void tick(int dt);
