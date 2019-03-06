@@ -468,7 +468,7 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
                 requestName(netaddr2);
             }
         }
-      }
+      } break;
 
       case svcDisconnected:
       {
