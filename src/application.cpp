@@ -2,6 +2,9 @@
 
 Application *Application::self = 0L;
 
+string Application::mName = APP_NAME;
+string Application::mDescription = APP_DESCRIPTION;
+string Application::mCompany = APP_COMPANY;
 unsigned short Application::mVersion = 0x0000;
 string Application::mBuildDate = __DATE__ " " __TIME__;
 string Application::mCpuInfo = "unknown";

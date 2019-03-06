@@ -156,18 +156,33 @@ void CC1200::setGpioPins(Gpio::PinName gpio0, Gpio::PinName gpio2, Gpio::PinName
     pinGpio0 = new Gpio(gpio0);
     pinGpio2 = new Gpio(gpio2);
     pinGpio3 = new Gpio(gpio3);
+    
+    mLine = gpio2 & 0xF;
+    unsigned char port = gpio2 >> 4;
+    RCC->APB2ENR |= RCC_APB2ENR_SYSCFGEN;
+    SYSCFG->EXTICR[mLine >> 2] |= port << ((mLine & 0x3) << 2);
+    EXTI->FTSR |= (1<<mLine);
+    EXTI->IMR |= (1<<mLine);
+}
+
+bool CC1200::getRxTxFlag()
+{
+    bool result = EXTI->PR & (1<<mLine);
+    if (result)
+        EXTI->PR |= (1<<mLine);
+    return result;
 }
 
 void CC1200::select()
 {
     pinCS->reset();
-    for (int w=0; w<100; w++);
+    for (int w=0; w<10; w++); // was 100
 }
 
 void CC1200::deselect()
 {
     pinCS->set();
-    for (int w=0; w<100; w++);
+    for (int w=0; w<10; w++);
 }
 //---------------------------------------------------------------------------
 
@@ -232,6 +247,9 @@ void CC1200::uploadConfig(RF_config_param *data, int count)
 }
 //---------------------------------------------------------------------------
 
+//static __root unsigned char radioBuf[1024];
+//static unsigned int radioBufCnt = 0;
+
 void CC1200::write(const unsigned char *data, unsigned char size)
 {
     select();
@@ -248,7 +266,9 @@ void CC1200::read(unsigned char *data, unsigned char size)
     select();
     mStatus = mSpi->transferWord(0x80 | 0x40 | 0x3F);
     for (int i=0; i<size; i++)
+    {
         data[i] = mSpi->transferWord(0x00);
+    }
     deselect();
 }
 //---------------------------------------------------------------------------
@@ -266,8 +286,29 @@ void CC1200::startRx()
 
 void CC1200::send(const unsigned char *data, unsigned char size)
 {
-    sendCommand(SFSTXON); // enable frequency synthesizer
-    write(data, size);
+    if (size)
+    {
+        Status sts;
+        do
+        {
+            sts = (CC1200::Status)(getStatus() & 0x70);
+        } while (sts == TX);
+        sendCommand(SFSTXON); // enable frequency synthesizer
+        //unsigned char numTx = readReg(CC1200_NUM_TXBYTES);
+        write(data, size);
+    }
+//    Status sts;
+//    do
+//    {
+//        sts = (CC1200::Status)(getStatus() & 0x70);
+//        if (sts == TX_FIFO_ERROR)
+//        {
+//            numTx = readReg(CC1200_NUM_TXBYTES);
+//            if (!numTx)
+//                sendCommand(SFTX);
+//            break;
+//        }
+//    } while (sts != FSTXON);
     sendCommand(STX);
 }
 //---------------------------------------------------------------------------

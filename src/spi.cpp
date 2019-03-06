@@ -137,8 +137,10 @@ void Spi::close()
 
 unsigned short Spi::transferWord(unsigned short word)
 {
+    //while (!(mDev->SR & SPI_SR_TXE));
     mDev->DR = word;
-    while (!(mDev->SR & 0x0001)); // wait for RX Not Empty
+    while (!(mDev->SR & SPI_SR_RXNE)); // wait for RX Not Empty
+//    while (mDev->SR & SPI_SR_BSY); // wait while SPI is busy
     return mDev->DR;
 }
 

@@ -17,6 +17,18 @@ using namespace std;
 #define SYSTEM_CLOCK_MS         1
 #endif
 
+#ifndef APP_NAME
+#define APP_NAME        "Project"
+#endif
+
+#ifndef APP_DESCRIPTION
+#define APP_DESCRIPTION ""
+#endif
+
+#ifndef APP_COMPANY
+#define APP_COMPANY     "Neurobotics"
+#endif
+
 #if !defined(APP_VERSION)
 #define APP_VERSION 0x0100
 #endif
@@ -61,6 +73,9 @@ private:
     static string mBuildDate;
     static string mCpuInfo;
     static unsigned long mBurnCount;  
+    static string mName;
+    static string mDescription;
+    static string mCompany;
     
     static void sysTickHandler();
     
@@ -72,6 +87,9 @@ protected:
     Application()
     {
         self = this;
+        mName = APP_NAME;
+        mDescription = APP_DESCRIPTION;
+        mCompany = APP_COMPANY;
         mVersion = APP_VERSION;
         mBurnCount = APP_BURNCOUNT;
         mBuildDate = string(__DATE__" "__TIME__);
@@ -93,6 +111,10 @@ public:
     void unregisterTaskEvent(TaskEvent event);
     void registerTickEvent(TickEvent event);
     void unregisterTickEvent(TickEvent event);    
+    
+    static string name() {return Application::mName;}
+    static string description() {return Application::mDescription;}
+    static string company() {return Application::mCompany;}
     
     /*! Версия приложения.
         Возвращает версию приложения, указанную в 'config.h'.

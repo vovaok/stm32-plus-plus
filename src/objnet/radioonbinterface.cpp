@@ -10,6 +10,11 @@ RadioOnbInterface::RadioOnbInterface(CC1200 *device) :
     mTxBusy(false), mRxBusy(false),
     mRssi(0), mLqi(0),
     mCurTxMac(0),
+    mBurstRx(false), mBurstTx(false),
+    mRxSize(0),
+    mAddress(0),
+    rfStatus(CC1200::IDLE),
+    mState(stateIdle),
     mHdBusyTimeout(0)
 {
     mMaxFrameSize = 120;
@@ -21,123 +26,6 @@ RadioOnbInterface::RadioOnbInterface(CC1200 *device) :
 }
 //---------------------------------------------------------------------------
 
-static int errorCount = 0;
-
-void RadioOnbInterface::task()
-{
-    CC1200::Status rfStatus = ((CC1200::Status)(cc1200->getStatus() & 0x70));
-    if (rfStatus == CC1200::CALIBRATE)
-        return;
-    
-    mTxBusy = (rfStatus == CC1200::TX || rfStatus == CC1200::FSTXON);
-    
-    if (rfStatus == CC1200::RX_FIFO_ERROR)
-        cc1200->sendCommand(CC1200::SFRX); // flush RX FIFO on error
-    
-    if (mCurTxMac && !mHdBusyTimeout)
-    {
-        if (nakEvent)
-            nakEvent(mCurTxMac);
-        mCurTxMac = 0;
-    }
-    
-    if (ledTx)
-        ledTx->setState(mTxBusy);  
-    
-    int sz = cc1200->getRxSize();
-    if (sz)
-    {
-        mRxBusy = true;
-        if (ledRx)
-            ledRx->on();
-    }
-//    if (sz && ledRx)
-//        ledRx->on();
-    if (!mCurHdr.size && sz >= 2)
-    {
-        cc1200->read(reinterpret_cast<unsigned char *>(&mCurHdr), 2);
-        sz -= 2;
-    }
-    if (mCurHdr.size && sz >= mCurHdr.size + 1)
-    {
-        if (mCurHdr.size < 5)
-        {
-            cc1200->sendCommand(CC1200::SIDLE);
-            cc1200->sendCommand(CC1200::SFRX);
-        }
-        else
-        {
-            unsigned long id;
-            CC1200::AppendedStatus sts;
-            cc1200->read(reinterpret_cast<unsigned char *>(&id), 4);
-            mCurRxMsg.setId(id);
-//            if (id != 0x00800000)
-//                errorCount = 0;
-            int datasize = mCurHdr.size - 5;
-            mCurRxMsg.data().resize(datasize);
-            if (datasize)
-                cc1200->read(reinterpret_cast<unsigned char*>(mCurRxMsg.data().data()), mCurRxMsg.size());
-            cc1200->read(reinterpret_cast<unsigned char *>(&sts), 2);
-            mRssi = sts.RSSI;
-            mLqi = sts.LQI;
-            bool ok = sts.CRC_OK;
-            if (ok)
-                writeRx(mCurRxMsg); 
-            else
-                errorCount++;
-        }
-        mCurHdr.size = 0;
-        rfStatus = ((CC1200::Status)(cc1200->getStatus() & 0x70));
-        mRxBusy = false;
-        mHdBusyTimeout = 0;
-        mCurTxMac = 0;
-    }
-    else
-    {
-//        if (ledRx)
-//            ledRx->off();
-    }
-    
-    if (ledRx)
-        ledRx->setState(mRxBusy);
-    
-    bool sendflag = false;
-    if (!mHdBusyTimeout && !mTxBusy)
-    {
-        if (mUnsendBuffer.size())
-        {
-            if (trySend(mUnsendBuffer))
-            {
-                mUnsendBuffer.resize(0);
-                mHdBusyTimeout = RADIO_BUSY_TIMEOUT;
-                sendflag = true;
-            }
-        }
-        else if (readTx(mCurTxMsg))
-        {
-            ByteArray ba;
-            unsigned long id = mCurTxMsg.rawId();
-            unsigned char mac = mCurTxMsg.isGlobal()? 0: (0x10 | mCurTxMsg.localId().mac);
-            mCurTxMac = mac & 0x0F;
-            ba.append(mac);
-            ba.append(reinterpret_cast<const char*>(&id), 4);
-            ba.append(reinterpret_cast<unsigned char *>(mCurTxMsg.data().data()), mCurTxMsg.size());
-            mUnsendBuffer = ba;
-            
-            if (trySend(mUnsendBuffer))
-            {
-                mUnsendBuffer.resize(0);
-                sendflag = true;
-                if (id & 0x10000000) // in half-duplex mode: if message is local => wait response
-                    mHdBusyTimeout = RADIO_BUSY_TIMEOUT;
-            }
-        }
-    }
-    
-    if (!sendflag && (rfStatus == CC1200::IDLE))
-        cc1200->startRx();
-}
-
 void RadioOnbInterface::tick(int dt)
 {
     if (mHdBusyTimeout)
@@ -145,14 +33,298 @@ void RadioOnbInterface::tick(int dt)
 }
 //---------------------------------------------------------------------------
 
+static int errorCount = 0;
+static unsigned char txSize = 0;
+
+int unsentBytes = 0;
+
+void RadioOnbInterface::task()
+{
+    rfStatus = ((CC1200::Status)(cc1200->getStatus() & 0x70));
+    if (rfStatus == CC1200::CALIBRATE)
+        return;
+  
+//    bool flag = cc1200->getRxTxFlag();
+    
+    if (rfStatus == CC1200::TX_FIFO_ERROR)
+    {
+        cc1200->sendCommand(CC1200::SFTX); // flush TX FIFO on error
+    }
+    
+    unsentBytes = cc1200->readReg(CC1200_NUM_TXBYTES);
+    mTxBusy = unsentBytes;
+    if (unsentBytes)
+        cc1200->send(0L, 0);
+    
+    mRxSize = cc1200->getRxSize();
+    mRxBusy = mRxSize;
+    
+//    if (flag)
+//    {
+//        rfStatus = ((CC1200::Status)(cc1200->getStatus() & 0x70));
+//        if (mTxBusy)
+//        {
+//            mTxBusy = false;
+//        }
+//        else
+//        {
+//            mRxSize = cc1200->getRxSize();
+//            mRxBusy = mRxSize;
+//        }
+//    }
+    
+  
+//    rfStatus = ((CC1200::Status)(cc1200->getStatus() & 0x70));
+//    if (rfStatus == CC1200::CALIBRATE)
+//        return;
+
+////    mTxBusy = (rfStatus == CC1200::TX || rfStatus == CC1200::FSTXON);
+    
+//    if (rfStatus == CC1200::RX_FIFO_ERROR)
+//        cc1200->sendCommand(CC1200::SFRX); // flush RX FIFO on error
+//    
+//    if (rfStatus == CC1200::TX_FIFO_ERROR)
+//    {
+//        txSize = cc1200->readReg(CC1200_NUM_TXBYTES);
+//        while (1)
+//        {
+//            ledTx->toggle();
+//            for (int i=0; i<1000000; i++);
+//        }
+//        cc1200->sendCommand(CC1200::SFTX); // flush TX FIFO on error
+//    }
+    
+//    mRxSize = cc1200->getRxSize();
+//    mRxBusy = mRxSize;
+    
+    if (ledTx)
+        ledTx->setState(mTxBusy);  
+    if (ledRx)
+        ledRx->setState(mRxBusy);
+    
+    if (isMaster)
+        masterTask();
+    else
+        nodeTask();
+    
+//    rfStatus = ((CC1200::Status)(cc1200->getStatus() & 0x70));    
+//    if (mState != stateTx && (rfStatus == CC1200::IDLE))
+//        cc1200->startRx();
+}  
+   
+void RadioOnbInterface::prepareTxBuffer()
+{
+    mTxBuffer.resize(0); // clean the buffer without memory reallocating
+    unsigned long id = mCurTxMsg.rawId() & 0x1FFFFFFF; // most significant 3 bits are not used in ONB
+    unsigned char mac = mCurTxMsg.isGlobal()? 0: (0x10 | mCurTxMsg.localId().mac);
+    
+    // check if next message intended for the same address
+    mBurstTx = false;
+    if (!mTxQueue.empty())
+    {
+        CommonMessage &nextMsg = mTxQueue.front();
+        unsigned char nextmac = 0x10 | nextMsg.localId().mac;
+        mBurstTx = (mac == nextmac) && mac;
+    }
+    
+    if (mBurstTx)
+        id |= 0x80000000; // set the burst flag
+
+    mCurTxMac = mac & 0x0F;
+    mTxBuffer.append(mac);
+    mTxBuffer.append(reinterpret_cast<const char*>(&id), 4);
+    mTxBuffer.append(reinterpret_cast<unsigned char *>(mCurTxMsg.data().data()), mCurTxMsg.size());
+    //mTxBuffer.append(mCurTxMsg.data());
+}
+
+bool RadioOnbInterface::parseRxBuffer()
+{
+    bool packetReceived = false;
+    if (!mCurHdr.size && mRxSize >= 2)
+    {
+        cc1200->read(reinterpret_cast<unsigned char *>(&mCurHdr), 2);
+        mRxSize -= 2;
+    }
+    if (mCurHdr.size && mRxSize >= mCurHdr.size + 1)
+    {
+        if (mCurHdr.size < 5)
+        {
+            cc1200->sendCommand(CC1200::SIDLE);
+            cc1200->sendCommand(CC1200::SFRX);
+            errorCount++;
+        }
+        else
+        {
+            unsigned long id;
+            CC1200::AppendedStatus sts;
+            cc1200->read(reinterpret_cast<unsigned char *>(&id), 4);
+            mBurstRx = id & (0x80000000);
+            mCurRxMsg.setId(id & 0x1FFFFFFF);
+            int datasize = mCurHdr.size - 5;
+            mCurRxMsg.data().resize(datasize);
+            if (datasize)
+                cc1200->read(reinterpret_cast<unsigned char*>(mCurRxMsg.data().data()), mCurRxMsg.size());
+            cc1200->read(reinterpret_cast<unsigned char*>(&sts), 2);
+            mRxSize -= mCurHdr.size;
+            mRssi = sts.RSSI;
+            mLqi = sts.LQI;
+            bool ok = sts.CRC_OK;
+            if (ok)
+                writeRx(mCurRxMsg); 
+            else
+                errorCount++;
+            packetReceived = true;
+        }
+        mCurHdr.size = 0;
+    }
+    if (mCurHdr.size >= 128 || (mCurHdr.address && mCurHdr.address != mAddress))
+    {
+        // error
+        errorCount++;
+        mCurHdr.size = 0;
+        mCurHdr.address = 0;
+        cc1200->sendCommand(CC1200::SFRX); // flush RX FIFO on error
+        cc1200->sendCommand(CC1200::SIDLE);
+        cc1200->sendCommand(CC1200::SFRX);
+    }
+    return packetReceived;
+}
+
+void RadioOnbInterface::masterTask()
+{
+    switch (mState)
+    {    
+      case stateIdle:
+        if (readTx(mCurTxMsg))
+        {
+            prepareTxBuffer();
+            mState = stateTx;
+        }
+        break;
+        
+      case stateTx:
+        if (trySend(mTxBuffer))
+        {
+            mTxBuffer.resize(0);
+            if (mCurTxMsg.isGlobal())
+            {
+                mState = stateIdle;
+            }
+            else if (mBurstTx) // && isMaster
+            {
+                readTx(mCurTxMsg);
+                prepareTxBuffer();
+            }
+            else
+            {
+                mHdBusyTimeout = RADIO_BUSY_TIMEOUT;
+                mState = stateRx;
+            }
+        }
+        break;
+        
+      case stateRx:
+        if (!mHdBusyTimeout)
+        {
+            if (nakEvent && mCurTxMac)
+                nakEvent(mCurTxMac);
+            mBurstRx = 0;
+            mCurHdr.size = 0;
+            mState = stateIdle;
+        }
+        else if (parseRxBuffer())
+        {
+            if (mBurstRx)
+                mHdBusyTimeout = RADIO_BUSY_TIMEOUT;
+            else
+            {
+                mHdBusyTimeout = 0;
+                mCurTxMac = 0;
+                mRxBusy = false;
+                mState = stateIdle;
+            }
+        }
+        break;
+    }
+}
+
+void RadioOnbInterface::nodeTask()
+{
+    switch (mState)
+    {    
+      case stateIdle:
+        if (mRxSize)
+        {
+            mState = stateRx;
+        }
+        else if (mHdBusyTimeout) // can transmit
+        {
+            if (readTx(mCurTxMsg))
+            {
+                prepareTxBuffer();
+                mState = stateTx;
+            }
+        }
+        break;
+        
+      case stateTx:
+        if (trySend(mTxBuffer))
+        {
+            mTxBuffer.resize(0);
+            if (mCurTxMsg.isGlobal())
+            {
+                mState = stateIdle;
+            }
+            else if (mBurstTx)
+            {
+                readTx(mCurTxMsg);
+                prepareTxBuffer();
+            }
+            else
+            {
+                mState = stateIdle;
+                //mHdBusyTimeout = RADIO_BUSY_TIMEOUT;
+                //mState = stateRx;
+            }
+        }
+        break;
+        
+      case stateRx:
+        if (parseRxBuffer())
+        {
+            if (mCurRxMsg.isGlobal())
+            {
+                mState = stateIdle;
+            }
+            else if (!mBurstRx)
+            {
+                mHdBusyTimeout = RADIO_BUSY_TIMEOUT;
+                mState = stateIdle;
+            }
+        }
+        break;
+    }
+}
+//---------------------------------------------------------------------------
+
+int packetsSent = 0;
+int bytesAvail = 0;
+
 bool RadioOnbInterface::trySend(ByteArray &ba)
 {
-    int avail = 127 - cc1200->readReg(CC1200_NUM_TXBYTES);
+//    if (mTxBusy)
+//        return false;
+    int avail = 126 - cc1200->readReg(CC1200_NUM_TXBYTES);
+    bytesAvail = avail;
     if (avail < ba.size())
         return false;
     if (ledTx)
         ledTx->on();
-    cc1200->send(reinterpret_cast<unsigned char *>(ba.data()), ba.size());
+    //cc1200->send(reinterpret_cast<unsigned char*>(ba.data()), ba.size());
+    cc1200->write(reinterpret_cast<unsigned char*>(ba.data()), ba.size());
+    packetsSent++;
+    bytesAvail = 126 - cc1200->readReg(CC1200_NUM_TXBYTES);
+    mTxBusy = true;
     return true;
 }
 //---------------------------------------------------------------------------
@@ -219,7 +391,10 @@ int RadioOnbInterface::addFilter(unsigned long id, unsigned long mask)
 {
 #warning this function is shit, nado peredelat: vmesto CAN filter zapilit filter by address
     if (id & 0x10000000) // if local address
-        cc1200->setAddress(0x10 | ((id >> 24) & 0xF));
+    {
+        mAddress = 0x10 | ((id >> 24) & 0xF);
+        cc1200->setAddress(mAddress);
+    }
     return 0;
 }
 

@@ -78,6 +78,7 @@ protected:
     void setName(string name) {mName = name.substr(0, 8); mNameValid = true;}
     void setClassId(unsigned long classId) {mClass = classId; mClassValid = true;}
 
+    void receiveServiceObject(unsigned char oid, const ByteArray &ba);
     void receiveObject(unsigned char oid, const ByteArray &ba);
     void receiveTimedObject(const ByteArray &ba);
     void receiveGroupedObject(const ByteArray &ba);
@@ -188,6 +189,7 @@ public:
     void groupedRequest(std::vector<_String> names);
 
     void requestMetaInfo();
+    void requestInfo(unsigned char oid);
 
 #ifdef QT_CORE_LIB
 signals:
@@ -195,6 +197,7 @@ signals:
     void sendObject(unsigned char netAddress, unsigned char oid, const QByteArray &ba);
     void serviceRequest(unsigned char netAddress, SvcOID oid, const QByteArray &ba);
 
+    void infoReceived(unsigned char oid);
     void objectReceived(QString name, QVariant value);
     void timedObjectReceived(QString name, unsigned long timestamp, QVariant value);
     void autoRequestAccepted(QString name, int periodMs);

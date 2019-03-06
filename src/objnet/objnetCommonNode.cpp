@@ -234,10 +234,19 @@ void ObjnetCommonNode::setBusAddress(unsigned char startAddress, Gpio::PinName a
 
 bool ObjnetCommonNode::sendCommonMessage(CommonMessage &msg)
 {  
+//    if (mBusAddress)
+//    {
+//        char hexbuf[64];
+//        sprintf(hexbuf, "0x%08X", msg.rawId());
+//        qDebug() << hexbuf;
+//    }
     int maxsize = mInterface->maxFrameSize();
     if (msg.data().size() <= maxsize)
     {
-        return mInterface->write(msg);
+        bool result = mInterface->write(msg);
+//        if (!result)
+//            qDebug() << "pizda";
+        return result;
     }
     else
     {
@@ -263,7 +272,10 @@ bool ObjnetCommonNode::sendCommonMessage(CommonMessage &msg)
             ba.append(msg.data().data() + i*maxsize, remainsize);
             outMsg.setData(ba);
             if (!mInterface->write(outMsg))
+            {
+//                qDebug() << "big fat pizda";
                 return false;
+            }
         }
         mFragmentSequenceNumber++;
     }
@@ -325,7 +337,14 @@ void ObjnetCommonNode::sendServiceMessageSheduled(unsigned char receiver, SvcOID
     
     bool result = sendCommonMessage(msg);
     if (!result)
+    {
+        if (mSheduledMsg.rawId())
+        {
+            //qDebug() << "ONB message sheduling fail";
+            return;
+        }
         mSheduledMsg = msg;
+    }
 }
 
 bool ObjnetCommonNode::sendServiceMessage(SvcOID oid, const ByteArray &ba)

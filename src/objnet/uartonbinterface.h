@@ -27,6 +27,7 @@ private:
     int mWriteTimer;
     ByteArray mUnsendBuffer;
     UartOnbMessage mCurMsg, mCurTxMsg;
+    unsigned char mCurTxMac;
     
     typedef struct
     {

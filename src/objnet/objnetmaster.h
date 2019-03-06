@@ -80,7 +80,7 @@ public:
     const DeviceMap &devices() const {return mDevices;}
     ObjnetDevice *device(int netaddr) {return mDevices.count(netaddr)? mDevices[netaddr]: 0L;}
     ObjnetDevice *deviceBySerial(unsigned long serial);
-    void addDevice(unsigned char mac, ObjnetDevice *dev);
+//    void addDevice(unsigned char mac, ObjnetDevice *dev);
 
     void requestName(unsigned char netAddress) {sendServiceMessage(netAddress, svcName);}
     void requestClassId(unsigned char netAddress) {sendServiceMessage(netAddress, svcClass);}

@@ -260,7 +260,13 @@ void ObjnetNode::parseServiceMessage(CommonMessage &msg)
       case svcHello:
         if (mBusType == BusSwonb)
         {
-            if (isConnected())
+            bool reset = false;
+            if (msg.data().size())
+            {
+                if ((unsigned char)msg.data()[0] == (unsigned char)0xFF)
+                    reset = true;
+            }
+            if (isConnected() && !reset)
             {
                 sendServiceMessage(remoteAddr, svcEcho);
             }
