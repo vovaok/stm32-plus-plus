@@ -21,6 +21,7 @@ private:
     unsigned char mCurTxMac;
     bool mBurstRx, mBurstTx;
     int mRxSize;
+    unsigned char mAddress;
 //    bool mTxEnable;
     
     CC1200::Status rfStatus;
@@ -29,8 +30,8 @@ private:
     
     std::queue<CommonMessage> mTxQueue;
     std::queue<CommonMessage> mRxQueue;
-    const static int mTxQueueSize = 32;
-    const static int mRxQueueSize = 32;
+    const static int mTxQueueSize = 64;
+    const static int mRxQueueSize = 64;
     
     bool writeRx(const CommonMessage &msg);
     bool readTx(CommonMessage &msg);
