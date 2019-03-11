@@ -14,6 +14,10 @@
 /* Symbol rate = 500 */
 /* Whitening = false */
 
+#warning TODO: implement EXTI interrupts class
+
+NotifyEvent extiHandler7;
+
 CC1200::RF_config_param CC1200::RF_config[] =
 {
     {0x0001, 0x06},
@@ -329,5 +333,26 @@ void CC1200::setAddress(unsigned char addr)
 {
     writeReg(CC1200_DEV_ADDR, addr);
     writeReg(CC1200_PKT_CFG1, 0x13); // address check, 0x00 broadcast; CRC enabled, initialized to 0xFFFF, append_status enabled
+}
+//---------------------------------------------------------------------------
+
+void CC1200::setRxTxEvent(const NotifyEvent &e)
+{
+    extiHandler7 = e;
+    NVIC_InitTypeDef NVIC_InitStructure;
+    NVIC_InitStructure.NVIC_IRQChannel = EXTI9_5_IRQn;
+    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;
+    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;
+    NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+    NVIC_Init(&NVIC_InitStructure);
+}
+
+extern "C" void EXTI9_5_IRQHandler()
+{
+    if (EXTI->PR & (1<<7))
+    {
+        EXTI->PR |= (1<<7);
+        extiHandler7();
+    }
 }
 //---------------------------------------------------------------------------
