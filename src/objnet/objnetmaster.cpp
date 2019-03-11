@@ -185,14 +185,14 @@ void ObjnetMaster::onTimer()
         if (mSwonbReset)
         {
             sendGlobalServiceMessage(aidConnReset);
-            for (mCurMac=1; mCurMac<16; mCurMac++)
+            for (mCurMac=15; mCurMac<16; mCurMac++)
                 sendServiceMessageToMac(mCurMac, svcHello);
             mCurMac = 0;
             mSwonbReset = false;
         }
         else
         {
-            mCurMac = (mCurMac + 1) & 0xF;
+            mCurMac = 15;//(mCurMac + 1) & 0xF;
             if (!mCurMac)
                 mCurMac++;
             sendServiceMessageToMac(mCurMac, svcHello);

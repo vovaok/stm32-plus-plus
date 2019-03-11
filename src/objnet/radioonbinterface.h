@@ -23,10 +23,13 @@ private:
     int mRxSize;
     unsigned char mAddress;
 //    bool mTxEnable;
+    const static int mRxBufferSize = 512;
+    unsigned char mRxBuffer[mRxBufferSize];
+    int mRxHead, mRxTail;
     
     CC1200::Status rfStatus;
     
-    enum {stateIdle, stateTx, stateRx} mState;
+    enum {stateInit, stateIdle, stateTx, stateRx} mState;
     
     std::queue<CommonMessage> mTxQueue;
     std::queue<CommonMessage> mRxQueue;
@@ -41,6 +44,9 @@ private:
     
     void prepareTxBuffer();
     bool parseRxBuffer();
+    
+    void onRxTxInterrupt();
+    void readRxBuffer(unsigned char *data, int size);
     
 public: 
     void task();

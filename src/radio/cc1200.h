@@ -97,6 +97,7 @@ public:
     void setAddress(unsigned char addr);
     
     bool getRxTxFlag();
+    void setRxTxEvent(const NotifyEvent &e);
 };
 
 #endif
