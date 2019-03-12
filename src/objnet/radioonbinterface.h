@@ -29,7 +29,7 @@ private:
     
     CC1200::Status rfStatus;
     
-    enum {stateInit, stateIdle, stateTx, stateRx} mState;
+    enum {stateInit, stateCalibrate, stateIdle, stateTx, stateRx} mState;
     
     std::queue<CommonMessage> mTxQueue;
     std::queue<CommonMessage> mRxQueue;
@@ -72,6 +72,8 @@ public:
     
     int rssi() const {return mRssi;}
     int lqi() const {return mLqi;}
+    
+    int errorCount;
     
 //    bool busPresent();
 };
