@@ -19,11 +19,13 @@ private:
     
     ByteArray mBuffer;
     
+    void initDevice();
     void onReceive(const ByteArray &ba);
     
 public:
     // vid/pid = 0x0483/0x5740 for STM VCP
     UsbVcp(UsbDevice::UsbCore usb, unsigned short vid=0x0483, unsigned short pid=0x5740);    
+    UsbVcp(UsbDevice::UsbCore usb, const char *serial);  
     ~UsbVcp();
     
     int write(const ByteArray &ba);
