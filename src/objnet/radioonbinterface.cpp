@@ -70,6 +70,8 @@ void RadioOnbInterface::task()
 //    if (unsentBytes)
 //        cc1200->send(0L, 0);
     
+    mTxBusy = (mState == stateTx);
+    
     mRxSize = (mRxHead - mRxTail + mRxBufferSize) % mRxBufferSize; //cc1200->getRxSize();
     mRxBusy = mRxSize;
     
@@ -250,11 +252,7 @@ void RadioOnbInterface::masterTask()
     switch (mState)
     {    
       case stateIdle:
-        unsentBytes = cc1200->readReg(CC1200_NUM_TXBYTES);
-        mTxBusy = unsentBytes;
-        if (unsentBytes)
-            mState = stateTx;
-        else if (readTx(mCurTxMsg))
+        if (readTx(mCurTxMsg))
         {
             prepareTxBuffer();
             mState = stateTx;
@@ -262,12 +260,7 @@ void RadioOnbInterface::masterTask()
         break;
         
       case stateTx:
-        if (unsentBytes)
-        {
-            cc1200->send(0L, 0);
-            mState = stateIdle;
-        }
-        else if (trySend(mTxBuffer))
+        if (trySend(mTxBuffer))
         {
             mTxBuffer.resize(0);
             if (mCurTxMsg.isGlobal())
@@ -376,20 +369,32 @@ int bytesAvail = 0;
 
 bool RadioOnbInterface::trySend(ByteArray &ba)
 {
-//    if (mTxBusy)
-//        return false;
-    int avail = 126 - cc1200->readReg(CC1200_NUM_TXBYTES);
-    bytesAvail = avail;
-    if (avail < ba.size())
+    int txFifoCnt = cc1200->readReg(CC1200_NUM_TXBYTES);
+    if (txFifoCnt)
         return false;
+    
     if (ledTx)
         ledTx->on();
-    //cc1200->send(reinterpret_cast<unsigned char*>(ba.data()), ba.size());
-    cc1200->write(reinterpret_cast<unsigned char*>(ba.data()), ba.size());
+    
+    cc1200->send(reinterpret_cast<unsigned char*>(ba.data()), ba.size());
     packetsSent++;
-    bytesAvail = 126 - cc1200->readReg(CC1200_NUM_TXBYTES);
     mTxBusy = true;
     return true;
+  
+//    if (mTxBusy)
+//        return false;
+//    int avail = 126 - cc1200->readReg(CC1200_NUM_TXBYTES);
+//    bytesAvail = avail;
+//    if (avail < ba.size())
+//        return false;
+//    if (ledTx)
+//        ledTx->on();
+//    //cc1200->send(reinterpret_cast<unsigned char*>(ba.data()), ba.size());
+//    cc1200->write(reinterpret_cast<unsigned char*>(ba.data()), ba.size());
+//    packetsSent++;
+//    bytesAvail = 126 - cc1200->readReg(CC1200_NUM_TXBYTES);
+//    mTxBusy = true;
+//    return true;
 }
 //---------------------------------------------------------------------------
 
