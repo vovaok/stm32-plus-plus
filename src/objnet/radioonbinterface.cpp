@@ -50,6 +50,14 @@ static CC1200::Status oldRfStatus;
 CC1200::Status statuses[256];
 unsigned char stscnt = 0;
 
+int packetsSent = 0;
+int bytesAvail = 0;
+int pktcnt = 0;
+int recPhy = 0;
+int recLog = 0;
+int irqcnt = 0;
+bool wasnak = false;
+
 void RadioOnbInterface::task()
 {
 //    testLed->on();
@@ -94,6 +102,8 @@ void RadioOnbInterface::task()
     
     mRxSize = (mRxHead - mRxTail + mRxBufferSize) % mRxBufferSize; //cc1200->getRxSize();
     mRxBusy = mRxSize;
+    
+    pktcnt = packetsSent + recPhy;
     
 //    if (flag)
 //    {
@@ -149,11 +159,6 @@ void RadioOnbInterface::task()
     
 //    testLed->off();
 }  
-
-int recPhy = 0;
-int recLog = 0;
-int irqcnt = 0;
-int pktcnt = 0;
 
 void RadioOnbInterface::onRxTxInterrupt()
 {
@@ -222,6 +227,8 @@ void RadioOnbInterface::prepareTxBuffer()
 
 unsigned long receivedId[256];
 unsigned char recIdCnt = 0;
+int lastHeadRx = 0;
+int lastHeadTx = 0;
 
 bool RadioOnbInterface::parseRxBuffer()
 {
@@ -235,8 +242,8 @@ bool RadioOnbInterface::parseRxBuffer()
     {
         if (mCurHdr.size < 5)
         {
-            cc1200->sendCommand(CC1200::SIDLE);
-            cc1200->sendCommand(CC1200::SFRX);
+//            cc1200->sendCommand(CC1200::SIDLE);
+//            cc1200->sendCommand(CC1200::SFRX);
             errorCount++;
         }
         else
@@ -244,7 +251,7 @@ bool RadioOnbInterface::parseRxBuffer()
             unsigned long id;
             CC1200::AppendedStatus sts;
             readRxBuffer(reinterpret_cast<unsigned char *>(&id), 4);
-            if (id & 0x00800000 && id != 0x108001F0)
+//            if (id & 0x00800000 && id != 0x108001F0)
                 receivedId[recIdCnt++] = id;
             mBurstRx = id & (0x80000000);
             mCurRxMsg.setId(id & 0x1FFFFFFF);
@@ -272,9 +279,10 @@ bool RadioOnbInterface::parseRxBuffer()
         errorCount++;
         mCurHdr.size = 0;
         mCurHdr.address = 0;
-        cc1200->sendCommand(CC1200::SFRX); // flush RX FIFO on error
-        cc1200->sendCommand(CC1200::SIDLE);
-        cc1200->sendCommand(CC1200::SFRX);
+        mRxTail = mRxHead; // flush
+//        cc1200->sendCommand(CC1200::SFRX); // flush RX FIFO on error
+//        cc1200->sendCommand(CC1200::SIDLE);
+//        cc1200->sendCommand(CC1200::SFRX);
     }
     return packetReceived;
 }
@@ -284,6 +292,10 @@ void RadioOnbInterface::masterTask()
     switch (mState)
     {    
       case stateIdle:
+        if (mRxSize)
+        {
+            errorCount++;
+        }
         if (readTx(mCurTxMsg))
         {
             prepareTxBuffer();
@@ -292,12 +304,17 @@ void RadioOnbInterface::masterTask()
         break;
         
       case stateTx:
+        if (mRxSize)
+        {
+            errorCount++;
+        }
         if (mTxBusy)
         {
         }
         else if (trySend(mTxBuffer))
         {
             mTxBuffer.resize(0);
+            lastHeadTx = mRxHead;
             if (mCurTxMsg.isGlobal())
             {
                 mState = stateIdle;
@@ -316,6 +333,7 @@ void RadioOnbInterface::masterTask()
         break;
         
       case stateRx:
+        wasnak = false;
         if (!mHdBusyTimeout)
         {
             if (nakEvent && mCurTxMac)
@@ -323,17 +341,19 @@ void RadioOnbInterface::masterTask()
             mBurstRx = 0;
             mCurHdr.size = 0;
             mState = stateIdle;
+            wasnak = true;
         }
         else if (parseRxBuffer())
         {
             if (mBurstRx)
-                mHdBusyTimeout = RADIO_BUSY_TIMEOUT;
+                mHdBusyTimeout = 2 * RADIO_BUSY_TIMEOUT;
             else
             {
                 mHdBusyTimeout = 0;
                 mCurTxMac = 0;
                 mRxBusy = false;
                 mState = stateIdle;
+                lastHeadRx = mRxHead;
             }
         }
         break;
@@ -368,6 +388,7 @@ void RadioOnbInterface::nodeTask()
             mTxBuffer.resize(0);
             if (mCurTxMsg.isGlobal())
             {
+                mHdBusyTimeout = 0;
                 mState = stateIdle;
             }
             else if (mBurstTx)
@@ -377,6 +398,7 @@ void RadioOnbInterface::nodeTask()
             }
             else
             {
+                mHdBusyTimeout = 0;
                 mState = stateIdle;
                 //mHdBusyTimeout = RADIO_BUSY_TIMEOUT;
                 //mState = stateRx;
@@ -401,9 +423,6 @@ void RadioOnbInterface::nodeTask()
     }
 }
 //---------------------------------------------------------------------------
-
-int packetsSent = 0;
-int bytesAvail = 0;
 
 bool RadioOnbInterface::trySend(ByteArray &ba)
 {
