@@ -16,7 +16,7 @@
 
 #warning TODO: implement EXTI interrupts class
 
-NotifyEvent extiHandler7;
+NotifyEvent extiHandlers[16];
 
 CC1200::RF_config_param CC1200::RF_config[] =
 {
@@ -338,7 +338,7 @@ void CC1200::setAddress(unsigned char addr)
 
 void CC1200::setRxTxEvent(const NotifyEvent &e)
 {
-    extiHandler7 = e;
+    extiHandlers[mLine] = e;
     NVIC_InitTypeDef NVIC_InitStructure;
     NVIC_InitStructure.NVIC_IRQChannel = EXTI9_5_IRQn;
     NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;
@@ -349,10 +349,30 @@ void CC1200::setRxTxEvent(const NotifyEvent &e)
 
 extern "C" void EXTI9_5_IRQHandler()
 {
-    if (EXTI->PR & (1<<7))
+    if (EXTI->PR & (1<<5))
+    {
+        EXTI->PR |= (1<<5);
+        extiHandlers[5]();
+    }
+    else if (EXTI->PR & (1<<6))
+    {
+        EXTI->PR |= (1<<6);
+        extiHandlers[6]();
+    }
+    else if (EXTI->PR & (1<<7))
     {
         EXTI->PR |= (1<<7);
-        extiHandler7();
+        extiHandlers[7]();
+    }
+    else if (EXTI->PR & (1<<8))
+    {
+        EXTI->PR |= (1<<8);
+        extiHandlers[8]();
+    }
+    else if (EXTI->PR & (1<<9))
+    {
+        EXTI->PR |= (1<<9);
+        extiHandlers[9]();
     }
 }
 //---------------------------------------------------------------------------
