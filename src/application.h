@@ -92,7 +92,7 @@ protected:
         mCompany = APP_COMPANY;
         mVersion = APP_VERSION;
         mBurnCount = APP_BURNCOUNT;
-        mBuildDate = string(__DATE__" "__TIME__);
+        mBuildDate = string(__DATE__ " " __TIME__);
         char tempstr[64];
         sprintf(tempstr, "%s @ %d MHz, %dK flash", CpuId::name(), (int)(Rcc::sysClk() / 1000000), CpuId::flashSizeK());
         mCpuInfo = string(tempstr);

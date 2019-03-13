@@ -8,7 +8,7 @@ PwmOutput *PwmOutput::instance(TimerNumber timerNo)
     {
         if (mInstances[timerNo])
             return mInstances[timerNo];
-        return new PwmOutput(timerNo, 10_kHz);
+        return new PwmOutput(timerNo, 10 _kHz);
     }
     return 0L;
 }
