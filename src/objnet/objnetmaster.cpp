@@ -134,7 +134,15 @@ void ObjnetMaster::onTimer()
         {       
             ObjnetDevice *dev = it->second;
             if (!dev->mTimeout)
+            {
                 dev->mPresent = false;
+                #ifdef QT_CORE_LIB
+                emit devDisconnected(dev->mNetAddress);
+                #else
+                if (onDevDisconnected)
+                    onDevDisconnected(dev->mNetAddress);
+                #endif
+            }
             if ((!dev->mPresent && !dev->mTimeout && dev->mAutoDelete) || mSwonbReset)
                 addressesToRemove.push_back(it->first);
         }
