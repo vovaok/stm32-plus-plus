@@ -2,15 +2,8 @@
 
 using namespace Objnet;
 
-//unsigned char ObjnetDeviceTreeNode::mAddressToAssign = 0;
-
 ObjnetMaster::ObjnetMaster(ObjnetInterface *iface) :
-    ObjnetCommonNode(iface),
-    mAssignNetAddress(1),
-    mAdjIfConnected(false),
-    mSwonbMode(false),
-    mCurMac(1),
-    mSwonbReset(true)
+    ObjnetCommonNode(iface)    
 {
     for (int i=0; i<16; i++)
     {
@@ -20,6 +13,11 @@ ObjnetMaster::ObjnetMaster(ObjnetInterface *iface) :
     setBusAddress(0);
     mNetAddress = 0x00;
     mInterface->setMasterMode(true);
+
+    BusType busType = mInterface->busType();
+    mSwonbMode = (busType == BusSwonb || busType == BusRadio);
+    
+    reset();
     
     #ifndef QT_CORE_LIB
     mTimer.setTimeoutEvent(EVENT(&ObjnetMaster::onTimer));
@@ -38,11 +36,10 @@ ObjnetMaster::~ObjnetMaster()
 void ObjnetMaster::reset()
 {
     mAssignNetAddress = 1;
-    for (DeviceIterator it=mDevices.begin(); it!=mDevices.end(); it++)
-        delete it->second;
-    mDevices.clear();
-    mRouteTable.clear();
-    mRouteTable[0x00] = 0; // сразу записываем, как достучаться до верхнего уровня
+    mSearchMac = 1;
+    while (!mDevices.empty())
+        removeDevice(mDevices.begin()->first);
+    mRouteTable[0x00] = 0; // ����� ����������, ��� ����������� �� �������� ������
 }
 //---------------------------------------------------------------------------
 
@@ -50,23 +47,11 @@ void ObjnetMaster::task()
 {
     ObjnetCommonNode::task();
 
-    if (mAdjacentNode)
+    if (mRouteTable.size() >= 127) // ���� ��� ������� ������������� ���������, ������ ���-�� ����� �� ���, �...
     {
-        if (!mAdjIfConnected && mAdjacentNode->isConnected())
-        {
-            if (mSwonbMode)
-                swonbEnumerate(); // re-enumerate nodes
-            else
-                sendGlobalServiceMessage((StdAID)(aidConnReset | aidPropagationDown)); // reset subnet state on adjacent node connection
-        }
-        mAdjIfConnected = mAdjacentNode->isConnected(); // store previous value of connection state
-    }
-
-    if (mRouteTable.size() >= 127) // если вся таблица маршрутизации заполнена, значит что-то пошло не так, и...
-    {
-        mRouteTable.clear();                    // чистим таблицу маршрутизации
-        mRouteTable[0x00] = 0;                  // сразу записываем, как достучаться до верхнего уровня
-        sendGlobalServiceMessage((StdAID)(aidConnReset | aidPropagationDown)); // выполняем перенумерацию
+        mRouteTable.clear();                    // ������ ������� �������������
+        mRouteTable[0x00] = 0;                  // ����� ����������, ��� ����������� �� �������� ������
+        sendGlobalServiceMessage((StdAID)(aidConnReset | aidPropagationDown)); // ��������� �������������
     }
 }
 
@@ -76,8 +61,185 @@ void ObjnetMaster::onNak(unsigned char mac)
     {
         if (mLocalnetDevices[mac]->mTimeout)
             --mLocalnetDevices[mac]->mTimeout;
-        //mLocalnetDevices[mac]->mPresent = false;
     }
+}
+
+void ObjnetMaster::adjacentConnected()
+{
+    // send devices info
+    for (DeviceIterator it=mDevices.begin(); it!=mDevices.end(); it++)
+    {
+        ObjnetDevice *dev = it->second;
+        ByteArray location;
+        location.append(dev->busAddress());
+        while (dev)
+        {
+            location.append(dev->netAddress());
+            dev = dev->parentDevice();
+        }
+//        for (int i=2; i<location.size(); i++)
+//            location[i] = mAdjacentNode->natRoute(location[i]);
+        mAdjacentNode->sendServiceMessage(svcHello, location);
+    }
+}
+//---------------------------------------------------------------------------
+
+void ObjnetMaster::onTimer()
+{
+    sendGlobalServiceMessage(aidPollNodes);
+    
+    // if there are no devices then search them
+    if (mDevices.empty() && mSwonbMode)
+    {
+        for (unsigned char mac=1; mac<16; mac++)
+            sendServiceMessageToMac(mac, svcHello);
+    }
+    else
+    {
+        // test local devices for presence
+        for (unsigned char mac=1; mac<16; mac++)
+        {
+            ObjnetDevice *dev = mLocalnetDevices[mac];
+            if (!dev)
+                continue;
+            if (!mSwonbMode && dev->mTimeout)
+                --dev->mTimeout;
+            if (dev->mPresent && !dev->mTimeout)
+            {
+                disconnectDevice(dev->netAddress());
+                if (dev->mAutoDelete)
+                    removeDevice(dev->netAddress());
+            }
+            if (mSwonbMode)
+            {
+                // request device presence
+                sendServiceMessageToMac(mac, svcHello);
+                if (mSearchMac == mac)
+                    mSearchMac = (mSearchMac < 15)? mSearchMac + 1: 1;
+            }
+        }
+        if (mSwonbMode)
+        {
+            sendServiceMessageToMac(mSearchMac, svcHello);
+            mSearchMac = (mSearchMac < 15)? mSearchMac + 1: 1;
+        }
+    }
+}
+//---------------------------------------------------------------------------
+
+ObjnetDevice *ObjnetMaster::createDevice(unsigned char mac, ByteArray &location)
+{
+    ObjnetDevice *dev = 0L;
+    char &netaddr = location.data()[1];
+    bool localnet = (location.size() == 2);
+ 
+    if (localnet && mNetAddrByMacCache[mac])    // ���� ������ ��� ��� � ������� �������
+    {
+        netaddr = mNetAddrByMacCache[mac];      // �������� ��������� ����� �� ����
+        mRouteTable[netaddr] = mac;
+    }
+    else
+    {
+        netaddr = createNetAddress(mac);        // ������ ����� �����
+    }
+
+    dev = new ObjnetDevice(netaddr);            // ������ ������ � ����� �������
+    dev->mMaster = this;
+    dev->mAutoDelete = true;                    // ��� ������������� ������� - ������������� � ������)
+    dev->mBusAddress = location[0];
+    dev->mIsLocal = localnet;
+    dev->masterRequestObject = EVENT(&ObjnetMaster::requestObject);
+    dev->masterSendObject = EVENT(&ObjnetMaster::sendObject);
+    dev->masterServiceRequest = EVENT(&ObjnetMaster::sendServiceRequest);
+    
+//    if (mSwonbMode)                             // TEMPORARY SOLUTION!!!
+//    {
+//        dev->mBusType = BusSwonb;
+//    }
+
+    mDevices[netaddr] = dev;                    // ���������� ��� ������ �� ������
+    if (localnet)                               // ���� ������ � ������� �������...
+    {
+        mLocalnetDevices[mac] = dev;            // ...���������� ��� ������ �� ����
+        mNetAddrByMacCache[mac] = netaddr;      // � �������� ����� ��� �������� �� ���� (����� ������ ��� �� ���������)
+    }
+    else
+    {
+        unsigned char paraddr = location[2];
+        if (mDevices.count(paraddr))
+        {
+            ObjnetDevice *par = mDevices[paraddr];
+            par->mChildren.push_back(dev);
+            dev->mParent = par;
+        }
+    }
+    
+    #ifdef QT_CORE_LIB
+    QObject::connect(dev, SIGNAL(requestObject(unsigned char,unsigned char)), SLOT(requestObject(unsigned char,unsigned char)));
+    QObject::connect(dev, SIGNAL(sendObject(unsigned char,unsigned char,QByteArray)), SLOT(sendObject(unsigned char,unsigned char,QByteArray)));
+    QObject::connect(dev, SIGNAL(serviceRequest(unsigned char,SvcOID,QByteArray)), SLOT(sendServiceRequest(unsigned char,SvcOID,QByteArray)));
+    #endif    
+    
+    #ifdef QT_CORE_LIB
+    emit devAdded(netaddr, location);                 // ���������� ���������
+    #else
+    if (onDevAdded)
+        onDevAdded(netaddr, location);
+    #endif
+    
+    if (mAdjacentNode && mAdjacentNode->isConnected()) // ���� ������ ������ � �����, ������� ��� ���������
+    {
+        for (int i=2; i<location.size(); i++)
+            location[i] = mAdjacentNode->natRoute(location[i]);
+        mAdjacentNode->sendServiceMessage(svcHello, location); // ���������� ������
+    } 
+    
+    return dev;
+}
+
+void ObjnetMaster::connectDevice(unsigned char netaddr)
+{
+    if (!mDevices.count(netaddr))
+        return;
+    ObjnetDevice *dev = mDevices[netaddr];
+    dev->mPresent = true;
+    dev->mTimeout = 10;
+    
+    if (mAdjacentNode)
+    {
+        unsigned char supernetaddr = mAdjacentNode->natRoute(netaddr);
+        if (supernetaddr < 0x7F)
+            mAdjacentNode->sendServiceMessage(svcConnected, supernetaddr);
+    }
+    
+    #ifdef QT_CORE_LIB
+    emit devConnected(netaddr);
+    #else
+    if (onDevConnected)
+        onDevConnected(netaddr);
+    #endif      
+}
+
+void ObjnetMaster::disconnectDevice(unsigned char netaddr)
+{
+    if (!mDevices.count(netaddr))
+        return;
+    ObjnetDevice *dev = mDevices[netaddr];
+    dev->mPresent = false;
+    
+    if (mAdjacentNode)
+    {
+        unsigned char supernetaddr = mAdjacentNode->natRoute(netaddr);
+        if (supernetaddr < 0x7F)
+            mAdjacentNode->sendServiceMessage(svcDisconnected, supernetaddr);
+    }
+    
+    #ifdef QT_CORE_LIB
+    emit devDisconnected(netaddr);
+    #else
+    if (onDevDisconnected)
+        onDevDisconnected(netaddr);
+    #endif
 }
 
 void ObjnetMaster::removeDevice(unsigned char netaddr)
@@ -85,170 +247,38 @@ void ObjnetMaster::removeDevice(unsigned char netaddr)
     if (!mDevices.count(netaddr))
         return;
     ObjnetDevice *dev = mDevices[netaddr];
-    
-//    qDebug() << "remove" << dev->mName << (int)dev->mNetAddress;
 
     // recursively remove children
     for (size_t i=0; i<dev->mChildren.size(); i++)
-    {
-        removeDevice(dev->mChildren[i]->mNetAddress);
-    }
+        removeDevice(dev->mChildren[i]->netAddress());
+    
+    if (dev->isPresent())
+        disconnectDevice(netaddr);
 
     if (mAdjacentNode)
     {
-        unsigned char supernetaddr = mAdjacentNode->natRoute(dev->mNetAddress);
+        unsigned char supernetaddr = mAdjacentNode->natRoute(netaddr);
         if (supernetaddr < 0x7F)
         {
-            ByteArray ba;
-            ba.append(supernetaddr);
-            mAdjacentNode->acceptServiceMessage(0, svcKill, &ba);
-            removeNatPair(supernetaddr, dev->mNetAddress);
+            mAdjacentNode->sendServiceMessage(svcKill, supernetaddr);
+            removeNatPair(supernetaddr, netaddr);
         }
     }
+
     #ifdef QT_CORE_LIB
-    if (dev->isPresent())
-        emit devDisconnected(dev->mNetAddress);
-    emit devRemoved(dev->mNetAddress);
+    emit devRemoved(netaddr);
     #else
-    if (onDevDisconnected && dev->isPresent())
-        onDevDisconnected(dev->mNetAddress);
     if (onDevRemoved)
-        onDevRemoved(dev->mNetAddress);
+        onDevRemoved(netaddr);
     #endif
-    unsigned char mac = route(dev->mNetAddress);
-    mRouteTable.erase(dev->mNetAddress);
+    
+    unsigned char mac = route(netaddr);
+    mRouteTable.erase(netaddr);
     mLocalnetDevices[mac] = 0L;
     delete dev;
     mDevices.erase(netaddr);
 }
-
-void ObjnetMaster::onTimer()
-{
-    sendGlobalServiceMessage(aidPollNodes);
-    
-    std::vector<unsigned char> addressesToRemove;
-    
-    if (mSwonbMode)
-    {
-        for (DeviceIterator it=mDevices.begin(); it!=mDevices.end(); it++)
-        {       
-            ObjnetDevice *dev = it->second;
-            if (!dev->mTimeout)
-            {
-                dev->mPresent = false;
-                #ifdef QT_CORE_LIB
-                emit devDisconnected(dev->mNetAddress);
-                #else
-                if (onDevDisconnected)
-                    onDevDisconnected(dev->mNetAddress);
-                #endif
-            }
-            if ((!dev->mPresent && !dev->mTimeout && dev->mAutoDelete) || mSwonbReset)
-                addressesToRemove.push_back(it->first);
-        }
-    }
-    else
-    {
-        for (DeviceIterator it=mDevices.begin(); it!=mDevices.end(); it++)
-        {
-            ObjnetDevice *dev = it->second;
-            if (dev->mIsLocal && dev->mTimeout)
-                dev->mTimeout--;
-            if (dev->mPresent && !dev->mTimeout)
-            {
-                dev->mPresent = false;
-                dev->mObjectCount = 0;
-                if (dev->mAutoDelete)
-                {
-                    addressesToRemove.push_back(it->first);
-                }
-                else
-                {
-                    if (mAdjacentNode)
-                    {
-                        ByteArray ba;
-                        ba.append(dev->mNetAddress);
-                        mAdjacentNode->acceptServiceMessage(0, svcDisconnected, &ba);
-                    }
-                    #ifdef QT_CORE_LIB
-                    emit devDisconnected(dev->mNetAddress);
-                    #else
-                    if (onDevDisconnected)
-                        onDevDisconnected(dev->mNetAddress);
-                    #endif
-                }
-            }
-        }
-    }
-    
-    
-    // удаляем отсутствующие девайсы, если у них включено автоудаление
-    for (std::vector<unsigned char>::iterator it=addressesToRemove.begin(); it!=addressesToRemove.end(); it++)
-    {
-        removeDevice(*it);
-    }
-    
-    if (mSwonbMode)
-    {
-        if (mSwonbReset)
-        {
-            sendGlobalServiceMessage(aidConnReset);
-            for (mCurMac=1; mCurMac<16; mCurMac++)
-                sendServiceMessageToMac(mCurMac, svcHello);
-            mCurMac = 0;
-            mSwonbReset = false;
-        }
-        else
-        {
-            mCurMac = (mCurMac + 1) & 0xF;
-            if (!mCurMac)
-                mCurMac++;
-            sendServiceMessageToMac(mCurMac, svcHello);
-        }
-          
-//        if (mCurMac)
-//        {
-//            for (; mCurMac<16; mCurMac++)
-//                sendServiceMessageToMac(mCurMac, svcHello);
-////            mCurMac++;
-//            mCurMac = 0; // temporary!! or not?
-////            mCurMac &= 0xF;
-//        }
-        return;
-    }
-}
 //---------------------------------------------------------------------------
-
-void ObjnetMaster::acceptServiceMessage(unsigned char sender, SvcOID oid, ByteArray *ba)
-{
-//    #ifdef QT_CORE_LIB
-//    qDebug() << "master" << QString::fromStdString(mName) << "accept" << oid;
-//    #endif
-
-    switch (oid)
-    {
-      case svcWelcome:
-//      case svcWelcomeAgain:
-      {
-        unsigned char supernetaddr = ba->data()[0];
-        unsigned char netaddr = ba->data()[1];
-        addNatPair(supernetaddr, netaddr);        // добавляем в таблицу NAT
-        ObjnetDevice *dev = mDevices.count(netaddr)? mDevices[netaddr]: 0L;
-        if (dev)
-        {
-//            if (dev->mPresent) // && dev->isValid())
-//            {
-                ByteArray ba;
-                ba.append(supernetaddr);
-                mAdjacentNode->sendServiceMessageSheduled(sender, svcConnected, ba);
-//            }
-        }
-        break;
-      }
-
-      default:; // warning elimination
-    }
-}
 
 void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
 {
@@ -264,455 +294,170 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
     }
 
     SvcOID oid = (SvcOID)msg.localId().oid;
-
-//    #ifdef QT_CORE_LIB
-//    qDebug() << "master" << QString::fromStdString(mName) << "parse" << oid;
-//    #endif
-
     unsigned char netaddr = msg.localId().sender;
     ObjnetDevice *dev = mDevices.count(netaddr)? mDevices[netaddr]: 0L;
+    
     switch (oid)
     {
       case svcEcho:
         if (!dev)
         {
-            //sendGlobalServiceMessage(aidConnReset);
-            ByteArray ba;
-            ba.append(0xFF);
-            sendServiceMessageToMac(mCurMac, svcHello, ba); // reset node's connection state
+            // reset node's connection state
+            sendGlobalServiceMessage(aidConnReset, netaddr); // new way more logical
+            //sendServiceMessageToMac(mCurMac, svcHello, 0xFF);
+        }
+        else if (!dev->isPresent())
+        {
+            if (dev->isValid())
+            {
+                connectDevice(dev->netAddress());
+                if (dev->mIsLocal)
+                    sendServiceMessage(netaddr, svcRequestAllInfo);
+            }
+            else
+            {
+                sendServiceMessage(netaddr, svcClass);
+                sendServiceMessage(netaddr, svcName);
+            }
         }
         else
         {
-            if (!dev->mPresent)
-            {
-//                if (mAdjacentNode)
-//                {
-//                    unsigned char addr = mAdjacentNode->natRoute(dev->mNetAddress);
-//                    if (addr != 0x7F)
-//                    {
-//                        ByteArray ba;
-//                        ba.append(addr);
-//                        mAdjacentNode->acceptServiceMessage(netaddr, svcConnected, &ba);
-//                    }
-//                }
-                //unsigned char mac = msg.localId().mac;
-//                if (mLocalnetDevices[mac] == dev) // if device is in local network
-                dev->mInfoValidCnt = 0;
-                if (mSwonbMode)
-                {
-                    // request all info manually:
-                    sendServiceMessage(netaddr, svcClass);
-                    sendServiceMessage(netaddr, svcName);
-                    sendServiceMessage(netaddr, svcFullName);
-                    sendServiceMessage(netaddr, svcSerial);
-                    sendServiceMessage(netaddr, svcVersion);
-                    sendServiceMessage(netaddr, svcBuildDate);
-                    sendServiceMessage(netaddr, svcCpuInfo);
-                    sendServiceMessage(netaddr, svcBurnCount);
-                    sendServiceMessage(netaddr, svcObjectCount);
-                }
-                else
-                {
-                    sendServiceMessage(netaddr, svcRequestAllInfo);
-                    sendServiceMessage(netaddr, svcRequestObjInfo);
-                    #ifdef QT_CORE_LIB
-                    emit devConnected(dev->mNetAddress);
-                    #else
-                    if (onDevConnected)
-                        onDevConnected(dev->mNetAddress);
-                    #endif
-                }
-            }
-            dev->mPresent = true;
             dev->mTimeout = 10;
         }
         break;
-
-      case svcHello:
-      {
-//        qDebug() << "device says hello" << (int)netaddr;
         
-        SvcOID welcomeCmd = svcWelcomeAgain;             // если девайс уже добавлен, команда будет svcWelcomeAgain
-        ByteArray ba = msg.data();
-        unsigned char mac = ba[0];
-        bool localnet = (ba.size() == 1);
-        if (localnet)
+      case svcHello:
+      {  
+        ByteArray location = msg.data();
+        bool isLocalNet = (location.size() == 1);
+        unsigned char mac = location[0];
+        unsigned char subnetaddr = isLocalNet? 0: location[1];
+        dev = 0L; // if device is not null then device is wrong;
+        if (isLocalNet)
             dev = mLocalnetDevices[mac];
-        unsigned char tempaddr = netaddr;
-        if (!dev || !localnet)                           // сначала добавляем девайс с маком, который в id-шнике, если он ещё не добавлен
-        {
-            if (!localnet)
-            {
-                mac = route(tempaddr);
-                netaddr = createNetAddress(mac);  // создаём новый адрес
-            }
-            else if (mNetAddrByMacCache[mac])     // если девайс в текущей подсети
-            {
-                netaddr = mNetAddrByMacCache[mac];// пытаемся вспомнить адрес по маку
-                mRouteTable[netaddr] = mac;
-            }
-            else
-            {
-                netaddr = createNetAddress(mac);  // создаём новый адрес
-            }
-
-            dev = new ObjnetDevice(netaddr);             // создаём объект с новым адресом
-            dev->mMaster = this;
-            dev->mAutoDelete = true;                     // раз автоматически создали - автоматически и удалим)
-            dev->mBusAddress = ba[0];
-            dev->masterRequestObject = EVENT(&ObjnetMaster::requestObject);
-            dev->masterSendObject = EVENT(&ObjnetMaster::sendObject);
-            dev->masterServiceRequest = EVENT(&ObjnetMaster::sendServiceRequest);
-            if (mSwonbMode)
-            {
-                dev->mBusType = BusSwonb;
-            }
-            if (localnet)                                // если девайс в текущей подсети...
-            {
-                dev->mIsLocal = true;
-                mLocalnetDevices[mac] = dev;             // ...запоминаем для поиска по маку
-                mNetAddrByMacCache[mac] = netaddr;       // и кэшируем адрес для возврата по маку (чтобы лишний раз не создавать)
-            }
-#ifndef _MSC_VER
-#warning NEED TO IMPLEMENT: kill mLocalnetDevices[mac] on svcKill. A mb i ne nado!!
-#endif
-            mDevices[netaddr] = dev;                     // запоминаем для поиска по адресу
-            welcomeCmd = svcWelcome;                     // меняем команду на svcWelcome
-
-//            qDebug() << "create dev with address" << (int)dev->mNetAddress;
+        else if (netaddr != 0x7F)
+            mac = route(netaddr);
+        else
+            break; // ERROR!!! this is impossibru! (child device attempts to connect BEFORE parent)
+        
+        location.append(netaddr); // append sender's address as parent
             
-            #ifdef QT_CORE_LIB
-            QObject::connect(dev, SIGNAL(requestObject(unsigned char,unsigned char)), SLOT(requestObject(unsigned char,unsigned char)));
-            QObject::connect(dev, SIGNAL(sendObject(unsigned char,unsigned char,QByteArray)), SLOT(sendObject(unsigned char,unsigned char,QByteArray)));
-            QObject::connect(dev, SIGNAL(serviceRequest(unsigned char,SvcOID,QByteArray)), SLOT(sendServiceRequest(unsigned char,SvcOID,QByteArray)));
-            #endif
-        }
-
-        if (dev)
+        SvcOID welcomeCmd = svcWelcomeAgain;
+        if (!dev)
         {
-            netaddr = dev->netAddress();
-            dev->mLocalBusAddress = ba[0];
+            dev = createDevice(mac, location);
+            welcomeCmd = svcWelcome;
         }
-
-        if (localnet)                          // если это девайс текущей подсети...
+        
+        ByteArray response;
+        response.append(dev->netAddress());
+        if (isLocalNet)
         {
-            ByteArray outBa;
-            outBa.append(netaddr);
-            sendServiceMessage(netaddr, welcomeCmd, outBa);     // тупо отправляем сообщение с присвоенным адресом
-            ba.append(netaddr);                             // добавляем в конец созданный логический адрес узла
+            sendServiceMessage(dev->netAddress(), welcomeCmd, response);
         }
         else
         {
-            ByteArray outBa;
-            outBa.append(netaddr);
-            unsigned char subnetaddr = ba[1];       // узнаём его адрес в той подсети
-            outBa.append(subnetaddr);
-            sendServiceMessage(tempaddr, welcomeCmd, outBa);     // тупо отправляем сообщение с присвоенными адресами
-            ba[1] = netaddr;                        // теперь здесь адрес в этой подсети
-            ba.append(tempaddr);
-            unsigned char paraddr = ba.size()>2? ba[2]: 0;
-            if (mDevices.count(paraddr))
-            {
-                ObjnetDevice *par = mDevices[paraddr];
-                par->mChildren.push_back(dev);
-                dev->mParent = par;
-                //qDebug() << "set parent for" << (int)dev->netAddress() << "to" << (int)par->netAddress();
-            }
-            if (mAdjacentNode)
-            {
-                for (int i=2; i<ba.size(); i++)
-                    ba[i] = mAdjacentNode->natRoute(ba[i]);
-            }
+            response.append(subnetaddr);
+            sendServiceMessage(netaddr, welcomeCmd, response);
         }
-
-//        if (mAdjacentNode)
-//        {
-//            for (int i=1; i<ba.count(); i++)
-//                ba[i] = mAdjacentNode->natRoute(tempaddr);                // меняем адрес в той подсети на адрес в этой подсети
-//        }
-
-//        ba.append(netaddr);                         // добавляем в конец созданный логический адрес текущего узла
-
-        #ifdef QT_CORE_LIB
-        emit devAdded(netaddr, ba);                 // устройство добавлено
-        #else
-        if (onDevAdded)
-            onDevAdded(netaddr, ba);
-        #endif
-
-        if (mAdjacentNode && welcomeCmd != svcWelcomeAgain)                               // если мастер связан с узлом, то он не верхний
-        {
-            if (mAdjacentNode->isConnected())            // и если смежный узел подключён к своему мастеру
-            {
-                //qDebug() << "say hello from" << (int)ba[1];
-                //ba[0] = mAdjacentNode->mBusAddress;                                // меняем физический адрес на свой
-                bool result = mAdjacentNode->sendServiceMessage(svcHello, ba);    // и отправляем дальше
-                //qDebug() << "hello is" << (result?"":"not") << "said from" << (int)ba[1];
-            }
-        }
-
-        break;
-      }
-
-      case svcConnected:
+      } break;
+      
+      case svcWelcome: // this is message from supernet
+      case svcWelcomeAgain:
       {
-        unsigned char netaddr2 = msg.data()[0];
-        if (netaddr2 == 0x7F)
-            break;
-        if (mAdjacentNode)
+        if (msg.size() == 2)
         {
-            unsigned char addr = mAdjacentNode->natRoute(netaddr2);
-            if (addr != 0x7F)
+            unsigned char supernetaddr = msg.data()[0];
+            unsigned char subnetaddr = msg.data()[1];
+            ObjnetDevice *dev = mDevices.count(subnetaddr)? mDevices[subnetaddr]: 0L;
+            if (dev)
             {
-                ByteArray ba;
-                ba.append(addr);
-                mAdjacentNode->acceptServiceMessage(0, svcConnected, &ba);
-            }
-        }
-//#warning if (localnet) '// nado dobavit!'
-//        sendServiceMessage(netaddr, svcRequestAllInfo);
-        ObjnetDevice *dev = mDevices.count(netaddr2)? mDevices[netaddr2]: 0L;
-        if (dev)
-        {
-            if (dev->mPresent)
-            {
-                #ifdef QT_CORE_LIB
-                emit devConnected(netaddr2);
-                #else
-                if (onDevConnected)
-                    onDevConnected(netaddr2);
-                #endif
-                break;
+                addNatPair(supernetaddr, subnetaddr);
+                // TODO: send dev's class & name somehow
+                mAdjacentNode->sendServiceMessage(netaddr, svcConnected, supernetaddr); // a la echo
             }
             else
             {
-                requestClassId(netaddr2);
-                requestName(netaddr2);
+                break; // this is IMPOSSIBRU!!
             }
+        }
+//        mAdjacentNode->sendServiceMessage(netaddr, svcConnected, supernetaddr); // a la echo
+      } break;
+      
+      case svcConnected:
+      {
+        unsigned char remoteAddress = msg.data()[0];
+        ObjnetDevice *remoteDev = mDevices.count(remoteAddress)? mDevices[remoteAddress]: 0L;
+        if (!remoteDev)
+            break; // this is IMPOSSIBRU!
+        if (remoteDev->isValid())
+        {
+            connectDevice(remoteAddress);
+        }
+        else
+        {
+            sendServiceMessage(remoteAddress, svcClass);
+            sendServiceMessage(remoteAddress, svcName);
+            sendServiceMessage(remoteAddress, svcEcho);
         }
       } break;
-
+        
       case svcDisconnected:
       {
-        unsigned char netaddr = msg.data()[0];
-        if (netaddr == 0x7F)
-            break;
-        if (mAdjacentNode)
-        {
-            unsigned char addr = mAdjacentNode->natRoute(netaddr);
-            if (addr != 0x7F)
-            {
-                ByteArray ba;
-                ba.append(addr);
-//                qDebug() << "say disconnected" << (int)netaddr;
-                mAdjacentNode->acceptServiceMessage(0, svcDisconnected, &ba);
-                removeNatPair(addr, netaddr);
-            }
-        }
-
-        if (mDevices.count(netaddr))
-        {
-            ObjnetDevice *dev = mDevices[netaddr];
-            if (dev)
-                dev->mPresent = false;
-
-            #ifdef QT_CORE_LIB
-            emit devDisconnected(netaddr);
-            #else
-            if (onDevDisconnected)
-                onDevDisconnected(netaddr);
-            #endif
-        }
-        break;
-      }
-
+        unsigned char remoteAddress = msg.data()[0];
+        disconnectDevice(remoteAddress);
+      } break;
+        
       case svcKill:
       {
-        unsigned char netaddr2 = msg.data()[0];
-        removeDevice(netaddr2);
-//        unsigned char netaddr = msg.data()[0];
-//        if (netaddr == 0x7F)
-//            break;
-//        mRouteTable.erase(netaddr);
-//        if (mAdjacentNode)
-//        {
-//            unsigned char addr = mAdjacentNode->natRoute(netaddr);
-//            if (addr != 0x7F)
-//            {
-//                ByteArray ba;
-//                ba.append(addr);
-//                mAdjacentNode->acceptServiceMessage(0, svcKill, &ba);
-//                removeNatPair(addr, netaddr);
-//            }
-//        }
-//        if (mDevices.count(netaddr))
-//        {
-//            #ifdef QT_CORE_LIB
-//            emit devRemoved(netaddr);
-//            #endif
-//            ObjnetDevice *dev = mDevices[netaddr];
-//            dev->mChildren
-            
-//        }
-        break;
-      }
-
-      case svcClass:
-        if (dev)
-            dev->setClassId(*reinterpret_cast<const unsigned long*>(msg.data().data()));
-        break;
-        
-      case svcName:
-        if (dev)
-        {
-            string name(msg.data().data(), msg.data().size());
-            name.resize(strlen(name.c_str()));
-            dev->setName(name);
-            if (mSwonbMode || !dev->mPresent)
-            {
-                dev->mPresent = true;
-                #ifdef QT_CORE_LIB
-                emit devConnected(dev->mNetAddress);
-                #else
-                if (onDevConnected)
-                    onDevConnected(dev->mNetAddress);
-                #endif
-            }
-        }
-        break;
-
-      case svcFullName:
-        if (dev)
-        {
-            dev->mFullName = string(msg.data().data(), msg.data().size());
-            dev->mInfoValidCnt++;
-        }
-        break;
-
-      case svcSerial:
-        if (dev)
-        {
-            dev->mSerial = *reinterpret_cast<const unsigned long*>(msg.data().data());
-            dev->mInfoValidCnt++;
-        }
-        break;
-
-      case svcVersion:
-        if (dev)
-        {
-            dev->mVersion = *reinterpret_cast<const unsigned short*>(msg.data().data());
-            dev->mInfoValidCnt++;
-        }
-        break;
-
-      case svcBuildDate:
-        if (dev)
-        {
-            dev->mBuildDate = string(msg.data().data(), msg.data().size());
-            dev->mInfoValidCnt++;
-        }
-        break;
-
-      case svcCpuInfo:
-        if (dev)
-        {
-            dev->mCpuInfo = string(msg.data().data(), msg.data().size());
-            dev->mInfoValidCnt++;
-        }
-        break;
-
-      case svcBurnCount:
-        if (dev)
-        {
-            dev->mBurnCount = *reinterpret_cast<const unsigned long*>(msg.data().data());
-            dev->mInfoValidCnt++;
-        }
-        break;
-
+        unsigned char remoteAddress = msg.data()[0];
+        removeDevice(remoteAddress);
+      } break;
+      
       case svcObjectCount:
-        if (dev)
+        sendServiceMessage(netaddr, svcRequestObjInfo);
+        break;
+      
+      case svcFail:
+        if (msg.size())
         {
-            dev->mObjectCount = msg.data()[0];
-            if (dev->mBusType == BusSwonb)
+            unsigned char failedOid = static_cast<unsigned char>(msg.data()[0]);
+            switch (failedOid)
             {
-                ByteArray oba;
-                oba.resize(1);
-                for (int i=0; i<dev->mObjectCount; i++)
+              case svcRequestAllInfo:
+                for (unsigned char idx = svcClass; idx <= svcBusType; idx++)
+                    sendServiceMessage(netaddr, static_cast<SvcOID>(idx));
+                break;
+                
+              case svcRequestObjInfo:
+                if (dev)
                 {
-                    oba[0] = i;
-                    sendServiceMessage(netaddr, svcObjectInfo, oba);
+                    for (int idx=0; idx<dev->mObjectCount; idx++)
+                        sendServiceMessage(netaddr, svcObjectInfo, idx);
                 }
+                break;
+                
+              case svcAutoRequest:
+                break;
+                
+              case svcTimedRequest:
+                break;
+                
+              default:;
             }
+            
+            if (failedOid < svcObjectInfo && dev)
+                dev->receiveServiceObject(failedOid, ByteArray());
         }
         break;
-        
-      case svcBusType:
-        if (dev)
-        {
-            dev->mBusType = (BusType)msg.data().data()[0];
-            if (dev->mBusType == BusSwonb)
-            {
-                if (!dev->isInfoValid())
-                {
-                    // request all info manually:
-                    sendServiceMessage(netaddr, svcClass);
-                    sendServiceMessage(netaddr, svcName);
-                    sendServiceMessage(netaddr, svcFullName);
-                    sendServiceMessage(netaddr, svcSerial);
-                    sendServiceMessage(netaddr, svcVersion);
-                    sendServiceMessage(netaddr, svcBuildDate);
-                    sendServiceMessage(netaddr, svcCpuInfo);
-                    sendServiceMessage(netaddr, svcBurnCount);
-                    sendServiceMessage(netaddr, svcObjectCount);
-                    //sendServiceMessage(netaddr, svcBusType); // but why?
-                }
-            }
-        }
-        break;
-
-      case svcObjectInfo:
-        if (dev)
-        {
-            dev->prepareObject(msg.data());
-        }
-        break;
-
-      case svcTimedObject:
-        if (dev)
-        {
-            dev->receiveTimedObject(msg.data());
-        }
-        break;
-        
-      case svcGroupedObject:
-        if (dev)
-        {
-            dev->receiveGroupedObject(msg.data());
-        }
-        break;
-
-      case svcAutoRequest:
-      case svcTimedRequest:
-        if (dev)
-        {
-            int period = *reinterpret_cast<int*>(msg.data().data());
-            unsigned char oid = msg.data()[4];
-            if (oid < dev->mObjects.size())
-            {
-                #ifdef QT_CORE_LIB
-                emit dev->autoRequestAccepted(dev->mObjects[oid]->name(), period);
-                #endif
-            }
-        }
-
-      default:; // warning elimination
+      
+      default:;
     }
 
-    if (oid < svcObjectInfo && dev)
-        dev->receiveServiceObject(oid, msg.data());
-    
     if (oid < svcEcho)
     {
+        if (dev)
+            dev->receiveServiceObject(oid, msg.data());
         #ifdef QT_CORE_LIB
         emit serviceMessageAccepted(netaddr, oid, msg.data());
         #endif
@@ -720,21 +465,15 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
 }
 //---------------------------------------------------------------------------
 
-//void ObjnetMaster::sendRemoteMessage(unsigned char receiver, unsigned char oid, const ByteArray &ba)
-//{
-//    ObjnetCommonNode::sendRemoteMessage(receiver, oid, ba, route(receiver));
-//}
-//---------------------------------------------------------------------------
-
 void ObjnetMaster::parseMessage(CommonMessage &msg)
 {
     if (msg.isGlobal())
     {
         #ifdef QT_CORE_LIB
-            emit globalMessage(msg.globalId().aid);
+        emit globalMessage(msg.globalId().aid);
         #else
-            if (onGlobalMessage)
-                onGlobalMessage(msg.globalId().aid);
+        if (onGlobalMessage)
+            onGlobalMessage(msg.globalId().aid);
         #endif
 
         unsigned char remoteAddr = msg.globalId().addr;
@@ -746,26 +485,19 @@ void ObjnetMaster::parseMessage(CommonMessage &msg)
     unsigned char oid = msg.localId().oid;
     unsigned char remoteAddr = msg.localId().sender;
     ObjnetDevice *dev = mDevices.count(remoteAddr)? mDevices[remoteAddr]: 0L;
-
     if (dev)
-    {
         dev->receiveObject(oid, msg.data());
-    }
-    else
-    {
-        #ifdef QT_CORE_LIB
-        //qDebug() << "object received from unknown device!!";
-        #endif
-    }
 }
 //---------------------------------------------------------------------------
 
 unsigned char ObjnetMaster::createNetAddress(unsigned char mac)
 {
-    if (mRouteTable.size() >= 127) // сразу избегаем бесконечного цикла
+    // ����� �������� ������������ �����
+    if (mRouteTable.size() >= 127)
         return 0x7F;
 
-    while (mRouteTable.count(mAssignNetAddress)) // если в таблице маршрутизации данный адрес занят, ищем дальше
+    // ���� � ������� ������������� ������ ��������� �����
+    while (mRouteTable.count(mAssignNetAddress))
     {
         mAssignNetAddress++;
         if (mAssignNetAddress >= 127)
@@ -789,17 +521,6 @@ ObjnetDevice *ObjnetMaster::deviceBySerial(unsigned long serial)
     }
     return 0L;
 }
-//---------------------------------------------------------------------------
-
-//void ObjnetMaster::addDevice(unsigned char mac, ObjnetDevice *dev)
-//{
-//    dev->mNetAddress = createNetAddress(mac);   // создаём объект с новым адресом
-//    dev->mAutoDelete = false;                   // автоматически не удаляется, т.к. создан внешним объектом
-//    mDevices[mac] = dev;                        // запоминаем для поиска по маку
-//    #ifdef QT_CORE_LIB
-//    emit devAdded(dev->mNetAddress, ByteArray().append(mac));
-//    #endif
-//}
 //---------------------------------------------------------------------------
 
 void ObjnetMaster::requestObject(unsigned char netAddress, unsigned char oid)

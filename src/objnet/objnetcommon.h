@@ -130,7 +130,7 @@ struct LocalMsgId
 struct GlobalMsgId
 {
     unsigned char aid;      //!< action ID
-    unsigned char res;      //!< reserved
+    unsigned char payload;  //!< contains data if its size is 1 
     unsigned char addr: 7;  //!< own network address (logical)
     unsigned char svc: 1;   //!< message is service
     unsigned char mac: 4;   //!< own bus address (physical)
@@ -138,7 +138,7 @@ struct GlobalMsgId
     unsigned char _not_used: 3; //!< reserved bits in CAN 2.0B spec
     /*! Конструктор обнуляет. */
     GlobalMsgId() :
-      aid(0), res(0), addr(0), svc(0), mac(0), local(0), _not_used(0)
+      aid(0), payload(0), addr(0), svc(0), mac(0), local(0), _not_used(0)
     {
     }
     /*! Неявный конструктор. */

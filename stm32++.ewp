@@ -663,7 +663,7 @@
         </option>
         <option>
           <name>IlinkOutputFile</name>
-          <state>###Unitialized###</state>
+          <state>stm32++.out</state>
         </option>
         <option>
           <name>IlinkDebugInfoEnable</name>

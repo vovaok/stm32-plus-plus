@@ -43,7 +43,7 @@ private:
     ObjnetMessageEvent mMessageEvent;
 #endif
 
-    CommonMessage mSheduledMsg; // to be sent later
+//    CommonMessage mSheduledMsg; // to be sent later
     
     // fragmented receive buffers
     std::map<unsigned long, CommonMessageBuffer> mFragmentBuffer;
@@ -67,11 +67,13 @@ protected:
     virtual void parseMessage(CommonMessage &msg) = 0;
 
     bool sendServiceMessage(unsigned char receiver, SvcOID oid, const ByteArray &ba = ByteArray());
-    void sendServiceMessageSheduled(unsigned char receiver, SvcOID oid, const ByteArray &ba = ByteArray());
+    bool sendServiceMessage(unsigned char receiver, SvcOID oid, unsigned char data);
+//    void sendServiceMessageSheduled(unsigned char receiver, SvcOID oid, const ByteArray &ba = ByteArray());
     bool sendServiceMessage(SvcOID oid, const ByteArray &ba = ByteArray());
+    bool sendServiceMessage(SvcOID oid, unsigned char data);
     bool sendServiceMessageToMac(unsigned char mac, SvcOID oid, const ByteArray &ba = ByteArray());
-    bool sendGlobalServiceMessage(StdAID aid);
-    bool sendGlobalServiceDataMessage(unsigned char aid, const ByteArray &ba);
+    bool sendGlobalServiceMessage(StdAID aid, unsigned char payload=0);
+    bool sendGlobalServiceMessage(StdAID aid, const ByteArray &ba);
     virtual void parseServiceMessage(CommonMessage &msg) = 0;
 
     virtual unsigned char route(unsigned char netAddress) = 0;
@@ -82,7 +84,9 @@ protected:
     friend class ObjnetNode;
     friend class ObjnetMaster;
 
-    virtual void acceptServiceMessage(unsigned char sender, SvcOID oid, ByteArray *ba=0L) = 0;
+//    virtual void acceptServiceMessage(unsigned char sender, SvcOID oid, ByteArray *ba=0L) = 0;
+    
+    virtual void adjacentConnected() {} // called by adjacent interface
 
 #ifndef QT_CORE_LIB
 protected:

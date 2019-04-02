@@ -43,11 +43,11 @@ void ObjnetCommonNode::task()
     if (mBusAddress == 0xFF)
         return;
     
-    if (mSheduledMsg.rawId())
-    {
-        if (sendCommonMessage(mSheduledMsg))
-            mSheduledMsg.setId(0);
-    }
+//    if (mSheduledMsg.rawId())
+//    {
+//        if (sendCommonMessage(mSheduledMsg))
+//            mSheduledMsg.setId(0);
+//    }
 
     CommonMessage inMsg;
     while (mInterface->read(inMsg))
@@ -323,29 +323,36 @@ bool ObjnetCommonNode::sendServiceMessage(unsigned char receiver, SvcOID oid, co
     return sendCommonMessage(msg);
 }
 
-void ObjnetCommonNode::sendServiceMessageSheduled(unsigned char receiver, SvcOID oid, const ByteArray &ba)
+bool ObjnetCommonNode::sendServiceMessage(unsigned char receiver, SvcOID oid, unsigned char data)
 {
-    CommonMessage msg;
-    LocalMsgId id;
-    id.mac = route(receiver);
-    id.addr = receiver;
-    id.svc = 1;
-    id.sender = mNetAddress;
-    id.oid = oid;
-    msg.setLocalId(id);
-    msg.setData(ba);
-    
-    bool result = sendCommonMessage(msg);
-    if (!result)
-    {
-        if (mSheduledMsg.rawId())
-        {
-            //qDebug() << "ONB message sheduling fail";
-            return;
-        }
-        mSheduledMsg = msg;
-    }
+    ByteArray ba;
+    ba.append(data);
+    return sendServiceMessage(receiver, oid, ba);
 }
+
+//void ObjnetCommonNode::sendServiceMessageSheduled(unsigned char receiver, SvcOID oid, const ByteArray &ba)
+//{
+//    CommonMessage msg;
+//    LocalMsgId id;
+//    id.mac = route(receiver);
+//    id.addr = receiver;
+//    id.svc = 1;
+//    id.sender = mNetAddress;
+//    id.oid = oid;
+//    msg.setLocalId(id);
+//    msg.setData(ba);
+//    
+//    bool result = sendCommonMessage(msg);
+//    if (!result)
+//    {
+//        if (mSheduledMsg.rawId())
+//        {
+//            //qDebug() << "ONB message sheduling fail";
+//            return;
+//        }
+//        mSheduledMsg = msg;
+//    }
+//}
 
 bool ObjnetCommonNode::sendServiceMessage(SvcOID oid, const ByteArray &ba)
 {
@@ -359,6 +366,13 @@ bool ObjnetCommonNode::sendServiceMessage(SvcOID oid, const ByteArray &ba)
     msg.setLocalId(id);
     msg.setData(ba);
     return sendCommonMessage(msg);
+}
+
+bool ObjnetCommonNode::sendServiceMessage(SvcOID oid, unsigned char data)
+{
+    ByteArray ba;
+    ba.append(data);
+    return sendServiceMessage(oid, ba);
 }
 
 bool ObjnetCommonNode::sendServiceMessageToMac(unsigned char mac, SvcOID oid, const ByteArray &ba)
@@ -398,20 +412,21 @@ bool ObjnetCommonNode::sendGlobalMessage(unsigned char aid, const ByteArray &ba)
     return mInterface->write(msg);
 }
 
-bool ObjnetCommonNode::sendGlobalServiceMessage(StdAID aid)
+bool ObjnetCommonNode::sendGlobalServiceMessage(StdAID aid, unsigned char payload)
 {
     CommonMessage msg;
     GlobalMsgId id;
     id.mac = mBusAddress;
     id.svc = 1;
     id.addr = mNetAddress;
+    id.payload = payload;
     id.aid = aid;
     msg.setGlobalId(id);
     //msg.setData(ba);
     return mInterface->write(msg);
 }
 
-bool ObjnetCommonNode::sendGlobalServiceDataMessage(unsigned char aid, const ByteArray &ba)
+bool ObjnetCommonNode::sendGlobalServiceMessage(StdAID aid, const ByteArray &ba)
 {
     CommonMessage msg;
     GlobalMsgId id;

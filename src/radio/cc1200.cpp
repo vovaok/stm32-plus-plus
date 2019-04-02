@@ -151,6 +151,10 @@ CC1200::CC1200(Spi *spi, Gpio::PinName csPin, Gpio::PinName resetPin) :
     mSpi->setConfig(conf);
     mSpi->open();
     
+    unsigned long sync = getSyncWord();
+    if (sync != 0x930B51DE)
+        throw Exception::badSoBad;
+    
     uploadConfig(RF_config, sizeof(RF_config)/sizeof(RF_config[0]));
 }
 

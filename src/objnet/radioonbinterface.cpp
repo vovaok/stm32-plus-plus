@@ -25,8 +25,7 @@ RadioOnbInterface::RadioOnbInterface(CC1200 *device) :
     mMaxFrameSize = 120;
     mCurHdr.size = 0;
     mCurHdr.address = 0;
-#warning BusRadio temporary replaced with BusSwonb due to debug purposes
-    mBusType = BusSwonb; // BusRadio
+    mBusType = BusRadio;
     stmApp()->registerTaskEvent(EVENT(&RadioOnbInterface::task));
     stmApp()->registerTickEvent(EVENT(&RadioOnbInterface::tick));
     

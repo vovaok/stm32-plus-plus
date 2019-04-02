@@ -60,7 +60,7 @@ protected slots:
     void task();
 
 protected:
-    void acceptServiceMessage(unsigned char sender, SvcOID oid, ByteArray *ba=0L);
+    void acceptServiceMessage(unsigned char sender, SvcOID oid, ByteArray *ba=0L){}
     void parseServiceMessage(CommonMessage &msg);
 
     void parseMessage(CommonMessage &msg);

@@ -5,9 +5,7 @@ using namespace Objnet;
 
 ObjnetDevice::ObjnetDevice(unsigned char netaddr) :
     mMaster(0L),
-    mClassValid(false),
-    mNameValid(false),
-    mInfoValidCnt(0),
+    mInfoValidFlags(0),
     mParent(0L),
     mNetAddress(netaddr),
     mPresent(false),
@@ -167,8 +165,86 @@ void ObjnetDevice::prepareObject(const ObjectInfo::Description &desc)
 //---------------------------------------------------------
 
 void ObjnetDevice::receiveServiceObject(unsigned char oid, const ByteArray &ba)
-{
-    // nado bi suda dobavit zapolnenie of service objects
+{  
+    // this is should be after data assignment, however noxep.
+    if (oid < 32)
+        mInfoValidFlags |= (1 << oid);
+  
+    if (!ba.size())
+        return;
+  
+    switch (oid)
+    {
+      case svcClass:
+        mClass = *reinterpret_cast<const unsigned long*>(ba.data());
+        break;
+        
+      case svcName:
+        mName = string(ba.data(), ba.size());
+        mName.resize(strlen(mName.c_str()));
+       break;
+
+      case svcFullName:
+        mFullName = string(ba.data(), ba.size());
+        mFullName.resize(strlen(mFullName.c_str()));
+        break;
+
+      case svcSerial:
+        mSerial = *reinterpret_cast<const unsigned long*>(ba.data());
+        break;
+
+      case svcVersion:
+        mVersion = *reinterpret_cast<const unsigned short*>(ba.data());
+        break;
+
+      case svcBuildDate:
+        mBuildDate = string(ba.data(), ba.size());
+        break;
+
+      case svcCpuInfo:
+        mCpuInfo = string(ba.data(), ba.size());
+        break;
+
+      case svcBurnCount:
+        mBurnCount = *reinterpret_cast<const unsigned long*>(ba.data());
+        break;
+
+      case svcObjectCount:
+        mObjectCount = ba[0];
+        break;
+        
+      case svcBusType:
+        mBusType = static_cast<BusType>(ba[0]);
+        break;
+
+      case svcObjectInfo:
+        prepareObject(ba);
+        break;
+
+      case svcTimedObject:
+        receiveTimedObject(ba);
+        break;
+        
+      case svcGroupedObject:
+        receiveGroupedObject(ba);
+        break;
+
+      case svcAutoRequest:
+      case svcTimedRequest:
+      {
+        int period = *reinterpret_cast<const int*>(ba.data());
+        unsigned char oid = ba[4];
+        if (oid < mObjects.size())
+        {
+            #ifdef QT_CORE_LIB
+            emit autoRequestAccepted(mObjects[oid]->name(), period);
+            #endif
+        }
+      } break;
+
+      default:; // warning elimination
+    }
+    
     #ifdef QT_CORE_LIB
     if (oid < svcObjectInfo)
         emit infoReceived(oid);
@@ -368,7 +444,7 @@ void ObjnetDevice::requestMetaInfo()
     if (mMaster)
     {
         mMaster->requestDevInfo(mNetAddress);
-        mMaster->requestObjInfo(mNetAddress);
+//        mMaster->requestObjInfo(mNetAddress);
     }
 }
 
@@ -404,6 +480,7 @@ _String ObjnetDevice::busTypeName() const
         case BusWifi:       return "WiFi";
         case BusSwonb:      return "SWONB";
         case BusVirtual:    return "virtual";
+        case BusRadio:      return "radio";
         default:            return "unknown";
     }
 }

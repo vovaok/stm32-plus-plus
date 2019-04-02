@@ -4,12 +4,18 @@ RgbLed::RgbLed(Gpio::Config pinR, Gpio::Config pinG, Gpio::Config pinB, int pwmF
     mR(0), mG(0), mB(0)
 {
     TimerNumber tim = HardwareTimer::getTimerByPin(pinR);
+    if (tim == TimNone)
+        tim = HardwareTimer::getTimerByPin(pinG);
+    if (tim == TimNone)
+        tim = HardwareTimer::getTimerByPin(pinB);
+    
+    if (tim == TimNone)
+        throw Exception::invalidPeriph;
+    
     chR = HardwareTimer::getChannelByPin(pinR);
     chG = HardwareTimer::getChannelByPin(pinG);
     chB = HardwareTimer::getChannelByPin(pinB);
     
-    if (tim == TimNone)
-        throw Exception::invalidPeriph;
 //    if (chR == ChNone || chG == ChNone || chB == ChNone)
 //        throw Exception::invalidPin;
   

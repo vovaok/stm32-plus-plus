@@ -26,9 +26,9 @@ class ObjnetDevice : public QObject
     Q_OBJECT
 #endif
 private:
-    bool mClassValid;
-    bool mNameValid;
-    int mInfoValidCnt;
+    // mask should be 0x3FF but now we have this shit for backward compatibility
+    static const unsigned long mInfoValidMask = 0x000000FF;
+    unsigned long mInfoValidFlags;
 
 protected:
 //    typedef struct
@@ -62,7 +62,6 @@ protected:
     unsigned long mBurnCount;
     unsigned char mObjectCount;
     BusType mBusType;
-    unsigned char mLocalBusAddress;
 
     vector<ObjectInfo*> mObjects;
     map<string, ObjectInfo> mObjMap;
@@ -75,9 +74,6 @@ protected:
 
     friend class ObjnetMaster;
 
-    void setName(string name) {mName = name.substr(0, 8); mNameValid = true;}
-    void setClassId(unsigned long classId) {mClass = classId; mClassValid = true;}
-
     void receiveServiceObject(unsigned char oid, const ByteArray &ba);
     void receiveObject(unsigned char oid, const ByteArray &ba);
     void receiveTimedObject(const ByteArray &ba);
@@ -88,8 +84,8 @@ public:
     ObjnetDevice(unsigned char netaddr = 0);
 
     bool isPresent() const {return mPresent;}
-    bool isValid() const {return mClassValid && mNameValid;}
-    bool isInfoValid() const {return mInfoValidCnt >= 6;}
+    bool isValid() const {return (mInfoValidFlags & 3) == 3;}
+    bool isInfoValid() const {return (mInfoValidFlags & mInfoValidMask) == mInfoValidMask;}
 
     unsigned char netAddress() const {return mNetAddress;}
     unsigned char busAddress() const {return mBusAddress;}
@@ -107,7 +103,6 @@ public:
     int burnCount() const {return mBurnCount;}
     BusType busType() const {return mBusType;}
     _String busTypeName() const;
-    unsigned char localBusAddress() const {return mLocalBusAddress;}
 
     int objectCount() const {return mObjectCount;}
     ObjectInfo *objectInfo(unsigned char oid) {if (oid < mObjects.size()) return mObjects[oid]; return 0L;}

@@ -38,7 +38,7 @@ ObjnetNode::ObjnetNode(ObjnetInterface *iface) :
     
     mBusType = iface->busType();
     
-    if (mBusType == BusSwonb)
+    if (mBusType == BusSwonb || mBusType == BusRadio)
         mSendTimer.stop();
     
     if (mNodesCount)
@@ -78,7 +78,7 @@ void ObjnetNode::task()
     switch (mNetState)
     {
       case netnStart:
-        if (mBusType == BusSwonb)
+        if (mBusType == BusSwonb || mBusType == BusRadio)
         {
             mNetAddress = 0xFF;
             mNetTimeout = 0;
@@ -92,7 +92,7 @@ void ObjnetNode::task()
         break;
 
       case netnConnecting:
-        if (mBusType == BusSwonb)
+        if (mBusType == BusSwonb || mBusType == BusRadio)
         {
             mNetTimeout = 0;
         }
@@ -106,7 +106,7 @@ void ObjnetNode::task()
         break;
 
       case netnDisconnecting:
-        if (mBusType == BusSwonb)
+        if (mBusType == BusSwonb || mBusType == BusRadio)
         {
             mNetTimeout = 0;
             mNetState = netnStart;
@@ -120,7 +120,7 @@ void ObjnetNode::task()
         break;
 
       case netnAccepted:
-        if (mBusType == BusSwonb)
+        if (mBusType == BusSwonb || mBusType == BusRadio)
         {
             mNetTimeout = 0;
             mNetState = netnReady;
@@ -130,10 +130,16 @@ void ObjnetNode::task()
             mTimer.stop();
             mNetState = netnReady;
         }
+        
+        if (mAdjacentNode)
+        {
+            // call event for master
+            mAdjacentNode->adjacentConnected();
+        }
         break;
 
       case netnReady:
-        if (mBusType == BusSwonb)
+        if (mBusType == BusSwonb || mBusType == BusRadio)
         {
           
         }
@@ -159,53 +165,50 @@ void ObjnetNode::task()
 }
 //---------------------------------------------------------------------------
 
-void ObjnetNode::acceptServiceMessage(unsigned char sender, SvcOID oid, ByteArray *ba)
-{
-//    #ifdef QT_CORE_LIB
-//    qDebug() << "node" << QString::fromStdString(mName) << "accept" << oid;
-//    #endif
-
-//    CommonMessage msg;
-    switch (oid)
-    {
-      case svcHello: // translate hello msg
-      {
-        ba->append(mBusAddress);
-        sendServiceMessage(svcHello, *ba);
-        break;
-      }
-
-      case svcConnected:
-      case svcDisconnected:
-      case svcKill:
-        sendServiceMessage(oid, *ba);
-        break;
-
-      default:;
-    }
-}
+//void ObjnetNode::acceptServiceMessage(unsigned char sender, SvcOID oid, ByteArray *ba)
+//{
+////    #ifdef QT_CORE_LIB
+////    qDebug() << "node" << QString::fromStdString(mName) << "accept" << oid;
+////    #endif
+//
+////    CommonMessage msg;
+//    switch (oid)
+//    {
+//      case svcHello: // translate hello msg
+//      {
+//        ba->append(mBusAddress);
+//        sendServiceMessage(svcHello, *ba);
+//        break;
+//      }
+//
+//      case svcConnected:
+//      case svcDisconnected:
+//      case svcKill:
+//        sendServiceMessage(oid, *ba);
+//        break;
+//
+//      default:;
+//    }
+//}
 
 void ObjnetNode::parseServiceMessage(CommonMessage &msg)
 {
     if (msg.isGlobal())
     {
         StdAID aid = static_cast<StdAID>(msg.globalId().aid & 0x3F);
-
-//        #ifdef QT_CORE_LIB
-//        qDebug() << "node" << QString::fromStdString(mName) << "global" << aid;
-//        #endif
+        unsigned char payload = msg.globalId().payload;
 
         switch (aid)
         {
           case aidPollNodes:
             if (isConnected())
             {
-                if (mBusType != BusSwonb)
+                if (mBusType != BusSwonb && mBusType != BusRadio)
                     sendServiceMessage(svcEcho);
                 if (mNetState == netnReady)
                     mNetTimeout = 0;
             }
-            else if (mBusType != BusSwonb)
+            else if (mBusType != BusSwonb && mBusType != BusRadio)
             {
                 mNetState = netnConnecting;
             }
@@ -218,12 +221,13 @@ void ObjnetNode::parseServiceMessage(CommonMessage &msg)
             break;
 
           case aidConnReset:
-//            mNetAddress = 0x00;
-//            mNetState = netnConnecting;
-            mNetState = netnStart;
-            if (mAdjacentNode) // remote addr
+            if (!payload || payload == mNetAddress)
             {
-//                mAdjacentNode->acceptServiceMessage(remoteAddr, aidConnReset);
+                mNetState = netnStart;
+                if (mAdjacentNode) // remote addr
+                {
+    //                mAdjacentNode->acceptServiceMessage(remoteAddr, aidConnReset);
+                }
             }
             break;
             
@@ -257,8 +261,12 @@ void ObjnetNode::parseServiceMessage(CommonMessage &msg)
 
     switch (oid)
     {
+      case svcEcho:
+        sendServiceMessage(remoteAddr, svcEcho);
+        break;
+      
       case svcHello:
-        if (mBusType == BusSwonb)
+        if (mBusType == BusSwonb || mBusType == BusRadio)
         {
             bool reset = false;
             if (msg.data().size())
@@ -290,7 +298,7 @@ void ObjnetNode::parseServiceMessage(CommonMessage &msg)
       case svcWelcomeAgain:
         if (msg.data().size() == 1)
         {
-            if (mBusType == BusSwonb)
+            if (mBusType == BusSwonb)// || mBusType == BusRadio)
             {
                 mNetAddress = msg.data()[0];
                 mNetState = netnAccepted;
@@ -318,7 +326,8 @@ void ObjnetNode::parseServiceMessage(CommonMessage &msg)
         }
         else if (mAdjacentNode) // remote addr
         {
-            mAdjacentNode->acceptServiceMessage(remoteAddr, oid, &msg.data());
+            mAdjacentNode->parseServiceMessage(msg);
+//            mAdjacentNode->acceptServiceMessage(remoteAddr, oid, &msg.data());
         }
         break;
 
@@ -334,9 +343,10 @@ void ObjnetNode::parseServiceMessage(CommonMessage &msg)
       } break;
         
       case svcRequestAllInfo:
-        if (mBusType == BusSwonb)
+        if (mBusType == BusSwonb)// || mBusType == BusRadio)
         {
-            sendServiceMessage(remoteAddr, svcBusType, mSvcObjects[svcBusType].read());
+            sendServiceMessage(remoteAddr, svcFail, oid);
+            //sendServiceMessage(remoteAddr, svcBusType, mSvcObjects[svcBusType].read());
         }
         else if (isConnected())
         {
@@ -348,7 +358,16 @@ void ObjnetNode::parseServiceMessage(CommonMessage &msg)
       case svcRequestObjInfo:
         if (mBusType == BusSwonb)
         {
-            sendServiceMessage(remoteAddr, svcFail);
+            sendServiceMessage(remoteAddr, svcFail, oid);
+        }
+        else if (mBusType == BusRadio)
+        {
+            for (int i=0; i<mObjects.size(); i++)
+            {
+                ByteArray ba;
+                mObjects[i].mDesc.read(ba);
+                /*bool success =*/ sendServiceMessage(remoteAddr, svcObjectInfo, ba);
+            }
         }
         else if (isConnected())
         {
@@ -359,9 +378,9 @@ void ObjnetNode::parseServiceMessage(CommonMessage &msg)
 
       case svcAutoRequest:
       case svcTimedRequest:
-        if (mBusType == BusSwonb)
+        if (mBusType == BusSwonb || mBusType == BusRadio)
         {
-            sendServiceMessage(remoteAddr, svcFail);
+            sendServiceMessage(remoteAddr, svcFail, oid);
         }
         else if (isConnected())
         {
@@ -424,16 +443,23 @@ void ObjnetNode::parseServiceMessage(CommonMessage &msg)
       default:;
     }
 
-    if (isConnected() && oid < (unsigned char)mSvcObjects.size())
+    if (isConnected() && oid < svcObjectInfo)
     {
-        ObjectInfo &obj = mSvcObjects[oid];
-        if (msg.data().size()) // write
+        if (oid < (unsigned char)mSvcObjects.size())
         {
-            obj.write(msg.data());
+            ObjectInfo &obj = mSvcObjects[oid];
+            if (msg.data().size()) // write
+            {
+                obj.write(msg.data());
+            }
+            else
+            {
+                sendServiceMessage(remoteAddr, oid, obj.read());
+            }
         }
         else
         {
-            sendServiceMessage(remoteAddr, oid, obj.read());
+            sendServiceMessage(remoteAddr, svcFail, oid);
         }
     }
 }
@@ -465,13 +491,13 @@ void ObjnetNode::parseMessage(CommonMessage &msg)
         if (obj.isInvokable())
         {
             ByteArray ret = obj.invoke(msg.data());
-            if (ret.size() || mBusType == BusSwonb)
+            if (ret.size() || mBusType == BusSwonb || mBusType == BusRadio)
                 sendMessage(remoteAddr, oid, ret);
         }
         else if (msg.data().size()) // write
         {
             obj.write(msg.data());
-            if (obj.isDual() || (mBusType == BusSwonb))
+            if (obj.isDual() || mBusType == BusSwonb || mBusType == BusRadio)
                 sendMessage(remoteAddr, oid, obj.read());
             #ifdef __ICCARM__
             else if (obj.isStorable())
@@ -488,7 +514,7 @@ void ObjnetNode::parseMessage(CommonMessage &msg)
 
 void ObjnetNode::onTimeoutTimer()
 {
-    if (mBusType == BusSwonb)
+    if (mBusType == BusSwonb || mBusType == BusRadio)
     {
         mNetTimeout += mTimer.interval();
         return;

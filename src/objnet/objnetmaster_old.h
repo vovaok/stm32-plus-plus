@@ -18,34 +18,32 @@ class ObjnetMaster : public ObjnetCommonNode
 private:
     typedef std::map<unsigned char, ObjnetDevice*> DeviceMap;
     typedef DeviceMap::iterator DeviceIterator;
+//    ObjnetDeviceTreeNode mTree;
     DeviceMap mDevices; // map devices by network address
     std::map<unsigned char, unsigned char> mRouteTable; // route table: returns mac by network address
     ObjnetDevice* mLocalnetDevices[16]; // array of devices on the local network accessed by mac
+//    std::map<unsigned long, unsigned char> mNetAddrBySerialCache;
     unsigned char mNetAddrByMacCache[16];
     unsigned char mAssignNetAddress; // network address for assigning to nodes (a la DHCP)
-
+    bool mAdjIfConnected; // connection state of adjacent interface
     string mName;
-    
     bool mSwonbMode;
-    int mSearchMac; // for swonb mode
+    int mCurMac; // for swonb mode
+    bool mSwonbReset;
     
     void onNak(unsigned char mac);
 
-    ObjnetDevice *createDevice(unsigned char mac, ByteArray &location);
-    void connectDevice(unsigned char netaddr);
-    void disconnectDevice(unsigned char netaddr);
     void removeDevice(unsigned char netaddr);
 
 protected:
     void task();
-    
-    void parseServiceMessage(CommonMessage &msg);
     void parseMessage(CommonMessage &msg);
+
+    void acceptServiceMessage(unsigned char sender, SvcOID oid, ByteArray *ba=0L);
+    void parseServiceMessage(CommonMessage &msg);
 
     unsigned char route(unsigned char netAddress) {return netAddress<0x7F? mRouteTable[netAddress]: 0;}
     unsigned char createNetAddress(unsigned char mac);
-    
-    void adjacentConnected();
 
 public:
 #ifdef QT_CORE_LIB
@@ -82,13 +80,15 @@ public:
     const DeviceMap &devices() const {return mDevices;}
     ObjnetDevice *device(int netaddr) {return mDevices.count(netaddr)? mDevices[netaddr]: 0L;}
     ObjnetDevice *deviceBySerial(unsigned long serial);
+//    void addDevice(unsigned char mac, ObjnetDevice *dev);
 
     void requestName(unsigned char netAddress) {sendServiceMessage(netAddress, svcName);}
     void requestClassId(unsigned char netAddress) {sendServiceMessage(netAddress, svcClass);}
     void requestSerial(unsigned char netAddress) {sendServiceMessage(netAddress, svcSerial);}
     void requestDevInfo(unsigned char netAddress) {sendServiceMessage(netAddress, svcRequestAllInfo);}
-//    void requestObjInfo(unsigned char netAddress) {sendServiceMessage(netAddress, svcRequestObjInfo);}
+    void requestObjInfo(unsigned char netAddress) {sendServiceMessage(netAddress, svcRequestObjInfo);}
     
+    void swonbEnumerate() {mSwonbReset = true;}
     void swonbTryConnect(unsigned char mac) {sendServiceMessageToMac(mac, svcHello);}
 
 #ifdef QT_CORE_LIB
@@ -100,15 +100,15 @@ public slots:
     {
         sendServiceMessage(netAddress, (SvcOID)oid, ba);
     }
-    void sendGlobalRequest(StdAID aid, bool propagation, const ByteArray &ba=ByteArray())
-    {
-        if (propagation)
-            aid = static_cast<StdAID>(aid | aidPropagationDown);
-        if (ba.size())
-            sendGlobalServiceMessage(aid, ba);
-        else
-            sendGlobalServiceMessage(aid);
-    }
+//    void sendGlobalRequest(StdAID aid, bool propagation, const ByteArray &ba=ByteArray())
+//    {
+//        if (propagation)
+//            aid = static_cast<StdAID>(aid | aidPropagationDown);
+//        if (ba.size())
+//            sendGlobalServiceMessage(aid, ba);
+//        else
+//            sendGlobalServiceMessage(aid);
+//    }
     void sendUpgrageData(unsigned char seq, const ByteArray &ba)
     {
         CommonMessage msg;
@@ -122,6 +122,8 @@ public slots:
         msg.setData(ba);
         mInterface->write(msg);
     }
+
+//    void sendRemoteMessage(unsigned char receiver, unsigned char oid, const ByteArray &ba = ByteArray());
 
 #ifdef QT_CORE_LIB
 signals:
