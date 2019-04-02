@@ -67,20 +67,20 @@ void ObjnetMaster::onNak(unsigned char mac)
 void ObjnetMaster::adjacentConnected()
 {
     // send devices info
-    for (DeviceIterator it=mDevices.begin(); it!=mDevices.end(); it++)
-    {
-        ObjnetDevice *dev = it->second;
-        ByteArray location;
-        location.append(dev->busAddress());
-        while (dev)
-        {
-            location.append(dev->netAddress());
-            dev = dev->parentDevice();
-        }
+//    for (DeviceIterator it=mDevices.begin(); it!=mDevices.end(); it++)
+//    {
+//        ObjnetDevice *dev = it->second;
+//        ByteArray location;
+//        location.append(dev->busAddress());
+//        while (dev)
+//        {
+//            location.append(dev->netAddress());
+//            dev = dev->parentDevice();
+//        }
 //        for (int i=2; i<location.size(); i++)
 //            location[i] = mAdjacentNode->natRoute(location[i]);
-        mAdjacentNode->sendServiceMessage(svcHello, location);
-    }
+//        mAdjacentNode->sendServiceMessage(svcHello, location);
+//    }
 }
 //---------------------------------------------------------------------------
 
@@ -189,9 +189,15 @@ ObjnetDevice *ObjnetMaster::createDevice(unsigned char mac, ByteArray &location)
     
     if (mAdjacentNode && mAdjacentNode->isConnected()) // если мастер связан с узлом, который уже подключен
     {
+        bool send = true;
         for (int i=2; i<location.size(); i++)
+        {
             location[i] = mAdjacentNode->natRoute(location[i]);
-        mAdjacentNode->sendServiceMessage(svcHello, location); // отправляем дальше
+            if (location[i] == 0x7F)
+                send = false;
+        }
+        if (send)
+            mAdjacentNode->sendServiceMessage(svcHello, location); // отправляем дальше
     } 
     
     return dev;
@@ -365,6 +371,20 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
       case svcWelcome: // this is message from supernet
       case svcWelcomeAgain:
       {
+        if (msg.size() == 1)
+        {
+            for (int i=1; i<16; i++)
+            {
+                ObjnetDevice *dev = mLocalnetDevices[i];
+                if (dev)
+                {
+                    ByteArray location;
+                    location.append(dev->busAddress());
+                    location.append(dev->netAddress());  
+                    mAdjacentNode->sendServiceMessage(svcHello, location);
+                }
+            }
+        }
         if (msg.size() == 2)
         {
             unsigned char supernetaddr = msg.data()[0];
@@ -375,13 +395,27 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
                 addNatPair(supernetaddr, subnetaddr);
                 // TODO: send dev's class & name somehow
                 mAdjacentNode->sendServiceMessage(netaddr, svcConnected, supernetaddr); // a la echo
+                
+                for (int i=0; i<dev->mChildren.size(); i++)
+                {
+                    ObjnetDevice *child = dev->mChildren[i];
+                    ByteArray location;
+                    location.append(child->busAddress());
+                    while (child)
+                    {
+                        location.append(child->netAddress());
+                        child = child->parentDevice();
+                    }
+                    for (int i=2; i<location.size(); i++)
+                        location[i] = mAdjacentNode->natRoute(location[i]);
+                    mAdjacentNode->sendServiceMessage(svcHello, location);
+                }
             }
             else
             {
                 break; // this is IMPOSSIBRU!!
             }
         }
-//        mAdjacentNode->sendServiceMessage(netaddr, svcConnected, supernetaddr); // a la echo
       } break;
       
       case svcConnected:

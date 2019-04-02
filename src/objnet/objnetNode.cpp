@@ -324,10 +324,9 @@ void ObjnetNode::parseServiceMessage(CommonMessage &msg)
                 sendServiceMessage(remoteAddr, svcEcho); // echo at the end of info
             }
         }
-        else if (mAdjacentNode) // remote addr
+        if (mAdjacentNode)
         {
             mAdjacentNode->parseServiceMessage(msg);
-//            mAdjacentNode->acceptServiceMessage(remoteAddr, oid, &msg.data());
         }
         break;
 

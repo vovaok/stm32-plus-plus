@@ -10,7 +10,7 @@ RadioOnbInterface::RadioOnbInterface(CC1200 *device) :
     cc1200(device),
     ledRx(0L), ledTx(0L),
     mTxBusy(false), mRxBusy(false),
-    mRssi(0), mLqi(0),
+//    mRssi(0), mLqi(0),
     mCurTxMac(0),
     mBurstRx(false), mBurstTx(false),
     mRxSize(0),
@@ -26,6 +26,7 @@ RadioOnbInterface::RadioOnbInterface(CC1200 *device) :
     mCurHdr.size = 0;
     mCurHdr.address = 0;
     mBusType = BusRadio;
+    memset(mRssi, 0, sizeof(mRssi));
     stmApp()->registerTaskEvent(EVENT(&RadioOnbInterface::task));
     stmApp()->registerTickEvent(EVENT(&RadioOnbInterface::tick));
     
@@ -260,8 +261,8 @@ bool RadioOnbInterface::parseRxBuffer()
                 readRxBuffer(reinterpret_cast<unsigned char*>(mCurRxMsg.data().data()), mCurRxMsg.size());
             readRxBuffer(reinterpret_cast<unsigned char*>(&sts), 2);
             mRxSize -= mCurHdr.size;
-            mRssi = sts.RSSI;
-            mLqi = sts.LQI;
+            mRssi[mCurTxMac] = sts.RSSI;
+            //mLqi = sts.LQI;
             bool ok = sts.CRC_OK;
             if (ok)
                 writeRx(mCurRxMsg); 
@@ -337,6 +338,7 @@ void RadioOnbInterface::masterTask()
         {
             if (nakEvent && mCurTxMac)
                 nakEvent(mCurTxMac);
+            mRssi[mCurTxMac] = 0;
             mBurstRx = 0;
             mCurHdr.size = 0;
             mState = stateIdle;

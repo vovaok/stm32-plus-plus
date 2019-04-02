@@ -14,7 +14,8 @@ private:
     CC1200 *cc1200;
     Led *ledRx, *ledTx;
     bool mTxBusy, mRxBusy;
-    int mRssi, mLqi;
+//    int mRssi, mLqi;
+    char mRssi[16];
     ByteArray mTxBuffer;
     CommonMessage mCurRxMsg, mCurTxMsg;
     CC1200::PayloadHeader mCurHdr;
@@ -70,8 +71,9 @@ public:
     
     void setLeds(Led *rx, Led *tx);
     
-    int rssi() const {return mRssi;}
-    int lqi() const {return mLqi;}
+    const char *rssi() const {return mRssi;}
+    char rssi(unsigned char mac) const {return mRssi[mac];}
+//    int lqi() const {return mLqi;}
     
     int errorCount;
     
