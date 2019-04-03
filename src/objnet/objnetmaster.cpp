@@ -193,7 +193,7 @@ ObjnetDevice *ObjnetMaster::createDevice(unsigned char mac, ByteArray &location)
         for (int i=2; i<location.size(); i++)
         {
             location[i] = mAdjacentNode->natRoute(location[i]);
-            if (location[i] == 0x7F)
+            if ((unsigned char)location[i] == (unsigned char)0x7F)
                 send = false;
         }
         if (send)
