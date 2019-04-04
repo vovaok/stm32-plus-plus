@@ -185,6 +185,8 @@ public:
     inline int rCount() const {int sz = sizeofType((Type)mDesc.rType); return (isArray() && sz)? mDesc.readSize / sz: 1;}
 
     inline const Description &description() {return mDesc;}
+    
+    Closure<void(void)> onValueChanged;
 
     #ifdef QT_CORE_LIB
     QVariant toVariant();

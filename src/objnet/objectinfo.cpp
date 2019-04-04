@@ -149,6 +149,8 @@ bool ObjectInfo::write(const ByteArray &ba)
 {
     if ((mDesc.flags & Function) && !mIsDevice)
         invoke(ba);
+    
+    bool changed = false;
   
     if (!mWritePtr || !(mDesc.flags & Write))
         return false;
@@ -159,21 +161,40 @@ bool ObjectInfo::write(const ByteArray &ba)
             return false;
         else
         {
-            *str = _toString(string(ba.data(), ba.size()));
+            _String newstr = _toString(string(ba.data(), ba.size()));
+            if (onValueChanged && (*str != newstr))
+                changed = true;
+            *str = newstr;
         }
         return true;
     }
     else if (mDesc.wType == Common && mDesc.writeSize == 0) // pure (Q)ByteArray
     {
-        *reinterpret_cast<ByteArray*>(mWritePtr) = ba;
+        ByteArray &oldBa = *reinterpret_cast<ByteArray*>(mWritePtr);
+        if (onValueChanged && (oldBa != ba))
+            changed = true;
+        oldBa = ba;
     }
     else if ((size_t)ba.size() == mDesc.writeSize)
     {
+        unsigned char *dst = reinterpret_cast<unsigned char*>(mWritePtr);
         for (size_t i=0; i<mDesc.writeSize; i++)
-            reinterpret_cast<unsigned char*>(mWritePtr)[i] = ba[i];
+        {
+            unsigned char b = ba[i];
+            if (onValueChanged && dst[i] != b)
+                changed = true;
+            dst[i] = b;
+        }
         return true;
     }
-    return false;
+    else
+    {
+        return false;
+    }
+    
+    if (onValueChanged && changed)
+        onValueChanged();
+    return true;
 }
 
 ByteArray ObjectInfo::invoke(const ByteArray &ba)
