@@ -145,7 +145,8 @@ ObjnetDevice *ObjnetMaster::createDevice(unsigned char mac, ByteArray &location)
 
     dev = new ObjnetDevice(netaddr);            // создаём объект с новым адресом
     dev->mMaster = this;
-    dev->mAutoDelete = true;                    // раз автоматически создали - автоматически и удалим)
+//    dev->mAutoDelete = true;                    // раз автоматически создали - автоматически и удалим)
+    dev->mAutoDelete = false;     // ***** !!!!! TRY THIS !!!!!! *********
     dev->mBusAddress = location[0];
     dev->mIsLocal = localnet;
     dev->masterRequestObject = EVENT(&ObjnetMaster::requestObject);
