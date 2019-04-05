@@ -186,7 +186,7 @@ public:
 
     inline const Description &description() {return mDesc;}
     
-    Closure<void(void)> onValueChanged;
+    Closure<void(unsigned char)> onValueChanged;
 
     #ifdef QT_CORE_LIB
     QVariant toVariant();

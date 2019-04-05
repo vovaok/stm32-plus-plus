@@ -166,7 +166,6 @@ bool ObjectInfo::write(const ByteArray &ba)
                 changed = true;
             *str = newstr;
         }
-        return true;
     }
     else if (mDesc.wType == Common && mDesc.writeSize == 0) // pure (Q)ByteArray
     {
@@ -182,10 +181,11 @@ bool ObjectInfo::write(const ByteArray &ba)
         {
             unsigned char b = ba[i];
             if (onValueChanged && dst[i] != b)
+            {
                 changed = true;
+            }
             dst[i] = b;
         }
-        return true;
     }
     else
     {
@@ -193,7 +193,7 @@ bool ObjectInfo::write(const ByteArray &ba)
     }
     
     if (onValueChanged && changed)
-        onValueChanged();
+        onValueChanged(mDesc.id);
     return true;
 }
 

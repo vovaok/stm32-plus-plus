@@ -110,13 +110,14 @@ void ObjnetMaster::onTimer()
                 if (dev->mAutoDelete)
                     removeDevice(dev->netAddress());
             }
-            if (mSwonbMode)
-            {
-                // request device presence
-                sendServiceMessageToMac(mac, svcHello);
-                if (mSearchMac == mac)
-                    mSearchMac = (mSearchMac < 15)? mSearchMac + 1: 1;
-            }
+            // nado potom vernut kogda vse zarabotaet
+//            if (mSwonbMode)
+//            {
+//                // request device presence
+//                sendServiceMessageToMac(mac, svcHello);
+//                if (mSearchMac == mac)
+//                    mSearchMac = (mSearchMac < 15)? mSearchMac + 1: 1;
+//            }
         }
         if (mSwonbMode)
         {
@@ -233,6 +234,10 @@ void ObjnetMaster::disconnectDevice(unsigned char netaddr)
         return;
     ObjnetDevice *dev = mDevices[netaddr];
     dev->mPresent = false;
+
+    // recursively disconnect children
+    for (size_t i=0; i<dev->mChildren.size(); i++)
+        disconnectDevice(dev->mChildren[i]->netAddress());
     
     if (mAdjacentNode)
     {
@@ -339,13 +344,36 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
         bool isLocalNet = (location.size() == 1);
         unsigned char mac = location[0];
         unsigned char subnetaddr = isLocalNet? 0: location[1];
-        dev = 0L; // if device is not null then device is wrong;
         if (isLocalNet)
             dev = mLocalnetDevices[mac];
-        else if (netaddr != 0x7F)
-            mac = route(netaddr);
         else
-            break; // ERROR!!! this is impossibru! (child device attempts to connect BEFORE parent)
+        {
+//#warning TODO!! implement ONB devices recursive search
+            ObjnetDevice *foundDev = 0L;
+            for (int i=0; i<dev->mChildren.size() && !foundDev; i++)
+            {
+                ObjnetDevice *child = dev->mChildren[i];
+                if (location.size() == 2) // subnet level
+                {
+                    if (child->busAddress() == mac)
+                        foundDev = child;
+                }
+                else if (location.size() == 3)
+                {
+                    for (int i=0; i<child->mChildren.size() && !foundDev; i++)
+                    {
+                        ObjnetDevice *grandchild = child->mChildren[i];
+                        if (grandchild->busAddress() == mac)
+                            foundDev = grandchild;
+                    }
+                }
+            }
+            dev = foundDev;
+            if (netaddr != 0x7F)
+                mac = route(netaddr);
+            else
+                break; // ERROR!!! this is impossibru! (child device attempts to connect BEFORE parent)
+        }
         
         location.append(netaddr); // append sender's address as parent
             
@@ -427,7 +455,8 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
             break; // this is IMPOSSIBRU!
         if (remoteDev->isValid())
         {
-            connectDevice(remoteAddress);
+            if (!remoteDev->isPresent())
+                connectDevice(remoteAddress);
         }
         else
         {

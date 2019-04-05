@@ -26,6 +26,7 @@ void ObjnetDevice::prepareObject(const ObjectInfo::Description &desc)
 {
     ObjectInfo *obj = &mObjMap[desc.name];
     obj->mIsDevice = true;
+    obj->onValueChanged = EVENT(&ObjnetDevice::onObjectValueChanged);
 
     unsigned char wt = desc.wType;
     unsigned char rt = desc.rType;
@@ -344,6 +345,14 @@ void ObjnetDevice::receiveGlobalMessage(unsigned char aid)
     if (onGlobalMessage)
         onGlobalMessage(aid);
 #endif
+}
+
+void ObjnetDevice::onObjectValueChanged(unsigned char id)
+{
+    #ifdef QT_CORE_LIB
+    ObjectInfo *obj = mObjects[id];
+    emit objectValueChanged(obj->name(), obj->toVariant());
+    #endif
 }
 //---------------------------------------------------------
 

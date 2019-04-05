@@ -30,6 +30,8 @@ private:
     static const unsigned long mInfoValidMask = 0x000000FF;
     unsigned long mInfoValidFlags;
 
+    void onObjectValueChanged(unsigned char id);
+
 protected:
 //    typedef struct
 //    {
@@ -154,11 +156,14 @@ public:
     bool bindVariable(_String name, Tr &rVar, Tw &wVar)
     {
         ObjectInfo &info = mObjMap[_fromString(name)];
+        ObjectInfo::Type rt = typeOfVar(rVar);
+        ObjectInfo::Type wt = typeOfVar(wVar);
         if ((((sizeof(rVar) == info.mDesc.readSize)) && (sizeof(wVar) == info.mDesc.writeSize)) || !info.mDesc.flags)
         {
             info.mWritePtr = &wVar;
             info.mReadPtr = &rVar;
-            info.mDesc.wType = info.mDesc.rType = ObjectInfo::Common;
+            info.mDesc.wType = wt;
+            info.mDesc.rType = rt;//ObjectInfo::Common;
             return true;
         }
         return false;
@@ -196,6 +201,8 @@ signals:
     void objectReceived(QString name, QVariant value);
     void timedObjectReceived(QString name, unsigned long timestamp, QVariant value);
     void autoRequestAccepted(QString name, int periodMs);
+
+    void objectValueChanged(QString name, QVariant value);
 
     void ready();
 
