@@ -48,6 +48,8 @@ protected:
     void adjacentConnected();
 
 public:
+    Closure<void(CommonMessage&)> onServiceMessage;
+
 #ifdef QT_CORE_LIB
 signals:
     void devAdded(unsigned char netAddress, const QByteArray &locData);

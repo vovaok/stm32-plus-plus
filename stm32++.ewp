@@ -8745,6 +8745,12 @@
     <file>
       <name>$PROJ_DIR$\src\core\qdebug.h</name>
     </file>
+    <file>
+      <name>$PROJ_DIR$\src\core\qquaternion.h</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\src\core\qvector3d.h</name>
+    </file>
   </group>
   <group>
     <name>objnet</name>
@@ -8807,6 +8813,12 @@
     </file>
     <file>
       <name>$PROJ_DIR$\src\objnet\objnetstorage.h</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\src\objnet\onbupgrader.cpp</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\src\objnet\onbupgrader.h</name>
     </file>
     <file>
       <name>$PROJ_DIR$\src\objnet\onbvirtualinterface.cpp</name>

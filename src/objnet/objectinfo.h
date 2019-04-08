@@ -64,6 +64,14 @@ public:
         UChar = 37,
         Float = 38,
         SChar = 40,
+        
+        // Qt-specific types
+        QTransform = 80,
+        QMatrix4x4 = 81,
+        QVector2D = 82,
+        QVector3D = 83,
+        QVector4D = 84,
+        QQuaternion = 85,
 
         String = 10,  // QString B Qt, string B APMe
         Common = 12, // Common - this is (Q)ByteArray
@@ -84,6 +92,8 @@ public:
     typedef float Float_t;
     typedef signed char SChar_t;
     typedef string String_t;
+    typedef ::QVector3D QVector3D_t;
+    typedef ::QQuaternion QQuaternion_t;
 
     struct Description
     {
@@ -212,6 +222,8 @@ DeclareTypeOfVar(UChar)
 DeclareTypeOfVar(Float)
 DeclareTypeOfVar(SChar)
 template<> ObjectInfo::Type typeOfVar<_String>(_String &var) {(void)var; return ObjectInfo::String;}
+DeclareTypeOfVar(QVector3D)
+DeclareTypeOfVar(QQuaternion)
 
 template<typename T>
 ObjectInfo::ObjectInfo(string name, T &var, Flags flags) :

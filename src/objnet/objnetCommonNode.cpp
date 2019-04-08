@@ -60,7 +60,19 @@ void ObjnetCommonNode::task()
 //                if (mRetranslateEvent)
 //                    mRetranslateEvent(inMsg);
                 if (mAdjacentNode)
+                {
+                    GlobalMsgId newId = id;
+                    if (!id.mac) // it is the master
+                        newId.addr++;
+                    else
+                    {
+                        newId.addr = mAdjacentNode->natRoute(id.addr);
+                        newId.mac = mAdjacentNode->route(id.addr);
+                    }
+                    inMsg.setId(newId);
                     mAdjacentNode->mInterface->write(inMsg);
+                    inMsg.setId(id); // restore id
+                }
             }
 
             if (id.svc)

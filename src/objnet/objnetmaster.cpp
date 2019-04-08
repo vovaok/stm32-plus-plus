@@ -526,6 +526,9 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
         emit serviceMessageAccepted(netaddr, oid, msg.data());
         #endif
     }
+    
+    if (onServiceMessage)
+        onServiceMessage(msg);
 }
 //---------------------------------------------------------------------------
 
