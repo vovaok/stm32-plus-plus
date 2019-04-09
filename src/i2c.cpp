@@ -1,11 +1,47 @@
 #include "i2c.h"
 
+#define I2C_TIMEOUT 5000
+
 I2c::I2c(int i2cNumber, int clockSpeed, int address, Gpio::Config pinSDA, Gpio::Config pinSCL) 
 {
     
     mAddress = address;
     mClockSpeed = clockSpeed;
     failAddress = 0;
+    
+    switch (i2cNumber)
+    {
+    
+    case 1:
+        mI2c = I2C1;
+        RCC_APB1PeriphClockCmd(RCC_APB1Periph_I2C1, ENABLE);
+        break;
+        
+    case 2:
+        mI2c = I2C2;
+        RCC_APB1PeriphClockCmd(RCC_APB1Periph_I2C2, ENABLE);
+        break;
+        
+    case 3:
+        mI2c = I2C3;
+        RCC_APB1PeriphClockCmd(RCC_APB1Periph_I2C3, ENABLE);
+        break;
+        
+    }
+    Gpio::config(pinSDA);
+    Gpio::config(pinSCL);
+    init();
+}
+
+I2c::I2c(Gpio::Config pinSDA, Gpio::Config pinSCL, int clockSpeed, unsigned char address)
+{
+    mAddress = address;
+    mClockSpeed = clockSpeed;
+    failAddress = 0;
+    
+    int i2cNumber = GpioConfigGetPeriphNumber(pinSDA);
+    if (i2cNumber != GpioConfigGetPeriphNumber(pinSCL))
+        throw Exception::invalidPeriph;
     
     switch (i2cNumber)
     {
@@ -62,7 +98,7 @@ bool I2c::startTransmission(uint8_t transmissionDirection, uint8_t slaveAddress)
 {
     lastAddress = slaveAddress;
     
-    int timeout = 500;
+    int timeout = I2C_TIMEOUT;
     
     // если не мастер:
 //    if (!(mI2c->SR2 & I2C_SR2_MSL))
@@ -76,7 +112,7 @@ bool I2c::startTransmission(uint8_t transmissionDirection, uint8_t slaveAddress)
     {
         // Генерируем старт
         mI2c->CR1 |= I2C_CR1_START;
-        timeout = 500;
+        timeout = I2C_TIMEOUT;
         // Ждем пока взлетит нужный флаг
         while (!I2C_CheckEvent(mI2c, I2C_EVENT_MASTER_MODE_SELECT) && timeout)
             --timeout;
@@ -92,7 +128,7 @@ bool I2c::startTransmission(uint8_t transmissionDirection, uint8_t slaveAddress)
         // Посылаем адрес подчиненному
         I2C_Send7bitAddress(mI2c, slaveAddress, transmissionDirection);
         
-        timeout = 500;
+        timeout = I2C_TIMEOUT;
         // А теперь у нас два варианта развития событий - в зависимости от выбранного направления обмена данными
         if (transmissionDirection == I2C_Direction_Transmitter)
         {
@@ -111,7 +147,7 @@ bool I2c::startTransmission(uint8_t transmissionDirection, uint8_t slaveAddress)
 
 bool I2c::stopTransmission()
 {
-    int timeout = 500;
+    int timeout = I2C_TIMEOUT;
     mI2c->CR1 |= I2C_CR1_STOP;
     while ((mI2c->SR2 & I2C_SR2_MSL) && timeout)
         --timeout;
@@ -128,7 +164,7 @@ bool I2c::stopTransmission()
 
 bool I2c::writeData(uint8_t data)
 {
-    int timeout = 500;
+    int timeout = I2C_TIMEOUT;
     // Просто вызываем готовую функцию из SPL и ждем, пока данные улетят
     I2C_SendData(mI2c, data);
     while (!I2C_CheckEvent(mI2c, I2C_EVENT_MASTER_BYTE_TRANSMITTED) && timeout)
@@ -142,7 +178,7 @@ bool I2c::writeData(uint8_t data)
 
 bool I2c::readData(unsigned char *buf)
 {
-    int timeout = 5000;
+    int timeout = I2C_TIMEOUT * 10;
     // Тут картина похожа, как только данные пришли быстренько считываем их и возвращаем
     while (!I2C_CheckEvent(mI2c, I2C_EVENT_MASTER_BYTE_RECEIVED) && timeout)
         --timeout;
@@ -181,7 +217,7 @@ bool I2c::regRead(unsigned char address, unsigned char index, unsigned char *buf
     return success;
 }
 
-bool I2c::multipleRead(unsigned char address, unsigned char index, unsigned char *buffer, unsigned char length)
+bool I2c::multipleRead(unsigned char address, unsigned char index, void *buffer, unsigned char length)
 {
     bool success;
     success = startTransmission(I2C_Direction_Transmitter, address);
@@ -196,7 +232,7 @@ bool I2c::multipleRead(unsigned char address, unsigned char index, unsigned char
         {
             if (i == length-1)
                 setAcknowledge(false); 
-            success = success && readData(buffer + i);
+            success = success && readData((unsigned char*)buffer + i);
         }
     }
     if (success)
@@ -220,7 +256,7 @@ bool I2c::regWrite(unsigned char address, unsigned char index, unsigned char byt
     return success;
 }
 
-bool I2c::multipleWrite(unsigned char address, unsigned char index, const unsigned char *buffer, unsigned char length)
+bool I2c::multipleWrite(unsigned char address, unsigned char index, const void *buffer, unsigned char length)
 {
     bool success;
     success = startTransmission(I2C_Direction_Transmitter, address);
@@ -230,7 +266,7 @@ bool I2c::multipleWrite(unsigned char address, unsigned char index, const unsign
     {
         setAcknowledge(false);
         for (int i=0; i<length; i++)
-            success = success && writeData(buffer[i]);
+            success = success && writeData(((unsigned char*)buffer)[i]);
     }
     if (success)
         success = stopTransmission();

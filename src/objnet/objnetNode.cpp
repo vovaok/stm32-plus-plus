@@ -498,8 +498,8 @@ void ObjnetNode::parseMessage(CommonMessage &msg)
             obj.write(msg.data());
             if (obj.isDual() || mBusType == BusSwonb || mBusType == BusRadio)
                 sendMessage(remoteAddr, oid, obj.read());
-            #ifdef __ICCARM__
-            else if (obj.isStorable())
+            #ifndef QT_CORE_LIB
+            if (obj.isStorable() && !obj.isDual())
                 objnetStorage()->save(obj);
             #endif
         }
