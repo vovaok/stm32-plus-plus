@@ -20,7 +20,13 @@ void PowerManager::addVoltageMeasurement(string name, Adc::Channel channel, floa
     entry.channel = channel;
     entry.factor = (3.3f * (Rlow + Rhigh) / Rlow / 4095.0f);
     entry.value = 0;
+    entry.Kf = 0.9;
     mVoltages[name] = entry;
+}
+
+void PowerManager::setFilter(string name, float Kf)
+{
+    mVoltages[name].Kf = Kf;
 }
 
 void PowerManager::onTimer()
@@ -32,12 +38,18 @@ void PowerManager::onTimer()
         mTemperature = 0.95*mTemperature + 0.05*temp;
     
     float v = mAdc->result(Adc::Vbat) * (2.0f * 3.3f / 4095.0f);
-    mVbat = 0.9*mVbat + 0.1*v;
+    if (!mVbat)
+        mVbat = v;
+    else
+        mVbat = 0.9*mVbat + 0.1*v;
     
     for (map<string, VoltageEntry>::iterator it = mVoltages.begin(); it != mVoltages.end(); ++it)
     {
         VoltageEntry &entry = it->second;
         float v = mAdc->result(entry.channel) * entry.factor;
-        entry.value = 0.9*entry.value + 0.1*v;
+        if (!entry.value)
+            entry.value = v;
+        else
+            entry.value = entry.Kf * entry.value + (1.0f - entry.Kf) * v;
     }
 }

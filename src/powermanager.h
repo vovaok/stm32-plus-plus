@@ -16,6 +16,7 @@ private:
         Adc::Channel channel;
         float factor;
         float value;
+        float Kf;
     } VoltageEntry;
   
     Adc *mAdc;
@@ -29,6 +30,7 @@ public:
     PowerManager(Adc *adc);
     
     void addVoltageMeasurement(string name, Adc::Channel channel, float Rhigh, float Rlow);
+    void setFilter(string name, float Kf);
     
     inline float temperature() const {return mTemperature;}
     inline float batteryVoltage() const {return mVbat;}
