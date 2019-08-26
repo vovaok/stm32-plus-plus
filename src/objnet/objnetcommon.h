@@ -128,15 +128,15 @@ struct LocalMsgId
     {
     }
     /*! Неявный конструктор. */
-    LocalMsgId(const unsigned long &data) :
+    LocalMsgId(const uint32_t &data) :
       local(1), _not_used(0)
     {
-        *reinterpret_cast<unsigned long*>(this) = data;
+        *reinterpret_cast<uint32_t*>(this) = data;
     }
-    /*! Приведение типа к unsigned long */
-    operator unsigned long&() {return *reinterpret_cast<unsigned long*>(this);}
-    /*! Приведение типа из unsigned long */
-    void operator =(const unsigned long &data) {*reinterpret_cast<unsigned long*>(this) = data;}
+    /*! Приведение типа к uint32_t */
+    operator uint32_t&() {return *reinterpret_cast<uint32_t*>(this);}
+    /*! Приведение типа из uint32_t */
+    void operator =(const uint32_t &data) {*reinterpret_cast<uint32_t*>(this) = data;}
 };
 
 //! Global Message ID type.
@@ -155,15 +155,15 @@ struct GlobalMsgId
     {
     }
     /*! Неявный конструктор. */
-    GlobalMsgId(const unsigned long &data) :
+    GlobalMsgId(const uint32_t &data) :
       local(0), _not_used(0)
     {
-        *reinterpret_cast<unsigned long*>(this) = data;
+        *reinterpret_cast<uint32_t*>(this) = data;
     }
-    /*! Приведение типа к unsigned long */
-    operator unsigned long&() {return *reinterpret_cast<unsigned long*>(this);}
-    /*! Приведение типа из unsigned long */
-    void operator =(const unsigned long &data) {*reinterpret_cast<unsigned long*>(this) = data;}
+    /*! Приведение типа к uint32_t */
+    operator uint32_t&() {return *reinterpret_cast<uint32_t*>(this);}
+    /*! Приведение типа из uint32_t */
+    void operator =(const uint32_t &data) {*reinterpret_cast<uint32_t*>(this) = data;}
 };
 
 }

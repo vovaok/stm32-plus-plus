@@ -1,4 +1,4 @@
-#include "objectinfo.h"
+#include "ObjectInfo.h"
 
 using namespace Objnet;
 
