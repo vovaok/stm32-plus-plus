@@ -73,6 +73,8 @@ public:
     const __appinfo_t__ *firmwareInfo() const {return mInfo;}
     string getFirmwareInfo() const;
     
+    int deviceCount() const {return mDevices.size();}
+    
     Closure<void(string)> logEvent;
 
 #ifdef QT_CORE_LIB
