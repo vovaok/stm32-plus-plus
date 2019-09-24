@@ -25,6 +25,7 @@ private:
     ByteArray mRxBuffer;
     ByteArray mTxBuffer;
     ConstDataEvent mDataOutEvent;
+    NotifyEvent mDataInEvent;
     //void getRxBuffer(ByteArray &data);
     unsigned char mPollInterval;
     
@@ -45,7 +46,9 @@ public:
     unsigned char number() const {return mDescriptor->endpointAddress();}
     
     void setDataOutEvent(const ConstDataEvent &e) {mDataOutEvent = e;}
+    void setDataInEvent(const NotifyEvent &e) {mDataInEvent = e;}
     void sendData(const ByteArray &data);
+    void sendDataLL(unsigned char *data, int size);
     
     bool isIn() const {return mDescriptor->endpointAddress() & 0x80;}
     

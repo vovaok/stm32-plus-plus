@@ -9,6 +9,7 @@ typedef enum
     UsbClassAudio       = 0x01,
     UsbClassCdcControl  = 0x02,
     UsbClassHid         = 0x03,
+    UsbClassMsc         = 0x08,
     UsbClassCdcData     = 0x0A,
 } UsbClass;
   
