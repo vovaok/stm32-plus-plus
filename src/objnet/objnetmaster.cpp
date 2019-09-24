@@ -582,7 +582,7 @@ unsigned char ObjnetMaster::createNetAddress(unsigned char mac)
 }
 //---------------------------------------------------------------------------
 
-ObjnetDevice *ObjnetMaster::deviceBySerial(unsigned long serial)
+ObjnetDevice *ObjnetMaster::deviceBySerial(uint32_t serial)
 {
     for (DeviceIterator it=mDevices.begin(); it!=mDevices.end(); it++)
     {

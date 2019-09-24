@@ -233,7 +233,7 @@ void ObjnetNode::parseServiceMessage(CommonMessage &msg)
             
           case aidUpgradeStart:
           {
-            unsigned long classId = *reinterpret_cast<unsigned long*>(msg.data().data());
+            uint32_t classId = *reinterpret_cast<uint32_t*>(msg.data().data());
             #ifndef QT_CORE_LIB
             if (classId == mClass)
             {
@@ -425,7 +425,7 @@ void ObjnetNode::parseServiceMessage(CommonMessage &msg)
         
       case svcUpgradeRequest:
       {
-        unsigned long classId = *reinterpret_cast<unsigned long*>(msg.data().data());
+        uint32_t classId = *reinterpret_cast<uint32_t*>(msg.data().data());
         #ifndef QT_CORE_LIB
         if (classId == mClass)
         {
@@ -557,7 +557,7 @@ void ObjnetNode::onSendTimer()
                     ByteArray ba;
                     ba.append(reinterpret_cast<const char*>(&oid), sizeof(unsigned char));
                     ba.append('\0'); // reserved byte
-                    ba.append(reinterpret_cast<const char*>(&mTimestamp), sizeof(unsigned long));
+                    ba.append(reinterpret_cast<const char*>(&mTimestamp), sizeof(uint32_t));
                     ba.append(obj.read());
                     sendServiceMessage(obj.mAutoReceiverAddr, svcTimedObject, ba);
                 }

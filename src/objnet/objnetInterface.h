@@ -11,6 +11,7 @@
 
 #include <queue>
 #include "objnetmsg.h"
+#include "stdint.h"
 
 namespace Objnet
 {
@@ -90,7 +91,7 @@ public:
         \param mask маска фильтра, по умолчанию все биты выставлены в 1, т.е. идентификатор должен полностью совпадать.
         \return номер фильтра, который можно использовать для удаления, например.
     */
-    virtual int addFilter(unsigned long id, unsigned long mask=0xFFFFFFFF) = 0;
+    virtual int addFilter(uint32_t id, uint32_t mask=0xFFFFFFFF) = 0;
 
     /*! Удаление фильтра.
         \param [in] number номер фильтра, который будет удалён.

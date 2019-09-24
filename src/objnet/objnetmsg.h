@@ -16,7 +16,7 @@ class CommonMessage
 {
 protected:
     ByteArray mBa;
-    unsigned long mId;
+    uint32_t mId;
 
 public:
     CommonMessage() :
@@ -34,8 +34,8 @@ public:
     {
     }
 
-    unsigned long rawId() const {return mId;}
-    void setId(unsigned long rawId) {mId = rawId;}
+    uint32_t rawId() const {return mId;}
+    void setId(uint32_t rawId) {mId = rawId;}
     LocalMsgId localId() {return reinterpret_cast<LocalMsgId&>(mId);}
     void setLocalId(LocalMsgId id) {mId = reinterpret_cast<int&>(id);}
     GlobalMsgId globalId() {return reinterpret_cast<GlobalMsgId&>(mId);}

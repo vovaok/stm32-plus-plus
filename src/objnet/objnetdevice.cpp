@@ -1,5 +1,6 @@
 #include "objnetdevice.h"
 #include "objnetmaster.h"
+#include "stdint.h"
 
 using namespace Objnet;
 
@@ -70,7 +71,11 @@ void ObjnetDevice::prepareObject(const ObjectInfo::Description &desc)
                         o->mWritePtr = ptr;
                     else
                     {
+                        #ifdef Q_OS_LINUX
+                        int off = (uintptr_t)o->mReadPtr - (uintptr_t)o->mWritePtr;
+                        #else
                         int off = (int)o->mReadPtr - (int)o->mWritePtr;
+                        #endif
                         o->mWritePtr = ptr;
                         o->mReadPtr = ptr + off;
                     }
@@ -177,7 +182,7 @@ void ObjnetDevice::receiveServiceObject(unsigned char oid, const ByteArray &ba)
     switch (oid)
     {
       case svcClass:
-        mClass = *reinterpret_cast<const unsigned long*>(ba.data());
+        mClass = *reinterpret_cast<const uint32_t*>(ba.data());
         break;
         
       case svcName:
@@ -191,7 +196,7 @@ void ObjnetDevice::receiveServiceObject(unsigned char oid, const ByteArray &ba)
         break;
 
       case svcSerial:
-        mSerial = *reinterpret_cast<const unsigned long*>(ba.data());
+        mSerial = *reinterpret_cast<const uint32_t*>(ba.data());
         break;
 
       case svcVersion:
@@ -207,7 +212,7 @@ void ObjnetDevice::receiveServiceObject(unsigned char oid, const ByteArray &ba)
         break;
 
       case svcBurnCount:
-        mBurnCount = *reinterpret_cast<const unsigned long*>(ba.data());
+        mBurnCount = *reinterpret_cast<const uint32_t*>(ba.data());
         break;
 
       case svcObjectCount:
@@ -283,7 +288,7 @@ void ObjnetDevice::receiveTimedObject(const ByteArray &ba)
 {
     unsigned char oid = ba[0];
 //    unsigned char reserve = ba[1];
-    unsigned long timestamp = *reinterpret_cast<const unsigned long*>(ba.data() + 2);
+    uint32_t timestamp = *reinterpret_cast<const uint32_t*>(ba.data() + 2);
     ByteArray objba = ba.mid(6);
     if (oid < mObjects.size())
     {

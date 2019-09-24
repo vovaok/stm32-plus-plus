@@ -27,8 +27,8 @@ class ObjnetDevice : public QObject
 #endif
 private:
     // mask should be 0x3FF but now we have this shit for backward compatibility
-    static const unsigned long mInfoValidMask = 0x000000FF;
-    unsigned long mInfoValidFlags;
+    static const uint32_t mInfoValidMask = 0x000000FF;
+    uint32_t mInfoValidFlags;
 
     void onObjectValueChanged(unsigned char id);
 
@@ -54,14 +54,14 @@ protected:
 //    unsigned char mChildrenCount;
 //    unsigned char mOrphanCount; // not processed children
     
-    unsigned long mClass;
+    uint32_t mClass;
     string mName;
     string mFullName;
-    unsigned long mSerial;
+    uint32_t mSerial;
     unsigned short mVersion;
     string mBuildDate;
     string mCpuInfo;
-    unsigned long mBurnCount;
+    uint32_t mBurnCount;
     unsigned char mObjectCount;
     BusType mBusType;
 
@@ -92,10 +92,10 @@ public:
     unsigned char netAddress() const {return mNetAddress;}
     unsigned char busAddress() const {return mBusAddress;}
 
-    unsigned long classId() const {return mClass;}
+    uint32_t classId() const {return mClass;}
     _String name() const {return _toString(mName);}
     _String fullName() const {return _toString(mFullName);}
-    unsigned long serial() const {return mSerial;}
+    uint32_t serial() const {return mSerial;}
     unsigned short version() const {return mVersion;}
     int majorVersion() const {return mVersion >> 8;}
     int minorVersion() const {return mVersion & 0xFF;}
@@ -199,7 +199,7 @@ signals:
 
     void infoReceived(unsigned char oid);
     void objectReceived(QString name, QVariant value);
-    void timedObjectReceived(QString name, unsigned long timestamp, QVariant value);
+    void timedObjectReceived(QString name, uint32_t timestamp, QVariant value);
     void autoRequestAccepted(QString name, int periodMs);
 
     void objectValueChanged(QString name, QVariant value);

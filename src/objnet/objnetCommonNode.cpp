@@ -156,13 +156,13 @@ void ObjnetCommonNode::task()
                 }
             }
 
-            std::list<unsigned long> toRemove;
-            std::map<unsigned long, CommonMessageBuffer>::iterator it;
+            std::list<uint32_t> toRemove;
+            std::map<uint32_t, CommonMessageBuffer>::iterator it;
             for (it=mFragmentBuffer.begin(); it!=mFragmentBuffer.end(); it++)
                 if (it->second.damage() == 0)
                     toRemove.push_back(it->first);
 
-            for (std::list<unsigned long>::iterator it=toRemove.begin(); it!=toRemove.end(); it++)
+            for (std::list<uint32_t>::iterator it=toRemove.begin(); it!=toRemove.end(); it++)
                 mFragmentBuffer.erase(*it);
             toRemove.clear();
         }
@@ -198,14 +198,14 @@ void ObjnetCommonNode::setBusAddress(unsigned char address)
 #ifndef QT_CORE_LIB
 void ObjnetCommonNode::setBusAddressFromPins(int bits, Gpio::PinName a0, ...)
 {
-    unsigned long address = 0;
+    uint32_t address = 0;
     va_list vl;
     va_start(vl, a0);
     for (int i=0; i<bits; i++)
     {
         Gpio::PinName pinName = i? (Gpio::PinName)va_arg(vl, int): a0;
         Gpio pin(pinName, Gpio::Flags(Gpio::modeIn | Gpio::pullUp));
-        unsigned long bit = pin.read()? 1: 0;
+        uint32_t bit = pin.read()? 1: 0;
         address |= bit << i;
     }
     va_end(vl);
