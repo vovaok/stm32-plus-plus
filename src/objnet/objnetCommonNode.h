@@ -46,7 +46,7 @@ private:
 //    CommonMessage mSheduledMsg; // to be sent later
     
     // fragmented receive buffers
-    std::map<unsigned long, CommonMessageBuffer> mFragmentBuffer;
+    std::map<uint32_t, CommonMessageBuffer> mFragmentBuffer;
     unsigned char mFragmentSequenceNumber;
 
     std::map<unsigned char, unsigned char> mNatTable;

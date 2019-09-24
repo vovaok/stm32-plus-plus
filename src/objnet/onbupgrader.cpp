@@ -65,8 +65,8 @@ void OnbUpgrader::load(const ByteArray &firmware)
         mPageSize = 2048; // HACK
     mInfo->length = mSize;
     mInfo->checksum = 0;
-    unsigned long cs = 0;
-    unsigned long *data = reinterpret_cast<unsigned long*>(mBin.data());
+    uint32_t cs = 0;
+    uint32_t *data = reinterpret_cast<uint32_t*>(mBin.data());
     for (int i=0; i<mSize/4; i++)
         cs -= data[i];
     mInfo->checksum = cs;
@@ -329,7 +329,7 @@ bool OnbUpgrader::isAllReady()
 }
 //---------------------------------------------------------------------------
 
-bool OnbUpgrader::checkClass(const ByteArray &firmware, unsigned long cid)
+bool OnbUpgrader::checkClass(const ByteArray &firmware, uint32_t cid)
 {
     int idx = firmware.indexOf("__APPINFO__");
     if (idx < 0)
@@ -343,7 +343,7 @@ string OnbUpgrader::_number(int num, bool hex)
 {
     char buf[16];
     if (hex)
-        sprintf(buf, "0x%08X", (unsigned long)num);
+        sprintf(buf, "0x%08X", (uint32_t)num);
     else
         sprintf(buf, "%d", num);
     return string(buf);

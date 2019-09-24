@@ -15,11 +15,11 @@ class OnbUpgrader : public QObject
     typedef struct
     {
         char const pre[12];
-        unsigned long cid;
+        uint32_t cid;
         unsigned short ver;
         unsigned short pageSize;
-        unsigned long length;
-        unsigned long checksum;
+        uint32_t length;
+        uint32_t checksum;
         char timestamp[25];
     } __appinfo_t__;
     #pragma pack(pop)
@@ -40,7 +40,7 @@ private:
     int mSize, mPageSize;
     int mCount, mCurBytes;
     bool mPageDone, mPageTransferred, mPageRepeat;
-    unsigned long mClass;
+    uint32_t mClass;
     
     static string _number(int num, bool hex=false);
     void _internal_log(string) {}
@@ -61,7 +61,7 @@ public:
     OnbUpgrader(ObjnetMaster *master);
     ~OnbUpgrader();
     
-    static bool checkClass(const ByteArray &firmware, unsigned long cid);
+    static bool checkClass(const ByteArray &firmware, uint32_t cid);
     
     void load(const ByteArray &firmware);
     void scan(unsigned char netaddr=0);
@@ -72,6 +72,8 @@ public:
     int pageCount() const {return mSize / mPageSize;}
     const __appinfo_t__ *firmwareInfo() const {return mInfo;}
     string getFirmwareInfo() const;
+    
+    int deviceCount() const {return mDevices.size();}
     
     Closure<void(string)> logEvent;
 

@@ -54,6 +54,9 @@ void UsbEndpoint::dataOut(int size)
 
 void UsbEndpoint::dataIn()
 {
+    if (mDataInEvent)
+        mDataInEvent();
+  
 //    printf("dataIn\n");
     if ((mDescriptor->attributes() & 0x3) == TransferInterrupt)
     {
@@ -96,5 +99,11 @@ void UsbEndpoint::sendData(const ByteArray &data)
 //        device()->driver()->epTx(mDescriptor->endpointAddress(), mTxBuffer.data(), mTxBuffer.size());
 //        mTxBuffer.clear();
 //    }
+}
+
+void UsbEndpoint::sendDataLL(unsigned char *data, int size)
+{
+    if (isIn() && (device()->deviceStatus() == UsbOtgConfigured))
+        device()->driver()->epTx(mDescriptor->endpointAddress(), data, size);
 }
 //---------------------------------------------------------------------------

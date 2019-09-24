@@ -31,17 +31,17 @@ private:
     int mNetTimeout;
     unsigned char mCurrentRemoteAddress;
     int mObjInfoSendCount; // variable for counting of info objects sended
-    unsigned long mTimestamp;
+    uint32_t mTimestamp;
 
     // objnet related parameters:
-    unsigned long mClass;
+    uint32_t mClass;
     _String mName;
     _String mFullName;
-    unsigned long mSerial;
+    uint32_t mSerial;
     unsigned short mVersion;
     _String mBuildDate;
     _String mCpuInfo;
-    unsigned long mBurnCount;
+    uint32_t mBurnCount;
     unsigned char mBusType; // BusType
     
     // количество экземпляров узлов (логических узлов) в одном физическом
@@ -69,7 +69,7 @@ protected:
 
     unsigned char route(unsigned char netAddress) {(void)netAddress; return 0;}
 
-    void setSerial(unsigned long serial) {mSerial = serial;}
+    void setSerial(uint32_t serial) {mSerial = serial;}
 
     void registerSvcObject(const ObjectInfo &info) {mSvcObjects.push_back(info);}
 
@@ -85,14 +85,14 @@ public:
 #ifndef QT_CORE_LIB
     void setClassId() {mClass = APP_CLASS;}
 #endif
-    void setClassId(unsigned long classId) {mClass = classId;}
+    void setClassId(uint32_t classId) {mClass = classId;}
     void setName(_String name) {mName = _toString(_fromString(name).substr(0, 8));}
     void setFullName(_String name) {mFullName = name;}
 
     _String name() const {return mName;}
     _String fullName() const {return mFullName;}
-    unsigned long classId() const {return mClass;}
-    unsigned long serial() const {return mSerial;}
+    uint32_t classId() const {return mClass;}
+    uint32_t serial() const {return mSerial;}
     unsigned short version() const {return mVersion;}
     int burnCount() const {return mBurnCount;}
     unsigned char objectCount() const {return (unsigned char)mObjects.size();}

@@ -346,7 +346,7 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
         unsigned char subnetaddr = isLocalNet? 0: location[1];
         if (isLocalNet)
             dev = mLocalnetDevices[mac];
-        else
+        else if (dev)
         {
 //#warning TODO!! implement ONB devices recursive search
             ObjnetDevice *foundDev = 0L;
@@ -373,6 +373,10 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
                 mac = route(netaddr);
             else
                 break; // ERROR!!! this is impossibru! (child device attempts to connect BEFORE parent)
+        }
+        else
+        {
+            break; // ERROR!!! this is impossibru! (child device attempts to connect BEFORE parent)
         }
         
         location.append(netaddr); // append sender's address as parent
@@ -578,7 +582,7 @@ unsigned char ObjnetMaster::createNetAddress(unsigned char mac)
 }
 //---------------------------------------------------------------------------
 
-ObjnetDevice *ObjnetMaster::deviceBySerial(unsigned long serial)
+ObjnetDevice *ObjnetMaster::deviceBySerial(uint32_t serial)
 {
     for (DeviceIterator it=mDevices.begin(); it!=mDevices.end(); it++)
     {
