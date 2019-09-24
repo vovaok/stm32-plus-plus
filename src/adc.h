@@ -68,6 +68,8 @@ private:
     Resolution mResolution;
     int mChannelCount;
     
+    NotifyEvent mCompleteEvent;
+    
 public:
     Adc(int adcBase = 1); // for single mode
 //    Adc(int adcBase1, int adcBase2); // for dual mode
@@ -91,6 +93,9 @@ public:
     void configDma(Dma *dma);
     
     int result(unsigned char channel);
+    int resultByIndex(unsigned char index);
+    
+    void setCompleteEvent(NotifyEvent e);
 };
 
 #endif

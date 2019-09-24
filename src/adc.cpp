@@ -142,6 +142,8 @@ void Adc::addChannel(int channel, SampleTime sampleTime)
     ADC_RegularChannelConfig(mAdc, channel, mChannelCount, sampleTime);
     mBuffer.resize(mChannelCount*2);
     mChannelResultMap[channel] = mChannelCount - 1;
+    
+    mAdc->CR2 |= ADC_CR2_EOCS; // end of conversion flag is set on sequence complete
 }
 
 void Adc::addChannel(int channel, Gpio::PinName pin, SampleTime sampleTime)
@@ -165,6 +167,7 @@ void Adc::setEnabled(bool enable)
     {
         mDma = Dma::getStreamForPeriph(mDmaChannel);
         mDma->setCircularBuffer(mBuffer.data(), mChannelCount);
+        mDma->setTransferCompleteEvent(mCompleteEvent);
         configDma(mDma);
         mDmaOwner = true;
     }
@@ -221,9 +224,20 @@ void Adc::setContinuousMode(bool enabled)
 
 int Adc::result(unsigned char channel)
 {
-    int index = mChannelResultMap[channel];
-    if (index >= 0 && index < mChannelCount)
+    return resultByIndex(mChannelResultMap[channel]);
+}
+
+int Adc::resultByIndex(unsigned char index)
+{
+    if (index < mChannelCount)
         return reinterpret_cast<unsigned short*>(mBuffer.data())[index];
     return -1;
 }
 //---------------------------------------------------------------------------
+
+void Adc::setCompleteEvent(NotifyEvent e)
+{
+    mCompleteEvent = e;
+    if (mDma)
+        mDma->setTransferCompleteEvent(mCompleteEvent);
+}
