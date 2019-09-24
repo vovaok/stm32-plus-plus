@@ -77,6 +77,8 @@ private:
     static string mDescription;
     static string mCompany;
     
+    unsigned long mTimestamp;
+    
     static void sysTickHandler();
     
     friend void SystemInit();
@@ -143,6 +145,10 @@ public:
         Переходит к выполнению программы обновления (если она имеется)
     */
     static bool startOnbBootloader();
+    
+    /*! Возвращает время в миллисекундах с момента запуска.    
+    */
+    inline unsigned long timestamp() const {return mTimestamp;}
 };
 
 /*! Экземпляр приложения.

@@ -68,6 +68,7 @@ unsigned char ObjnetNode::bindObject(const ObjectInfo &info)
     if (obj.isStorable())
         objnetStorage()->load(obj);
     #endif
+    obj.onValueChanged = EVENT(&ObjnetNode::objectValueChanged);
     return obj.mDesc.id;
 }
 
@@ -576,3 +577,9 @@ void ObjnetNode::sendForced(unsigned char oid)
     sendMessage(0x00, oid, mObjects[oid].read());
 }
 //---------------------------------------------------------
+
+void ObjnetNode::objectValueChanged(unsigned char oid)
+{
+    if (oid < mObjects.size() && onObjectValueChanged)
+        onObjectValueChanged(mObjects[oid].name());
+}

@@ -51,6 +51,8 @@ private:
     std::vector<ObjectInfo> mSvcObjects;
     // словарь объектов
     std::vector<ObjectInfo> mObjects;
+    
+    void objectValueChanged(unsigned char oid);
 
 #ifndef QT_CORE_LIB
 protected:
@@ -119,6 +121,7 @@ signals:
     NotifyEvent onUpgradeRequest;
     GlobalMessageEvent onGlobalMessage;
     GlobalDataMessageEvent onGlobalDataMessage;
+    Closure<void(string)> onObjectValueChanged;
 #endif
 };
 

@@ -17,6 +17,8 @@ void Application::sysTickHandler()
         return;
     
     Application *app = instance();
+    app->mTimestamp += app->mSysClkPeriod;
+    
     std::list<TickEvent> &elist = app->mTickEvents;
     for (TickIterator it=elist.begin(); it!=elist.end(); it++)
     {

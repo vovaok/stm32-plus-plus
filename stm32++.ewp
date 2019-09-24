@@ -8863,6 +8863,7 @@
         <configuration>stm32f407vg</configuration>
         <configuration>stm32f405rg</configuration>
         <configuration>stm32f405rg_no-exceptions_no-rtti</configuration>
+        <configuration>stm32f429zi</configuration>
       </excluded>
     </file>
     <file>
