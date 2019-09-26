@@ -52,12 +52,13 @@ protected:
 //    virtual void receiveData(const ByteArray &ba);   
     
 public:
-    UsbMscInterface();
+    UsbMscInterface(UsbNode *parent);
 //    void sendData(const ByteArray &ba);
     void setReceiveEvent(Closure<void(const ByteArray&)> e) {mOutEp->setDataOutEvent(e);}
     void setDataInEvent(Closure<void(void)> e) {mInEp->setDataInEvent(e);}
     
     void sendDataLL(unsigned char *data, int size);
+    void prepareRxLL(unsigned char *data, int size);
 };
 
 };

@@ -31,6 +31,7 @@ private:
     
 protected:
     void doSendData(unsigned char *data, int len);
+    void prepareRx(unsigned char *data, int len);
     friend class SCSI;
     
 public:
@@ -87,7 +88,6 @@ public:
 //    uint8_t             burstMode;
     CBW                 cbw;
     CSW                 csw;
-    
     
     void cbwDecode();
     void sendData(unsigned char *data, int len);

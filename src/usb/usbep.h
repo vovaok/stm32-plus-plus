@@ -28,6 +28,7 @@ private:
     NotifyEvent mDataInEvent;
     //void getRxBuffer(ByteArray &data);
     unsigned char mPollInterval;
+    bool m_prepared;
     
 protected:
     //UsbCsEndpoint *csEndpoint;
@@ -49,8 +50,10 @@ public:
     void setDataInEvent(const NotifyEvent &e) {mDataInEvent = e;}
     void sendData(const ByteArray &data);
     void sendDataLL(unsigned char *data, int size);
+    void prepareRxLL(unsigned char *data, int size);
     
     bool isIn() const {return mDescriptor->endpointAddress() & 0x80;}
+    bool isOut() const {return !isIn();}
     
     unsigned char pollingInterval() const {return mPollInterval;}
 };

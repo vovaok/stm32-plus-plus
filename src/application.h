@@ -68,6 +68,7 @@ private:
     std::list<TickEvent> mTickEvents;
     typedef std::list<TaskEvent>::iterator TaskIterator;
     typedef std::list<TickEvent>::iterator TickIterator;
+    bool m_tasksModified;
     
     static unsigned short mVersion;
     static string mBuildDate;
@@ -109,10 +110,10 @@ public:
     /*! Запуск петли задач. */
     void exec();
     
-    void registerTaskEvent(TaskEvent event);
-    void unregisterTaskEvent(TaskEvent event);
-    void registerTickEvent(TickEvent event);
-    void unregisterTickEvent(TickEvent event);    
+    int registerTaskEvent(TaskEvent event);
+    void unregisterTaskEvent(int id);
+    int registerTickEvent(TickEvent event);
+    void unregisterTickEvent(int id);    
     
     static string name() {return Application::mName;}
     static string description() {return Application::mDescription;}

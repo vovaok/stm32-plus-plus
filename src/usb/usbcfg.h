@@ -18,6 +18,8 @@ private:
 protected:
     void addChild(UsbNode* node);
     void nodeAttached();
+    void setup(const UsbSetupReq &req);
+    friend class UsbDevice;
     
     void updateDescriptorLength(int deltaLength) {mDescriptor->addTotalLength(deltaLength); UsbNode::updateDescriptorLength(deltaLength);}
   

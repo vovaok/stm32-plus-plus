@@ -514,7 +514,7 @@ int RadioOnbInterface::availableWriteCount()
 }
 //---------------------------------------------------------------------------
 
-int RadioOnbInterface::addFilter(unsigned long id, unsigned long mask)
+int RadioOnbInterface::addFilter(uint32_t id, uint32_t mask)
 {
 #warning this function is shit, nado peredelat: vmesto CAN filter zapilit filter by address
     if (id & 0x10000000) // if local address

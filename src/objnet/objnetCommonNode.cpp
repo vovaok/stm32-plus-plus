@@ -31,7 +31,7 @@ ObjnetCommonNode::ObjnetCommonNode(ObjnetInterface *iface) :
 ObjnetCommonNode::~ObjnetCommonNode()
 {
     #ifndef QT_CORE_LIB
-    stmApp()->unregisterTaskEvent(EVENT(&ObjnetCommonNode::task));
+//    stmApp()->unregisterTaskEvent(EVENT(&ObjnetCommonNode::task));
     #endif
     delete mInterface;
 }

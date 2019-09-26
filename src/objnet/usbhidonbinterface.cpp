@@ -237,7 +237,7 @@ int UsbHidOnbInterface::availableWriteCount()
     return mTxQueueSize - mTxQueue.size();
 }
 
-int UsbHidOnbInterface::addFilter(unsigned long id, unsigned long mask)
+int UsbHidOnbInterface::addFilter(uint32_t id, uint32_t mask)
 {
     //qDebug() << "[UsbHidOnbInterface]: Filter is not implemented. id=" << id << "mask=" << mask;
     return 0;

@@ -18,6 +18,7 @@ private:
     int mTime;
     NotifyEvent mPressEvent;
     NotifyEvent mReleaseEvent;
+    int m_taskid, m_tickid;
     
     void task();// stmApp task event
     void tick(int period); // stmApp tick event

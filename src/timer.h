@@ -11,6 +11,7 @@ private:
     unsigned int mTime;
     bool mEnabled;
     bool mUpdated;
+    int m_taskid, m_tickid;
     
     NotifyEvent mTimeoutEvent;
     

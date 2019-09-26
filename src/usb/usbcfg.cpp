@@ -40,3 +40,9 @@ void UsbConfiguration::nodeAttached()
     mDescriptor->setStringIndex(strdesc);
 }
 //---------------------------------------------------------------------------
+
+void UsbConfiguration::setup(const UsbSetupReq &req)
+{
+    if (req.wIndex < mChildren.size())
+        mChildren[req.wIndex]->setup(req);
+}

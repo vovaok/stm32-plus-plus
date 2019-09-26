@@ -9,14 +9,14 @@ Button::Button(PinName pin, bool pullUp, bool inverted) :
     mTime(mDebounceTime)
 {
     mState = read();
-    stmApp()->registerTaskEvent(EVENT(&Button::task));
-    stmApp()->registerTickEvent(EVENT(&Button::tick));
+    m_taskid = stmApp()->registerTaskEvent(EVENT(&Button::task));
+    m_tickid = stmApp()->registerTickEvent(EVENT(&Button::tick));
 }
 
 Button::~Button()
 {
-    stmApp()->unregisterTaskEvent(EVENT(&Button::task));
-    stmApp()->unregisterTickEvent(EVENT(&Button::tick));
+    stmApp()->unregisterTaskEvent(m_taskid);
+    stmApp()->unregisterTickEvent(m_tickid);
 }
 //---------------------------------------------------------------------------
 

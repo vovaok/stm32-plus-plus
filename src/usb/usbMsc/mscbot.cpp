@@ -118,6 +118,11 @@ void MscBot::doSendData(unsigned char *data, int len)
     m_interface->sendDataLL(data, len);
 }
 
+void MscBot::prepareRx(unsigned char *data, int len)
+{
+    m_interface->prepareRxLL(data, len);
+}
+
 void MscBot::sendCSW(CswStatus status)
 {
     csw.dSignature = BOT_CSW_SIGNATURE;
@@ -134,12 +139,13 @@ void MscBot::abort()
 //        DCD_EP_Stall(pdev, MSC_OUT_EP );
 //    }
 //    DCD_EP_Stall(pdev, MSC_IN_EP);
-//  
-//    if(MSC_BOT_Status == BOT_STATE_ERROR)
-//    {
+  
+    if (m_status == botStateError)
+    {
+        printf("BOT state error\n");
 //        DCD_EP_PrepareRx (pdev,
 //                      MSC_OUT_EP,
 //                      (uint8_t *)&MSC_BOT_cbw, 
 //                      BOT_CBW_LENGTH);    
-//    }
+    }
 }

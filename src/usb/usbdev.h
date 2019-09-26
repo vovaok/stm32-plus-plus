@@ -87,6 +87,7 @@ public:
     UsbDeviceDriver *driver() {return mDrv;}
     unsigned char addStringDescriptor(const string &s);
     unsigned char addStringDescriptor(const wstring &s);
+    int endpointCount() const {return mEndpoints.size();}
     void connectEndpoint(UsbEndpoint *ep);
     void disconnectEndpoint(UsbEndpoint *ep);
     

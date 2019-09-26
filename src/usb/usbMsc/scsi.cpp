@@ -303,6 +303,8 @@ int8_t SCSI::write10(uint8_t lun , uint8_t *params)
         
         /* Prepare EP to receive first data packet */
         msc->state = MscBot::botDataOut;
+        msc->prepareRx(msc->data, MIN(m_blk_len, MSC_MEDIA_PACKET));
+        
 //        DCD_EP_PrepareRx (cdev,
 //                          MSC_OUT_EP,
 //                          MSC_BOT_Data, 
@@ -444,6 +446,7 @@ int8_t SCSI::processWrite(uint8_t lun)
     }
     else
     {
+        msc->prepareRx(msc->data, MIN(m_blk_len, MSC_MEDIA_PACKET));
 //    /* Prapare EP to Receive next packet */
 //    DCD_EP_PrepareRx (cdev,
 //                      MSC_OUT_EP,

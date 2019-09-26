@@ -4,12 +4,14 @@
 
 using namespace Usb;
 
-UsbMscInterface::UsbMscInterface() :
+UsbMscInterface::UsbMscInterface(UsbNode *parent) :
     UsbInterface(UsbClassMsc, MscScsiTransparent, MscBBB, "BBB"),
     mInEp(0L), mOutEp(0L),
     mAltSet(0),
     mMaxLun(0)
 {
+    parent->attachNode(this);
+  
     mInEp = new UsbEndpoint(EndpointIN, TransferBulk, 64, 0);
     mOutEp = new UsbEndpoint(EndpointOUT, TransferBulk, 64, 0);
     
@@ -100,5 +102,10 @@ void UsbMscInterface::setup(const UsbSetupReq &req)
 void UsbMscInterface::sendDataLL(unsigned char *data, int size)
 {
     mInEp->sendDataLL(data, size);
+}
+
+void UsbMscInterface::prepareRxLL(unsigned char *data, int size)
+{
+    mOutEp->prepareRxLL(data, size);
 }
 //---------------------------------------------------------------------------

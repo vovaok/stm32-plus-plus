@@ -284,7 +284,7 @@ int UartOnbInterface::availableWriteCount()
     return mTxQueueSize - mTxQueue.size();
 }
 
-int UartOnbInterface::addFilter(unsigned long id, unsigned long mask)
+int UartOnbInterface::addFilter(uint32_t id, uint32_t mask)
 {
     Filter f = {id & 0x1FFFFFFF, mask & 0x1FFFFFFF};
     mFilters.push_back(f);
