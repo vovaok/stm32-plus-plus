@@ -48,7 +48,7 @@ int8_t SCSI::processCmd(uint8_t lun, uint8_t *params)
         return testUnitReady(lun, params);
 
       case SCSI_REQUEST_SENSE:
-        return requestSense (lun, params);
+        return requestSense(lun, params);
         
       case SCSI_INQUIRY:
         return inquiry(lun, params);
@@ -102,7 +102,7 @@ int8_t SCSI::testUnitReady(uint8_t lun, uint8_t *params)
         senseCode(msc->cbw.bLUN, ILLEGAL_REQUEST, INVALID_CDB);
         return -1;
     }
-    if (isReady(lun) != 0)
+    if (mLuns[lun]->isReady() != 0)
     {
         senseCode(lun, NOT_READY, MEDIUM_NOT_PRESENT);
         return -1;
@@ -123,7 +123,7 @@ int8_t SCSI::inquiry(uint8_t lun, uint8_t *params)
     }
     else
     {
-        pPage = (uint8_t *)getInquiry(lun);
+        pPage = mLuns[lun]->getInquiry();
         len = pPage[4] + 5;
         if (params[4] <= len)
             len = params[4];
@@ -149,7 +149,7 @@ int8_t SCSI::readFormatCapacity(uint8_t lun, uint8_t *params)
         msc->data[i] = 0;
     }
 
-    if (getCapacity(lun, &blk_nbr, &blk_size) != 0)
+    if (mLuns[lun]->getCapacity(&blk_nbr, &blk_size) != 0)
     {
         senseCode(lun, NOT_READY, MEDIUM_NOT_PRESENT);
         return -1;
@@ -174,7 +174,7 @@ int8_t SCSI::readFormatCapacity(uint8_t lun, uint8_t *params)
 
 int8_t SCSI::readCapacity10(uint8_t lun, uint8_t *params)
 {
-    if (getCapacity(lun, &m_blk_nbr, &m_blk_size) != 0)
+    if (mLuns[lun]->getCapacity(&m_blk_nbr, &m_blk_size) != 0)
     {
         senseCode(lun, NOT_READY, MEDIUM_NOT_PRESENT);
         return -1;
@@ -266,13 +266,13 @@ int8_t SCSI::write10(uint8_t lun , uint8_t *params)
             return -1;
         }
         /* Check whether Media is ready */
-        if  (isReady(lun) !=0 )
+        if (mLuns[lun]->isReady() !=0 )
         {
             senseCode(lun, NOT_READY, MEDIUM_NOT_PRESENT);
             return -1;
         } 
         /* Check If media is write-protected */
-        if (isWriteProtected(lun) != 0)
+        if (mLuns[lun]->isWriteProtected() != 0)
         {
             senseCode(lun, NOT_READY, WRITE_PROTECTED);
             return -1;
@@ -327,7 +327,7 @@ int8_t SCSI::read10(uint8_t lun , uint8_t *params)
             senseCode(msc->cbw.bLUN, ILLEGAL_REQUEST, INVALID_CDB);
             return -1;
         }    
-        if (isReady(lun) !=0)
+        if (mLuns[lun]->isReady() !=0)
         {
             senseCode(lun, NOT_READY, MEDIUM_NOT_PRESENT);
             return -1;
@@ -396,7 +396,7 @@ int8_t SCSI::processRead(uint8_t lun)
   
     len = MIN(m_blk_len, MSC_MEDIA_PACKET); 
 
-    if (read(lun, msc->data, m_blk_addr / m_blk_size, len / m_blk_size) < 0)
+    if (mLuns[lun]->read(msc->data, m_blk_addr / m_blk_size, len / m_blk_size) < 0)
     {
         senseCode(lun, HARDWARE_ERROR, UNRECOVERED_READ_ERROR);
         return -1; 
@@ -428,7 +428,7 @@ int8_t SCSI::processWrite(uint8_t lun)
   
     len = MIN(m_blk_len, MSC_MEDIA_PACKET); 
 
-    if (write(lun, msc->data, m_blk_addr / m_blk_size, len / m_blk_size) < 0)
+    if (mLuns[lun]->write(msc->data, m_blk_addr / m_blk_size, len / m_blk_size) < 0)
     {
         senseCode(lun, HARDWARE_ERROR, WRITE_FAULT);     
         return -1; 
@@ -455,4 +455,11 @@ int8_t SCSI::processWrite(uint8_t lun)
     }
 
     return 0;
+}
+//---------------------------------------------------------------------------
+
+void SCSI::appendDrive(ScsiInterface *iface)
+{
+    mLuns.push_back(iface);
+    msc->setMaxLun(mLuns.size() - 1);
 }

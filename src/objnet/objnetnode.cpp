@@ -580,6 +580,13 @@ void ObjnetNode::sendForced(unsigned char oid)
 
 void ObjnetNode::objectValueChanged(unsigned char oid)
 {
-    if (oid < mObjects.size() && onObjectValueChanged)
-        onObjectValueChanged(mObjects[oid].name());
+    if (oid < mObjects.size())
+    {
+        #ifdef QT_CORE_LIB
+
+        #else
+        if (onObjectValueChanged)
+            onObjectValueChanged(mObjects[oid].name());
+        #endif
+    }
 }

@@ -31,6 +31,7 @@ public:
     int write(const ByteArray &ba);
     int read(ByteArray &ba);
     
+    UsbConfiguration *usbCfgNode() {return mCfg;}
     //void setReadEvent(const ConstDataEvent &e) {mIfData->setReceiveEvent(e);}
 };
 

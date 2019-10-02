@@ -43,7 +43,7 @@ using namespace std;
 
 typedef struct
 {
-    char const pre[12];
+    char pre[12];
     unsigned long cid;
     unsigned short ver;
     unsigned short pageSize;

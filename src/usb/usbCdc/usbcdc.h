@@ -247,7 +247,7 @@ protected:
 //    virtual void sof();
     
 public:
-    UsbVcpCtrlInterface();
+    UsbVcpCtrlInterface(UsbNode *parent);
    
     bool isOpened() {return mLineState;}
 };
@@ -272,7 +272,7 @@ protected:
     virtual void receiveData(const ByteArray &ba);
     
 public:
-    UsbVcpDataInterface();
+    UsbVcpDataInterface(UsbNode *parent);
    
     void sendData(const ByteArray &ba);
     void setReceiveEvent(const ConstDataEvent &e);

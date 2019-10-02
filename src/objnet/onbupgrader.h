@@ -14,7 +14,7 @@ class OnbUpgrader : public QObject
     #pragma pack(push,1)
     typedef struct
     {
-        char const pre[12];
+        char pre[12];
         uint32_t cid;
         unsigned short ver;
         unsigned short pageSize;
@@ -34,8 +34,10 @@ private:
     std::map<unsigned char, bool> mDevices;
     typedef std::map<unsigned char, bool>::iterator DevIterator;
     
-    ByteArray mBin;
-    __appinfo_t__ *mInfo;
+//    ByteArray mBin;
+    const unsigned char *mData;
+    __appinfo_t__ mInfo;
+    int mAppinfoIdx;
     enum {sIdle, sStarted, sSetPage, sWork, sTransferPage, sEndPage, sFinish, sError} mState;
     int mSize, mPageSize;
     int mCount, mCurBytes;
@@ -63,14 +65,14 @@ public:
     
     static bool checkClass(const ByteArray &firmware, uint32_t cid);
     
-    void load(const ByteArray &firmware);
+    void load(const void *firmware, int size);
     void scan(unsigned char netaddr=0);
     void start();
     void stop();
     
     int progress() const {return mSize? mCount * 100 / mSize: 0;}
     int pageCount() const {return mSize / mPageSize;}
-    const __appinfo_t__ *firmwareInfo() const {return mInfo;}
+//    const __appinfo_t__ *firmwareInfo() const {return &mInfo;}
     string getFirmwareInfo() const;
     
     int deviceCount() const {return mDevices.size();}

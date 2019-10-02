@@ -8979,6 +8979,33 @@
       </file>
     </group>
     <group>
+      <name>usbMsc</name>
+      <file>
+        <name>$PROJ_DIR$\src\usb\usbMsc\mscbot.cpp</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\src\usb\usbMsc\mscbot.h</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\src\usb\usbMsc\scsi.cpp</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\src\usb\usbMsc\scsi.h</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\src\usb\usbMsc\scsiinterface.cpp</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\src\usb\usbMsc\scsiinterface.h</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\src\usb\usbMsc\usbmsc.cpp</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\src\usb\usbMsc\usbmsc.h</name>
+      </file>
+    </group>
+    <group>
       <name>usbVideo</name>
       <file>
         <name>$PROJ_DIR$\src\usb\usbVideo\usbVideo.cpp</name>

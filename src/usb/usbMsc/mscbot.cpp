@@ -149,3 +149,9 @@ void MscBot::abort()
 //                      BOT_CBW_LENGTH);    
     }
 }
+
+void MscBot::setMaxLun(int lun)
+{
+    if (m_interface)
+        m_interface->mMaxLun = lun;
+}

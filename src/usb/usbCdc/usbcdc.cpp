@@ -2,11 +2,13 @@
 
 using namespace Usb;
 
-UsbVcpCtrlInterface::UsbVcpCtrlInterface() :
+UsbVcpCtrlInterface::UsbVcpCtrlInterface(UsbNode *parent) :
     UsbInterface(UsbClassCdcControl, CdcCtrlSubclassACM, CdcCtrlProtocolCommonAT, "Control"),
     mCtrlEp(0L),
     cdcCmd(cdcNoCmd)
 {
+    parent->attachNode(this);
+  
     attachNode(new CdcHeaderFuncNode);
     attachNode(new CdcCMFuncNode);
     attachNode(new CdcACMFuncNode);
@@ -103,10 +105,12 @@ void UsbVcpCtrlInterface::ep0RxReady()
 }
 //---------------------------------------------------------------------------
 
-UsbVcpDataInterface::UsbVcpDataInterface() :
+UsbVcpDataInterface::UsbVcpDataInterface(UsbNode *parent) :
     UsbInterface(UsbClassCdcData, 0, 0, "Data"),
     mInEp(0L), mOutEp(0L)
 {
+    parent->attachNode(this);
+  
     mOutEp = new UsbEndpoint(EndpointOUT, TransferBulk, 64, 0);
     mInEp = new UsbEndpoint(EndpointIN, TransferBulk, 64, 0);
     

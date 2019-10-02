@@ -34,6 +34,8 @@ protected:
     void prepareRx(unsigned char *data, int len);
     friend class SCSI;
     
+    void setMaxLun(int lun);
+    
 public:
     typedef enum
     {

@@ -29,7 +29,7 @@ void UsbMscInterface::setup(const UsbSetupReq &req)
           case mscGML:
             if ((req.wValue  == 0) && (req.wLength == 1) && ((req.bmRequest & 0x80) == 0x80))
             {
-                mMaxLun = 0;//USBD_STORAGE_fops->GetMaxLun();
+                //mMaxLun = 0;//USBD_STORAGE_fops->GetMaxLun();
                 if (mMaxLun > 0)
                     device()->driver()->ctlSendData(&mMaxLun, req.wLength);
                 else

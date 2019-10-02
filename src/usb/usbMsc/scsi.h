@@ -2,7 +2,9 @@
 #define _SCSI_H
 
 #include <stdint.h>
-#include <core/core.h>
+//#include <core/core.h>
+#include "scsiinterface.h"
+#include <vector>
 
 #define SENSE_LIST_DEPTH                            4
 
@@ -94,6 +96,7 @@ class SCSI
 private:
     MscBot *msc;
     friend class MscBot;
+    std::vector<ScsiInterface*> mLuns;
   
     typedef struct _SENSE_ITEM
     {                
@@ -134,20 +137,23 @@ private:
     int8_t processRead(uint8_t lun);
     int8_t processWrite(uint8_t lun);
   
-public:
-    SCSI();
-    
+protected:
     int8_t processCmd(uint8_t lun, uint8_t *params);
     void senseCode(uint8_t lun, uint8_t sKey, uint8_t ASC);
     
-//    Closure<int8_t(int)> init;
-    Closure<int8_t(int, uint32_t*, uint32_t*)> getCapacity;
-    Closure<int8_t(int)> isReady;
-    Closure<int8_t(int)> isWriteProtected;
-    Closure<int8_t(int, uint8_t*, uint32_t, uint16_t)> read;
-    Closure<int8_t(int, uint8_t*, uint32_t, uint16_t)> write;
-//    Closure<int8_t()> getMaxLun;
-    Closure<uint8_t*(int)> getInquiry;
+public:
+    SCSI();
+    
+    void appendDrive(ScsiInterface *iface);
+    
+////    Closure<int8_t(int)> init;
+//    Closure<int8_t(int, uint32_t*, uint32_t*)> getCapacity;
+//    Closure<int8_t(int)> isReady;
+//    Closure<int8_t(int)> isWriteProtected;
+//    Closure<int8_t(int, uint8_t*, uint32_t, uint16_t)> read;
+//    Closure<int8_t(int, uint8_t*, uint32_t, uint16_t)> write;
+////    Closure<int8_t()> getMaxLun;
+//    Closure<uint8_t*(int)> getInquiry;
 };
 
 #endif

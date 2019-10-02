@@ -27,14 +27,15 @@ void UsbVcp::initDevice()
     mDev->setProduct(Application::name());
     
     mCfg = new UsbConfiguration();
-    mIfCtrl = new UsbVcpCtrlInterface();
-    mIfData = new UsbVcpDataInterface();
+    mDev->attachNode(mCfg);
+    mIfCtrl = new UsbVcpCtrlInterface(mCfg);
+    mIfData = new UsbVcpDataInterface(mCfg);
     
     mIfData->setReceiveEvent(EVENT(&UsbVcp::onReceive));
     
-    mDev->attachNode(mCfg);
-    mCfg->attachNode(mIfCtrl);
-    mCfg->attachNode(mIfData);
+    
+//    mCfg->attachNode(mIfCtrl);
+//    mCfg->attachNode(mIfData);
         
     mDev->start();
 }

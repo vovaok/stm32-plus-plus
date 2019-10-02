@@ -44,12 +44,9 @@ class UsbMscInterface : public UsbInterface
 private:
     UsbEndpoint *mInEp, *mOutEp;
     unsigned char mAltSet;
-    unsigned char mMaxLun;
   
 protected:
     void setup(const UsbSetupReq &req);
-  
-//    virtual void receiveData(const ByteArray &ba);   
     
 public:
     UsbMscInterface(UsbNode *parent);
@@ -59,6 +56,8 @@ public:
     
     void sendDataLL(unsigned char *data, int size);
     void prepareRxLL(unsigned char *data, int size);
+    
+    unsigned char mMaxLun;
 };
 
 };
