@@ -94,6 +94,8 @@ public:
     
     int result(unsigned char channel);
     int resultByIndex(unsigned char index);
+    const unsigned short &buffer(unsigned char channel) const;
+    const unsigned short &bufferByIndex(unsigned char index) const;
     
     void setCompleteEvent(NotifyEvent e);
 };

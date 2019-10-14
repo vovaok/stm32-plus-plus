@@ -3,11 +3,11 @@
 Encoder::Encoder(TimerNumber timerNumber, int pulses, Gpio::Config pinA, Gpio::Config pinB, Gpio::Config pinIdx) :
     HardwareTimer(timerNumber),
     mPulses(pulses),
-    mLastPos(0),
+    mPosition(0),
     mSpeed(0),
-    mFilter(0.75f),
-    mRevolutions(0),
-    mMaxRevolutions(pulses*32)
+    mFilter(0.75f)
+//    mRevolutions(0),
+//    mMaxRevolutions(pulses*32)
 {
     switch (timerNumber)
     {
@@ -16,43 +16,38 @@ Encoder::Encoder(TimerNumber timerNumber, int pulses, Gpio::Config pinA, Gpio::C
     }
     
     Gpio::config(3, pinA, pinB, pinIdx);
-    setAutoReloadRegister(mPulses - 1);
-    TIM_EncoderInterfaceConfig(tim(), TIM_EncoderMode_TI12, TIM_ICPolarity_Rising, TIM_ICPolarity_Rising);
+    setAutoReloadRegister(0xFFFF);//mPulses - 1);
+    TIM_EncoderInterfaceConfig(tim(), TIM_EncoderMode_TI12, TIM_ICPolarity_Rising, TIM_ICPolarity_Falling);
     tim()->CCMR1 |= (2<<4) | (2<<12);
     
 //    mTimer = new Timer();
 //    mTimer->setTimeoutEvent(EVENT(&Encoder::tick));
 //    mTimer->start(2); // ms
     
-    setUpdateEvent(EVENT(&Encoder::overflowHandler));
+//    setUpdateEvent(EVENT(&Encoder::overflowHandler));
     setEnabled(true);
 }
 
 void Encoder::tick(float dt)
 {
-    int newpos = position();
-    int deltaPos = newpos - mLastPos;
-    int maxdelta = mMaxRevolutions >> 1;
-    if (deltaPos >= maxdelta)
-        deltaPos -= (int)mMaxRevolutions;
-    else if (deltaPos < -maxdelta)
-        deltaPos += (int)mMaxRevolutions;
-    mLastPos = newpos;
+    short newpos = counter();
+    short deltaPos = newpos - mPosition;
+    mPosition = newpos;
     float newspeed = (deltaPos * 60.0f / mPulses) / dt; // 1 rpm (2 ms period)
     mSpeed = mFilter * mSpeed + (1.0f - mFilter) * newspeed;
 }
 
-void Encoder::overflowHandler()
-{
-    if (direction())
-        mRevolutions += mPulses;
-    else
-        mRevolutions -= mPulses;
-    if (mRevolutions >= mMaxRevolutions)
-        mRevolutions = 0;
-    else if (mRevolutions < 0)
-        mRevolutions = mMaxRevolutions - mPulses;
-}
+//void Encoder::overflowHandler()
+//{
+//    if (direction())
+//        mRevolutions += mPulses;
+//    else
+//        mRevolutions -= mPulses;
+//    if (mRevolutions >= mMaxRevolutions)
+//        mRevolutions = 0;
+//    else if (mRevolutions < 0)
+//        mRevolutions = mMaxRevolutions - mPulses;
+//}
 //---------------------------------------------------------------------------
 
 SpeedEncoder::SpeedEncoder(TimerNumber timerNumber, int pulses, Gpio::Config pinA, Gpio::Config pinB) :

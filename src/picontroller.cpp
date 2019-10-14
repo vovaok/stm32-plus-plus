@@ -1,6 +1,6 @@
 #include "picontroller.h"
 
-PiController::PiController(float &valueBinding, SaturationBehavior onSat) :
+PiController::PiController(const float &valueBinding, SaturationBehavior onSat) :
     mValuePtr(&valueBinding), mTargetValue(0),
     mLoopIn(0), mLoopOut(0),
     erri(0), erriLimit(0),

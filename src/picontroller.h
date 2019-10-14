@@ -7,7 +7,7 @@ public:
     enum SaturationBehavior {NoActionOnSat, ResetIntegratorOnSat, LimitIntegratorOnSat};
     
 private:
-    float *mValuePtr;
+    const float *mValuePtr;
     float mTargetValue;
     float mLoopIn;
     float mLoopOut;
@@ -23,7 +23,7 @@ public:
     bool enabled;
   
 public:
-    PiController(float &valueBinding, SaturationBehavior onSat = NoActionOnSat);
+    PiController(const float &valueBinding, SaturationBehavior onSat = NoActionOnSat);
     
     float loop(float target);
 };

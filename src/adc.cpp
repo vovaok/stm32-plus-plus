@@ -233,6 +233,16 @@ int Adc::resultByIndex(unsigned char index)
         return reinterpret_cast<unsigned short*>(mBuffer.data())[index];
     return -1;
 }
+
+const unsigned short &Adc::buffer(unsigned char channel) const
+{
+    return bufferByIndex(mChannelResultMap[channel]);
+}
+
+const unsigned short &Adc::bufferByIndex(unsigned char index) const
+{
+    return reinterpret_cast<const unsigned short*>(mBuffer.data())[index];
+}
 //---------------------------------------------------------------------------
 
 void Adc::setCompleteEvent(NotifyEvent e)

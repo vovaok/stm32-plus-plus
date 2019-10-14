@@ -12,7 +12,7 @@
 //#if defined (STM32F37X)
 #define PINCONFIG(pin, flags, af, periph) ((pin) | ((flags)<<8) | ((af)<<16) | ((periph)<<24))
 #define GpioConfigGetPeriph(cfg) (cfg >> 24)
-#define GpioConfigGetPeriphNumber(cfg) (cfg >> 28)
+#define GpioConfigGetPeriphNumber(cfg) (((unsigned long)cfg) >> 28)
 #define GpioConfigGetPeriphChannel(cfg) ((cfg >> 24) & 0xF)
 //#else
 //#define PINCONFIG(pin, flags, af) ((pin) | ((flags)<<8) | ((af)<<16))
