@@ -10,6 +10,7 @@ ObjnetDevice::ObjnetDevice(unsigned char netaddr) :
     mParent(0L),
     mNetAddress(netaddr),
     mPresent(false),
+    mConnectionError(false),
     mTimeout(5), mTempTimeout(1),
     mAutoDelete(false),
     mIsLocal(false),

@@ -9,13 +9,13 @@ class Encoder : private HardwareTimer
 private:
     int mPulses;
     int mLastPos;
-    int mSpeed;
+    float mSpeed;
+    float mFilter;
     int mRevolutions;
     int mMaxRevolutions;
     
     Timer *mTimer;
     
-    void tick();
     void overflowHandler();
     
 public:
@@ -25,7 +25,9 @@ public:
     using HardwareTimer::setCounter;
     using HardwareTimer::setEnabled;
     
-    int speed() const {return mSpeed;}
+    void tick(float dt);
+    
+    float speed() const {return mSpeed;}
     
     bool direction() const {return (tim()->CR1 & TIM_CR1_DIR)? false: true;}
     

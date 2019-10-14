@@ -125,6 +125,8 @@ public:
     void setConfig(Config config);
     
     bool isHalfDuplex() const {return mHalfDuplex;}
+    
+    unsigned char getErrorCode() const;
 };
 
 #endif

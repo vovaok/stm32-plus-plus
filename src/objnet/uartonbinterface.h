@@ -50,7 +50,7 @@ private:
     void tick(int dt);
     
     ByteArray mBuffer;
-    unsigned char cs, esc, cmd_acc;
+    unsigned char cs, esc, cmd_acc, noSOF;
     ByteArray encode(const ByteArray &ba);
     
     void msgReceived(const ByteArray &ba);

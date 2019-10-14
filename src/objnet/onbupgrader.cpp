@@ -117,6 +117,9 @@ void OnbUpgrader::stop()
     logEvent("upgrade finished\n");
 #ifdef QT_CORE_LIB
     emit finished();
+#else
+    if (onFinish)
+        onFinish();
 #endif
 }
 //---------------------------------------------------------------------------
@@ -326,7 +329,7 @@ void OnbUpgrader::setPage(int page)
     clearReady();
     ByteArray ba;
     ba.append(reinterpret_cast<const char*>(&page), 4);
-    logEvent("page " + _number(page) + " of " + _number(pageCount()) + " ...");
+    logEvent("page " + _number(page) + "/" + _number(pageCount()));
     sendMessageToDevices(svcUpgradeSetPage, ba);
     mState = sSetPage;
     mTimer->start(200);
@@ -348,12 +351,25 @@ bool OnbUpgrader::isAllReady()
 }
 //---------------------------------------------------------------------------
 
-bool OnbUpgrader::checkClass(const ByteArray &firmware, uint32_t cid)
+bool OnbUpgrader::checkClass(const void *firmware, int size, uint32_t cid)
 {
-    int idx = firmware.indexOf("__APPINFO__");
+    const unsigned char *data = reinterpret_cast<const unsigned char*>(firmware);
+    int idx = -1;
+    unsigned char s[] = "__APPINFO__";
+    for (int i=0; i<=size-11; i++)
+    {
+        int j;
+        for (j=0; j<11 && (data[i+j]==s[j]); j++);
+        if (j==11)
+        {
+            idx = i;
+            break;
+        }
+    }
+  
     if (idx < 0)
         return false;
-    const __appinfo_t__ *info = reinterpret_cast<const __appinfo_t__*>(firmware.data()+idx);
+    const __appinfo_t__ *info = reinterpret_cast<const __appinfo_t__*>(data + idx);
     return (info->cid == cid);
 }
 //---------------------------------------------------------------------------

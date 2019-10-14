@@ -30,6 +30,7 @@ private:
     int mSearchMac; // for swonb mode
     
     void onNak(unsigned char mac);
+    void onError(unsigned char mac, ObjnetInterface::Error error);
 
     ObjnetDevice *createDevice(unsigned char mac, ByteArray &location);
     void connectDevice(unsigned char netaddr);

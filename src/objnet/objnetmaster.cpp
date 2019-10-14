@@ -13,6 +13,7 @@ ObjnetMaster::ObjnetMaster(ObjnetInterface *iface) :
     setBusAddress(0);
     mNetAddress = 0x00;
     mInterface->setMasterMode(true);
+    mInterface->errorEvent = EVENT(&ObjnetMaster::onError);
 
     BusType busType = mInterface->busType();
     mSwonbMode = (busType == BusSwonb || busType == BusRadio);
@@ -64,6 +65,26 @@ void ObjnetMaster::onNak(unsigned char mac)
     }
 }
 
+void ObjnetMaster::onError(unsigned char mac, ObjnetInterface::Error error)
+{
+    string cause;
+    switch (error)
+    {
+        case ObjnetInterface::ErrorFrame: cause = "Frame error"; break;
+        case ObjnetInterface::ErrorChecksum: cause = "Checksum error"; break;
+        case ObjnetInterface::ErrorNoSOF: cause = "No SOF"; break;
+        case ObjnetInterface::ErrorInterface: cause = "Internal error"; break;
+    }
+    printf("SWONB error on address %d: %s\n", mac, cause.c_str());
+    
+    if (mac && mLocalnetDevices[mac])
+    {
+        mLocalnetDevices[mac]->mConnectionError = true;
+    }
+    
+    sendServiceMessageToMac(mac, svcFail);
+}
+
 void ObjnetMaster::adjacentConnected()
 {
     // send devices info
@@ -92,7 +113,12 @@ void ObjnetMaster::onTimer()
     if (mDevices.empty() && mSwonbMode)
     {
         for (unsigned char mac=1; mac<16; mac++)
-            sendServiceMessageToMac(mac, svcHello);
+        {
+//            if (mLocalnetDevices[mac] && mLocalnetDevices[mac]->mConnectionError)
+//                sendServiceMessageToMac(mac, svcFail);
+//            else
+                sendServiceMessageToMac(mac, svcHello);
+        }
     }
     else
     {
@@ -121,7 +147,10 @@ void ObjnetMaster::onTimer()
         }
         if (mSwonbMode)
         {
-            sendServiceMessageToMac(mSearchMac, svcHello);
+//            if (mLocalnetDevices[mSearchMac] && mLocalnetDevices[mSearchMac]->mConnectionError)
+//                sendServiceMessageToMac(mSearchMac, svcFail);
+//            else
+                sendServiceMessageToMac(mSearchMac, svcHello);
             mSearchMac = (mSearchMac < 15)? mSearchMac + 1: 1;
         }
     }
@@ -345,7 +374,11 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
         unsigned char mac = location[0];
         unsigned char subnetaddr = isLocalNet? 0: location[1];
         if (isLocalNet)
+        {
             dev = mLocalnetDevices[mac];
+            if (dev)
+                dev->mConnectionError = false;
+        }
         else if (dev)
         {
 //#warning TODO!! implement ONB devices recursive search

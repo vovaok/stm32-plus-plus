@@ -5,6 +5,7 @@ Encoder::Encoder(TimerNumber timerNumber, int pulses, Gpio::Config pinA, Gpio::C
     mPulses(pulses),
     mLastPos(0),
     mSpeed(0),
+    mFilter(0.75f),
     mRevolutions(0),
     mMaxRevolutions(pulses*32)
 {
@@ -19,14 +20,15 @@ Encoder::Encoder(TimerNumber timerNumber, int pulses, Gpio::Config pinA, Gpio::C
     TIM_EncoderInterfaceConfig(tim(), TIM_EncoderMode_TI12, TIM_ICPolarity_Rising, TIM_ICPolarity_Rising);
     tim()->CCMR1 |= (2<<4) | (2<<12);
     
-    mTimer = new Timer();
-    mTimer->setTimeoutEvent(EVENT(&Encoder::tick));
-    mTimer->start(2); // ms
+//    mTimer = new Timer();
+//    mTimer->setTimeoutEvent(EVENT(&Encoder::tick));
+//    mTimer->start(2); // ms
     
     setUpdateEvent(EVENT(&Encoder::overflowHandler));
+    setEnabled(true);
 }
 
-void Encoder::tick()
+void Encoder::tick(float dt)
 {
     int newpos = position();
     int deltaPos = newpos - mLastPos;
@@ -36,11 +38,8 @@ void Encoder::tick()
     else if (deltaPos < -maxdelta)
         deltaPos += (int)mMaxRevolutions;
     mLastPos = newpos;
-    int newspeed = ((deltaPos)*500*60) / (int)mPulses; // 1 rpm (2 ms period)
-    //if (tim() == TIM2)
-        mSpeed = (newspeed + 3*mSpeed) / 4;
-    //else
-    //    mSpeed = newspeed;
+    float newspeed = (deltaPos * 60.0f / mPulses) / dt; // 1 rpm (2 ms period)
+    mSpeed = mFilter * mSpeed + (1.0f - mFilter) * newspeed;
 }
 
 void Encoder::overflowHandler()

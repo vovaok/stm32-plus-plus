@@ -573,6 +573,17 @@ void Usart::setLineEnd(ByteArray lineend)
 }
 //---------------------------------------------------------------------------
 
+unsigned char Usart::getErrorCode() const
+{
+    unsigned char err = mDev->SR & 0xF;
+    unsigned char dummy;
+    if (err)
+        dummy = mDev->DR; // read from data register to clear error flag(s)
+    dummy = dummy;
+    return err;
+}
+//---------------------------------------------------------------------------
+
 void Usart::handleInterrupt()
 {
 #if defined (STM32F37X)
