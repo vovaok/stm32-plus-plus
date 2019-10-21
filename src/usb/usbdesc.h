@@ -287,6 +287,8 @@ private:
     void setFunctionSubClass(unsigned char value) {reinterpret_cast<Fields*>(data())->bFunctionSubClass = value;}
     void setFunctionProtocol(unsigned char value) {reinterpret_cast<Fields*>(data())->bFunctionProtocol = value;}
     void setStringIndex(unsigned char value) {reinterpret_cast<Fields*>(data())->iFunction = value;}
+    void setFirstInterface(unsigned char value) {reinterpret_cast<Fields*>(data())->bFirstInterface = value;}
+    void incrementNumInterfaces() {reinterpret_cast<Fields*>(data())->bNumInterfaces++;}
     
     friend class UsbInterfaceCollection;
 };

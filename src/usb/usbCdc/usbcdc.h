@@ -88,7 +88,7 @@ private:
 #pragma pack(pop) 
     
 public:
-    CdcCMFuncDescriptor() :
+    CdcCMFuncDescriptor(unsigned char ifnum) :
       Descriptor(5)
     {
         Fields *m = reinterpret_cast<Fields*>(data());
@@ -96,7 +96,7 @@ public:
         m->bDescriptorType = CDC_CS_INTERFACE_TYPE;
         m->bDescriptorSubtype = CdcDescCM;
         m->bmCapabilities = 0x00;
-        m->bDataInterface = 1;
+        m->bDataInterface = ifnum + 1;
     }
     ~CdcCMFuncDescriptor()
     { 
@@ -140,21 +140,21 @@ private:
         unsigned char bLength;              // the length of the descriptor is equal to 5
         unsigned char bDescriptorType;      // descriptor type is CS_INTERFACE
         unsigned char bDescriptorSubtype;
-        unsigned char bmCapabilities;
+        unsigned char bControlInterface;
         unsigned char bDataInterface;
     } Fields;
 #pragma pack(pop) 
     
 public:
-    CdcUnionFuncDescriptor() :
+    CdcUnionFuncDescriptor(unsigned char ifnum) :
       Descriptor(5)
     {
         Fields *m = reinterpret_cast<Fields*>(data());
         m->bLength = 5;
         m->bDescriptorType = CDC_CS_INTERFACE_TYPE;
         m->bDescriptorSubtype = CdcDescUnion;
-        m->bmCapabilities = 0x00;
-        m->bDataInterface = 1;
+        m->bControlInterface = ifnum;
+        m->bDataInterface = ifnum + 1;
     }
     ~CdcUnionFuncDescriptor()
     { 
@@ -181,9 +181,9 @@ private:
     CdcCMFuncDescriptor *mDescriptor;
     
 public:
-    CdcCMFuncNode() : UsbNode(NodeTypeFunc)
+    CdcCMFuncNode(unsigned char ifnum) : UsbNode(NodeTypeFunc)
     {
-        mDescriptor = new CdcCMFuncDescriptor();
+        mDescriptor = new CdcCMFuncDescriptor(ifnum);
         assignDescriptor(mDescriptor);
     }    
 };
@@ -207,9 +207,9 @@ private:
     CdcUnionFuncDescriptor *mDescriptor;
     
 public:
-    CdcUnionFuncNode() : UsbNode(NodeTypeFunc)
+    CdcUnionFuncNode(unsigned char ifnum) : UsbNode(NodeTypeFunc)
     {
-        mDescriptor = new CdcUnionFuncDescriptor();
+        mDescriptor = new CdcUnionFuncDescriptor(ifnum);
         assignDescriptor(mDescriptor);
     }    
 };

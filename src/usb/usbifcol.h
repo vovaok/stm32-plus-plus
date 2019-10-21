@@ -23,6 +23,8 @@ public:
     ~UsbInterfaceCollection();
       
     string name() const {return mCollectionName;}
+    
+    void setFirstInterfaceNumber(unsigned char idx);
 };
 
 };

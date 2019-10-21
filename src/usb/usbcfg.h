@@ -4,6 +4,7 @@
 #include "usbdesc.h"
 #include "usbnode.h"
 #include "usbif.h"
+#include "usbifcol.h"
 #include "core/core.h"
 
 namespace Usb
@@ -31,6 +32,8 @@ public:
       
     string configurationName() const {return mConfigurationName;}
     void setConfigurationValue(unsigned char value) {(mDescriptor)->setConfigurationValue(value);}
+    
+    unsigned char incrementNumInterfaces() {return mDescriptor->incrementNumInterfaces();}
 };
 
 };

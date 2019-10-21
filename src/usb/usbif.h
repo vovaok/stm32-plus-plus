@@ -44,6 +44,7 @@ public:
     string interfaceName() const {return mInterfaceName;}
     
     void setInterfaceNumber(unsigned char num) {mDescriptor->setInterfaceNumber(num);}
+    unsigned char interfaceNumber() const {return mDescriptor->interfaceNumber();}
     
 //    void addClassSpecificInterface(UsbCsInterface *iface) {csInterface = iface;}
     
