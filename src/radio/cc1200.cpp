@@ -21,6 +21,14 @@ NotifyEvent extiHandlers[16];
 CC1200::RF_config_param CC1200::RF_config[] =
 {
     {0x0001, 0x06},
+//    {0x0004, 0xEB},
+//    {0x0005, 0xA1},
+//    {0x0006, 0x50},
+//    {0x0007, 0x51},
+//    {0x0004, 0x93},
+//    {0x0005, 0x0B},
+//    {0x0006, 0x51},
+//    {0x0007, 0xDE},
     {0x0008, 0xA8},
     {0x0009, 0x13},
     {0x000A, 0x99},
@@ -126,7 +134,8 @@ CC1200::RF_config_param CC1200::RF_config[] =
 CC1200::CC1200(Spi *spi, Gpio::PinName csPin, Gpio::PinName resetPin) :
     mSpi(spi),
     pinCS(0L), pinReset(0L),
-    pinGpio0(0L), pinGpio2(0L), pinGpio3(0L)
+    pinGpio0(0L), pinGpio2(0L), pinGpio3(0L),
+    mBusy(false)
 {
     pinCS = new Gpio(csPin);
     pinCS->setAsOutput();
@@ -183,6 +192,9 @@ bool CC1200::getRxTxFlag()
 
 void CC1200::select()
 {
+    mBusy = true;
+    mIrqState = __get_interrupt_state();
+    __disable_interrupt();
     pinCS->reset();
     for (int w=0; w<10; w++); // was 100
 }
@@ -191,6 +203,8 @@ void CC1200::deselect()
 {
     pinCS->set();
     for (int w=0; w<10; w++);
+    mBusy = false;
+    __set_interrupt_state(mIrqState);
 }
 //---------------------------------------------------------------------------
 

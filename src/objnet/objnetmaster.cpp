@@ -637,3 +637,12 @@ void ObjnetMaster::sendObject(unsigned char netAddress, unsigned char oid, const
     sendMessage(netAddress, oid, ba);
 }
 //---------------------------------------------------------------------------
+
+ObjnetDevice* ObjnetMaster::createStaticDevice(unsigned char busAddress)
+{
+    ByteArray loc;
+    loc.append(busAddress);
+    loc.append(0x7F);
+    ObjnetDevice *dev = createDevice(busAddress, loc);
+    return dev;
+}

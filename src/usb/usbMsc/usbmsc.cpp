@@ -5,7 +5,7 @@
 using namespace Usb;
 
 UsbMscInterface::UsbMscInterface(UsbNode *parent) :
-    UsbInterface(UsbClassMsc, MscScsiTransparent, MscBBB, "BBB"),
+    UsbInterface(UsbClassMsc, MscScsiTransparent, MscBBB, "FRESHKA"),
     mInEp(0L), mOutEp(0L),
     mAltSet(0),
     mMaxLun(0)

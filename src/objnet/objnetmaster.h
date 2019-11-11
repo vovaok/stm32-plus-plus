@@ -50,6 +50,8 @@ protected:
 
 public:
     Closure<void(CommonMessage&)> onServiceMessage;
+    
+    ObjnetDevice *createStaticDevice(unsigned char busAddress);
 
 #ifdef QT_CORE_LIB
 signals:

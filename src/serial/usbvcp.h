@@ -19,6 +19,8 @@ private:
     UsbVcpDataInterface *mIfData;
     
     ByteArray mBuffer;
+    int mBufSize;
+    int mBufHead, mBufTail;
     
     void initDevice();
     void onReceive(const ByteArray &ba);

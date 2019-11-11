@@ -29,8 +29,8 @@ UsbVcp::UsbVcp(UsbDevice::UsbCore usb, const char *serial)
     mDev->setManufacturer(Application::company());
     mDev->setProduct(Application::name());
     
-    mCfg = new UsbConfiguration();
-    mDev->attachNode(mCfg);
+//    mCfg = new UsbConfiguration();
+//    mDev->attachNode(mCfg);
     
     initDevice();
 }
@@ -49,7 +49,11 @@ void UsbVcp::initDevice()
 //    mDev->setDeviceRevisionNumber((ver >> 8) & 0xFF, ver & 0xFF);
 //    mDev->setManufacturer(Application::company());
 //    mDev->setProduct(Application::name());
-   
+    
+    mBufSize = 1024;
+    mBuffer.resize(mBufSize);
+    mBufHead = mBufTail = 0;
+  
     UsbNode *iad;
   
     if (mDev)
@@ -79,7 +83,18 @@ UsbVcp::~UsbVcp()
 
 void UsbVcp::onReceive(const ByteArray &ba)
 {
-    mBuffer.append(ba);
+//    mBuffer.append(ba);
+    for (int i=0; i<ba.size(); i++)
+    {
+        mBuffer[mBufHead++] = ba[i];
+        if (mBufHead >= mBufSize)
+            mBufHead = 0;
+        if (mBufHead == mBufTail)
+        {
+            printf("[USB VCP] RX buffer overflow!\n");
+            return;
+        }
+    }
     if (onReadyRead)
         onReadyRead();
 }
@@ -93,9 +108,16 @@ int UsbVcp::write(const ByteArray &ba)
 
 int UsbVcp::read(ByteArray &ba)
 {
-    ba.append(mBuffer);
-    int sz = mBuffer.size();
-    mBuffer.clear();
+    int sz = (mBufHead - mBufTail + mBufSize) % mBufSize;
+    for (int i=0; i<sz; i++)
+    {
+        ba.append(mBuffer[mBufTail++]);
+        if (mBufTail >= mBufSize)
+            mBufTail = 0;
+    }
+//    ba.append(mBuffer);
+//    int sz = mBuffer.size();
+//    mBuffer.clear();
     return sz;
 }
 //---------------------------------------------------------------------------
