@@ -213,6 +213,13 @@ void Adc::startConversion()
 //    if (mAdc3)
 //        mAdc3->CR2 |= ADC_CR2_SWSTART;
 }
+
+bool Adc::isComplete() const
+{
+    if (mDma)
+        return mDma->isComplete();
+    return mAdc->SR & ADC_SR_EOC;
+}
 //---------------------------------------------------------------------------
 
 void Adc::setContinuousMode(bool enabled)

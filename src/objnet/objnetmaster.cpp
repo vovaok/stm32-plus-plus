@@ -518,7 +518,13 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
                 dev->receiveServiceObject(failedOid, ByteArray());
         }
         break;
-      
+
+      case svcTimedRequest:
+      case svcAutoRequest:
+        if (dev)
+            dev->receiveServiceObject(oid, msg.data());
+        break;
+
       default:;
     }
 

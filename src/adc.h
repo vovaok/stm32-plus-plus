@@ -88,6 +88,7 @@ public:
     void stop() {setEnabled(false);}
     
     void startConversion();
+    bool isComplete() const;
     void setContinuousMode(bool enabled);
     
     void configDma(Dma *dma);

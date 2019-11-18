@@ -179,7 +179,7 @@ bool ObjectInfo::write(const ByteArray &ba)
         unsigned char *dst = reinterpret_cast<unsigned char*>(mWritePtr);
         for (size_t i=0; i<mDesc.writeSize; i++)
         {
-            unsigned char b = ba[i];
+            unsigned char b = ba.at(i);
             if (onValueChanged && dst[i] != b)
             {
                 changed = true;

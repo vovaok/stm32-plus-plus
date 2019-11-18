@@ -7,12 +7,12 @@ HardwareTimer::HardwareTimer(TimerNumber timerNumber, unsigned int frequency_Hz)
 {
     unsigned int pclk1 = Rcc::pClk1();
     unsigned int pclk2 = Rcc::pClk2();
-#if defined(STM32F37X)
+//#if defined(STM32F37X)
     if (pclk1 != Rcc::hClk())
         pclk1 *= 2;
     if (pclk2 != Rcc::hClk())
         pclk2 *= 2;
-#endif
+//#endif
     mInputClk = pclk2;
     switch (timerNumber)
     {

@@ -107,6 +107,31 @@ public:
     #define BindMethodHidden(method) bindObject(ObjectInfo(#method, CLOSURE(this, &method), ObjectInfo::Hidden))
     #define BindMethodEx(name, object, method) bindObject(ObjectInfo(name, CLOSURE(object, &method)))
     #define BindMethodHiddenEx(name, object, method) bindObject(ObjectInfo(name, CLOSURE(object, &method), ObjectInfo::Hidden))
+    
+    template <typename T> unsigned char bindVariable(string name, T &var)
+    {
+        return bindObject(ObjectInfo(name, var));
+    }
+    
+    template <typename T> unsigned char bindInput(string name, T &var)
+    {
+        return bindObject(ObjectInfo(name, var, ObjectInfo::Control));
+    }
+    
+    template <typename T> unsigned char bindOutput(string name, T &var)
+    {
+        return bindObject(ObjectInfo(name, var, ObjectInfo::Measurement));
+    }
+    
+    template <typename T> unsigned char bindIO(string name, T &var)
+    {
+        return bindObject(ObjectInfo(name, var, ObjectInfo::Exchange));
+    }
+    
+    template <typename T> unsigned char bindSetting(string name, T &var)
+    {
+        return bindObject(ObjectInfo(name, var, ObjectInfo::Storage));
+    }
 
     void sendForced(unsigned char oid);
 

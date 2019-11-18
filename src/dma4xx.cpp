@@ -251,6 +251,14 @@ void Dma::setTransferCompleteEvent(NotifyEvent event)
     DMA_ClearFlag(mStream, mDmaFlagMask);
     DMA_ITConfig(mStream, DMA_IT_TC, ENABLE);
 }
+
+bool Dma::isComplete()
+{
+    bool result = DMA_GetFlagStatus(mStream, mDmaFlagTc);
+    if (result)
+        DMA_ClearFlag(mStream, mDmaFlagTc);
+    return result;
+}
 //---------------------------------------------------------------------------
 
 void Dma::handleInterrupt()

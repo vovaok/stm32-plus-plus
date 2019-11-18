@@ -14,7 +14,7 @@ PwmOutput *PwmOutput::instance(TimerNumber timerNo)
 }
 
 PwmOutput::PwmOutput(TimerNumber timerNo, unsigned long pwmFreq) :
-    HardwareTimer(timerNo, pwmFreq),
+    HardwareTimer(timerNo, pwmFreq*2), // *2 for center-aligned mode
     mChMask(0)
 {  
     mInstances[timerNo] = this;
@@ -22,6 +22,8 @@ PwmOutput::PwmOutput(TimerNumber timerNo, unsigned long pwmFreq) :
     TIM_CCPreloadControl(tim(), ENABLE);
     mPeriod = autoReloadRegister() + 1;
     setEnabled(true);
+    tim()->CR1 |= TIM_CR1_CMS_0; // center aligned mode 1
+    tim()->RCR = 0x01; // update event freq / 2;
     
     if (timerNo == Tim1 || timerNo == Tim8)
     {
@@ -29,7 +31,7 @@ PwmOutput::PwmOutput(TimerNumber timerNo, unsigned long pwmFreq) :
         TIM_BDTRInitStructure.TIM_OSSRState = TIM_OSSRState_Enable;
         TIM_BDTRInitStructure.TIM_OSSIState = TIM_OSSIState_Enable;
         TIM_BDTRInitStructure.TIM_LOCKLevel = TIM_LOCKLevel_OFF;
-        TIM_BDTRInitStructure.TIM_DeadTime = 5;
+        TIM_BDTRInitStructure.TIM_DeadTime = 100;
         TIM_BDTRInitStructure.TIM_Break = TIM_Break_Disable;
         TIM_BDTRInitStructure.TIM_BreakPolarity = TIM_BreakPolarity_High;
         TIM_BDTRInitStructure.TIM_AutomaticOutput = TIM_AutomaticOutput_Enable;
@@ -51,8 +53,8 @@ void PwmOutput::configChannel(ChannelNumber chnum, Gpio::Config pin, Gpio::Confi
     TIM_OCInitStructure.TIM_OutputNState = TIM_OutputNState_Disable;//(chnEnabled)? TIM_OutputNState_Enable: TIM_OutputNState_Disable;
     TIM_OCInitStructure.TIM_Pulse = 0;
     
-    TIM_OCInitStructure.TIM_OCPolarity = invert? TIM_OCPolarity_High : TIM_OCPolarity_Low ;
-    TIM_OCInitStructure.TIM_OCNPolarity = TIM_OCNPolarity_Low;
+    TIM_OCInitStructure.TIM_OCPolarity = invert? TIM_OCPolarity_Low: TIM_OCPolarity_High;
+    TIM_OCInitStructure.TIM_OCNPolarity = invert? TIM_OCNPolarity_Low: TIM_OCNPolarity_High;
     TIM_OCInitStructure.TIM_OCIdleState = TIM_OCIdleState_Reset;
     TIM_OCInitStructure.TIM_OCNIdleState = TIM_OCIdleState_Reset;
 
