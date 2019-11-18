@@ -1,4 +1,5 @@
 #include "usbifcol.h"
+#include "usbcfg.h"
 
 using namespace Usb;
 
@@ -21,7 +22,20 @@ UsbInterfaceCollection::~UsbInterfaceCollection()
 
 void UsbInterfaceCollection::addChild(UsbNode *child)
 {
-    // bla bla bla
+    if (child->nodeType() == UsbNode::NodeTypeInterface)
+    {
+        UsbInterface* iface = dynamic_cast<UsbInterface*>(child);
+        if (iface)
+        {
+            UsbConfiguration *conf = dynamic_cast<UsbConfiguration*>(parent());
+            if (conf)
+            {
+                iface->setInterfaceNumber(conf->incrementNumInterfaces());
+            }
+        }
+        mDescriptor->incrementNumInterfaces();
+    }
+    
     UsbNode::addChild(child);
 }
 //---------------------------------------------------------------------------
@@ -32,3 +46,8 @@ void UsbInterfaceCollection::nodeAttached()
     mDescriptor->setStringIndex(strdesc);
 }
 //---------------------------------------------------------------------------
+
+void UsbInterfaceCollection::setFirstInterfaceNumber(unsigned char idx)
+{
+    mDescriptor->setFirstInterface(idx);
+}

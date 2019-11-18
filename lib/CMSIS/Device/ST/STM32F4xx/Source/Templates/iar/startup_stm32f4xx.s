@@ -57,7 +57,6 @@
 
         EXTERN  __iar_program_start
         EXTERN  SystemInit
-;        EXTERN __bootloader_manager
         PUBLIC  __vector_table
 
         DATA

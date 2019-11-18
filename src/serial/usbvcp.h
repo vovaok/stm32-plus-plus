@@ -4,6 +4,7 @@
 #include "usb/usb.h"
 #include "usb/usbcdc/usbcdc.h"
 #include "serial/serialinterface.h"
+#include "usb/usbifcol.h"
 
 using namespace Usb;
 using namespace Serial;
@@ -18,6 +19,8 @@ private:
     UsbVcpDataInterface *mIfData;
     
     ByteArray mBuffer;
+    int mBufSize;
+    int mBufHead, mBufTail;
     
     void initDevice();
     void onReceive(const ByteArray &ba);
@@ -25,7 +28,8 @@ private:
 public:
     // vid/pid = 0x0483/0x5740 for STM VCP
     UsbVcp(UsbDevice::UsbCore usb, unsigned short vid=0x0483, unsigned short pid=0x5740);    
-    UsbVcp(UsbDevice::UsbCore usb, const char *serial);  
+    UsbVcp(UsbDevice::UsbCore usb, const char *serial);
+    UsbVcp(UsbConfiguration *usbconf);
     ~UsbVcp();
     
     int write(const ByteArray &ba);

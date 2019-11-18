@@ -10,9 +10,9 @@ UsbVcpCtrlInterface::UsbVcpCtrlInterface(UsbNode *parent) :
     parent->attachNode(this);
   
     attachNode(new CdcHeaderFuncNode);
-    attachNode(new CdcCMFuncNode);
+    attachNode(new CdcCMFuncNode(interfaceNumber()));
     attachNode(new CdcACMFuncNode);
-    attachNode(new CdcUnionFuncNode);
+    attachNode(new CdcUnionFuncNode(interfaceNumber()));
     
     mCtrlEp = new UsbEndpoint(EndpointIN, TransferInterrupt, 8, 0xFF);
     attachNode(mCtrlEp);

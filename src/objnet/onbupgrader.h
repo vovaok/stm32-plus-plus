@@ -63,7 +63,7 @@ public:
     OnbUpgrader(ObjnetMaster *master);
     ~OnbUpgrader();
     
-    static bool checkClass(const ByteArray &firmware, uint32_t cid);
+    static bool checkClass(const void *firmware, int size, uint32_t cid);
     
     void load(const void *firmware, int size);
     void scan(unsigned char netaddr=0);
@@ -83,6 +83,8 @@ public:
 signals:
     void progressChanged(int percent);
     void finished();
+#else
+    NotifyEvent onFinish;
 #endif
 };
 

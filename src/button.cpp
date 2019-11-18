@@ -6,6 +6,7 @@ Button::Button(PinName pin, bool pullUp, bool inverted) :
     mState(false),
     mInverted(inverted),
     mDebounceTime(50),
+    mClickTime(0),
     mTime(mDebounceTime)
 {
     mState = read();
@@ -29,10 +30,19 @@ void Button::task()
         
     if (!mTime)
     {
-        if (mFilter && !mState && mPressEvent)
-            mPressEvent();
-        else if (!mFilter && mState && mReleaseEvent)
-            mReleaseEvent();
+        if (mFilter && !mState)
+        {
+            mClickTime = 300;
+            if (mPressEvent)
+                mPressEvent();
+        }
+        else if (!mFilter && mState)
+        {
+            if (mReleaseEvent)
+                mReleaseEvent();
+            if (mClickTime && mClickEvent)
+                mClickEvent();
+        }
         mState = mFilter;
     }
 }
@@ -43,6 +53,11 @@ void Button::tick(int period)
         mTime -= period;
     else
         mTime = 0;
+    
+    if (mClickTime >= period)
+        mClickTime -= period;
+    else
+        mClickTime = 0;
 }
 //---------------------------------------------------------------------------
 
@@ -60,5 +75,10 @@ void Button::setPressEvent(NotifyEvent event)
 void Button::setReleaseEvent(NotifyEvent event)
 {
     mReleaseEvent = event;
+}
+  
+void Button::setClickEvent(NotifyEvent event)
+{
+    mClickEvent = event;
 }
 //---------------------------------------------------------------------------

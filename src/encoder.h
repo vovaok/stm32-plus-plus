@@ -8,15 +8,15 @@ class Encoder : private HardwareTimer
 {
 private:
     int mPulses;
-    int mLastPos;
-    int mSpeed;
-    int mRevolutions;
-    int mMaxRevolutions;
+    short mPosition;
+    float mSpeed;
+    float mFilter;
+//    int mRevolutions;
+//    int mMaxRevolutions;
     
     Timer *mTimer;
     
-    void tick();
-    void overflowHandler();
+//    void overflowHandler();
     
 public:
     Encoder(TimerNumber timerNumber, int pulses, Gpio::Config pinA, Gpio::Config pinB, Gpio::Config pinIdx=Gpio::NoConfig);
@@ -25,13 +25,20 @@ public:
     using HardwareTimer::setCounter;
     using HardwareTimer::setEnabled;
     
-    int speed() const {return mSpeed;}
+    void tick(float dt);
+    
+    const float &speed() const {return mSpeed;}
     
     bool direction() const {return (tim()->CR1 & TIM_CR1_DIR)? false: true;}
+    int pulses() const {return mPulses;}
     
-    unsigned long position() const {return mRevolutions + counter();}
-    void setPosition(unsigned long value) {mRevolutions = value / mPulses; setCounter(value - mRevolutions);}
+//    unsigned long position() const {return mRevolutions + counter();}
+//    void setPosition(unsigned long value) {mRevolutions = value / mPulses; setCounter(value - mRevolutions);}
+    short position() const {return mPosition;}
+    void setPosition(short value) {mPosition = value; setCounter(value);}    
     void resetPosition() {/*mRevolutions = 0;*/ setCounter(0);}
+    
+    void setFilter(float factor) {mFilter = BOUND(0, factor, 1);}
 };
 
 class SpeedEncoder : private HardwareTimer
