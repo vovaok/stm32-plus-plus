@@ -205,7 +205,10 @@ public:
 };
 
 template<typename T> static ObjectInfo::Type typeOfVar(T &var) {(void)var; return ObjectInfo::Common;}
-#define DeclareTypeOfVar(Tp) template<> ObjectInfo::Type typeOfVar<ObjectInfo::Tp##_t>(ObjectInfo::Tp##_t &var) {(void)var; return ObjectInfo::Tp;}
+template<typename T> static ObjectInfo::Type typeOfVar(const T &var) {(void)var; return ObjectInfo::Common;}
+#define DeclareTypeOfVar(Tp) \
+    template<> ObjectInfo::Type typeOfVar<ObjectInfo::Tp##_t>(ObjectInfo::Tp##_t &var) {(void)var; return ObjectInfo::Tp;} \
+    template<> ObjectInfo::Type typeOfVar<ObjectInfo::Tp##_t>(const ObjectInfo::Tp##_t &var) {(void)var; return ObjectInfo::Tp;}
 //DeclareTypeOfVar(void, Void)
 DeclareTypeOfVar(Bool)
 DeclareTypeOfVar(Int)
