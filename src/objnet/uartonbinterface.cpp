@@ -9,7 +9,7 @@ UartOnbInterface::UartOnbInterface(SerialInterface *serialInterface) :
     mReadCnt(0),
     mWriteTimer(30),
     mCurTxMac(0),
-    cs(0), esc(0), cmd_acc(0),
+    cs(0), esc(0), cmd_acc(0), noSOF(0),
     mHdBusyTimeout(0)
 { 
     mMaxFrameSize = 64;
@@ -44,16 +44,26 @@ void UartOnbInterface::task()
                 mBuffer.clear();
                 cs = 0;
                 esc = 0;
+                noSOF = 0;
+//                if (cmd_acc && errorEvent)
+//                    errorEvent(mCurTxMac, ErrorFrame); // not cur mac, but previous!!!!
                 cmd_acc = 1;
                 break;
 
               case '}':
                 if (cmd_acc)
                 {
-                    if (!cs && mBuffer.size())
+                    if (!cs)
                     {
-                        mBuffer.resize(mBuffer.size()-1); // remove checksum
-                        msgReceived(mBuffer);
+                        if (mBuffer.size())
+                        {
+                            mBuffer.resize(mBuffer.size()-1); // remove checksum
+                            msgReceived(mBuffer);
+                        }
+                    }
+                    else if (errorEvent)
+                    {
+                        errorEvent(mCurTxMac, ErrorChecksum);
                     }
                     cmd_acc = 0;
                 }
@@ -61,7 +71,14 @@ void UartOnbInterface::task()
 
               default:
                 if (!cmd_acc)
+                {
+                    if (!noSOF && errorEvent)
+                    {
+                        noSOF = 1;
+                        errorEvent(mCurTxMac, ErrorNoSOF);
+                    }
                     break;
+                }
                 if (esc)
                     byte ^= 0x20;
                 esc = 0;
@@ -75,6 +92,11 @@ void UartOnbInterface::task()
     
     if (mCurTxMac && !mHdBusyTimeout)
     {
+        if (mInterface->getErrorCode() && errorEvent && !noSOF)
+        {
+            errorEvent(mCurTxMac, ErrorInterface);
+        }
+        
         if (nakEvent)
             nakEvent(mCurTxMac);
         mCurTxMac = 0;
@@ -284,7 +306,7 @@ int UartOnbInterface::availableWriteCount()
     return mTxQueueSize - mTxQueue.size();
 }
 
-int UartOnbInterface::addFilter(unsigned long id, unsigned long mask)
+int UartOnbInterface::addFilter(uint32_t id, uint32_t mask)
 {
     Filter f = {id & 0x1FFFFFFF, mask & 0x1FFFFFFF};
     mFilters.push_back(f);

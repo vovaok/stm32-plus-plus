@@ -142,6 +142,8 @@ void Adc::addChannel(int channel, SampleTime sampleTime)
     ADC_RegularChannelConfig(mAdc, channel, mChannelCount, sampleTime);
     mBuffer.resize(mChannelCount*2);
     mChannelResultMap[channel] = mChannelCount - 1;
+    
+    mAdc->CR2 |= ADC_CR2_EOCS; // end of conversion flag is set on sequence complete
 }
 
 void Adc::addChannel(int channel, Gpio::PinName pin, SampleTime sampleTime)
@@ -165,6 +167,7 @@ void Adc::setEnabled(bool enable)
     {
         mDma = Dma::getStreamForPeriph(mDmaChannel);
         mDma->setCircularBuffer(mBuffer.data(), mChannelCount);
+        mDma->setTransferCompleteEvent(mCompleteEvent);
         configDma(mDma);
         mDmaOwner = true;
     }
@@ -210,6 +213,13 @@ void Adc::startConversion()
 //    if (mAdc3)
 //        mAdc3->CR2 |= ADC_CR2_SWSTART;
 }
+
+bool Adc::isComplete() const
+{
+    if (mDma)
+        return mDma->isComplete();
+    return mAdc->SR & ADC_SR_EOC;
+}
 //---------------------------------------------------------------------------
 
 void Adc::setContinuousMode(bool enabled)
@@ -221,9 +231,30 @@ void Adc::setContinuousMode(bool enabled)
 
 int Adc::result(unsigned char channel)
 {
-    int index = mChannelResultMap[channel];
-    if (index >= 0 && index < mChannelCount)
+    return resultByIndex(mChannelResultMap[channel]);
+}
+
+int Adc::resultByIndex(unsigned char index)
+{
+    if (index < mChannelCount)
         return reinterpret_cast<unsigned short*>(mBuffer.data())[index];
     return -1;
 }
+
+const unsigned short &Adc::buffer(unsigned char channel) const
+{
+    return bufferByIndex(mChannelResultMap[channel]);
+}
+
+const unsigned short &Adc::bufferByIndex(unsigned char index) const
+{
+    return reinterpret_cast<const unsigned short*>(mBuffer.data())[index];
+}
 //---------------------------------------------------------------------------
+
+void Adc::setCompleteEvent(NotifyEvent e)
+{
+    mCompleteEvent = e;
+    if (mDma)
+        mDma->setTransferCompleteEvent(mCompleteEvent);
+}

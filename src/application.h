@@ -43,7 +43,7 @@ using namespace std;
 
 typedef struct
 {
-    char const pre[12];
+    char pre[12];
     unsigned long cid;
     unsigned short ver;
     unsigned short pageSize;
@@ -68,6 +68,7 @@ private:
     std::list<TickEvent> mTickEvents;
     typedef std::list<TaskEvent>::iterator TaskIterator;
     typedef std::list<TickEvent>::iterator TickIterator;
+    bool m_tasksModified;
     
     static unsigned short mVersion;
     static string mBuildDate;
@@ -76,6 +77,8 @@ private:
     static string mName;
     static string mDescription;
     static string mCompany;
+    
+    unsigned long mTimestamp;
     
     static void sysTickHandler();
     
@@ -107,10 +110,10 @@ public:
     /*! Запуск петли задач. */
     void exec();
     
-    void registerTaskEvent(TaskEvent event);
-    void unregisterTaskEvent(TaskEvent event);
-    void registerTickEvent(TickEvent event);
-    void unregisterTickEvent(TickEvent event);    
+    int registerTaskEvent(TaskEvent event);
+    void unregisterTaskEvent(int id);
+    int registerTickEvent(TickEvent event);
+    void unregisterTickEvent(int id);    
     
     static string name() {return Application::mName;}
     static string description() {return Application::mDescription;}
@@ -143,6 +146,10 @@ public:
         Переходит к выполнению программы обновления (если она имеется)
     */
     static bool startOnbBootloader();
+    
+    /*! Возвращает время в миллисекундах с момента запуска.    
+    */
+    inline unsigned long timestamp() const {return mTimestamp;}
 };
 
 /*! Экземпляр приложения.

@@ -68,6 +68,8 @@ private:
     Resolution mResolution;
     int mChannelCount;
     
+    NotifyEvent mCompleteEvent;
+    
 public:
     Adc(int adcBase = 1); // for single mode
 //    Adc(int adcBase1, int adcBase2); // for dual mode
@@ -86,11 +88,17 @@ public:
     void stop() {setEnabled(false);}
     
     void startConversion();
+    bool isComplete() const;
     void setContinuousMode(bool enabled);
     
     void configDma(Dma *dma);
     
     int result(unsigned char channel);
+    int resultByIndex(unsigned char index);
+    const unsigned short &buffer(unsigned char channel) const;
+    const unsigned short &bufferByIndex(unsigned char index) const;
+    
+    void setCompleteEvent(NotifyEvent e);
 };
 
 #endif

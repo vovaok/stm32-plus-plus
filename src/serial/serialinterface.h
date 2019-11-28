@@ -32,6 +32,8 @@ public:
     inline bool isOpen() const {return mOpenMode != NotOpen;}
     virtual bool isHalfDuplex() const {return false;}
     
+    virtual unsigned char getErrorCode() const {return 0;}
+    
     NotifyEvent onReadyRead;
 };
 

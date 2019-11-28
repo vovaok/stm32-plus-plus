@@ -66,6 +66,8 @@ private:
     static RF_config_param RF_config[];
   
     unsigned char mStatus;
+    bool mBusy;
+    unsigned long mIrqState;
     
     void select();
     void deselect();

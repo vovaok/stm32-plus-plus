@@ -17,6 +17,8 @@ void Application::sysTickHandler()
         return;
     
     Application *app = instance();
+    app->mTimestamp += app->mSysClkPeriod;
+    
     std::list<TickEvent> &elist = app->mTickEvents;
     for (TickIterator it=elist.begin(); it!=elist.end(); it++)
     {
@@ -38,32 +40,49 @@ void Application::exec()
     {
         for (TaskIterator it=mTaskEvents.begin(); it!=mTaskEvents.end(); it++)
         {
+            if (m_tasksModified)
+                break;
             (*it)();
         }
+        m_tasksModified = false;
         
         //__WFI(); // го слипать
     }
 }
 //---------------------------------------------------------------------------
 
-void Application::registerTaskEvent(TaskEvent event)
+int Application::registerTaskEvent(TaskEvent event)
 {
+    m_tasksModified = true;
     mTaskEvents.push_back(event);
+    return mTaskEvents.size() - 1;
 }
 
-void Application::unregisterTaskEvent(TaskEvent event)
+void Application::unregisterTaskEvent(int id)
 {
-    mTaskEvents.remove(event);
+    if (id >= 0 && id < mTaskEvents.size())
+    {
+        m_tasksModified = true;
+        TaskIterator it = mTaskEvents.begin();
+        std::advance(it, id);
+        mTaskEvents.erase(it);
+    }
 }
 
-void Application::registerTickEvent(TickEvent event)
+int Application::registerTickEvent(TickEvent event)
 {
     mTickEvents.push_back(event);
+    return mTickEvents.size() - 1;
 }
 
-void Application::unregisterTickEvent(TickEvent event)
+void Application::unregisterTickEvent(int id)
 {
-    mTickEvents.remove(event);
+    if (id >= 0 && id < mTickEvents.size())
+    {
+        TickIterator it = mTickEvents.begin();
+        std::advance(it, id);
+        mTickEvents.erase(it);
+    }
 }
 //---------------------------------------------------------------------------
 

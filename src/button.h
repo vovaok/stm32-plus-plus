@@ -15,9 +15,12 @@ private:
     bool mState;
     bool mInverted;
     int mDebounceTime;
+    int mClickTime;
     int mTime;
     NotifyEvent mPressEvent;
     NotifyEvent mReleaseEvent;
+    NotifyEvent mClickEvent;
+    int m_taskid, m_tickid;
     
     void task();// stmApp task event
     void tick(int period); // stmApp tick event
@@ -55,6 +58,8 @@ public:
     */
     bool state() const;
     
+    bool isHolding() const {return mState && !mClickTime;}
+    
     /*! Установка обработчика события нажатия.
         \param event Указатель на функцию, которая назначается обработчиком.\n
         Пример использования: \code setPressEvent(EVENT(&MyClass::MyPressHandler)); \endcode
@@ -66,6 +71,14 @@ public:
         Пример использования: \code setReleaseEvent(EVENT(&MyClass::MyReleaseHandler)); \endcode
     */
     void setReleaseEvent(NotifyEvent event);
+    
+    /*! Установка обработчика события клика.
+        Кликом считается кратковременное нажатие длительностью не более 300 мс.
+        При этом событие возникает при отпускании кнопки.
+        \param event Указатель на функцию, которая назначается обработчиком.\n
+        Пример использования: \code setReleaseEvent(EVENT(&MyClass::MyReleaseHandler)); \endcode
+    */
+    void setClickEvent(NotifyEvent event);
     
     using Gpio::read;
 };

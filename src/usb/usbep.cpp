@@ -5,7 +5,8 @@ using namespace Usb;
 
 UsbEndpoint::UsbEndpoint(EndpointDirection epDir, TransferType transferType, unsigned short maxPacketSize, unsigned char pollInterval) :
   UsbNode(UsbNode::NodeTypeEndpoint),
-  mPollInterval(pollInterval)
+  mPollInterval(pollInterval),
+  m_prepared(false)
     //csEndpoint(0L)
 {
     mDescriptor = new EndpointDescriptor;
@@ -26,7 +27,10 @@ void UsbEndpoint::init()
         device()->connectEndpoint(this);
         device()->driver()->epOpen(mDescriptor->endpointAddress(), mDescriptor->maxPacketSize(), mDescriptor->attributes());
         if (mRxBuffer.size()) // if this is OUT endpoint => prepare buffer for reception
+        {
             device()->driver()->epPrepareRx(mDescriptor->endpointAddress(), mRxBuffer.data(), mRxBuffer.size());
+            m_prepared = true;
+        }
     }
     UsbNode::init();
 }
@@ -43,17 +47,24 @@ void UsbEndpoint::deInit()
 
 void UsbEndpoint::dataOut(int size)
 {
+    m_prepared = false;
     if (mDataOutEvent)
     {
         ByteArray ba(mRxBuffer.data(), size);
         mDataOutEvent(ba);
     }
-    if (device() && mRxBuffer.size())
+    if (device() && mRxBuffer.size() && !m_prepared)
+    {
         device()->driver()->epPrepareRx(mDescriptor->endpointAddress(), mRxBuffer.data(), mRxBuffer.size());
+        m_prepared = true;
+    }
 }
 
 void UsbEndpoint::dataIn()
 {
+    if (mDataInEvent)
+        mDataInEvent();
+  
 //    printf("dataIn\n");
     if ((mDescriptor->attributes() & 0x3) == TransferInterrupt)
     {
@@ -96,5 +107,20 @@ void UsbEndpoint::sendData(const ByteArray &data)
 //        device()->driver()->epTx(mDescriptor->endpointAddress(), mTxBuffer.data(), mTxBuffer.size());
 //        mTxBuffer.clear();
 //    }
+}
+
+void UsbEndpoint::sendDataLL(unsigned char *data, int size)
+{
+    if (isIn() && (device()->deviceStatus() == UsbOtgConfigured))
+        device()->driver()->epTx(mDescriptor->endpointAddress(), data, size);
+}
+
+void UsbEndpoint::prepareRxLL(unsigned char *data, int size)
+{
+    if (isOut() && (device()->deviceStatus() == UsbOtgConfigured))
+    {
+        device()->driver()->epPrepareRx(mDescriptor->endpointAddress(), data, size);
+        m_prepared = true;
+    }
 }
 //---------------------------------------------------------------------------

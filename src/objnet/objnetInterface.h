@@ -29,7 +29,15 @@ class ObjnetInterface : public QObject
 {
     Q_OBJECT
 #endif
-private:
+public:
+    enum Error
+    {
+        ErrorNone,
+        ErrorFrame,
+        ErrorChecksum,
+        ErrorNoSOF,
+        ErrorInterface
+    };
 
 protected:
     int mMaxFrameSize; //!< Maximal data size in frame
@@ -105,6 +113,8 @@ public:
     NakEvent nakEvent;
     
     void setMasterMode(bool enabled) {isMaster = enabled;}
+    
+    Closure<void(unsigned char, Error)> errorEvent;
 };
 
 }

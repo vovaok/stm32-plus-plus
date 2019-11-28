@@ -51,7 +51,7 @@ int OnbVirtualInterface::availableWriteCount()
     return 1; // x3 norm ili net
 }
 
-int OnbVirtualInterface::addFilter(unsigned long id, unsigned long mask)
+int OnbVirtualInterface::addFilter(uint32_t id, uint32_t mask)
 {
     Filter f = {id & 0x1FFFFFFF, mask & 0x1FFFFFFF};
     mFilters.push_back(f);

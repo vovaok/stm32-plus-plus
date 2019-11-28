@@ -28,7 +28,13 @@ void UsbConfiguration::addChild(UsbNode* node)
     {
         UsbInterface* interface = dynamic_cast<UsbInterface*>(node);
         if (interface)
-            interface->setInterfaceNumber(mDescriptor->incrementNumInterfaces());
+            interface->setInterfaceNumber(incrementNumInterfaces());
+    }
+    else if (node->nodeType() == UsbNode::NodeTypeInterfaceCollection)
+    {
+        UsbInterfaceCollection* collection = dynamic_cast<UsbInterfaceCollection*>(node);
+        if (collection)
+            collection->setFirstInterfaceNumber(mDescriptor->numInterfaces());
     }
         
     UsbNode::addChild(node);
@@ -40,3 +46,9 @@ void UsbConfiguration::nodeAttached()
     mDescriptor->setStringIndex(strdesc);
 }
 //---------------------------------------------------------------------------
+
+void UsbConfiguration::setup(const UsbSetupReq &req)
+{
+    if (req.wIndex < mChildren.size())
+        mChildren[req.wIndex]->setup(req);
+}

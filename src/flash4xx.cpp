@@ -134,3 +134,18 @@ Flash::Status Flash::programData(unsigned long address, const void *data, unsign
     FLASH->CR &= ~FLASH_CR_PG;
     return status;
 }
+
+Flash::Status Flash::programDataInverted(unsigned long address, const void *data, unsigned long size)
+{
+    Status status;
+    status = wait();
+    FLASH->CR = 0x00000200 | FLASH_CR_PG;
+    int sz = (size + 3) / 4;
+    for (unsigned long i=0; i<sz; i++)
+    {
+        reinterpret_cast<volatile unsigned long*>(address)[i] = ~reinterpret_cast<const unsigned long*>(data)[i];
+        status = wait();
+    }
+    FLASH->CR &= ~FLASH_CR_PG;
+    return status;
+}

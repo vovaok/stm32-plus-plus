@@ -4,9 +4,9 @@ using namespace Objnet;
 
 OnbUpgrader::OnbUpgrader(ObjnetMaster *master) :
     mMaster(master),
-    mInfo(0L),
     mState(sIdle),
     mSize(0), mPageSize(0),
+    mAppinfoIdx(0),
     mCount(0), mCurBytes(0),
     mPageDone(false), mPageTransferred(false), mPageRepeat(false)
 {
@@ -29,20 +29,14 @@ OnbUpgrader::~OnbUpgrader()
     mMaster->onServiceMessage = Closure<void(CommonMessage&)>();
 }
 
-void OnbUpgrader::load(const ByteArray &firmware)
+void OnbUpgrader::load(const void *firmware, int size)
 {
     if (mState != sIdle)
         return;
     
-    mBin.clear();
-    mBin.append(firmware);
-    mSize = mBin.size();
-    while (mSize & 0x3)
-    {
-        mBin.append('\0');
-        mSize = mBin.size();
-    }
-
+    mData = reinterpret_cast<const unsigned char*>(firmware);
+    mSize = size;
+    
     mCount = 0;
     mPageDone = false;
     mPageTransferred = false;
@@ -50,27 +44,42 @@ void OnbUpgrader::load(const ByteArray &firmware)
 
     logEvent("firmware size = " + _number(mSize) + " bytes");
 
-    int idx = mBin.indexOf("__APPINFO__");
-    if (idx < 0)
+    unsigned char s[] = "__APPINFO__";
+    for (int i=0; i<=mSize-11; i++)
+    {
+        int j;
+        for (j=0; j<11 && (mData[i+j]==s[j]); j++);
+        if (j==11)
+        {
+            mAppinfoIdx = i;
+            break;
+        }
+    }
+    
+    if (mAppinfoIdx < 0)
     {
         logEvent("no app info supplied. abort");
         return;
     }
 
-    mInfo = reinterpret_cast<__appinfo_t__*>(mBin.data()+idx);
+    mInfo = *reinterpret_cast<const __appinfo_t__*>(mData + mAppinfoIdx);
     logEvent(getFirmwareInfo());
-    mClass = mInfo->cid;
-    mPageSize = mInfo->pageSize;
+    mClass = mInfo.cid;
+    mPageSize = mInfo.pageSize;
     if (mPageSize < 8)
         mPageSize = 2048; // HACK
-    mInfo->length = mSize;
-    mInfo->checksum = 0;
+    mInfo.length = (mSize+3) & ~3L;
+    mInfo.checksum = 0;
     uint32_t cs = 0;
-    uint32_t *data = reinterpret_cast<uint32_t*>(mBin.data());
+    const uint32_t *data = reinterpret_cast<const uint32_t*>(mData);
     for (int i=0; i<mSize/4; i++)
         cs -= data[i];
-    mInfo->checksum = cs;
-    logEvent("checksum = " + _number(mInfo->checksum, true) + "\n");
+    unsigned long lastdata = data[mSize/4] & ((1<<((mSize & 3)*8))-1);
+    cs -= lastdata;
+    cs -= mInfo.length;
+    cs += 0xDeadFace + 0xBaadFeed;
+    mInfo.checksum = cs;
+    logEvent("checksum = " + _number(mInfo.checksum, true) + "\n");
 }
 
 void OnbUpgrader::scan(unsigned char netaddr)
@@ -90,8 +99,9 @@ void OnbUpgrader::scan(unsigned char netaddr)
 
 void OnbUpgrader::start()
 {
+    uint32_t size_aligned = (mSize + 3) & ~3L;
     ByteArray ba;
-    ba.append(reinterpret_cast<const char*>(&mSize), 4);
+    ba.append(reinterpret_cast<const char*>(&size_aligned), 4);
     sendMessageToDevices(svcUpgradeConfirm, ba);
     //mMaster->sendGlobalRequest(aidUpgradeConfirm, true, ba);
     mState = sStarted;
@@ -107,6 +117,9 @@ void OnbUpgrader::stop()
     logEvent("upgrade finished\n");
 #ifdef QT_CORE_LIB
     emit finished();
+#else
+    if (onFinish)
+        onFinish();
 #endif
 }
 //---------------------------------------------------------------------------
@@ -201,9 +214,18 @@ void OnbUpgrader::onTimer()
         int seqcnt = mPageSize >> 3;
         int maxseqs = 128 >> 3;
         logEvent(".");
-        for (int i=0; (i<maxseqs) && (mCount < mSize); i++)
+        for (int i=0; i<maxseqs; i++)
         {
-            ByteArray ba = mBin.mid(mCount, 8);
+            ByteArray ba(8, '\0');
+            for (int i=0; i<8; i++)
+            {
+                int ci = mCount + i;
+                int ai = ci - mAppinfoIdx;
+                if (ai >= 0 && ai < sizeof(__appinfo_t__))
+                    ba[i] = reinterpret_cast<unsigned char*>(&mInfo)[ai];
+                else if (ci < mSize)
+                    ba[i] = mData[ci];
+            }
             int basz = ba.size();
             int seq = (mCount >> 3) & (seqcnt - 1);
             mMaster->sendUpgrageData(seq, ba);
@@ -307,7 +329,7 @@ void OnbUpgrader::setPage(int page)
     clearReady();
     ByteArray ba;
     ba.append(reinterpret_cast<const char*>(&page), 4);
-    logEvent("page " + _number(page) + " of " + _number(pageCount()) + " ...");
+    logEvent("page " + _number(page) + "/" + _number(pageCount()));
     sendMessageToDevices(svcUpgradeSetPage, ba);
     mState = sSetPage;
     mTimer->start(200);
@@ -329,12 +351,25 @@ bool OnbUpgrader::isAllReady()
 }
 //---------------------------------------------------------------------------
 
-bool OnbUpgrader::checkClass(const ByteArray &firmware, uint32_t cid)
+bool OnbUpgrader::checkClass(const void *firmware, int size, uint32_t cid)
 {
-    int idx = firmware.indexOf("__APPINFO__");
+    const unsigned char *data = reinterpret_cast<const unsigned char*>(firmware);
+    int idx = -1;
+    unsigned char s[] = "__APPINFO__";
+    for (int i=0; i<=size-11; i++)
+    {
+        int j;
+        for (j=0; j<11 && (data[i+j]==s[j]); j++);
+        if (j==11)
+        {
+            idx = i;
+            break;
+        }
+    }
+  
     if (idx < 0)
         return false;
-    const __appinfo_t__ *info = reinterpret_cast<const __appinfo_t__*>(firmware.data()+idx);
+    const __appinfo_t__ *info = reinterpret_cast<const __appinfo_t__*>(data + idx);
     return (info->cid == cid);
 }
 //---------------------------------------------------------------------------
@@ -353,11 +388,11 @@ string OnbUpgrader::getFirmwareInfo() const
 {
     string text;
     char buf[64];
-    sprintf(buf, "class id = 0x%08X\n", (unsigned int)mInfo->cid);
+    sprintf(buf, "class id = 0x%08X\n", (unsigned int)mInfo.cid);
     text += buf;
-    sprintf(buf, "version %d.%d, %s\n", mInfo->ver >> 8, mInfo->ver & 0xFF, mInfo->timestamp);
+    sprintf(buf, "version %d.%d, %s\n", mInfo.ver >> 8, mInfo.ver & 0xFF, mInfo.timestamp);
     text += buf;
-    sprintf(buf, "page size = %d\n", mInfo->pageSize);
+    sprintf(buf, "page size = %d\n", mInfo.pageSize);
     text += buf;
     return text;
 }

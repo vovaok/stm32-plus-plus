@@ -38,7 +38,10 @@ void UsbInterface::addChild(UsbNode *child)
     {
         mDescriptor->incrementNumEndpoints();
         if (endpoint)
-            endpoint->setEndpointNumber(mDescriptor->numEndpoints());
+        {
+            endpoint->setEndpointNumber(mDevice->endpointCount() + 1);
+            mDevice->connectEndpoint(endpoint);
+        }
         if (mCsInterface)
             mCsInterface->addChild(child); // inform class specific interface about endpoints
     }

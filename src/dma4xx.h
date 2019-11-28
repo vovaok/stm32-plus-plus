@@ -86,6 +86,8 @@ public:
     void setEnabled(bool enable);
     bool isEnabled() const {return mEnabled;}
     
+    bool isComplete();
+    
     int currentPage() const {return DMA_GetCurrentMemoryTarget(mStream);}
     inline int dataCounter() const {return mStream->NDTR;}
     

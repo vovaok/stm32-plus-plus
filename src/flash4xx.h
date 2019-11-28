@@ -70,6 +70,7 @@ public:
     static Status eraseSector(Sector sector);
     static Status programWord(unsigned long address, unsigned long value);
     static Status programData(unsigned long address, const void *data, unsigned long size);
+    static Status programDataInverted(unsigned long address, const void *data, unsigned long size);
 };
 
 #endif

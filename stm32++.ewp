@@ -8863,6 +8863,7 @@
         <configuration>stm32f407vg</configuration>
         <configuration>stm32f405rg</configuration>
         <configuration>stm32f405rg_no-exceptions_no-rtti</configuration>
+        <configuration>stm32f429zi</configuration>
       </excluded>
     </file>
     <file>
@@ -8975,6 +8976,33 @@
       </file>
       <file>
         <name>$PROJ_DIR$\src\usb\usbHid\usbhid.h</name>
+      </file>
+    </group>
+    <group>
+      <name>usbMsc</name>
+      <file>
+        <name>$PROJ_DIR$\src\usb\usbMsc\mscbot.cpp</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\src\usb\usbMsc\mscbot.h</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\src\usb\usbMsc\scsi.cpp</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\src\usb\usbMsc\scsi.h</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\src\usb\usbMsc\scsiinterface.cpp</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\src\usb\usbMsc\scsiinterface.h</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\src\usb\usbMsc\usbmsc.cpp</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\src\usb\usbMsc\usbmsc.h</name>
       </file>
     </group>
     <group>
@@ -9303,6 +9331,12 @@
   </file>
   <file>
     <name>$PROJ_DIR$\src\motorDC.h</name>
+  </file>
+  <file>
+    <name>$PROJ_DIR$\src\picontroller.cpp</name>
+  </file>
+  <file>
+    <name>$PROJ_DIR$\src\picontroller.h</name>
   </file>
   <file>
     <name>$PROJ_DIR$\src\powermanager.cpp</name>

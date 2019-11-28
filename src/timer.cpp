@@ -6,14 +6,14 @@ Timer::Timer() :
     mEnabled(false),
     mUpdated(false)
 {
-    stmApp()->registerTaskEvent(EVENT(&Timer::task));
-    stmApp()->registerTickEvent(EVENT(&Timer::tick));   
+    m_taskid = stmApp()->registerTaskEvent(EVENT(&Timer::task));
+    m_tickid = stmApp()->registerTickEvent(EVENT(&Timer::tick));   
 }
 
 Timer::~Timer()
 {
-    stmApp()->unregisterTaskEvent(EVENT(&Timer::task));
-    stmApp()->unregisterTickEvent(EVENT(&Timer::tick));
+    stmApp()->unregisterTaskEvent(m_taskid);
+    stmApp()->unregisterTickEvent(m_tickid);
 }
 //---------------------------------------------------------------------------
 

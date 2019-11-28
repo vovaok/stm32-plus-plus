@@ -128,7 +128,7 @@ int CanInterface::availableWriteCount()
     return mTxQueueSize - mTxQueue.size();
 }
 
-int CanInterface::addFilter(unsigned long id, unsigned long mask)
+int CanInterface::addFilter(uint32_t id, uint32_t mask)
 {
     int filter = mCan->addFilter(id, mask, mCurFilterFifo++);
     if (mCurFilterFifo >= 2)
