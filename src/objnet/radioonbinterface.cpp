@@ -38,6 +38,12 @@ void RadioOnbInterface::tick(int dt)
 {
     if (mHdBusyTimeout)
         --mHdBusyTimeout;
+    
+    if(mTimeOutNode)
+      --mTimeOutNode;
+    
+     if(mTimeOutMaster)
+      --mTimeOutMaster;
 }
 //---------------------------------------------------------------------------
 
@@ -310,6 +316,12 @@ void RadioOnbInterface::masterTask()
         }
         if (mTxBusy)
         {
+        
+          if(!mTimeOutMaster)
+          {          
+            mTxBusy = false;
+          }
+         
         }
         else if (trySend(mTxBuffer))
         {
@@ -382,7 +394,9 @@ void RadioOnbInterface::nodeTask()
         
       case stateTx:
         if (mTxBusy)
-        {
+        {        
+          if(!mTimeOutNode)         
+            mTxBusy = false;      
         }
         else if (trySend(mTxBuffer))
         {
@@ -437,6 +451,8 @@ bool RadioOnbInterface::trySend(ByteArray &ba)
     cc1200->send(reinterpret_cast<unsigned char*>(ba.data()), ba.size());
     packetsSent++;
     mTxBusy = true;
+    mTimeOutMaster = 10;
+    mTimeOutNode = 10;
     return true;
   
 //    if (mTxBusy)
