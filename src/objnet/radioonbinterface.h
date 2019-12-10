@@ -30,6 +30,8 @@ private:
     
     CC1200::Status rfStatus;
     
+    int mTimeOutNode,mTimeOutMaster;
+    
     enum {stateInit, stateCalibrate, stateIdle, stateTx, stateRx} mState;
     
     std::queue<CommonMessage> mTxQueue;

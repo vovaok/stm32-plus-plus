@@ -38,6 +38,12 @@ void RadioOnbInterface::tick(int dt)
 {
     if (mHdBusyTimeout)
         --mHdBusyTimeout;
+    
+    if(mTimeOutNode)
+      --mTimeOutNode;
+    
+     if(mTimeOutMaster)
+      --mTimeOutMaster;
 }
 //---------------------------------------------------------------------------
 
@@ -57,6 +63,8 @@ int recPhy = 0;
 int recLog = 0;
 int irqcnt = 0;
 bool wasnak = false;
+
+int flushes =0;
 
 void RadioOnbInterface::task()
 {
@@ -85,11 +93,12 @@ void RadioOnbInterface::task()
     
 //    bool flag = cc1200->getRxTxFlag();
     
-//    if (rfStatus == CC1200::TX_FIFO_ERROR)
-//    {
-//        cc1200->sendCommand(CC1200::SFTX); // flush TX FIFO on error
-//    }
-//    
+    if (rfStatus == CC1200::TX_FIFO_ERROR)
+    {
+        flushes++;
+        cc1200->sendCommand(CC1200::SFTX); // flush TX FIFO on error
+    }
+    
 //    if (rfStatus == CC1200::RX_FIFO_ERROR)
 //        cc1200->sendCommand(CC1200::SFRX); // flush RX FIFO on error
     
@@ -230,6 +239,11 @@ unsigned char recIdCnt = 0;
 int lastHeadRx = 0;
 int lastHeadTx = 0;
 
+int packetsRcvd;
+int packetsRcvd15;
+int packetsSent15;
+int packetsDiff15;
+
 bool RadioOnbInterface::parseRxBuffer()
 {
     bool packetReceived = false;
@@ -237,6 +251,7 @@ bool RadioOnbInterface::parseRxBuffer()
     {
         readRxBuffer(reinterpret_cast<unsigned char *>(&mCurHdr), 2);
         mRxSize -= 2;
+        packetsRcvd++;
     }
     if (mCurHdr.size && mRxSize >= mCurHdr.size + 1)
     {
@@ -265,7 +280,10 @@ bool RadioOnbInterface::parseRxBuffer()
             //mLqi = sts.LQI;
             bool ok = sts.CRC_OK;
             if (ok)
-                writeRx(mCurRxMsg); 
+            {
+                writeRx(mCurRxMsg);
+                packetsRcvd15++;
+            }
             else
                 errorCount++;
             packetReceived = true;
@@ -310,6 +328,12 @@ void RadioOnbInterface::masterTask()
         }
         if (mTxBusy)
         {
+        
+          if(!mTimeOutMaster)
+          {          
+            mTxBusy = false;
+          }
+         
         }
         else if (trySend(mTxBuffer))
         {
@@ -382,7 +406,9 @@ void RadioOnbInterface::nodeTask()
         
       case stateTx:
         if (mTxBusy)
-        {
+        {        
+          if(!mTimeOutNode)         
+            mTxBusy = false;      
         }
         else if (trySend(mTxBuffer))
         {
@@ -425,18 +451,33 @@ void RadioOnbInterface::nodeTask()
 }
 //---------------------------------------------------------------------------
 
+int failSend;
+
+
 bool RadioOnbInterface::trySend(ByteArray &ba)
 {
     int txFifoCnt = cc1200->readReg(CC1200_NUM_TXBYTES);
     if (txFifoCnt)
+    {
+        failSend++;
         return false;
+    }
     
     if (ledTx)
         ledTx->on();
     
     cc1200->send(reinterpret_cast<unsigned char*>(ba.data()), ba.size());
     packetsSent++;
+    
+    if (ba[0] == 0x1F)
+    {
+        packetsSent15++;
+        packetsDiff15 = packetsSent15 - packetsRcvd15;
+    }
+    
     mTxBusy = true;
+    mTimeOutMaster = 10;
+    mTimeOutNode = 10;
     return true;
   
 //    if (mTxBusy)
