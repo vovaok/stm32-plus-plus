@@ -173,9 +173,17 @@ ObjnetDevice *ObjnetMaster::createDevice(unsigned char mac, ByteArray &location)
         netaddr = createNetAddress(mac);        // создаём новый адрес
     }
 
-    dev = new ObjnetDevice(netaddr);            // создаём объект с новым адресом
+    if (localnet)
+    {
+        dev = mLocalnetDevices[mac];
+        dev->mNetAddress = netaddr;
+    }
+    if (!dev)
+    {
+        dev = new ObjnetDevice(netaddr);          // создаём объект с новым адресом
+    //    dev->mAutoDelete = true;                    // раз автоматически создали - автоматически и удалим)
+    }
     dev->mMaster = this;
-//    dev->mAutoDelete = true;                    // раз автоматически создали - автоматически и удалим)
     dev->mAutoDelete = false;     // ***** !!!!! TRY THIS !!!!!! *********
     dev->mBusAddress = location[0];
     dev->mIsLocal = localnet;
@@ -352,7 +360,7 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
             if (dev->isValid())
             {
                 connectDevice(dev->netAddress());
-                if (dev->mIsLocal)
+                if (dev->mIsLocal && !dev->isInfoValid())
                     sendServiceMessage(netaddr, svcRequestAllInfo);
             }
             else
@@ -651,4 +659,10 @@ ObjnetDevice* ObjnetMaster::createStaticDevice(unsigned char busAddress)
     loc.append(0x7F);
     ObjnetDevice *dev = createDevice(busAddress, loc);
     return dev;
+}
+
+void ObjnetMaster::registerDevice(ObjnetDevice *dev, unsigned char busAddress)
+{
+    mLocalnetDevices[busAddress] = dev;
+    createStaticDevice(busAddress);
 }

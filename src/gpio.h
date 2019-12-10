@@ -381,8 +381,49 @@ public:
         DAC_OUT1_PA4  =     PINCONFIG(PA4,  modeAnalog, afNone, 0x11), //!<.
         DAC_OUT2_PA5  =     PINCONFIG(PA5,  modeAnalog, afNone, 0x12), //!<.
           
+        // ADC
+        ADC1_IN0_PA0 =      PINCONFIG(PA0, modeAnalog, afNone, 0x10), //!<.
+        ADC1_IN1_PA1 =      PINCONFIG(PA1, modeAnalog, afNone, 0x11), //!<.
+        ADC1_IN2_PA2 =      PINCONFIG(PA2, modeAnalog, afNone, 0x12), //!<.
+        ADC1_IN3_PA3 =      PINCONFIG(PA3, modeAnalog, afNone, 0x13), //!<.
+        ADC1_IN4_PA4 =      PINCONFIG(PA4, modeAnalog, afNone, 0x14), //!<.
+        ADC1_IN5_PA5 =      PINCONFIG(PA5, modeAnalog, afNone, 0x15), //!<.
+        ADC1_IN6_PA6 =      PINCONFIG(PA6, modeAnalog, afNone, 0x16), //!<.
+        ADC1_IN7_PA7 =      PINCONFIG(PA7, modeAnalog, afNone, 0x17), //!<.
+        ADC1_IN8_PB0 =      PINCONFIG(PB0, modeAnalog, afNone, 0x18), //!<.
+        ADC1_IN9_PB1 =      PINCONFIG(PB1, modeAnalog, afNone, 0x19), //!<.
+        ADC1_IN10_PC0 =     PINCONFIG(PC0, modeAnalog, afNone, 0x1A), //!<.
+        ADC1_IN11_PC1 =     PINCONFIG(PC1, modeAnalog, afNone, 0x1B), //!<.
+        ADC1_IN12_PC2 =     PINCONFIG(PC2, modeAnalog, afNone, 0x1C), //!<.
+        ADC1_IN13_PC3 =     PINCONFIG(PC3, modeAnalog, afNone, 0x1D), //!<.
+        ADC1_IN14_PC4 =     PINCONFIG(PC4, modeAnalog, afNone, 0x1E), //!<.
+        ADC1_IN15_PC5 =     PINCONFIG(PC5, modeAnalog, afNone, 0x1F), //!<.
           
-          
+        ADC2_IN0_PA0 =      PINCONFIG(PA0, modeAnalog, afNone, 0x20), //!<.
+        ADC2_IN1_PA1 =      PINCONFIG(PA1, modeAnalog, afNone, 0x21), //!<.
+        ADC2_IN2_PA2 =      PINCONFIG(PA2, modeAnalog, afNone, 0x22), //!<.
+        ADC2_IN3_PA3 =      PINCONFIG(PA3, modeAnalog, afNone, 0x23), //!<.
+        ADC2_IN4_PA4 =      PINCONFIG(PA4, modeAnalog, afNone, 0x24), //!<.
+        ADC2_IN5_PA5 =      PINCONFIG(PA5, modeAnalog, afNone, 0x25), //!<.
+        ADC2_IN6_PA6 =      PINCONFIG(PA6, modeAnalog, afNone, 0x26), //!<.
+        ADC2_IN7_PA7 =      PINCONFIG(PA7, modeAnalog, afNone, 0x27), //!<.
+        ADC2_IN8_PB0 =      PINCONFIG(PB0, modeAnalog, afNone, 0x28), //!<.
+        ADC2_IN9_PB1 =      PINCONFIG(PB1, modeAnalog, afNone, 0x29), //!<.  
+        ADC2_IN10_PC0 =     PINCONFIG(PC0, modeAnalog, afNone, 0x2A), //!<.
+        ADC2_IN11_PC1 =     PINCONFIG(PC1, modeAnalog, afNone, 0x2B), //!<.
+        ADC2_IN12_PC2 =     PINCONFIG(PC2, modeAnalog, afNone, 0x2C), //!<.
+        ADC2_IN13_PC3 =     PINCONFIG(PC3, modeAnalog, afNone, 0x2D), //!<.
+        ADC2_IN14_PC4 =     PINCONFIG(PC4, modeAnalog, afNone, 0x2E), //!<.
+        ADC2_IN15_PC5 =     PINCONFIG(PC5, modeAnalog, afNone, 0x2F), //!<.
+        
+        ADC3_IN0_PA0 =      PINCONFIG(PA0, modeAnalog, afNone, 0x30), //!<.
+        ADC3_IN1_PA1 =      PINCONFIG(PA1, modeAnalog, afNone, 0x31), //!<.
+        ADC3_IN2_PA2 =      PINCONFIG(PA2, modeAnalog, afNone, 0x32), //!<.
+        ADC3_IN3_PA3 =      PINCONFIG(PA3, modeAnalog, afNone, 0x33), //!<.
+        ADC3_IN10_PC0 =     PINCONFIG(PC0, modeAnalog, afNone, 0x3A), //!<.
+        ADC3_IN11_PC1 =     PINCONFIG(PC1, modeAnalog, afNone, 0x3B), //!<.
+        ADC3_IN12_PC2 =     PINCONFIG(PC2, modeAnalog, afNone, 0x3C), //!<.
+        ADC3_IN13_PC3 =     PINCONFIG(PC3, modeAnalog, afNone, 0x3D), //!<.
         
         // SPI (I2S)
         SPI1_NSS_PA4 =      PINCONFIG(PA4,  modeAF | speed50MHz, afSpi1, 0x10), //!.

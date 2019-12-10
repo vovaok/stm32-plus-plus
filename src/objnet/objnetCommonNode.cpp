@@ -209,6 +209,8 @@ void ObjnetCommonNode::setBusAddressFromPins(int bits, Gpio::PinName a0, ...)
         address |= bit << i;
     }
     va_end(vl);
+    if (!address)
+        address = 0xF;
     setBusAddress(address);
 }
 
@@ -216,14 +218,33 @@ void ObjnetCommonNode::setBusAddressFromPins(Gpio::PinName a0, Gpio::PinName a1,
 {
     unsigned char address = 0;
     const Gpio::Flags f = Gpio::Flags(Gpio::modeIn | Gpio::pullUp);
-    if (Gpio(a0, f).read())
+    if (a0 != Gpio::noPin && Gpio(a0, f).read())
         address |= 0x1;
-    if (Gpio(a1, f).read())
+    if (a1 != Gpio::noPin && Gpio(a1, f).read())
         address |= 0x2;
-    if (Gpio(a2, f).read())
+    if (a2 != Gpio::noPin && Gpio(a2, f).read())
         address |= 0x4;
-    if (Gpio(a3, f).read())
+    if (a3 != Gpio::noPin && Gpio(a3, f).read())
         address |= 0x8;
+    if (!address)
+        address = 0xF;
+    setBusAddress(address);
+}
+
+void ObjnetCommonNode::setBusAddressFromPinsPD(Gpio::PinName a0, Gpio::PinName a1, Gpio::PinName a2, Gpio::PinName a3)
+{
+    unsigned char address = 0;
+    const Gpio::Flags f = Gpio::Flags(Gpio::modeIn | Gpio::pullDown);
+    if (a0 != Gpio::noPin && Gpio(a0, f).read())
+        address |= 0x1;
+    if (a1 != Gpio::noPin && Gpio(a1, f).read())
+        address |= 0x2;
+    if (a2 != Gpio::noPin && Gpio(a2, f).read())
+        address |= 0x4;
+    if (a3 != Gpio::noPin && Gpio(a3, f).read())
+        address |= 0x8;
+    if (!address)
+        address = 0xF;
     setBusAddress(address);
 }
 

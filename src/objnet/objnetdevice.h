@@ -201,6 +201,7 @@ signals:
     void infoReceived(unsigned char oid);
     void objectReceived(QString name, QVariant value);
     void timedObjectReceived(QString name, uint32_t timestamp, QVariant value);
+    void objectGroupReceived(QVariantMap values);
     void autoRequestAccepted(QString name, int periodMs);
 
     void objectValueChanged(QString name, QVariant value);

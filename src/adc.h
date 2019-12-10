@@ -55,6 +55,7 @@ public:
     } SampleTime;
   
 private:
+    static Adc *mInstances[3];
     ADC_TypeDef *mAdc;//, *mAdc2, *mAdc3;
     ADC_InitTypeDef mConfig;
     Dma *mDma;
@@ -75,6 +76,8 @@ public:
 //    Adc(int adcBase1, int adcBase2); // for dual mode
 //    Adc(int adcBase1, int adcBase2, int adcBase3); // for triple mode
     ~Adc();
+    
+    static Adc *instance(int periphNumber);
     
     void setResolution(Resolution resolution);
     void selectTrigger(Trigger trigger, Edge edge);

@@ -1,5 +1,7 @@
 #include "adc.h"
 
+Adc* Adc::mInstances[3] = {0L, 0L, 0L};
+
 Adc::Adc(int adcBase) :
 //    mAdc2(0L), mAdc3(0L),
     mMode(ModeSingle),
@@ -11,6 +13,8 @@ Adc::Adc(int adcBase) :
 {  
     for (int i=0; i<sizeof(mChannelResultMap); i++)
         mChannelResultMap[i] = -1;
+    
+    mInstances[adcBase - 1] = this;
   
     switch (adcBase)
     {
@@ -53,13 +57,22 @@ Adc::Adc(int adcBase) :
     mConfig.ADC_DataAlign = ADC_DataAlign_Left;
     mConfig.ADC_NbrOfConversion = mChannelCount;
 }
-//---------------------------------------------------------------------------
 
 Adc::~Adc()
 {
     if (mDma && mDmaOwner)
         delete mDma;
 }
+
+Adc *Adc::instance(int periphNumber)
+{
+    if (periphNumber < 1 || periphNumber > 3)
+        return 0L;
+    if (!mInstances[periphNumber-1])
+        new Adc(periphNumber);
+    return mInstances[periphNumber-1];
+}
+//---------------------------------------------------------------------------
 
 void Adc::setResolution(Resolution resolution)
 {

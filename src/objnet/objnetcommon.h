@@ -3,6 +3,7 @@
 
 #include <string>
 #include <typeinfo>
+#include <stdint.h>
 #ifndef QT_CORE_LIB
 #include "core/core.h"
 #else
