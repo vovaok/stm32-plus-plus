@@ -29,6 +29,7 @@ float PiController::loop(float target)
         erri += err;
         erriLimit = ki? limit / ki: 0;
         erri = erri>erriLimit? erriLimit: erri<-erriLimit? -erriLimit: erri;
+        erri *= 0.999;
         
         float u = err * kp + erri * ki;
         
