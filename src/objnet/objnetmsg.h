@@ -30,9 +30,9 @@ public:
         mBa.append(ba);
     }
 
-    virtual ~CommonMessage()
-    {
-    }
+//    virtual ~CommonMessage()
+//    {
+//    }
 
     uint32_t rawId() const {return mId;}
     void setId(uint32_t rawId) {mId = rawId;}
