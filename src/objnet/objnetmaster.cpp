@@ -176,7 +176,8 @@ ObjnetDevice *ObjnetMaster::createDevice(unsigned char mac, ByteArray &location)
     if (localnet)
     {
         dev = mLocalnetDevices[mac];
-        dev->mNetAddress = netaddr;
+        if (dev)
+            dev->mNetAddress = netaddr;
     }
     if (!dev)
     {

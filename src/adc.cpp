@@ -8,6 +8,7 @@ Adc::Adc(int adcBase) :
     mEnabled(false),
     mResolution(Res16bit),
     mChannelCount(0),
+    mSampleCount(1),
     mDma(0L),
     mDmaOwner(false)
 {  
@@ -153,7 +154,7 @@ void Adc::addChannel(int channel, SampleTime sampleTime)
     mConfig.ADC_NbrOfConversion = ++mChannelCount;
     ADC_Init(mAdc, &mConfig);
     ADC_RegularChannelConfig(mAdc, channel, mChannelCount, sampleTime);
-    mBuffer.resize(mChannelCount*2);
+    mBuffer.resize(mChannelCount*2*mSampleCount);
     mChannelResultMap[channel] = mChannelCount - 1;
     
     mAdc->CR2 |= ADC_CR2_EOCS; // end of conversion flag is set on sequence complete
@@ -169,8 +170,15 @@ void Adc::addChannel(int channel, Gpio::PinName pin, SampleTime sampleTime)
     mConfig.ADC_NbrOfConversion = ++mChannelCount;
     ADC_Init(mAdc, &mConfig);
     ADC_RegularChannelConfig(mAdc, channel, mChannelCount, sampleTime);
-    mBuffer.resize(mChannelCount*2);
+    mBuffer.resize(mChannelCount*2*mSampleCount);
     mChannelResultMap[channel] = mChannelCount - 1;
+}
+//---------------------------------------------------------------------------
+
+void Adc::setMultisample(int sampleCount)
+{
+    mSampleCount = sampleCount;
+    mBuffer.resize(mChannelCount*2*mSampleCount);
 }
 //---------------------------------------------------------------------------
 
@@ -179,7 +187,7 @@ void Adc::setEnabled(bool enable)
     if (!mDma && enable)
     {
         mDma = Dma::getStreamForPeriph(mDmaChannel);
-        mDma->setCircularBuffer(mBuffer.data(), mChannelCount);
+        mDma->setCircularBuffer(mBuffer.data(), mChannelCount*mSampleCount);
         mDma->setTransferCompleteEvent(mCompleteEvent);
         configDma(mDma);
         mDmaOwner = true;
@@ -249,8 +257,19 @@ int Adc::result(unsigned char channel)
 
 int Adc::resultByIndex(unsigned char index)
 {
+    unsigned short *buf = reinterpret_cast<unsigned short*>(mBuffer.data());
     if (index < mChannelCount)
-        return reinterpret_cast<unsigned short*>(mBuffer.data())[index];
+    {
+        if (mSampleCount == 1)
+            return buf[index];
+        else
+        {
+            int sum = 0;
+            for (int i=0; i<mSampleCount; i++)
+                sum += buf[i*mChannelCount + index];
+            return (sum / mSampleCount);
+        }
+    }
     return -1;
 }
 

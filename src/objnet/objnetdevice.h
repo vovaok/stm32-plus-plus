@@ -82,6 +82,8 @@ protected:
     void receiveTimedObject(const ByteArray &ba);
     void receiveGroupedObject(const ByteArray &ba);
     void receiveGlobalMessage(unsigned char aid);
+    
+    virtual void readyEvent() {}
 
 public:
     ObjnetDevice(unsigned char netaddr = 0);

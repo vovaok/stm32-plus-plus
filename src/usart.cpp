@@ -205,6 +205,12 @@ UsartNo Usart::getUsartByPin(Gpio::Config pin)
 }
 //---------------------------------------------------------------------------
 
+void Usart::setClockPin(Gpio::Config pinCk, bool inverted)
+{
+    Gpio::config(pinCk);
+    
+}
+
 void Usart::init()
 {
     uint32_t tmpreg = 0x00, apbclock = 0x00;

@@ -68,6 +68,7 @@ private:
     bool mEnabled;
     Resolution mResolution;
     int mChannelCount;
+    int mSampleCount;
     
     NotifyEvent mCompleteEvent;
     
@@ -84,6 +85,7 @@ public:
     
     void addChannel(int channel, SampleTime sampleTime = SampleTime_3Cycles);
     void addChannel(int channel, Gpio::PinName pin, SampleTime sampleTime = SampleTime_3Cycles);
+    void setMultisample(int sampleCount);
     
     void setEnabled(bool enable);
     bool isEnabled() const {return mEnabled;}

@@ -35,6 +35,11 @@ Gpio::Gpio(PortName port, unsigned short mask, Flags flags)
     mPin = mask;
     config(mConfig.config);
 }
+
+Gpio::~Gpio()
+{
+    config(NoConfig);
+}
 //---------------------------------------------------------------------------
 
 void Gpio::config(PinName pin, Flags flags, PinAF altFunction)
@@ -145,9 +150,12 @@ void Gpio::config(int count, Config conf1, ...)
 void Gpio::usePin(const ConfigStruct &cfg)
 {
     unsigned char pinId = static_cast<unsigned char>(cfg.pin);
-    if (mPinsUsed[pinId])
+    if (cfg.config == NoConfig)
+        mPinsUsed[pinId] = 0x00;
+    else if (mPinsUsed[pinId])
         throw Exception::resourceBusy;
-    mPinsUsed[pinId] = (cfg.af + 1) | ((cfg.mode + 1) << 4);
+    else
+        mPinsUsed[pinId] = (cfg.af + 1) | ((cfg.mode + 1) << 4);
 }
 //---------------------------------------------------------------------------
 

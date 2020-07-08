@@ -679,6 +679,8 @@ public:
     */
     Gpio(PortName port, unsigned short mask = 0xFFFF, Flags flags = flagsDefault);
     
+    ~Gpio();
+    
     /*! Initialize pin with explicit configuration.
         This function is useful when you not need to create an instance
         for manipulating the pin in the future.\n

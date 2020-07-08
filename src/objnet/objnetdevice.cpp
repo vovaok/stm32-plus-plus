@@ -161,13 +161,17 @@ void ObjnetDevice::prepareObject(const ObjectInfo::Description &desc)
         if (i>=mObjects.size() || !mObjects[i])
             readyFlag = false;
     }
-    #ifdef QT_CORE_LIB
+    
     if (readyFlag)
+    {
+        readyEvent();
+#ifdef QT_CORE_LIB
         emit ready();
-    #else
-    if (readyFlag && onReady)
-        onReady(this);
-    #endif
+#else 
+        if (onReady)
+            onReady(this);
+#endif
+    }
 }
 //---------------------------------------------------------
 
