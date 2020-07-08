@@ -497,6 +497,8 @@ bool RadioOnbInterface::trySend(ByteArray &ba)
 }
 //---------------------------------------------------------------------------
 
+bool _txread, _txwrite;
+
 bool RadioOnbInterface::writeRx(const CommonMessage &msg)
 {      
     if (mRxQueue.size() < mRxQueueSize) 
@@ -509,25 +511,40 @@ bool RadioOnbInterface::writeRx(const CommonMessage &msg)
 
 bool RadioOnbInterface::readTx(CommonMessage &msg)
 {
+    _txread=true;
     if (!mTxQueue.empty())
     {
         msg = mTxQueue.front();
+        if (_txwrite)
+            while(1);
         mTxQueue.pop();
+        if (_txwrite)
+            while(1);
+        _txread=false;
         return true;
     }
+    _txread=false;
     return false;
 }
 //---------------------------------------------------------------------------
 
 bool RadioOnbInterface::write(CommonMessage &msg)
 {
+    _txwrite = true;
     if (msg.size() > mMaxFrameSize)
+    {
+        _txwrite = false;
         return false;
+    }
     if (mTxQueue.size() < mTxQueueSize) 
     {
+        if (_txread)
+            while(1);
         mTxQueue.push(msg);
+        _txwrite = false;
         return true;
     }
+    _txwrite = false;
     return false;
 }
 
