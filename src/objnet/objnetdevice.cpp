@@ -72,11 +72,7 @@ void ObjnetDevice::prepareObject(const ObjectInfo::Description &desc)
                         o->mWritePtr = ptr;
                     else
                     {
-                        #ifdef Q_OS_LINUX
-                        int off = (uintptr_t)o->mReadPtr - (uintptr_t)o->mWritePtr;
-                        #else
-                        int off = (int)o->mReadPtr - (int)o->mWritePtr;
-                        #endif
+                        uintptr_t off = (uintptr_t)o->mReadPtr - (uintptr_t)o->mWritePtr;
                         o->mWritePtr = ptr;
                         o->mReadPtr = ptr + off;
                     }

@@ -6,21 +6,16 @@
 #include <sstream>
 
 class Debug
-{
-private:
-    static Debug *mSelf;
-    std::vector<std::string> strings;
-    int seq;
-    
-    Debug() : seq(-1) {}
-    
+{    
 public:
+    typedef void (*OutFn_t)(const char *);
+  
     static Debug *instance() 
     {
         if (!mSelf)
             mSelf = new Debug;
-        mSelf->seq++;
-        mSelf->strings.push_back(std::string());
+//        mSelf->seq++;
+//        mSelf->strings.push_back(std::string());
         return mSelf;
     }
     
@@ -29,9 +24,20 @@ public:
     {
         std::stringstream ss;
         ss << v;
-        strings[seq] += " " + ss.str();
+        mOutFn(ss.str().c_str());
+//        strings[seq] += " " + ss.str();
         return *this;
     }
+    
+    static void setOutputFunc(OutFn_t f);
+      
+private:
+    static Debug *mSelf;
+    static OutFn_t mOutFn;
+//    std::vector<std::string> strings;
+//    int seq;
+    
+//    Debug() : seq(-1) {}     
 };
 
 extern Debug &qDebug();
