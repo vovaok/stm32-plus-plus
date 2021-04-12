@@ -62,7 +62,7 @@ ObjnetStorage::ObjnetStorage(Flash::Sector sector1, Flash::Sector sector2) :
     
     mFirstBlock = reinterpret_cast<BlockHeader*>(mStorage + sizeof(SectorHeader)/sizeof(unsigned long));
     for (mNewBlock = mFirstBlock; mNewBlock->flags != Blank; mNewBlock = mNewBlock->sibling());
-#warning nado zapilit: if (mNewBlock_address > mStorageSize) { do transfer; }
+//#warning nado zapilit: if (mNewBlock_address > mStorageSize) { do transfer; }
     
     for (Description *d = reinterpret_cast<Description*>(mFirstBlock); d->isValid(); d = d->next())
         mLastDesc = d;

@@ -300,7 +300,7 @@ void ObjnetDevice::receiveTimedObject(const ByteArray &ba)
 //            if (!res)
 //                qDebug() << "failed to write obj" << obj->name();
             #ifndef QT_CORE_LIB
-#warning timed object not available in IAR (poka 4to)
+//#warning timed object not available in IAR (poka 4to)
             if (onObjectReceived)
                 onObjectReceived(obj->name());
             #else

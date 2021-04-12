@@ -304,7 +304,7 @@ bool RadioOnbInterface::parseRxBuffer()
     }
     return packetReceived;
 }
-
+int Busy =0;
 void RadioOnbInterface::masterTask()
 {
     switch (mState)
@@ -332,6 +332,7 @@ void RadioOnbInterface::masterTask()
           if(!mTimeOutMaster)
           {          
             mTxBusy = false;
+            Busy++;
           }
          
         }
@@ -407,8 +408,11 @@ void RadioOnbInterface::nodeTask()
       case stateTx:
         if (mTxBusy)
         {        
-          if(!mTimeOutNode)         
-            mTxBusy = false;      
+          if(!mTimeOutNode)    
+          {
+            mTxBusy = false;
+            Busy++;
+          }
         }
         else if (trySend(mTxBuffer))
         {
