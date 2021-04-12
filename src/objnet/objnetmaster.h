@@ -52,6 +52,7 @@ public:
     Closure<void(CommonMessage&)> onServiceMessage;
     
     ObjnetDevice *createStaticDevice(unsigned char busAddress);
+    void registerDevice(ObjnetDevice *dev, unsigned char busAddress);
 
 #ifdef QT_CORE_LIB
 signals:

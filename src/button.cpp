@@ -9,7 +9,7 @@ Button::Button(PinName pin, bool pullUp, bool inverted) :
     mClickTime(0),
     mTime(mDebounceTime)
 {
-    mState = read();
+    mState = mInverted ^ read();
     m_taskid = stmApp()->registerTaskEvent(EVENT(&Button::task));
     m_tickid = stmApp()->registerTickEvent(EVENT(&Button::tick));
 }

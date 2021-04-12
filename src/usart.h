@@ -127,6 +127,8 @@ public:
     bool isHalfDuplex() const {return mHalfDuplex;}
     
     unsigned char getErrorCode() const;
+    
+    void setClockPin(Gpio::Config pinCk, bool inverted = false);
 };
 
 #endif

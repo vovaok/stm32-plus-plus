@@ -82,6 +82,8 @@ protected:
     void receiveTimedObject(const ByteArray &ba);
     void receiveGroupedObject(const ByteArray &ba);
     void receiveGlobalMessage(unsigned char aid);
+    
+    virtual void readyEvent() {}
 
 public:
     ObjnetDevice(unsigned char netaddr = 0);
@@ -201,6 +203,7 @@ signals:
     void infoReceived(unsigned char oid);
     void objectReceived(QString name, QVariant value);
     void timedObjectReceived(QString name, uint32_t timestamp, QVariant value);
+    void objectGroupReceived(QVariantMap values);
     void autoRequestAccepted(QString name, int periodMs);
 
     void objectValueChanged(QString name, QVariant value);

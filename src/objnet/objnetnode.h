@@ -132,6 +132,11 @@ public:
     {
         return bindObject(ObjectInfo(name, var, ObjectInfo::Storage));
     }
+    
+//    template <class T> unsigned char bindMethod(string name, T *obj, void (T::*method)())
+//    {
+//        return bindObject(ObjectInfo(name, CLOSURE(obj, method)));
+//    }
 
     void sendForced(unsigned char oid);
 

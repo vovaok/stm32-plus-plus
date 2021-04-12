@@ -55,6 +55,7 @@ public:
     } SampleTime;
   
 private:
+    static Adc *mInstances[3];
     ADC_TypeDef *mAdc;//, *mAdc2, *mAdc3;
     ADC_InitTypeDef mConfig;
     Dma *mDma;
@@ -67,6 +68,7 @@ private:
     bool mEnabled;
     Resolution mResolution;
     int mChannelCount;
+    int mSampleCount;
     
     NotifyEvent mCompleteEvent;
     
@@ -76,11 +78,14 @@ public:
 //    Adc(int adcBase1, int adcBase2, int adcBase3); // for triple mode
     ~Adc();
     
+    static Adc *instance(int periphNumber);
+    
     void setResolution(Resolution resolution);
     void selectTrigger(Trigger trigger, Edge edge);
     
     void addChannel(int channel, SampleTime sampleTime = SampleTime_3Cycles);
     void addChannel(int channel, Gpio::PinName pin, SampleTime sampleTime = SampleTime_3Cycles);
+    void setMultisample(int sampleCount);
     
     void setEnabled(bool enable);
     bool isEnabled() const {return mEnabled;}

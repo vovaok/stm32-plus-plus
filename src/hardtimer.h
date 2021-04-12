@@ -115,7 +115,7 @@ private:
     void enableInterrupt(InterruptSource source);
     
 protected:
-    TIM_TypeDef* tim() {return mTim;}
+    
     const TIM_TypeDef* tim() const {return mTim;}
     
     unsigned long inputClk() const {return mInputClk;}
@@ -127,6 +127,8 @@ public:
                             Если задать частоту 0, то таймер будет проинициализирован без предделителя и с максимальным периодом.
     */
     HardwareTimer(TimerNumber timerNumber, unsigned int frequency_Hz=0);
+    
+    TIM_TypeDef* tim() {return mTim;}
     
     static HardwareTimer* mTimers[19]; // should be private
     void handleInterrupt(); // should be private

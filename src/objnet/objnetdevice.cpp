@@ -72,11 +72,7 @@ void ObjnetDevice::prepareObject(const ObjectInfo::Description &desc)
                         o->mWritePtr = ptr;
                     else
                     {
-                        #ifdef Q_OS_LINUX
-                        int off = (uintptr_t)o->mReadPtr - (uintptr_t)o->mWritePtr;
-                        #else
-                        int off = (int)o->mReadPtr - (int)o->mWritePtr;
-                        #endif
+                        uintptr_t off = (uintptr_t)o->mReadPtr - (uintptr_t)o->mWritePtr;
                         o->mWritePtr = ptr;
                         o->mReadPtr = ptr + off;
                     }
@@ -161,13 +157,17 @@ void ObjnetDevice::prepareObject(const ObjectInfo::Description &desc)
         if (i>=mObjects.size() || !mObjects[i])
             readyFlag = false;
     }
-    #ifdef QT_CORE_LIB
+    
     if (readyFlag)
+    {
+        readyEvent();
+#ifdef QT_CORE_LIB
         emit ready();
-    #else
-    if (readyFlag && onReady)
-        onReady(this);
-    #endif
+#else 
+        if (onReady)
+            onReady(this);
+#endif
+    }
 }
 //---------------------------------------------------------
 
@@ -319,10 +319,14 @@ void ObjnetDevice::receiveTimedObject(const ByteArray &ba)
 void ObjnetDevice::receiveGroupedObject(const ByteArray &ba)
 {
     mTempTimeout = 0;
-  
+    #ifdef QT_CORE_LIB
+    QVariantMap values;
+    #endif
+
     for (int idx=0; idx<ba.size();)
     {
         unsigned char oid = ba[idx++];
+//        indices.append(oid);
         if (oid < mObjects.size())
         {
             ObjectInfo *obj = mObjects[oid];
@@ -336,11 +340,19 @@ void ObjnetDevice::receiveGroupedObject(const ByteArray &ba)
                 if (onObjectReceived)
                     onObjectReceived(obj->name());
                 #else
+                values[obj->name()] = obj->toVariant();
                 emit objectReceived(obj->name(), obj->toVariant());
                 #endif
             }
         }
     }
+
+    #ifndef QT_CORE_LIB
+//    if (onObjectGroupReceived)
+//        onObjectGroupReceived(indices);
+    #else
+    emit objectGroupReceived(values);
+    #endif
 }
 
 void ObjnetDevice::receiveGlobalMessage(unsigned char aid)
