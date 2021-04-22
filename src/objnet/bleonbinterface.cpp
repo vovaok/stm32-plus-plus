@@ -4,7 +4,7 @@
 
 using namespace Objnet;
 
-BleOnbInterface::BleOnbInterface(ObjnetInterface *serialInterface) :
+BleOnbInterface::BleOnbInterface(SerialInterface *serialInterface) :
     mInterface(serialInterface),
     mReadCnt(0),
     mWriteTimer(30),
