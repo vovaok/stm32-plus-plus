@@ -87,7 +87,7 @@
     #include "stm32f4xx_usart.h"
     #include "stm32f4xx_wwdg.h"
     #include "misc.h" /* High level functions for NVIC and SysTick (add-on to CMSIS functions) */
-#elif defined(STM32F427_437xx) || defined(STM32F429_439xx)
+#elif defined(STM32F427_437xx) || defined(STM32F429_439xx) || defined(STM32F429xx)
     #include "stm32f4xx.h"
     #include "stm32f4xx_adc.h"
     #include "stm32f4xx_can.h"

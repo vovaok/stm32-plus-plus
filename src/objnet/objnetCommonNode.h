@@ -6,7 +6,7 @@
 #include "objnetInterface.h"
 #include "objectinfo.h"
 #ifndef QT_CORE_LIB
-#include "canInterface.h"
+//#include "canInterface.h"
 #include "gpio.h"
 #include "timer.h"
 #else
