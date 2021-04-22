@@ -3,11 +3,15 @@
 
 #include <string.h>
 #include "coreexception.h"
+
 #if defined(STM32F37X)
     #include "stm32f37x.h"
+#elif defined(NRF52840_XXAA)
+    #include "nrf52840.h"
 #else
     #include "stm32f4xx.h"
 #endif
+
 #include "core_cm4.h"
 
 class ByteArray

@@ -64,7 +64,6 @@ void ByteArray::allocMore(int size)
 { 
     unsigned int desiredSize = mSize + size; // compute desired buffer size
 //    ASSERT_SIZE();
-    int oldAllocSize = mAllocSize;
     if (desiredSize <= mAllocSize)
         return;
     unsigned long _primask = __get_PRIMASK();
@@ -72,16 +71,11 @@ void ByteArray::allocMore(int size)
     while (mAllocSize < desiredSize) // compute nearest allocation size
         mAllocSize = mAllocSize? (mAllocSize << 1): 16; // minimum size = 16 bytes
 //    ASSERT_SIZE();
-    //__disable_irq();
     char *temp = new char[mAllocSize]; // allocate new buffer
-    //__enable_irq();
     if (mData)
     {
         memcpy(temp, mData, mSize); // copy old data
-        //__disable_irq();
         delete [] mData;               // delete old buffer
-        oldAllocSize = 0;
-        //__enable_irq();
     }
     mData = temp; 
     if (!_primask)

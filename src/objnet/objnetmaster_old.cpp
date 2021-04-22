@@ -373,9 +373,9 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
                 mLocalnetDevices[mac] = dev;             // ...запоминаем для поиска по маку
                 mNetAddrByMacCache[mac] = netaddr;       // и кэшируем адрес для возврата по маку (чтобы лишний раз не создавать)
             }
-#ifndef _MSC_VER
-#warning NEED TO IMPLEMENT: kill mLocalnetDevices[mac] on svcKill. A mb i ne nado!!
-#endif
+//#ifndef _MSC_VER
+//#warning NEED TO IMPLEMENT: kill mLocalnetDevices[mac] on svcKill. A mb i ne nado!!
+//#endif
             mDevices[netaddr] = dev;                     // запоминаем для поиска по адресу
             welcomeCmd = svcWelcome;                     // меняем команду на svcWelcome
 

@@ -81,9 +81,9 @@ void ObjnetCommonNode::task()
             }
             else
             {
-                #ifndef _MSC_VER
-                #warning poka x3 s global messagami
-                #endif
+//                #ifndef _MSC_VER
+//                #warning poka x3 s global messagami
+//                #endif
                 #ifndef QT_CORE_LIB
                 if (mGlobalMessageEvent)
                     mGlobalMessageEvent(inMsg);
@@ -195,7 +195,7 @@ void ObjnetCommonNode::setBusAddress(unsigned char address)
     mGlobalFilter = mInterface->addFilter(gid, gmask);
 }
 
-#ifndef QT_CORE_LIB
+#if !defined(QT_CORE_LIB ) && !defined (NRF52840_XXAA) 
 void ObjnetCommonNode::setBusAddressFromPins(int bits, Gpio::PinName a0, ...)
 {
     uint32_t address = 0;

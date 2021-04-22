@@ -5,13 +5,16 @@
 #include <map>
 #include "objnetInterface.h"
 #include "objectinfo.h"
-#ifndef QT_CORE_LIB
-//#include "canInterface.h"
-#include "gpio.h"
-#include "timer.h"
+
+#if !defined(QT_CORE_LIB) && !defined(NRF52840_XXAA)
+    #include "canInterface.h"
+    #include "gpio.h"
+#endif
+
+#if !defined(QT_CORE_LIB)
+    #include "timer.h"
 #else
-#define Timer QTimer
-//#include "quartcaninterface.h"
+    #define Timer QTimer
 #endif
 
 namespace Objnet
@@ -117,7 +120,7 @@ public:
     */
     unsigned char busAddress() const {return mBusAddress;}
 
-#ifndef QT_CORE_LIB
+#if !defined(QT_CORE_LIB ) && !defined (NRF52840_XXAA) 
     /*! Установка физического адреса по сигналам на ногах.
         В функцию передаётся разрядность адреса и имена ножек
         в порядке от младшего бита к старшему.
