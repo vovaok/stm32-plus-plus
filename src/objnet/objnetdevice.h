@@ -87,6 +87,7 @@ protected:
 
 public:
     ObjnetDevice(unsigned char netaddr = 0);
+    virtual ~ObjnetDevice();
 
     bool isPresent() const {return mPresent;}
     bool isValid() const {return (mInfoValidFlags & 3) == 3;}
