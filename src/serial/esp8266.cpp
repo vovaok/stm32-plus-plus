@@ -90,7 +90,7 @@ void ESP8266::task()
                         if (mTransmitSize)
                             mUsart->write(mOutBuffer.data(), mTransmitSize);
                         mOutBuffer.remove(0, mTransmitSize);
-                        mTransmitSize = 0;
+//                        mTransmitSize = 0; // do it later when SEND OK
                     }
                     else
                     {
@@ -123,6 +123,15 @@ void ESP8266::task()
                     }
                 }
             }
+            
+            char cmd[32];
+            if (mServerActive && mOutBuffer.size() && !mTransmitSize)
+            {
+                mLastCmd = cmdIpSend;
+                mTransmitSize = mOutBuffer.size();
+                sprintf(cmd, "AT+CIPSEND=0,%d", mTransmitSize);
+                sendCmd(cmd);
+            }
         }
         else if (mUsart->canReadLine())
         {
@@ -143,6 +152,10 @@ void ESP8266::parseLine(ByteArray &line)
 {
 //    if (onReceiveLine)
 //        onReceiveLine(string(line.data(), line.size()));
+  
+//    for (int i=0; i<line.size(); i++)
+//        putchar(line[i]);
+//    putchar('\n');
   
 //    if (line.size() < 10)
   
@@ -260,7 +273,13 @@ void ESP8266::parseLine(ByteArray &line)
             if (!mPeerIp.empty())
             {
                 mState = IdleState;
-                if (mServerPort)
+                if (mServerActive)
+                {
+                    mLastCmd = cmdIpMux;
+                    sendCmd("AT+CIPMUX=1");
+                    mState = Connecting;
+                }
+                else if (mServerPort)
                 {
                     mState = Connecting;
                     cipStart(mPeerIp.c_str(), mServerPort);
@@ -275,8 +294,7 @@ void ESP8266::parseLine(ByteArray &line)
           case cmdIpSend:
             if (mConnected)
             {
-                mUsart->write(mOutBuffer);
-                mOutBuffer.remove(0, mLastData);
+                // write data by request ">" in another place
                 mLastCmd = cmdNone;
             }
             else
@@ -416,6 +434,11 @@ void ESP8266::parseLine(ByteArray &line)
         }
         mPeerIp = string(line.data(), line.size());
     }
+    else if (line == "SEND OK")
+    {
+        mTransmitSize = 0;
+//        printf("> send done, buffer size=%d\n", mOutBuffer.size());
+    }
     else if (mServerActive)
     {
         ByteArray cc = line.remove(0, 2);
@@ -502,7 +525,11 @@ void ESP8266::onTimer()
     }
     else if (mState == Connecting)
     {
-        if (mLastCmd == cmdIpStart)
+        if (mServerActive)
+        {
+          
+        }
+        else if (mLastCmd == cmdIpStart)
         {
             mTimeout++;
             if (mTimeout >= 5)
@@ -562,17 +589,19 @@ int ESP8266::write(const ByteArray &ba)
             mTransmitSize = 0;
             mOutBuffer.clear();
             fuckflag = true;
-            printf("fuck...\n");
+            printf("> fuck...\n");
         }
         else
         {
             mOutBuffer.append(ba);
+//            printf("> write to buffer\n");
+//            printf("> buffer size=%d\n", mOutBuffer.size());
         }
         
 //        printf("write sz=%d\n", ba.size());
         
         char cmd[32];
-        if (mServerActive)
+        if (mServerActive && !mTransmitSize)
         {
             mLastCmd = cmdIpSend;
             mTransmitSize = mOutBuffer.size();
@@ -639,6 +668,13 @@ void ESP8266::setAPMode(string ssid, string pass)
 //    sendCmd("AT+CWMODE_CUR=2");    
 }
 
+void ESP8266::setAP_IP(string ip)
+{
+    mLastCmd = cmdCipAp;
+    string cmd = "AT+CIPAP_CUR=\" + ip + \"";
+    sendCmd(cmd.c_str());
+}
+
 void ESP8266::setStationMode(string ssid, string pass)
 {
     mDefMode = 1;
@@ -675,11 +711,12 @@ void ESP8266::autoConnectToAp(string ssid_and_pass)
 
 void ESP8266::startServer(unsigned short port)
 {
-    if (mTransparentMode)
-        interruptTransparentMode();
+    mServerActive = true;
+//    if (mTransparentMode)
+//        interruptTransparentMode();
     mServerPort = port;
-    mLastCmd = cmdIpMux;
-    sendCmd("AT+CIPMUX=1");
+//    mLastCmd = cmdIpMux;
+//    sendCmd("AT+CIPMUX=1");
 }
 
 void ESP8266::connectToHost(string ip, unsigned short port)

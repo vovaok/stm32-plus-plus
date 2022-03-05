@@ -62,6 +62,7 @@ bool CanInterface::readTx(CanTxMsg &msg)
 
 bool CanInterface::writeTx(CanTxMsg &msg)
 {
+    msg.IDE = CAN_ID_EXT;
     if (mTxQueue.empty())
     {
         if (mCan->send(msg))

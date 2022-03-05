@@ -127,26 +127,16 @@ void Can::removeFilter(int number)
 }
 //---------------------------------------------------------------------------
 
-//static char canbuf[256][48];
 
 bool Can::send(CanTxMsg &msg)
 {
     msg.RTR = CAN_RTR_DATA;
-    msg.IDE = CAN_ID_EXT;
+//    msg.IDE = CAN_ID_EXT;
     if (CAN_Transmit(mCan, &msg) == CAN_TxStatus_NoMailBox)
     {
         mPacketsSendFailed++;
         return false;
     }
-          
-//    static unsigned char canbufcnt = 0;
-//        sprintf(canbuf[canbufcnt], "%08X: ", msg.ExtId);
-//        for (int i=0; i<msg.DLC; i++)
-//        {
-//            sprintf(canbuf[canbufcnt]+10+i*3, "%02X ", msg.Data[i]);
-//        }
-//        canbufcnt++;
-    
     mPacketsSent++;
     return true;
 }
