@@ -93,6 +93,13 @@ bool As5040Master::isValid(unsigned char channel)
     return false;
 }
 
+uint16_t As5040Master::value(unsigned char channel)
+{
+    if (channel < mChannels.size())
+        return mChannels[channel].raw;
+    return 0;
+}
+
 float As5040Master::valueDeg(unsigned char channel)
 {
     if (channel < mChannels.size())

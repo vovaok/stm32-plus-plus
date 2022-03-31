@@ -149,7 +149,7 @@ void Adc::addChannel(int channel, SampleTime sampleTime)
     }
   
     if (mEnabled)
-        throw Exception::resourceBusy;
+        throw Exception::ResourceBusy;
     
     mConfig.ADC_NbrOfConversion = ++mChannelCount;
     ADC_Init(mAdc, &mConfig);
@@ -165,7 +165,7 @@ void Adc::addChannel(int channel, Gpio::PinName pin, SampleTime sampleTime)
     Gpio::config(pin, Gpio::modeAnalog);
     
     if (mEnabled)
-        throw Exception::resourceBusy;
+        throw Exception::ResourceBusy;
     
     mConfig.ADC_NbrOfConversion = ++mChannelCount;
     ADC_Init(mAdc, &mConfig);

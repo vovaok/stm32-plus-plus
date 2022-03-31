@@ -51,6 +51,7 @@ public:
     float zeroDeg(unsigned char channel) const;
     
     bool isValid(unsigned char channel);
+    uint16_t value(unsigned char channel);
     float valueDeg(unsigned char channel);
     float valueRad(unsigned char channel);
     Flags flags(unsigned char channel);

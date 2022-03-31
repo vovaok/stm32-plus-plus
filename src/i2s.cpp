@@ -7,9 +7,9 @@ I2S::I2S(Gpio::Config clkPin, Gpio::Config doPin) :
     SPI_TypeDef *clkSpi = getSpiByPin(clkPin);
     SPI_TypeDef *doSpi = getSpiByPin(doPin);
     if (!clkSpi || !doSpi)
-        throw Exception::invalidPin;
+        throw Exception::InvalidPin;
     if (clkSpi != doSpi)
-        throw Exception::invalidPeriph;
+        throw Exception::InvalidPeriph;
     
     Gpio::config(clkPin);
     Gpio::config(doPin);
@@ -65,7 +65,7 @@ I2S::I2S(Gpio::Config clkPin, Gpio::Config doPin) :
         }
         else
         {
-            throw Exception::badSoBad;
+            throw Exception::BadSoBad;
         }
     }
     else
@@ -87,7 +87,7 @@ I2S::I2S(Gpio::Config clkPin, Gpio::Config doPin) :
         }
         else
         {
-            throw Exception::badSoBad;
+            throw Exception::BadSoBad;
         }
     }
 

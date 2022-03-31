@@ -12,7 +12,7 @@ Encoder::Encoder(TimerNumber timerNumber, int pulses, Gpio::Config pinA, Gpio::C
     switch (timerNumber)
     {
         case 6: case 7: case 10: case 11: case 13: case 14:
-            throw Exception::invalidPeriph;
+            throw Exception::InvalidPeriph;
     }
     
     Gpio::config(3, pinA, pinB, pinIdx);

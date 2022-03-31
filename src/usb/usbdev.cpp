@@ -20,7 +20,7 @@ UsbDevice::UsbDevice(UsbCore core) :
     else if (mUsbCore == OtgHs || mUsbCore == OtgHsUlpi)
         mHsCore = this;
     else
-        throw Exception::invalidPeriph;
+        throw Exception::InvalidPeriph;
     
     mDeviceDescriptor = new DeviceDescriptor();
     assignDescriptor(mDeviceDescriptor);

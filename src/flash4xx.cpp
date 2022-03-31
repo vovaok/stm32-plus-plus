@@ -46,7 +46,7 @@ unsigned long Flash::getBeginOfSector(Sector sector)
     unsigned char idx = getIdxOfSector(sector);
     if (idx < 24)
         return mAddresses[idx];
-    throw Exception::outOfRange;
+    throw Exception::OutOfRange;
 }
 
 unsigned long Flash::getSizeOfSector(Sector sector)
@@ -54,7 +54,7 @@ unsigned long Flash::getSizeOfSector(Sector sector)
     unsigned char idx = getIdxOfSector(sector);
     if (idx < 24)
         return mAddresses[idx+1] - mAddresses[idx];
-    throw Exception::outOfRange;
+    throw Exception::OutOfRange;
 }
 
 bool Flash::isSectorValid(Sector sector)

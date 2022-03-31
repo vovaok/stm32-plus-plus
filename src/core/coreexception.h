@@ -6,23 +6,23 @@ namespace Exception
 
 typedef enum
 {
-    unknown,
-    badSoBad,
-    invalidPort,
-    invalidPin,
-    invalidPeriph,
-    outOfRange,
-    resourceBusy,
+    Unknown,
+    BadSoBad,
+    InvalidPort,
+    InvalidPin,
+    InvalidPeriph,
+    OutOfRange,
+    ResourceBusy,
     
 } Reason;
 
 };
 
-#ifndef NO_EXCEPTIONS
-#include <exception>
+#ifdef __CPP_EXCEPTIONS__
+    #include <exception>
+    #define THROW(e) throw e
 #else
-extern Exception::Reason gLastException;
-#define throw gLastException=
+    #define THROW(e) __asm volatile ("bkpt %0" : : "i"((int)e))
 #endif
 
 #endif

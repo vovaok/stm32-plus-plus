@@ -32,14 +32,14 @@ Dma::Dma(unsigned char stream, unsigned char channel) :
     {
         unsigned char idx = stream - 10;
         if (mStreams1[idx])
-            throw Exception::resourceBusy;
+            throw Exception::ResourceBusy;
         mStreams1[idx] = this;
     }
     else
     {
         unsigned char idx = stream - 20;
         if (mStreams2[idx])
-            throw Exception::resourceBusy;
+            throw Exception::ResourceBusy;
         mStreams2[idx] = this;
     }
     

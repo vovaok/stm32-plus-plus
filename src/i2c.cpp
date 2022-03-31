@@ -1,143 +1,268 @@
 #include "i2c.h"
+#include <stdio.h>
 
 #define I2C_TIMEOUT 5000
 
-I2c::I2c(int i2cNumber, int clockSpeed, int address, Gpio::Config pinSDA, Gpio::Config pinSCL) 
+I2c::I2c(Gpio::Config pinSDA, Gpio::Config pinSCL)
 {
-    
-    mAddress = address;
-    mClockSpeed = clockSpeed;
-    failAddress = 0;
-    
-    switch (i2cNumber)
-    {
-    
-    case 1:
-        mI2c = I2C1;
-        RCC_APB1PeriphClockCmd(RCC_APB1Periph_I2C1, ENABLE);
-        break;
-        
-    case 2:
-        mI2c = I2C2;
-        RCC_APB1PeriphClockCmd(RCC_APB1Periph_I2C2, ENABLE);
-        break;
-        
-    case 3:
-        mI2c = I2C3;
-        RCC_APB1PeriphClockCmd(RCC_APB1Periph_I2C3, ENABLE);
-        break;
-        
-    }
-    Gpio::config(pinSDA);
-    Gpio::config(pinSCL);
-    init();
-}
-
-I2c::I2c(Gpio::Config pinSDA, Gpio::Config pinSCL, int clockSpeed, unsigned char address)
-{
-    mAddress = address;
-    mClockSpeed = clockSpeed;
-    failAddress = 0;
+//    failAddress = 0;
     
     int i2cNumber = GpioConfigGetPeriphNumber(pinSDA);
     if (i2cNumber != GpioConfigGetPeriphNumber(pinSCL))
-        throw Exception::invalidPeriph;
+        THROW(Exception::InvalidPeriph);
     
     switch (i2cNumber)
     {
-    
     case 1:
-        mI2c = I2C1;
-        RCC_APB1PeriphClockCmd(RCC_APB1Periph_I2C1, ENABLE);
+        m_dev = I2C1;
+        RCC->APB1ENR |= RCC_APB1ENR_I2C1EN;
         break;
         
     case 2:
-        mI2c = I2C2;
-        RCC_APB1PeriphClockCmd(RCC_APB1Periph_I2C2, ENABLE);
+        m_dev = I2C2;
+        RCC->APB1ENR |= RCC_APB1ENR_I2C2EN;
         break;
         
     case 3:
-        mI2c = I2C3;
-        RCC_APB1PeriphClockCmd(RCC_APB1Periph_I2C3, ENABLE);
+        m_dev = I2C3;
+        RCC->APB1ENR |= RCC_APB1ENR_I2C3EN;
         break;
-        
     }
     Gpio::config(pinSDA);
     Gpio::config(pinSCL);
-    init();
 }
 
-
-void I2c::init(void)
+void I2c::setBusClock(int clk_Hz)
 {
-    I2C_DeInit(mI2c);
+    int pclk1 = Rcc::pClk1();
+    uint16_t freqrange = pclk1 / 1000000;
+    // prescaler config:
+    m_dev->CR2 = (m_dev->CR2 & ~I2C_CR2_FREQ) | (freqrange & I2C_CR2_FREQ);
     
+    // disable I2C periph
+    m_dev->CR1 &= ~I2C_CR1_PE;
+    uint16_t ccr = 0;
     
-    I2C_SoftwareResetCmd  (mI2c, ENABLE);
-    // for(int i=0;i<100000;i++);
-    I2C_SoftwareResetCmd  (mI2c, DISABLE);
-    
-    I2C_InitTypeDef i2c;
-    
-    i2c.I2C_ClockSpeed = mClockSpeed; 
-    i2c.I2C_Mode = I2C_Mode_I2C;
-    i2c.I2C_DutyCycle = I2C_DutyCycle_16_9;
-    
-    i2c.I2C_OwnAddress1 = mAddress;
-    i2c.I2C_Ack = I2C_Ack_Enable;
-    i2c.I2C_AcknowledgedAddress = I2C_AcknowledgedAddress_7bit;
-    
-    
-    I2C_Cmd(mI2c, ENABLE);
-    I2C_Init(mI2c, &i2c);
-    
+    if (clk_Hz < 100000)
+    {
+        ccr = pclk1 / (clk_Hz << 1);
+        if (ccr < 4)
+            ccr = 4;
+        m_dev->TRISE = freqrange + 1;
+    }
+    else
+    {
+        if (clk_Hz < 400000) // I2C_DutyCycle_2
+        {
+            ccr = pclk1 / (clk_Hz * 3);
+        }
+        else // if clk_Hz == 400000 // I2C_DutyCycle_16_9
+        {
+            ccr = pclk1 / (clk_Hz * 25);
+            ccr |= I2C_CCR_DUTY;
+        }
+        
+        if ((ccr & I2C_CCR_CCR) == 0)
+            ccr |= 0x0001;
+        
+        ccr |= I2C_CCR_FS; // fast mode
+        m_dev->TRISE = freqrange * 300 / 1000 + 1;
+    }
+    m_dev->CCR = ccr;
+      
 }
 
+void I2c::setAddress(uint8_t address)
+{
+    m_dev->OAR1 = address;
+}
 
-bool I2c::startTransmission(uint8_t transmissionDirection, uint8_t slaveAddress)
+void I2c::open()
+{
+    m_dev->CR1 |= I2C_CR1_ACK; // enable ACK
+ 
+    m_dev->CR1 |= I2C_CR1_PE;
+}
+
+void I2c::close()
+{
+    m_dev->CR1 &= ~I2C_CR1_PE;
+}
+//---------------------------------------------------------------------------
+
+bool I2c::read(uint8_t address, uint8_t *data, uint16_t size)
+{
+    if (!size)
+        return false;
+    
+    bool r;
+    r = startTransmission(DirectionReceiver, address);
+    if (r)
+    {
+        setAcknowledge(true);
+        while (--size)
+        {
+            r &= readData(data);
+            data++;
+        }
+        setAcknowledge(false);
+            r &= readData(data);
+    }
+    if (r)
+        r = stopTransmission();
+    return r;
+}
+
+bool I2c::write(uint8_t address, uint8_t *data, uint16_t size)
+{
+    if (!size)
+        return false;
+    
+    bool r;
+    r = startTransmission(DirectionTransmitter, address);
+    if (r)
+    {
+        setAcknowledge(false);
+        do
+            r &= writeData(*data++);
+        while (--size);
+    }
+    if (r)
+        r = stopTransmission();
+    return r;
+}
+
+//bool I2c::regRead(unsigned char address, unsigned char index, unsigned char *buffer)
+//{
+//    bool success;
+//    success = startTransmission(DirectionTransmitter, address);
+//    if (success)
+//        success = writeData(index);
+//    if (success)
+//        success = startTransmission(DirectionReceiver, address);
+//    if (success)
+//    {
+//        setAcknowledge(false);
+//        success = readData(buffer);
+//    }
+//    success = stopTransmission();
+//    return success;
+//}
+//
+//bool I2c::multipleRead(unsigned char address, unsigned char index, void *buffer, unsigned char length)
+//{
+//    bool success;
+//    success = startTransmission(DirectionTransmitter, address);
+//    if (success)
+//        success = writeData(index);
+//    if (success)
+//        success = startTransmission(DirectionReceiver, address);
+//    if (success)
+//    {
+//        setAcknowledge(true);
+//        for (int i=0; i<length; i++)
+//        {
+//            if (i == length-1)
+//                setAcknowledge(false); 
+//            success = success && readData((unsigned char*)buffer + i);
+//        }
+//    }
+//    if (success)
+//        success = stopTransmission();
+//    return success;
+//}
+//
+//bool I2c::regWrite(unsigned char address, unsigned char index, unsigned char byte)
+//{
+//    bool success;
+//    success = startTransmission(DirectionTransmitter, address);
+//    if (success)
+//        success = writeData(index);
+//    if (success)
+//    {
+//        setAcknowledge(false);
+//        success = writeData(byte);
+//    }
+//    if (success)
+//        success = stopTransmission();
+//    return success;
+//}
+//
+//bool I2c::multipleWrite(unsigned char address, unsigned char index, const void *buffer, unsigned char length)
+//{
+//    bool success;
+//    success = startTransmission(DirectionTransmitter, address);
+//    if (success)
+//        success = writeData(index);
+//    if (success)
+//    {
+//        setAcknowledge(false);
+//        for (int i=0; i<length; i++)
+//            success = success && writeData(((unsigned char*)buffer)[i]);
+//    }
+//    if (success)
+//        success = stopTransmission();
+//    return success;
+//}
+//---------------------------------------------------------------------------
+
+bool I2c::checkEvent(Event e)
+{
+    union
+    {
+        uint32_t f;
+        uint16_t r[2];
+    };
+    r[0] = m_dev->SR1;
+    r[1] = m_dev->SR2;
+    
+    return (uint32_t)e == (f & (uint32_t)e);   
+}
+
+bool I2c::startTransmission(Direction dir, uint8_t slaveAddress)
 {
     lastAddress = slaveAddress;
     
     int timeout = I2C_TIMEOUT;
     
-    // åñëè íå ìàñòåð:
-//    if (!(mI2c->SR2 & I2C_SR2_MSL))
+    // ÐµÑÐ»Ð¸ Ð½Ðµ Ð¼Ð°ÑÑ‚ÐµÑ€:
+//    if (!(m_dev->SR2 & I2C_SR2_MSL))
 //    {
-//        // Íà âñÿêèé ñëó÷àé æäåì, ïîêà øèíà îñîâîáîäèòñÿ
-//        while (I2C_GetFlagStatus(mI2c, I2C_FLAG_BUSY) && timeout)
+//        // ÐÐ° Ð²ÑÑÐºÐ¸Ð¹ ÑÐ»ÑƒÑ‡Ð°Ð¹ Ð¶Ð´ÐµÐ¼, Ð¿Ð¾ÐºÐ° ÑˆÐ¸Ð½Ð° Ð¾ÑÐ¾Ð²Ð¾Ð±Ð¾Ð´Ð¸Ñ‚ÑÑ
+//        while (I2C_GetFlagStatus(m_dev, I2C_FLAG_BUSY) && timeout)
 //            --timeout;
 //    }
     
     if (timeout)
     {
-        // Ãåíåðèðóåì ñòàðò
-        mI2c->CR1 |= I2C_CR1_START;
+        // Ð“ÐµÐ½ÐµÑ€Ð¸Ñ€ÑƒÐµÐ¼ ÑÑ‚Ð°Ñ€Ñ‚
+        m_dev->CR1 |= I2C_CR1_START;
         timeout = I2C_TIMEOUT;
-        // Æäåì ïîêà âçëåòèò íóæíûé ôëàã
-        while (!I2C_CheckEvent(mI2c, I2C_EVENT_MASTER_MODE_SELECT) && timeout)
+        // Ð–Ð´ÐµÐ¼ Ð¿Ð¾ÐºÐ° Ð²Ð·Ð»ÐµÑ‚Ð¸Ñ‚ Ð½ÑƒÐ¶Ð½Ñ‹Ð¹ Ñ„Ð»Ð°Ð³
+        while (!checkEvent(EventMasterModeSelect) && timeout)
             --timeout;
     }
     
     if (!timeout)
     {
-        mI2c->CR1 &= ~I2C_CR1_START;
+        m_dev->CR1 &= ~I2C_CR1_START;
         printf("i2c START failed\n");
     }
     else
     {
-        // Ïîñûëàåì àäðåñ ïîä÷èíåííîìó
-        I2C_Send7bitAddress(mI2c, slaveAddress, transmissionDirection);
+        // ÐŸÐ¾ÑÑ‹Ð»Ð°ÐµÐ¼ Ð°Ð´Ñ€ÐµÑ Ð¿Ð¾Ð´Ñ‡Ð¸Ð½ÐµÐ½Ð½Ð¾Ð¼Ñƒ
+        m_dev->DR = slaveAddress | dir;
         
         timeout = I2C_TIMEOUT;
-        // À òåïåðü ó íàñ äâà âàðèàíòà ðàçâèòèÿ ñîáûòèé - â çàâèñèìîñòè îò âûáðàííîãî íàïðàâëåíèÿ îáìåíà äàííûìè
-        if (transmissionDirection == I2C_Direction_Transmitter)
+        // Ð Ñ‚ÐµÐ¿ÐµÑ€ÑŒ Ñƒ Ð½Ð°Ñ Ð´Ð²Ð° Ð²Ð°Ñ€Ð¸Ð°Ð½Ñ‚Ð° Ñ€Ð°Ð·Ð²Ð¸Ñ‚Ð¸Ñ ÑÐ¾Ð±Ñ‹Ñ‚Ð¸Ð¹ - Ð² Ð·Ð°Ð²Ð¸ÑÐ¸Ð¼Ð¾ÑÑ‚Ð¸ Ð¾Ñ‚ Ð²Ñ‹Ð±Ñ€Ð°Ð½Ð½Ð¾Ð³Ð¾ Ð½Ð°Ð¿Ñ€Ð°Ð²Ð»ÐµÐ½Ð¸Ñ Ð¾Ð±Ð¼ÐµÐ½Ð° Ð´Ð°Ð½Ð½Ñ‹Ð¼Ð¸
+        if (dir == DirectionTransmitter)
         {
-            while (!I2C_CheckEvent(mI2c, I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED) && timeout)
+            while (!checkEvent(EventMasterTransmitterModeSelected) && timeout)
                 --timeout;
         }
-        else if (transmissionDirection == I2C_Direction_Receiver)
+        else if (dir == DirectionReceiver)
         {
-            while (!I2C_CheckEvent(mI2c, I2C_EVENT_MASTER_RECEIVER_MODE_SELECTED) && timeout)
+            while (!checkEvent(EventMasterReceiverModeSelected) && timeout)
                 --timeout;
         }
     }
@@ -148,15 +273,17 @@ bool I2c::startTransmission(uint8_t transmissionDirection, uint8_t slaveAddress)
 bool I2c::stopTransmission()
 {
     int timeout = I2C_TIMEOUT;
-    mI2c->CR1 |= I2C_CR1_STOP;
-    while ((mI2c->SR2 & I2C_SR2_MSL) && timeout)
+    m_dev->CR1 |= I2C_CR1_STOP;
+    while ((m_dev->SR2 & I2C_SR2_MSL) && timeout)
         --timeout;
     if (!timeout)
     {
-        mI2c->CR1 &= ~I2C_CR1_STOP;
-        failAddress = lastAddress;
+        m_dev->CR1 &= ~I2C_CR1_STOP;
+//        failAddress = lastAddress;
         printf("i2c STOP failed\n");
-        init();
+//        init();
+        close();
+        open();
         setAcknowledge(false);
     }
     return timeout;
@@ -165,9 +292,9 @@ bool I2c::stopTransmission()
 bool I2c::writeData(uint8_t data)
 {
     int timeout = I2C_TIMEOUT;
-    // Ïðîñòî âûçûâàåì ãîòîâóþ ôóíêöèþ èç SPL è æäåì, ïîêà äàííûå óëåòÿò
-    I2C_SendData(mI2c, data);
-    while (!I2C_CheckEvent(mI2c, I2C_EVENT_MASTER_BYTE_TRANSMITTED) && timeout)
+    // ÐŸÑ€Ð¾ÑÑ‚Ð¾ Ð²Ñ‹ÑÑ‚Ð°Ð²Ð»ÑÐµÐ¼ Ð´Ð°Ð½Ð½Ñ‹Ðµ Ð¸ Ð¶Ð´ÐµÐ¼, Ð¿Ð¾ÐºÐ° Ð¾Ð½Ð¸ ÑƒÐ»ÐµÑ‚ÑÑ‚
+    m_dev->DR = data;
+    while (!checkEvent(EventMasterByteTransmitted) && timeout)
         --timeout;
     if (!timeout)
     {
@@ -179,11 +306,11 @@ bool I2c::writeData(uint8_t data)
 bool I2c::readData(unsigned char *buf)
 {
     int timeout = I2C_TIMEOUT * 10;
-    // Òóò êàðòèíà ïîõîæà, êàê òîëüêî äàííûå ïðèøëè áûñòðåíüêî ñ÷èòûâàåì èõ è âîçâðàùàåì
-    while (!I2C_CheckEvent(mI2c, I2C_EVENT_MASTER_BYTE_RECEIVED) && timeout)
+    // Ð¢ÑƒÑ‚ ÐºÐ°Ñ€Ñ‚Ð¸Ð½Ð° Ð¿Ð¾Ñ…Ð¾Ð¶Ð°, ÐºÐ°Ðº Ñ‚Ð¾Ð»ÑŒÐºÐ¾ Ð´Ð°Ð½Ð½Ñ‹Ðµ Ð¿Ñ€Ð¸ÑˆÐ»Ð¸ Ð±Ñ‹ÑÑ‚Ñ€ÐµÐ½ÑŒÐºÐ¾ ÑÑ‡Ð¸Ñ‚Ñ‹Ð²Ð°ÐµÐ¼ Ð¸Ñ… Ð¸ Ð²Ð¾Ð·Ð²Ñ€Ð°Ñ‰Ð°ÐµÐ¼
+    while (!checkEvent(EventMasterByteReceived) && timeout)
         --timeout;
     if (timeout)
-        *buf = I2C_ReceiveData(mI2c);
+        *buf = m_dev->DR;
     if (!timeout)
     {
         printf("i2c READ failed\n");
@@ -194,82 +321,7 @@ bool I2c::readData(unsigned char *buf)
 void I2c::setAcknowledge(bool state)
 {
     if (state)
-        mI2c->CR1 |= I2C_CR1_ACK;
+        m_dev->CR1 |= I2C_CR1_ACK;
     else
-        mI2c->CR1 &= ~I2C_CR1_ACK;
+        m_dev->CR1 &= ~I2C_CR1_ACK;
 }
-//---------------------------------------------------------------------------
-
-bool I2c::regRead(unsigned char address, unsigned char index, unsigned char *buffer)
-{
-    bool success;
-    success = startTransmission(I2C_Direction_Transmitter, address);
-    if (success)
-        success = writeData(index);
-    if (success)
-        success = startTransmission(I2C_Direction_Receiver, address);
-    if (success)
-    {
-        setAcknowledge(false);
-        success = readData(buffer);
-    }
-    success = stopTransmission();
-    return success;
-}
-
-bool I2c::multipleRead(unsigned char address, unsigned char index, void *buffer, unsigned char length)
-{
-    bool success;
-    success = startTransmission(I2C_Direction_Transmitter, address);
-    if (success)
-        success = writeData(index);
-    if (success)
-        success = startTransmission(I2C_Direction_Receiver, address);
-    if (success)
-    {
-        setAcknowledge(true);
-        for (int i=0; i<length; i++)
-        {
-            if (i == length-1)
-                setAcknowledge(false); 
-            success = success && readData((unsigned char*)buffer + i);
-        }
-    }
-    if (success)
-        success = stopTransmission();
-    return success;
-}
-
-bool I2c::regWrite(unsigned char address, unsigned char index, unsigned char byte)
-{
-    bool success;
-    success = startTransmission(I2C_Direction_Transmitter, address);
-    if (success)
-        success = writeData(index);
-    if (success)
-    {
-        setAcknowledge(false);
-        success = writeData(byte);
-    }
-    if (success)
-        success = stopTransmission();
-    return success;
-}
-
-bool I2c::multipleWrite(unsigned char address, unsigned char index, const void *buffer, unsigned char length)
-{
-    bool success;
-    success = startTransmission(I2C_Direction_Transmitter, address);
-    if (success)
-        success = writeData(index);
-    if (success)
-    {
-        setAcknowledge(false);
-        for (int i=0; i<length; i++)
-            success = success && writeData(((unsigned char*)buffer)[i]);
-    }
-    if (success)
-        success = stopTransmission();
-    return success;
-}
-//---------------------------------------------------------------------------

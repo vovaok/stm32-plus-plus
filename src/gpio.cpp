@@ -153,7 +153,7 @@ void Gpio::usePin(const ConfigStruct &cfg)
     if (cfg.config == NoConfig)
         mPinsUsed[pinId] = 0x00;
     else if (mPinsUsed[pinId])
-        throw Exception::resourceBusy;
+        throw Exception::ResourceBusy;
     else
         mPinsUsed[pinId] = (cfg.af + 1) | ((cfg.mode + 1) << 4);
 }

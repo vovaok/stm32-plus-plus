@@ -162,7 +162,7 @@ CC1200::CC1200(Spi *spi, Gpio::PinName csPin, Gpio::PinName resetPin) :
     
     unsigned long sync = getSyncWord();
     if (sync != 0x930B51DE)
-        throw Exception::badSoBad;
+        throw Exception::BadSoBad;
     
     uploadConfig(RF_config, sizeof(RF_config)/sizeof(RF_config[0]));
 }

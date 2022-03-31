@@ -166,7 +166,7 @@ HardwareTimer::HardwareTimer(TimerNumber timerNumber, unsigned int frequency_Hz)
     }
     
     if (mTimers[timerNumber-1])
-        throw Exception::resourceBusy; // ALARM!! this timer already in use!
+        throw Exception::ResourceBusy; // ALARM!! this timer already in use!
     
     mTimers[timerNumber-1] = this;
     

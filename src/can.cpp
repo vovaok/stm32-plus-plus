@@ -33,7 +33,7 @@ Can::Can(int canNumber, int baudrate, Gpio::Config pinRx, Gpio::Config pinTx) :
         break;
         
       default:
-        throw Exception::invalidPeriph;
+        throw Exception::InvalidPeriph;
     }
     
     // GPIO pin initialize

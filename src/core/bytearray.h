@@ -50,9 +50,9 @@ public:
     inline int count() const {return mSize;}
     
 #ifndef NO_EXCEPTIONS
-    inline char& operator [](unsigned int idx) {if (idx >= mSize) throw Exception::outOfRange; else return mData[idx];}
-    inline const char &operator[](unsigned int idx) const {if (idx >= mSize) throw Exception::outOfRange; else return mData[idx];}
-    inline char at(unsigned int idx) const {if (idx >= mSize) throw Exception::outOfRange; else return mData[idx];}
+    inline char& operator [](unsigned int idx) {if (idx >= mSize) throw Exception::OutOfRange; else return mData[idx];}
+    inline const char &operator[](unsigned int idx) const {if (idx >= mSize) throw Exception::OutOfRange; else return mData[idx];}
+    inline char at(unsigned int idx) const {if (idx >= mSize) throw Exception::OutOfRange; else return mData[idx];}
 #else
     inline char& operator [](unsigned int idx) {return mData[idx];}
     inline const char &operator[](unsigned int idx) const {return mData[idx];}

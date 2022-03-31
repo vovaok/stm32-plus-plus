@@ -6,7 +6,7 @@ PwmInput::PwmInput(TimerNumber timerNumber, int channel, Gpio::Config inputPin) 
     switch (timerNumber)
     {
         case 6: case 7: case 10: case 11: case 13: case 14:
-            throw Exception::invalidPeriph;
+            throw Exception::InvalidPeriph;
     }
     
     Gpio::config(inputPin);
@@ -22,7 +22,7 @@ PwmInput::PwmInput(TimerNumber timerNumber, int channel, Gpio::Config inputPin) 
         case 2: ic.TIM_Channel = TIM_Channel_2; break;
 //        case 3: ic.TIM_Channel = TIM_Channel_3; break;
 //        case 4: ic.TIM_Channel = TIM_Channel_4; break;
-        default: throw Exception::invalidPeriph;
+        default: throw Exception::InvalidPeriph;
     }
     ic.TIM_ICFilter = 2;
     ic.TIM_ICPolarity = TIM_ICPolarity_Rising;

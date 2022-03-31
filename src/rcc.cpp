@@ -134,10 +134,10 @@ void Rcc::configPll(unsigned long hseValue, unsigned long sysClk)
         mHseValue = hseValue;
         mPllM = mHseValue / 1000000;
         if (mPllM > 0x3F)
-            throw Exception::badSoBad;
+            throw Exception::BadSoBad;
         mPllN = pllvco / 1000000;
         if (mPllN > 0x1FF)
-            throw Exception::badSoBad;
+            throw Exception::BadSoBad;
         mPllP = 2;
         mPllQ = pllvco / 48000000;
 
@@ -266,7 +266,7 @@ void Rcc::configPll(unsigned long hseValue, unsigned long sysClk)
     else
     { 
         // If HSE fails to start-up, the application will have wrong clockconfiguration.
-        throw Exception::badSoBad;
+        throw Exception::BadSoBad;
     }
 }
 

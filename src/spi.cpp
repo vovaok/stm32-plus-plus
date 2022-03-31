@@ -9,11 +9,11 @@ Spi::Spi(Gpio::Config sck, Gpio::Config miso, Gpio::Config mosi) :
 {
     SpiNo no = getSpiByPin(sck);
     if (no == SpiNone)
-        throw Exception::invalidPin;
+        throw Exception::InvalidPin;
     if (miso != Gpio::NoConfig && no != getSpiByPin(miso))
-        throw Exception::invalidPin;
+        throw Exception::InvalidPin;
     if (mosi != Gpio::NoConfig && no != getSpiByPin(mosi))
-        throw Exception::invalidPin;
+        throw Exception::InvalidPin;
   
     mSpies[no-1] = this;
     
@@ -179,14 +179,14 @@ void Spi::transferWordAsync(unsigned short word)
 void Spi::setUseDmaRx(bool useDma)
 {
     if (isOpen())
-        throw Exception::resourceBusy;
+        throw Exception::ResourceBusy;
     mUseDmaRx = useDma;
 }
 
 void Spi::setUseDmaTx(bool useDma)
 {
     if (isOpen())
-        throw Exception::resourceBusy;
+        throw Exception::ResourceBusy;
     mUseDmaTx = useDma;
 }
 //---------------------------------------------------------------------------

@@ -554,7 +554,7 @@ void Usart::setConfig(Config config)
 void Usart::setBufferSize(int size_bytes)
 {
     if (isOpen())
-        throw Exception::resourceBusy;
+        throw Exception::ResourceBusy;
     mRxBufferSize = upper_power_of_two(size_bytes);
     mTxBufferSize = mRxBufferSize;
 }
@@ -562,14 +562,14 @@ void Usart::setBufferSize(int size_bytes)
 void Usart::setUseDmaRx(bool useDma)
 {
     if (isOpen())
-        throw Exception::resourceBusy;
+        throw Exception::ResourceBusy;
     mUseDmaRx = useDma;
 }
 
 void Usart::setUseDmaTx(bool useDma)
 {
     if (isOpen())
-        throw Exception::resourceBusy;
+        throw Exception::ResourceBusy;
     mUseDmaTx = useDma;
 }
 
