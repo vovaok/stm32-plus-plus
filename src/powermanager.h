@@ -32,9 +32,9 @@ public:
     void addVoltageMeasurement(string name, Adc::Channel channel, float Rhigh, float Rlow);
     void setFilter(string name, float Kf);
     
-    inline float temperature() const {return mTemperature;}
-    inline float batteryVoltage() const {return mVbat;}
-    float voltage(string name) {return mVoltages[name].value;}
+    inline const float &temperature() const {return mTemperature;}
+    inline const float &batteryVoltage() const {return mVbat;}
+    const float &voltage(string name) {return mVoltages[name].value;}
 };
 
 #endif
