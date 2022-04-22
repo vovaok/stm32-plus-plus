@@ -22,6 +22,11 @@ ObjnetDevice::ObjnetDevice(unsigned char netaddr) :
 {
     //mTimer.start();
 }
+
+ObjnetDevice::~ObjnetDevice()
+{
+  
+}
 //---------------------------------------------------------
 
 void ObjnetDevice::prepareObject(const ObjectInfo::Description &desc)
