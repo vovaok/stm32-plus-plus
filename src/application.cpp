@@ -1,6 +1,7 @@
 #include "application.h"
 
 Application *Application::self = 0L;
+bool Application::m_tickFlag = false;
 
 string Application::mName = APP_NAME;
 string Application::mDescription = APP_DESCRIPTION;
@@ -18,6 +19,7 @@ void Application::sysTickHandler()
     
     Application *app = instance();
     app->mTimestamp += app->mSysClkPeriod;
+    app->m_tickFlag = true;
     
     std::list<TickEvent> &elist = app->mTickEvents;
     for (TickIterator it=elist.begin(); it!=elist.end(); it++)
@@ -46,7 +48,10 @@ void Application::exec()
         }
         m_tasksModified = false;
         
-        //__WFI(); // го слипать
+//        while (!m_tickFlag);
+//        m_tickFlag = false;
+        
+        __WFI(); // го слипать
     }
 }
 //---------------------------------------------------------------------------

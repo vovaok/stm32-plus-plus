@@ -26,7 +26,7 @@ void UartOnbInterface::task()
 {
     ByteArray ba;
     if (mInterface->read(ba))
-    {
+    {      
 //        char sbuf[10];
 //        string s;
         for (int i=0; i<ba.size(); i++)
@@ -118,7 +118,8 @@ void UartOnbInterface::task()
         if (mInterface->isHalfDuplex())
             mWriteTimer = 30;
         
-        if (mWriteTimer >= 30)
+#warning something wrong!!!
+//        if (mWriteTimer >= 30)
         {
             mWriteTimer = 0;
             while (readTx(mCurTxMsg))
@@ -197,11 +198,13 @@ bool UartOnbInterface::readTx(UartOnbMessage &msg)
         mTxQueue.pop();
         return true;
     }
+//    GPIOB->BSRRH |= 1;
     return false;
 }
 
 bool UartOnbInterface::writeTx(UartOnbMessage &msg)
 {
+//    GPIOB->BSRRL |= 1;
     if (mTxQueue.size() < mTxQueueSize) 
     {
         mTxQueue.push(msg);
