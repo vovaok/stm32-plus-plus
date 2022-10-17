@@ -63,6 +63,7 @@ class Application
 private:
     static Application* self;
     static const int mSysClkPeriod = SYSTEM_CLOCK_MS;
+    static bool m_tickFlag;
     
     std::list<TaskEvent> mTaskEvents;
     std::list<TickEvent> mTickEvents;

@@ -401,13 +401,17 @@ void ObjnetNode::parseServiceMessage(CommonMessage &msg)
                         if (oid == svcTimedRequest)
                             mObjects[_oid].mTimedRequest = true;
                     }
-                    else
-                    {
+//                    else
+//                    {
                         *reinterpret_cast<int*>(msg.data().data()) = mObjects[_oid].mAutoPeriod;
                         sendServiceMessage(remoteAddr, oid, msg.data());
-                    }
+//                    }
                 }
             }
+        }
+        else
+        {
+            sendServiceMessage(remoteAddr, svcFail, oid);
         }
         break;
         
