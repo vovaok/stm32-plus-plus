@@ -1,7 +1,7 @@
 #ifndef _PWMINPUT_H
 #define _PWMINPUT_H
 
-#include "hardtimer.h"
+#include "hardwaretimer.h"
 
 class PwmInput : private HardwareTimer
 {

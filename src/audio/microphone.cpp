@@ -5,7 +5,7 @@ Microphone::Microphone(const AudioFormat &format, int interface1, ...) :
     mAdc(0L),
     mOpened(false)
 {
-    mTimer = new HardwareTimer(Tim3, format.sampleRate());
+    mTimer = new HardwareTimer(HardwareTimer::Tim3, format.sampleRate());
     mTimer->selectOutputTrigger(HardwareTimer::TrgUpdate);
     
     int count = format.channelCount();
@@ -49,7 +49,7 @@ void Microphone::open()
         mAdc->addChannel(mInterfaces[i], Adc::SampleTime_28Cycles);
     }
     
-    mDma = Dma::getStreamForPeriph(Dma::ChannelAdc1);
+    mDma = new Dma(Dma::ADC1_Stream4);
     mDma->setDoubleBuffer(buffer(), buffer() + bufferSize()/2, bufferSize()/(2 * mFormat.bytesPerSample()));
     mAdc->configDma(mDma);    
     

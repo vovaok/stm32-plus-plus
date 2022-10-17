@@ -11,7 +11,7 @@ Gpio::Gpio(PinName pin, Flags flags/*, PinAF altFunction*/)
 {
     mConfig.pin = pin;
     mConfig.flags = flags;
-    mConfig.af = 0;//altFunction;
+    mConfig.af = afNone;//altFunction;
     mPort = getPortByNumber(mConfig.portNumber);
     mPin = pin==noPin? 0: (1 << mConfig.pinNumber);
     config(mConfig.config);
@@ -61,78 +61,68 @@ void Gpio::config(const Config &conf)
     if (!port)
         return;
     
-    unsigned short mask;    
-    
-    if (!c.manyPins) // only one pin initialization
-    {
+    RCC->AHB1ENR |= (1 << c.portNumber); // enable port clocks
+     
+    unsigned short mask;  
+    if (c.manyPins)
+        mask = c.mask;
+    else // only one pin initialization
         mask = 1 << c.pinNumber;
-        usePin(c);
+    
+    for (int pin=0; pin<16; pin++)
+    {
+        if (!(mask & (1<<pin)))
+            continue;
         
-#if !defined(STM32F37X)
-        RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA << c.portNumber, ENABLE); 
-#else
-        RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOA << c.portNumber, ENABLE); 
-#endif
+        ConfigStruct cc = c;
+        cc.pinNumber = pin;
+        usePin(cc);
+        
+        int pin_x2 = pin * 2;
+        port->MODER = port->MODER & ~(0x3 << pin_x2) | (c.mode << pin_x2);
+        if (c.mode == modeOut || c.mode == modeAF)
+        {
+            port->OSPEEDR = port->OSPEEDR & ~(0x3 << pin_x2) | (c.speed << pin_x2);
+            port->OTYPER = port->OTYPER & ~(0x1 << pin) | (c.outType << pin);
+        }
+        port->PUPDR = port->PUPDR & ~(0x3 << pin_x2) | (c.pull << pin_x2);
         
         if (c.afNumber != afNone)
-            GPIO_PinAFConfig(port, c.pinNumber, c.afNumber);
-    }
-    else // many pins initialization
-    {        
-        mask = c.mask;
-        
-#if !defined(STM32F37X)
-        RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA << c.portNumber, ENABLE); 
-#else
-        RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOA << c.portNumber, ENABLE); 
-#endif
-        
-        for (int pin=0; pin<16; pin++)
         {
-            if (!(mask & (1<<pin)))
-                continue;
-            
-            ConfigStruct cc = c;
-            cc.pinNumber = pin;
-            usePin(cc);
-            
-            if (c.afNumber != afNone)
-                GPIO_PinAFConfig(port, pin, c.afNumber);
+            __IO uint32_t &AFR = port->AFR[pin >> 3];
+            uint8_t bit = (pin & 0x7) << 2;
+            AFR = AFR & ~(0xF << bit) | (c.afNumber << bit);
         }
     }
-    
-    GPIO_InitTypeDef GPIO_InitStructure;  
-    GPIO_InitStructure.GPIO_Pin = mask; 
-    GPIO_InitStructure.GPIO_Mode = (GPIOMode_TypeDef)c.mode;
-    GPIO_InitStructure.GPIO_Speed = (GPIOSpeed_TypeDef)c.speed;
-    GPIO_InitStructure.GPIO_OType = (GPIOOType_TypeDef)c.outType;
-    GPIO_InitStructure.GPIO_PuPd  = (GPIOPuPd_TypeDef)c.pull;
-    GPIO_Init(port, &GPIO_InitStructure);
 }
 
 void Gpio::updateConfig()
 {
     if (mConfig.pin == noPin)
         return;
-    GPIO_InitTypeDef GPIO_InitStructure;
-    GPIO_InitStructure.GPIO_Pin = mPin; 
-    GPIO_InitStructure.GPIO_Mode = (GPIOMode_TypeDef)mConfig.mode;
-    GPIO_InitStructure.GPIO_Speed = (GPIOSpeed_TypeDef)mConfig.speed;
-    GPIO_InitStructure.GPIO_OType = (GPIOOType_TypeDef)mConfig.outType;
-    GPIO_InitStructure.GPIO_PuPd  = (GPIOPuPd_TypeDef)mConfig.pull;
-    GPIO_Init(mPort, &GPIO_InitStructure);
+    
+    for (int pin=0; pin<16; pin++)
+    {
+        if (!(mPin & (1<<pin)))
+            continue;
+        
+        int pin_x2 = pin * 2;
+        mPort->MODER = mPort->MODER & ~(0x3 << pin_x2) | (mConfig.mode << pin_x2);
+        if (mConfig.mode == modeOut || mConfig.mode == modeAF)
+        {
+            mPort->OSPEEDR = mPort->OSPEEDR & ~(0x3 << pin_x2) | (mConfig.speed << pin_x2);
+            mPort->OTYPER = mPort->OTYPER & ~(0x1 << pin) | (mConfig.outType << pin);
+        }
+        mPort->PUPDR = mPort->PUPDR & ~(0x3 << pin_x2) | (mConfig.pull << pin_x2);
+        
+        if (mConfig.afNumber != afNone)
+        {
+            __IO uint32_t &AFR = mPort->AFR[pin >> 3];
+            uint8_t bit = (pin & 0x7) << 2;
+            AFR = AFR & ~(0xF << bit) | (mConfig.afNumber << bit);
+        }
+    }
 }
-
-//void Gpio::setFlags(Flags flags)
-//{
-//    GPIO_InitTypeDef GPIO_InitStructure;  
-//    GPIO_InitStructure.GPIO_Pin = mPin; 
-//    GPIO_InitStructure.GPIO_Mode = (GPIOMode_TypeDef)(flags & 0x3);
-//    GPIO_InitStructure.GPIO_Speed = (GPIOSpeed_TypeDef)((flags >> 5) & 0x3);
-//    GPIO_InitStructure.GPIO_OType = (GPIOOType_TypeDef)((flags >> 2) & 0x1);
-//    GPIO_InitStructure.GPIO_PuPd  = (GPIOPuPd_TypeDef)((flags >> 3) & 0x3);
-//    GPIO_Init(port, &GPIO_InitStructure);
-//}
 
 void Gpio::config(int count, Config conf1, ...)
 {
@@ -153,7 +143,7 @@ void Gpio::usePin(const ConfigStruct &cfg)
     if (cfg.config == NoConfig)
         mPinsUsed[pinId] = 0x00;
     else if (mPinsUsed[pinId])
-        throw Exception::ResourceBusy;
+        THROW(Exception::ResourceBusy); // trap
     else
         mPinsUsed[pinId] = (cfg.af + 1) | ((cfg.mode + 1) << 4);
 }
@@ -172,6 +162,7 @@ GPIO_TypeDef *Gpio::getPortByNumber(int port)
 #if !defined(STM32F37X)
         case 0x6: return GPIOG;
         case 0x7: return GPIOH;
+#elif !defined(STM32F37X) && !defined(STM32F446xx)
         case 0x8: return GPIOI;
 #endif
         default: return 0L;
@@ -231,10 +222,14 @@ void Gpio::write(bool value)
 {
     if (mConfig.pin == noPin)
         return;
+//    if (value)
+//        mPort->BSRRL = mPin;
+//    else
+//        mPort->BSRRH = mPin;
     if (value)
-        mPort->BSRRL = mPin;
+        mPort->BSRR = mPin;
     else
-        mPort->BSRRH = mPin;
+        mPort->BSRR = mPin << 16;
 }
 //---------------------------------------------------------------------------
 

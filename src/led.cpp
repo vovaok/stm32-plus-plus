@@ -5,6 +5,8 @@ Led::Led(Gpio::PinName pin, bool inverted) :
     mCountMig(0),
     mInverted(inverted)
 {
+    if (mInverted)
+        write(1);
 }
 
 Led::Led(char portLetter, int pinNumber) :

@@ -39,7 +39,7 @@ I2S::I2S(Gpio::Config clkPin, Gpio::Config doPin) :
     I2S_Init(mSpi, &config);
     
 #if defined (STM32F427_437xx) || defined (STM32F429_439xx)
-    throw Exception::badSoBad;
+    throw Exception::BadSoBad;
     #warning ne rabotaet for stm32f427 or 437 or 429 or 439
 #else
     unsigned long pr = config.I2S_MCLKOutput;

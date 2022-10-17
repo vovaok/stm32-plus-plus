@@ -247,6 +247,10 @@ void ObjnetNode::parseServiceMessage(CommonMessage &msg)
                 emit upgradeRequest();
             #endif
           } break;
+          
+          case aidSync:
+            mTimestamp = 0;
+            break;
 
           default:;
         }

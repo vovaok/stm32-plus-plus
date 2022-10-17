@@ -7,7 +7,7 @@ class RgbLed
 {
 private:
     PwmOutput *pwm;
-    ChannelNumber chR, chG, chB;
+    HardwareTimer::ChannelNumber chR, chG, chB;
     unsigned char mR, mG, mB;
     
 public:

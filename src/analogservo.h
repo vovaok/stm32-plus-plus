@@ -1,7 +1,7 @@
 #ifndef _ANALOGSERVO_H
 #define _ANALOGSERVO_H
 
-#include "hardtimer.h"
+#include "hardwaretimer.h"
 #include "gpio.h"
 #include <vector>
 

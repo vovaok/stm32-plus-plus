@@ -733,53 +733,55 @@ void UsbDevice::bspInit()
     if (mUsbCore == OtgFs)
     {
         Gpio::config(2, Gpio::OTG_FS_DM, Gpio::OTG_FS_DP);//,  Gpio::OTG_FS_SOF);
-        RCC_APB2PeriphClockCmd(RCC_APB2Periph_SYSCFG, ENABLE);
-        RCC_AHB2PeriphClockCmd(RCC_AHB2Periph_OTG_FS, ENABLE); 
+        RCC->APB2ENR |= RCC_APB2ENR_SYSCFGEN;
+        RCC->AHB2ENR |= RCC_AHB2ENR_OTGFSEN;
     }
     else if (mUsbCore == OtgHs)
     {
         Gpio::config(4, Gpio::OTG_HS_DM, Gpio::OTG_HS_DP, Gpio::OTG_HS_ID, Gpio::OTG_HS_VBUS);
-        RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_OTG_HS, ENABLE) ;  
+        RCC->AHB1ENR |= RCC_AHB1ENR_OTGHSEN;
     }
     else if (mUsbCore == OtgHsUlpi)
     {
         Gpio::config(8, Gpio::OTG_HS_ULPI_D0, Gpio::OTG_HS_ULPI_D1, Gpio::OTG_HS_ULPI_D2, Gpio::OTG_HS_ULPI_D3, 
                         Gpio::OTG_HS_ULPI_D4, Gpio::OTG_HS_ULPI_D5, Gpio::OTG_HS_ULPI_D6, Gpio::OTG_HS_ULPI_D7);
         Gpio::config(4, Gpio::OTG_HS_ULPI_CLK, Gpio::OTG_HS_ULPI_NXT, Gpio::OTG_HS_ULPI_DIR, Gpio::OTG_HS_ULPI_STP);
-        RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_OTG_HS | RCC_AHB1Periph_OTG_HS_ULPI, ENABLE) ; 
+        RCC->AHB1ENR |= RCC_AHB1ENR_OTGHSEN | RCC_AHB1ENR_OTGHSULPIEN;
     }
     //RCC_APB1PeriphResetCmd(RCC_APB1Periph_PWR, ENABLE); // x3 otsuda ili net
 }
 
 void UsbDevice::bspEnableInterrupt()
 {
-    NVIC_InitTypeDef NVIC_InitStructure; 
+    IRQn_Type IRQn = (mUsbCore == OtgFs)? OTG_FS_IRQn: OTG_HS_IRQn;
   
-    NVIC_PriorityGroupConfig(NVIC_PriorityGroup_1);
-    if (mUsbCore == OtgFs)
-        NVIC_InitStructure.NVIC_IRQChannel = OTG_FS_IRQn;
-    else
-        NVIC_InitStructure.NVIC_IRQChannel = OTG_HS_IRQn;
-
-    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;
-    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 3;
-    NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
-    NVIC_Init(&NVIC_InitStructure);  
+//    NVIC_InitTypeDef NVIC_InitStructure; 
+//    NVIC_PriorityGroupConfig(NVIC_PriorityGroup_1);
+//    NVIC_InitStructure.NVIC_IRQChannel = irq;
+//    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;
+//    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 3;
+//    NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+//    NVIC_Init(&NVIC_InitStructure);
+    
+//    NVIC_SetPriority(IRQn, 1, 3);
+    NVIC_EnableIRQ(IRQn);
+    
     
     #ifdef USB_OTG_HS_DEDICATED_EP1_ENABLED
-        NVIC_PriorityGroupConfig(NVIC_PriorityGroup_1);
-        NVIC_InitStructure.NVIC_IRQChannel = OTG_HS_EP1_OUT_IRQn;
-        NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;
-        NVIC_InitStructure.NVIC_IRQChannelSubPriority = 2;
-        NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
-        NVIC_Init(&NVIC_InitStructure);  
-
-        NVIC_PriorityGroupConfig(NVIC_PriorityGroup_1);
-        NVIC_InitStructure.NVIC_IRQChannel = OTG_HS_EP1_IN_IRQn;
-        NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;
-        NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;
-        NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
-        NVIC_Init(&NVIC_InitStructure);   
+#error USB_OTG_HS_DEDICATED_EP1_ENABLED is not implemented
+//        NVIC_PriorityGroupConfig(NVIC_PriorityGroup_1);
+//        NVIC_InitStructure.NVIC_IRQChannel = OTG_HS_EP1_OUT_IRQn;
+//        NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;
+//        NVIC_InitStructure.NVIC_IRQChannelSubPriority = 2;
+//        NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+//        NVIC_Init(&NVIC_InitStructure);  
+//
+//        NVIC_PriorityGroupConfig(NVIC_PriorityGroup_1);
+//        NVIC_InitStructure.NVIC_IRQChannel = OTG_HS_EP1_IN_IRQn;
+//        NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;
+//        NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;
+//        NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+//        NVIC_Init(&NVIC_InitStructure);   
     #endif  
 }
 //---------------------------------------------------------------------------

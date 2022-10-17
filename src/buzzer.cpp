@@ -9,12 +9,12 @@ Buzzer::Buzzer(Gpio::Config pin) :
     mPlaySize(0),
     mPlayCnt(0)
 {
-    TimerNumber tim = HardwareTimer::getTimerByPin(pin);
+    HardwareTimer::TimerNumber tim = HardwareTimer::getTimerByPin(pin);
     mChan = HardwareTimer::getChannelByPin(pin);
     
-    if (tim == TimNone)
+    if (tim == HardwareTimer::TimNone)
         throw Exception::InvalidPeriph;
-    if (mChan == ChNone)
+    if (mChan == HardwareTimer::ChNone)
         throw Exception::InvalidPin;
     
     mPwm = new PwmOutput(tim, 1 _kHz);

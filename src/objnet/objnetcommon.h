@@ -32,6 +32,7 @@ typedef enum
     aidPollNodes        = 0x00, //!< опрос узлов, можно добавить пересылку с помощью ИЛИ
     aidConnReset        = 0x01, //!< сброс состояния узлов до disconnected, установка соединения заново
 //    aidEnumerate        = 0x02, //!< построение карты сети
+    aidSync             = 0x10, //!< обнуление timestamp
 
     aidUpgradeStart     = 0x30, //!< запуск обновления прошивки, в данных класс устройства
     aidUpgradeConfirm   = 0x31, //!< подтверждение начала прошивки, чтобы не было случайностей
@@ -103,7 +104,8 @@ typedef enum
     BusWifi     = 3,
     BusSwonb    = 4,
     BusVirtual  = 5,
-    BusRadio    = 6
+    BusRadio    = 6,
+    BusEthernet = 7
 } BusType;
 
 typedef enum

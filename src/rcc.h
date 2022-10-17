@@ -1,8 +1,8 @@
 #ifndef _RCC_H
 #define _RCC_H
 
-#include "stm32_conf.h"
-#include "core/coreexception.h"
+//#include "stm32_conf.h"
+#include "stm32f4xx.h"
 
 class Rcc
 {
@@ -21,11 +21,11 @@ private:
     
 public:
     static void configPll(unsigned long hseValue, unsigned long sysClk);
-    inline static unsigned long hseValue() {return Rcc::mHseValue;}
-    inline static unsigned long sysClk() {return Rcc::mSysClk;}
-    inline static unsigned long hClk() {return Rcc::mAHBClk;}
-    inline static unsigned long pClk1() {return Rcc::mAPB1Clk;}
-    inline static unsigned long pClk2() {return Rcc::mAPB2Clk;}
+    static unsigned long hseValue() {return Rcc::mHseValue;}
+    static unsigned long sysClk() {return Rcc::mSysClk;}
+    static unsigned long hClk() {return Rcc::mAHBClk;}
+    static unsigned long pClk1() {return Rcc::mAPB1Clk;}
+    static unsigned long pClk2() {return Rcc::mAPB2Clk;}
 };
 
 #endif

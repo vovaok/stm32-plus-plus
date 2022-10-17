@@ -222,7 +222,7 @@ unsigned long CC1200::getSyncWord()
 void CC1200::sendCommand(Command cmd)
 {
     select();
-    mStatus = mSpi->transferWord((unsigned char)cmd);
+    mStatus = mSpi->write((unsigned char)cmd);
     deselect();
 }
 //---------------------------------------------------------------------------
@@ -232,14 +232,14 @@ void CC1200::writeReg(unsigned short addr, unsigned char value)
     select();
     if (addr < 0x2F)
     {
-        mSpi->transferWord(addr);
+        mSpi->write(addr);
     }
     else
     {
-        mSpi->transferWord(0x2F);
-        mSpi->transferWord(addr & 0xFF);
+        mSpi->write(0x2F);
+        mSpi->write(addr & 0xFF);
     }
-    mStatus = mSpi->transferWord(value);
+    mStatus = mSpi->write(value);
     deselect();
 }
 
@@ -249,14 +249,14 @@ unsigned char CC1200::readReg(unsigned short addr)
     select();
     if (addr < 0x2F)
     {
-        mStatus = mSpi->transferWord(0x80 | addr);
+        mStatus = mSpi->write(0x80 | addr);
     }
     else
     {
-        mStatus = mSpi->transferWord(0x80 | 0x2F);
-        mSpi->transferWord(addr & 0xFF);
+        mStatus = mSpi->write(0x80 | 0x2F);
+        mSpi->write(addr & 0xFF);
     }
-    result = mSpi->transferWord(0x00);
+    result = mSpi->write(0x00);
     deselect();
     return result;
 }
@@ -275,21 +275,21 @@ void CC1200::uploadConfig(RF_config_param *data, int count)
 void CC1200::write(const unsigned char *data, unsigned char size)
 {
     select();
-    mStatus = mSpi->transferWord(0x40 | 0x3F);
+    mStatus = mSpi->write(0x40 | 0x3F);
     // if (variable_length_mode)
-    mSpi->transferWord(size);
+    mSpi->write(size);
     for (int i=0; i<size; i++)
-        mSpi->transferWord(data[i]);
+        mSpi->write(data[i]);
     deselect();
 }
 
 void CC1200::read(unsigned char *data, unsigned char size)
 {  
     select();
-    mStatus = mSpi->transferWord(0x80 | 0x40 | 0x3F);
+    mStatus = mSpi->write(0x80 | 0x40 | 0x3F);
     for (int i=0; i<size; i++)
     {
-        data[i] = mSpi->transferWord(0x00);
+        data[i] = mSpi->write(0x00);
     }
     deselect();
 }
@@ -357,12 +357,14 @@ void CC1200::setAddress(unsigned char addr)
 void CC1200::setRxTxEvent(const NotifyEvent &e)
 {
     extiHandlers[mLine] = e;
-    NVIC_InitTypeDef NVIC_InitStructure;
-    NVIC_InitStructure.NVIC_IRQChannel = EXTI9_5_IRQn;
-    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;
-    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;
-    NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
-    NVIC_Init(&NVIC_InitStructure);
+//    NVIC_InitTypeDef NVIC_InitStructure;
+//    NVIC_InitStructure.NVIC_IRQChannel = EXTI9_5_IRQn;
+//    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;
+//    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;
+//    NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+//    NVIC_Init(&NVIC_InitStructure);
+    
+    NVIC_EnableIRQ(EXTI9_5_IRQn);
 }
 
 extern "C" void EXTI9_5_IRQHandler()

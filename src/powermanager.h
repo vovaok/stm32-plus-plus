@@ -29,7 +29,7 @@ private:
 public:
     PowerManager(Adc *adc);
     
-    void addVoltageMeasurement(string name, Adc::Channel channel, float Rhigh, float Rlow);
+    void addVoltageMeasurement(string name, Gpio::Config pin, float Rhigh, float Rlow);
     void setFilter(string name, float Kf);
     
     inline const float &temperature() const {return mTemperature;}

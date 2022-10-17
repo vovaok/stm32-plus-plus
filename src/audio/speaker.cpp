@@ -10,13 +10,13 @@ Speaker::Speaker(const AudioFormat &format, int interfaceNumber) :
     {
         mChannelConfig = Dac::Channel2;
         //mMutePin = new Led('c', 13);
-        mTimer = new HardwareTimer(Tim7, format.sampleRate());
+        mTimer = new HardwareTimer(HardwareTimer::Tim7, format.sampleRate());
     }
     else
     {
         mChannelConfig = Dac::Channel1;
         //mMutePin = new Led('c', 13);
-        mTimer = new HardwareTimer(Tim6, format.sampleRate());
+        mTimer = new HardwareTimer(HardwareTimer::Tim6, format.sampleRate());
     }
     
     //mMutePin->off();
@@ -43,7 +43,7 @@ void Speaker::open()
     else if (mFormat.channelCount() == Stereo)
         mDac = new Dac(Dac::ChannelBoth, res);
     
-    mDma = Dma::getStreamForPeriph(mChannelConfig==Dac::Channel2? Dma::ChannelDac2: Dma::ChannelDac1);
+    mDma = new Dma(mChannelConfig==Dac::Channel2? Dma::DAC2_Stream6: Dma::DAC1_Stream5);
 #ifdef SPEAKER_USE_DOUBLE_BUFFER
     mDma->setDoubleBuffer(buffer(), buffer() + bufferSize()/2, bufferSize()/(2 * mFormat.bytesPerSample()));
 #else

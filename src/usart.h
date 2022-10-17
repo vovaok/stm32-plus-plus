@@ -4,22 +4,9 @@
 #include "gpio.h"
 #include "dma.h"
 #include "rcc.h"
-#include "serial/serialinterface.h"
+#include "core/device.h"
 
-using namespace Serial;
-
-typedef enum
-{
-    UsartNone = 0,
-    Usart1    = 1,
-    Usart2    = 2,
-    Usart3    = 3,
-#if !defined(STM32F37X)
-    Usart4    = 4,
-    Usart5    = 5,
-    Usart6    = 6,
-#endif
-} UsartNo;
+//using namespace Serial;
 //---------------------------------------------------------------------------
 
 extern "C" void USART1_IRQHandler();
@@ -32,44 +19,44 @@ extern "C" void USART6_IRQHandler();
 #endif
 //---------------------------------------------------------------------------
 
-class Usart : public SerialInterface
+class Usart : public Device
 {  
 public:
     typedef enum
     {
-        ParityNone  = USART_Parity_No,
-        ParityEven  = USART_Parity_Even,
-        ParityOdd   = USART_Parity_Odd,
-#if !defined(STM32F37X)
-        StopBits0_5 = USART_StopBits_0_5,
-#endif
-        StopBits1   = USART_StopBits_1,
-        StopBits1_5 = USART_StopBits_1_5,
-        StopBits2   = USART_StopBits_2,
+        // CR1 related config
         WordLength8 = 0x0000,
-        WordLength9 = 0x0010,
+        WordLength9 = 0x1000,
+        ParityNone  = 0x0000,
+        ParityEven  = 0x0400,
+        ParityOdd   = 0x0600,
+        // CR2 related config
+        StopBits0_5 = 0x1000 << 16,
+        StopBits1   = 0x0000 << 16,
+        StopBits1_5 = 0x3000 << 16,
+        StopBits2   = 0x2000 << 16,
+      
         Mode8N1     = WordLength8 | ParityNone | StopBits1,
         Mode8E1     = WordLength9 | ParityEven | StopBits1,
         Mode7E1     = WordLength8 | ParityEven | StopBits1,
     } Config;
   
 private:
-    #if defined(STM32F37X) 
-    static Usart *mUsarts[3];
-    #else
     static Usart *mUsarts[6];
-    #endif
     USART_TypeDef *mDev;
-    USART_InitTypeDef mConfig;
-    bool mConfigured;
+    Config mConfig;
+    int mBaudrate;
+    
+    IRQn_Type mIrq;
+    
     bool mUseDmaRx, mUseDmaTx;
     ByteArray mRxBuffer;
     ByteArray mTxBuffer;
-    Dma::DmaChannel mDmaChannelRx;
-    Dma::DmaChannel mDmaChannelTx;
+    Dma::Channel mDmaChannelRx;
+    Dma::Channel mDmaChannelTx;
     Dma *mDmaRx;
     Dma *mDmaTx;
-    IRQn mIrq;
+    
     int mRxPos;
     int mRxIrqDataCounter;
     int mRxBufferSize;
@@ -77,10 +64,10 @@ private:
     int mTxReadPos;
     int mTxBufferSize;
     ByteArray mLineEnd;
-    bool m7bits;
-    bool mHalfDuplex;
     
-    void commonConstructor(UsartNo number, int baudrate, Config config);
+    bool m7bits;
+    
+    void commonConstructor(int number);
     void init();
        
     void dmaTxComplete();
@@ -96,10 +83,7 @@ private:
     
     void handleInterrupt();
     
-    static UsartNo getUsartByPin(Gpio::Config pin);
-    
 public:
-    Usart(UsartNo number, int baudrate, Config config, Gpio::Config pinTx, Gpio::Config pinRx);
     Usart(Gpio::Config pinTx, Gpio::Config pinRx);
     ~Usart();
     
@@ -113,22 +97,22 @@ public:
     bool open(OpenMode mode = ReadWrite);
     void close();
     
-    int write(const char *data, int size);
-    int write(const ByteArray &ba);
-    int read(ByteArray &ba);
+   
     
-    bool canReadLine();
-    int readLine(ByteArray &ba);
+//    bool canReadLine();
+//    int readLine(ByteArray &ba);
     
     void setBaudrate(int baudrate);
-    int baudrate() const {return mConfig.USART_BaudRate;}
+    int baudrate() const {return mBaudrate;}
     void setConfig(Config config);
     
-    bool isHalfDuplex() const {return mHalfDuplex;}
-    
-    unsigned char getErrorCode() const;
+//    unsigned char getErrorCode() const;
     
     void setClockPin(Gpio::Config pinCk, bool inverted = false);
+    
+protected:
+    virtual int writeData(const char *data, int size); // override;
+    virtual int readData(char *data, int size); // override;
 };
 
 #endif

@@ -2,6 +2,7 @@
 #define _ONBUPGRADER_H
 
 #include "objnetmaster.h"
+#include "application.h"
 
 namespace Objnet
 {

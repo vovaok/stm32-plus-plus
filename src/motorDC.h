@@ -8,7 +8,7 @@
 class MotorDC
 {
 private:
-    ChannelNumber channelA,channelB;
+    HardwareTimer::ChannelNumber channelA,channelB;
     PwmOutput *pwm;
     int slopePwm;
     bool mEnable;
@@ -38,7 +38,7 @@ public:
   
     MotorDC(PwmOutput *pwmInq);
     void setSpeed(int speed);
-    void SetChanels(ChannelNumber chnum1,Gpio::Config pin1,ChannelNumber chnum2,Gpio::Config pin2);
+    void SetChanels(Gpio::Config pin1, Gpio::Config pin2);
     void setEnable(bool enable);
     bool isEnable() {return mEnable;}
     void setCurrentValue(float current) {mCurrent  = current;}

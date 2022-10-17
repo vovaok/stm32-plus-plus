@@ -22,14 +22,14 @@ Can::Can(int canNumber, int baudrate, Gpio::Config pinRx, Gpio::Config pinTx) :
       case 1: 
         mCan = CAN1;
         mInstances[0] = this;
-        RCC_APB1PeriphClockCmd(RCC_APB1Periph_CAN1, ENABLE);
+        RCC->APB1ENR |= RCC_APB1ENR_CAN1EN;
         break;
         
       case 2:
         mCan = CAN2;
         mInstances[1] = this;
-        RCC_APB1PeriphClockCmd(RCC_APB1Periph_CAN1, ENABLE); // CAN2 take SRAM access through CAN1 memory bus
-        RCC_APB1PeriphClockCmd(RCC_APB1Periph_CAN2, ENABLE);
+        RCC->APB1ENR |= RCC_APB1ENR_CAN1EN; // CAN2 take SRAM access through CAN1 memory bus
+        RCC->APB1ENR |= RCC_APB1ENR_CAN2EN;
         break;
         
       default:
@@ -59,8 +59,19 @@ Can::Can(int canNumber, int baudrate, Gpio::Config pinRx, Gpio::Config pinTx) :
     CAN_InitStructure.CAN_Mode = CAN_Mode_Normal;
     
     int APB1freq = Rcc::pClk1();
-    int psc = (APB1freq / ((8+16+1)*baudrate)) + 1; // prescaler choosed assumpting max bit length is 25tq
-    int btq = APB1freq / (psc*baudrate); // the number of quanta per bit 
+    int psc = 0;
+    int mod = 0;
+    int btq = 0;
+    do
+    {
+        psc++;
+        btq = (APB1freq / psc) / (baudrate);
+        mod = (APB1freq / psc) % (baudrate);
+        if (psc >= 1024)
+            THROW(Exception::OutOfRange);
+    }
+    while (btq > 25 || mod); // prescaler choosed assumpting max bit length is 25tq
+    
     int t2 = btq<=17? ((btq-1)>>1): 8; // length of T2 segment
     int t1 = btq - 1 - t2; // length of T1 segment
     CAN_InitStructure.CAN_SJW = CAN_SJW_1tq;
@@ -174,15 +185,23 @@ void Can::setReceiveEvent(CanReceiveEvent event)
     
     CAN_ITConfig(mCan, CAN_IT_FF0 | CAN_IT_FF1, ENABLE);
     
-    NVIC_InitTypeDef nvic;
-    nvic.NVIC_IRQChannel = (mCan==CAN1)? CAN1_RX0_IRQn: (mCan==CAN2)? CAN2_RX0_IRQn: 0;
-    nvic.NVIC_IRQChannelPreemptionPriority = 1;
-    nvic.NVIC_IRQChannelSubPriority = 1;
-    nvic.NVIC_IRQChannelCmd = ENABLE;
-    NVIC_Init(&nvic);
+    IRQn_Type IRQn1 = (mCan == CAN1)? CAN1_RX0_IRQn: CAN2_RX0_IRQn;
+    IRQn_Type IRQn2 = (mCan == CAN1)? CAN1_RX1_IRQn: CAN2_RX1_IRQn;
     
-    nvic.NVIC_IRQChannel = (mCan==CAN1)? CAN1_RX1_IRQn: (mCan==CAN2)? CAN2_RX1_IRQn: 0;
-    NVIC_Init(&nvic);
+//    NVIC_InitTypeDef nvic;
+//    nvic.NVIC_IRQChannel = 
+//    nvic.NVIC_IRQChannelPreemptionPriority = 1;
+//    nvic.NVIC_IRQChannelSubPriority = 1;
+//    nvic.NVIC_IRQChannelCmd = ENABLE;
+//    NVIC_Init(&nvic);
+    
+    NVIC_SetPriority(IRQn1, 1);
+    NVIC_SetPriority(IRQn2, 1);
+    NVIC_EnableIRQ(IRQn1);
+    NVIC_EnableIRQ(IRQn2);
+    
+//    nvic.NVIC_IRQChannel = (mCan==CAN1)? CAN1_RX1_IRQn: (mCan==CAN2)? CAN2_RX1_IRQn: 0;
+//    NVIC_Init(&nvic);
 }
 
 void Can::setRxInterruptEnabled(bool enabled)
@@ -197,12 +216,16 @@ void Can::setTransmitReadyEvent(NotifyEvent event)
     // CAN_RX0_interrupt_enable()
     CAN_ITConfig(mCan, CAN_IT_TME, ENABLE);
     
-    NVIC_InitTypeDef nvic;
-    nvic.NVIC_IRQChannel = (mCan==CAN1)? CAN1_TX_IRQn: (mCan==CAN2)? CAN2_TX_IRQn: 0;
-    nvic.NVIC_IRQChannelPreemptionPriority = 1;
-    nvic.NVIC_IRQChannelSubPriority = 2;
-    nvic.NVIC_IRQChannelCmd = ENABLE;
-    NVIC_Init(&nvic);
+    IRQn_Type IRQn = (mCan == CAN1)? CAN1_TX_IRQn: CAN2_TX_IRQn;
+    NVIC_SetPriority(IRQn, 2);
+    NVIC_EnableIRQ(IRQn);
+    
+//    NVIC_InitTypeDef nvic;
+//    nvic.NVIC_IRQChannel = (mCan==CAN1)? CAN1_TX_IRQn: (mCan==CAN2)? CAN2_TX_IRQn: 0;
+//    nvic.NVIC_IRQChannelPreemptionPriority = 1;
+//    nvic.NVIC_IRQChannelSubPriority = 2;
+//    nvic.NVIC_IRQChannelCmd = ENABLE;
+//    NVIC_Init(&nvic);
 }
 //------------------------- interrupt handlers ------------------------------
 

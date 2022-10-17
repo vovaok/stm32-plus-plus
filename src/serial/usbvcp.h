@@ -5,6 +5,8 @@
 #include "usb/usbcdc/usbcdc.h"
 #include "serial/serialinterface.h"
 #include "usb/usbifcol.h"
+#include "cpuid.h"
+#include "application.h"
 
 using namespace Usb;
 using namespace Serial;

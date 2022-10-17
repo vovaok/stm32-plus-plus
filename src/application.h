@@ -26,7 +26,7 @@ using namespace std;
 #endif
 
 #ifndef APP_COMPANY
-#define APP_COMPANY     "Neurobotics"
+#define APP_COMPANY     "MIPT"
 #endif
 
 #if !defined(APP_VERSION)
@@ -69,6 +69,7 @@ private:
     typedef std::list<TaskEvent>::iterator TaskIterator;
     typedef std::list<TickEvent>::iterator TickIterator;
     bool m_tasksModified;
+    bool m_sleeping;
     
     static unsigned short mVersion;
     static string mBuildDate;
@@ -87,7 +88,8 @@ private:
     friend void HardFault_Handler();
 
 protected:
-    Application()
+    Application() :
+        m_sleeping(false)
     {
         self = this;
         mName = APP_NAME;
@@ -102,6 +104,7 @@ protected:
     }
     void setVersion(unsigned short ver) {mVersion = ver;}
     void setBurnCount(unsigned long cnt) {mBurnCount = cnt;}
+    void setSleeping(bool sleep) {m_sleeping = sleep;}
     
 public:
     /*! Экземпляр приложения. */

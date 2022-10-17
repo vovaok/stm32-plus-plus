@@ -47,13 +47,19 @@ ObjnetStorage::ObjnetStorage(Flash::Sector sector1, Flash::Sector sector2) :
     if (mSectorHeader1->magicNumber == Active)
         mStorage = reinterpret_cast<unsigned long*>(mSectorHeader1);
     else if (mSectorHeader2->magicNumber == Active)
-        mStorage = reinterpret_cast<unsigned long*>(mSectorHeader2);
+        mStorage = reinterpret_cast<unsigned long*>(mSectorHeader2);    
+    else if (mSectorHeader1->magicNumber != Transfer && mSectorHeader1->magicNumber != Erased) // trash
+    {
+        Flash::unlock();
+        Flash::eraseSector(mSector1);
+        Flash::lock();
+        mSectorHeader1 = reinterpret_cast<SectorHeader*>(Flash::getBeginOfSector(mSector1));
+    }
     
     if (mSectorHeader1->magicNumber == Transfer)
         transfer(mSector2, mSector1);
     else if (mSectorHeader2->magicNumber == Transfer)
         transfer(mSector1, mSector2);
-    
     else if (mSectorHeader1->magicNumber == Erased)
     {
         format(mSector1);
@@ -62,7 +68,7 @@ ObjnetStorage::ObjnetStorage(Flash::Sector sector1, Flash::Sector sector2) :
     
     mFirstBlock = reinterpret_cast<BlockHeader*>(mStorage + sizeof(SectorHeader)/sizeof(unsigned long));
     for (mNewBlock = mFirstBlock; mNewBlock->flags != Blank; mNewBlock = mNewBlock->sibling());
-//#warning nado zapilit: if (mNewBlock_address > mStorageSize) { do transfer; }
+#warning TODO: nado zapilit: if (mNewBlock_address > mStorageSize) { do transfer; }
     
     for (Description *d = reinterpret_cast<Description*>(mFirstBlock); d->isValid(); d = d->next())
         mLastDesc = d;
@@ -228,6 +234,6 @@ void ObjnetStorage::format(Flash::Sector sector)
 
 void ObjnetStorage::transfer(Flash::Sector from, Flash::Sector to)
 {
-  
+    
 }
 //---------------------------------------------------------------------------

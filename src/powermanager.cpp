@@ -13,9 +13,9 @@ PowerManager::PowerManager(Adc *adc) :
     timer->start(10);
 }
 
-void PowerManager::addVoltageMeasurement(string name, Adc::Channel channel, float Rhigh, float Rlow)
+void PowerManager::addVoltageMeasurement(string name, Gpio::Config pin, float Rhigh, float Rlow)
 {
-    mAdc->addChannel(channel, Adc::SampleTime_56Cycles);
+    Adc::Channel channel = mAdc->addChannel(pin, Adc::SampleTime_56Cycles);
     VoltageEntry entry;
     entry.channel = channel;
     entry.factor = (3.3f * (Rlow + Rhigh) / Rlow / 4095.0f);

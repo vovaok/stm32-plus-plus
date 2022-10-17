@@ -118,7 +118,7 @@ void UartOnbInterface::task()
         if (mInterface->isHalfDuplex())
             mWriteTimer = 30;
         
-        if (mWriteTimer >= 30)
+//        if (mWriteTimer >= 30)
         {
             mWriteTimer = 0;
             while (readTx(mCurTxMsg))

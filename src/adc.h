@@ -1,7 +1,7 @@
 #ifndef _ADC_H
 #define _ADC_H
 
-#include "stm32_conf.h"
+#include "stm32f4xx.h"
 #include "dma.h"
 #include "core/bytearray.h"
 #include "gpio.h"
@@ -19,48 +19,63 @@ public:
     } Channel;
     
     typedef enum {ModeSingle, ModeDual, ModeTriple} Mode;
-    typedef enum {Res6bit, Res8bit, Res10bit, Res12bit, Res16bit} Resolution;
     
-    typedef enum {EdgeNone, EdgeRising, EdgeFalling, EdgeBoth} Edge;
     typedef enum
     {
-        TriggerTim1CC1 = ADC_ExternalTrigConv_T1_CC1,
-        TriggerTim1CC2 = ADC_ExternalTrigConv_T1_CC2,
-        TriggerTim1CC3 = ADC_ExternalTrigConv_T1_CC3,
-        TriggerTim2CC2 = ADC_ExternalTrigConv_T2_CC2,
-        TriggerTim2CC3 = ADC_ExternalTrigConv_T2_CC3,
-        TriggerTim2CC4 = ADC_ExternalTrigConv_T2_CC4,
-        TriggerTim2 = ADC_ExternalTrigConv_T2_TRGO,
-        TriggerTim3CC1 = ADC_ExternalTrigConv_T3_CC1,
-        TriggerTim3 = ADC_ExternalTrigConv_T3_TRGO,
-        TriggerTim4CC4 = ADC_ExternalTrigConv_T4_CC4,
-        TriggerTim5CC1 = ADC_ExternalTrigConv_T5_CC1,
-        TriggerTim5CC2 = ADC_ExternalTrigConv_T5_CC2,
-        TriggerTim5CC3 = ADC_ExternalTrigConv_T5_CC3,
-        TriggerTim8CC1 = ADC_ExternalTrigConv_T8_CC1,
-        TriggerTim8 = ADC_ExternalTrigConv_T8_TRGO,
-        TriggerExtIT11 = ADC_ExternalTrigConv_Ext_IT11
+        Res6bit = ADC_CR1_RES,
+        Res8bit = ADC_CR1_RES_1,
+        Res10bit = ADC_CR1_RES_0,
+        Res12bit = 0,
+        Res16bit = ADC_CR2_ALIGN
+    } Resolution;
+    
+    typedef enum
+    {
+        EdgeNone = 0,
+        EdgeRising = ADC_CR2_EXTEN_0,
+        EdgeFalling = ADC_CR2_EXTEN_1, 
+        EdgeBoth = ADC_CR2_EXTEN_0 | ADC_CR2_EXTEN_1
+    } Edge;
+    
+    typedef enum
+    {
+        TriggerTim1CC1 = 0,
+        TriggerTim1CC2 = ADC_CR2_EXTSEL_0,
+        TriggerTim1CC3 = ADC_CR2_EXTSEL_1,
+        TriggerTim2CC2 = (ADC_CR2_EXTSEL_1 | ADC_CR2_EXTSEL_0),
+        TriggerTim2CC3 = ADC_CR2_EXTSEL_2,
+        TriggerTim2CC4 = (ADC_CR2_EXTSEL_2 | ADC_CR2_EXTSEL_0),
+        TriggerTim2 = (ADC_CR2_EXTSEL_2 | ADC_CR2_EXTSEL_1),
+        TriggerTim3CC1 = (ADC_CR2_EXTSEL_2 | ADC_CR2_EXTSEL_1 | ADC_CR2_EXTSEL_0),
+        TriggerTim3 = ADC_CR2_EXTSEL_3,
+        TriggerTim4CC4 = (ADC_CR2_EXTSEL_3 | ADC_CR2_EXTSEL_0),
+        TriggerTim5CC1 = (ADC_CR2_EXTSEL_3 | ADC_CR2_EXTSEL_1),
+        TriggerTim5CC2 = (ADC_CR2_EXTSEL_3 | ADC_CR2_EXTSEL_1 | ADC_CR2_EXTSEL_0),
+        TriggerTim5CC3 = (ADC_CR2_EXTSEL_3 | ADC_CR2_EXTSEL_2),
+        TriggerTim8CC1 = (ADC_CR2_EXTSEL_3 | ADC_CR2_EXTSEL_2 | ADC_CR2_EXTSEL_0),
+        TriggerTim8 = (ADC_CR2_EXTSEL_3 | ADC_CR2_EXTSEL_2 | ADC_CR2_EXTSEL_1),
+        TriggerExtIT11 = ADC_CR2_EXTSEL
     } Trigger;
     
     typedef enum
     {
-        SampleTime_3Cycles = ADC_SampleTime_3Cycles,
-        SampleTime_15Cycles = ADC_SampleTime_15Cycles,
-        SampleTime_28Cycles = ADC_SampleTime_28Cycles,
-        SampleTime_56Cycles = ADC_SampleTime_56Cycles,
-        SampleTime_84Cycles = ADC_SampleTime_84Cycles,
-        SampleTime_112Cycles = ADC_SampleTime_112Cycles,
-        SampleTime_144Cycles = ADC_SampleTime_144Cycles,
-        SampleTime_480Cycles = ADC_SampleTime_480Cycles,
+        SampleTime_3Cycles = 0,
+        SampleTime_15Cycles = ADC_SMPR1_SMP10_0,
+        SampleTime_28Cycles = ADC_SMPR1_SMP10_1,
+        SampleTime_56Cycles = (ADC_SMPR1_SMP10_1 | ADC_SMPR1_SMP10_0),
+        SampleTime_84Cycles = ADC_SMPR1_SMP10_2,
+        SampleTime_112Cycles = (ADC_SMPR1_SMP10_2 | ADC_SMPR1_SMP10_0),
+        SampleTime_144Cycles = (ADC_SMPR1_SMP10_2 | ADC_SMPR1_SMP10_1),
+        SampleTime_480Cycles = ADC_SMPR1_SMP10,
     } SampleTime;
   
 private:
     static Adc *mInstances[3];
     ADC_TypeDef *mAdc;//, *mAdc2, *mAdc3;
-    ADC_InitTypeDef mConfig;
+//    ADC_InitTypeDef mConfig;
     Dma *mDma;
     bool mDmaOwner;
-    Dma::DmaChannel mDmaChannel;
+    Dma::Channel mDmaChannel;
     ByteArray mBuffer;
     unsigned char mChannelResultMap[19];
   
@@ -71,6 +86,8 @@ private:
     int mSampleCount;
     
     NotifyEvent mCompleteEvent;
+    
+    void regularChannelConfig(Channel channel, uint8_t rank, SampleTime sampleTime);
     
 public:
     Adc(int adcBase = 1); // for single mode
@@ -83,9 +100,11 @@ public:
     void setResolution(Resolution resolution);
     void selectTrigger(Trigger trigger, Edge edge);
     
-    void addChannel(int channel, SampleTime sampleTime = SampleTime_3Cycles);
-    void addChannel(int channel, Gpio::PinName pin, SampleTime sampleTime = SampleTime_3Cycles);
+    void addChannel(Channel channel, SampleTime sampleTime = SampleTime_3Cycles);
+    Channel addChannel(Gpio::Config pin, SampleTime sampleTime = SampleTime_3Cycles);
     void setMultisample(int sampleCount);
+    
+    int maxValue() const;
     
     void setEnabled(bool enable);
     bool isEnabled() const {return mEnabled;}

@@ -11,9 +11,9 @@ lib/CMSIS/DSP_Lib/Examples
 *.dep
 *~
 stm32f405rg_no-exceptions_no-rtti/
-/Backup (2) of stm32++.ewp
-/Backup (3) of stm32++.ewp
-/Backup (4) of stm32++.ewp
+/Backup*
 /stm32++.ewd
 /stm32++.ewp
 /stm32++.ewt
+*.ewd
+*.ewt

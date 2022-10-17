@@ -46,7 +46,8 @@ void Application::exec()
         }
         m_tasksModified = false;
         
-        //__WFI(); // го слипать
+        if (m_sleeping)
+            __WFI(); // го слипать
     }
 }
 //---------------------------------------------------------------------------
@@ -116,6 +117,7 @@ bool Application::startOnbBootloader()
 #if !defined(STM32F37X)
     __DISABLE_GPIO(G);
     __DISABLE_GPIO(H);
+#elif !defined(STM32F37X) && !defined(STM32F446xx)
     __DISABLE_GPIO(I);
 #endif
     __set_MSP(*ptr);

@@ -17,7 +17,7 @@ public:
   
 private:
     PwmOutput *mPwm;
-    ChannelNumber mChan;
+    HardwareTimer::ChannelNumber mChan;
     int mTime;
     bool mEndFlag;
     

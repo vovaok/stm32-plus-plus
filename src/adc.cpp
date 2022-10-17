@@ -21,42 +21,32 @@ Adc::Adc(int adcBase) :
     {
       case 1:
         mAdc = ADC1;
-        RCC_APB2PeriphClockCmd(RCC_APB2Periph_ADC1, ENABLE);
-        mDmaChannel = Dma::ChannelAdc1;
+        RCC->APB2ENR |= RCC_APB2ENR_ADC1EN;
+        mDmaChannel = Dma::ADC1_Stream4; // Dma::ADC1_Stream0
         break;
         
       case 2:
         mAdc = ADC2;
-        RCC_APB2PeriphClockCmd(RCC_APB2Periph_ADC2, ENABLE);
-        mDmaChannel = Dma::ChannelAdc2;
+        RCC->APB2ENR |= RCC_APB2ENR_ADC2EN;
+        mDmaChannel = Dma::ADC2_Stream2; // Dma::ADC2_Stream3
         break;
         
       case 3:
         mAdc = ADC3;
-        RCC_APB2PeriphClockCmd(RCC_APB2Periph_ADC3, ENABLE);
-        mDmaChannel = Dma::ChannelAdc3;
+        RCC->APB2ENR |= RCC_APB2ENR_ADC3EN;
+        mDmaChannel = Dma::ADC3_Stream1; // Dma::ADC3_Stream0
         break;
         
       default:
         return;
     }
     
-    // ADC Common Init 
-    ADC_CommonInitTypeDef ADC_CommonInitStructure;
-    ADC_CommonInitStructure.ADC_Mode = ADC_Mode_Independent;
-    ADC_CommonInitStructure.ADC_Prescaler = ADC_Prescaler_Div6;
-    ADC_CommonInitStructure.ADC_DMAAccessMode = ADC_DMAAccessMode_Disabled;
-    ADC_CommonInitStructure.ADC_TwoSamplingDelay = ADC_TwoSamplingDelay_5Cycles; 
-    ADC_CommonInit(&ADC_CommonInitStructure); 
+    // ADC Common Init  
+    ADC->CCR = (ADC_CCR_ADCPRE_1); // ADC_Prescaler_Div6, independent mode
     
-    ADC_StructInit(&mConfig);
-    mConfig.ADC_Resolution = ADC_Resolution_12b;
-    mConfig.ADC_ScanConvMode = ENABLE;
-    mConfig.ADC_ContinuousConvMode = DISABLE;
-    mConfig.ADC_ExternalTrigConvEdge = ADC_ExternalTrigConvEdge_None; 
-//    mConfig.ADC_ExternalTrigConv = ;
-    mConfig.ADC_DataAlign = ADC_DataAlign_Left;
-    mConfig.ADC_NbrOfConversion = mChannelCount;
+    // Scan conversion mode is enabled
+    mAdc->CR1 = (mResolution & ADC_CR1_RES_Msk) | ADC_CR1_SCAN;
+    mAdc->CR2 = (mResolution & ADC_CR2_ALIGN_Msk);
 }
 
 Adc::~Adc()
@@ -78,100 +68,89 @@ Adc *Adc::instance(int periphNumber)
 void Adc::setResolution(Resolution resolution)
 {
     mResolution = resolution;
-    switch (resolution)
-    {
-      case Res6bit:
-        mConfig.ADC_Resolution = ADC_Resolution_6b;
-        mConfig.ADC_DataAlign = ADC_DataAlign_Right;
-        break;
-        
-      case Res8bit:
-        mConfig.ADC_Resolution = ADC_Resolution_8b;
-        mConfig.ADC_DataAlign = ADC_DataAlign_Right;
-        break;
-        
-      case Res10bit:
-        mConfig.ADC_Resolution = ADC_Resolution_10b;
-        mConfig.ADC_DataAlign = ADC_DataAlign_Right;
-        break;
-        
-      case Res12bit:
-        mConfig.ADC_Resolution = ADC_Resolution_12b;
-        mConfig.ADC_DataAlign = ADC_DataAlign_Right;
-        break;
-        
-      case Res16bit:
-        mConfig.ADC_Resolution = ADC_Resolution_12b;
-        mConfig.ADC_DataAlign = ADC_DataAlign_Left;
-        break;
-    }
-    
-    ADC_Init(mAdc, &mConfig);
+    MODIFY_REG(mAdc->CR1, ADC_CR1_RES_Msk, (mResolution & ADC_CR1_RES_Msk));
+    MODIFY_REG(mAdc->CR2, ADC_CR2_ALIGN_Msk, (mResolution & ADC_CR2_ALIGN_Msk));
 }
 
 void Adc::selectTrigger(Trigger trigger, Edge edge)
 {
-    uint32_t adcEdge;
-    switch (edge)
-    {
-        case EdgeRising: adcEdge = ADC_ExternalTrigConvEdge_Rising; break;
-        case EdgeFalling: adcEdge = ADC_ExternalTrigConvEdge_Falling; break;
-        case EdgeBoth: adcEdge = ADC_ExternalTrigConvEdge_RisingFalling; break;
-        default: adcEdge = ADC_ExternalTrigConvEdge_None;
-    }
-    mConfig.ADC_ExternalTrigConvEdge = adcEdge; 
-    mConfig.ADC_ExternalTrigConv = trigger;
-    ADC_Init(mAdc, &mConfig);
+    MODIFY_REG(mAdc->CR2, ADC_CR2_EXTEN_Msk | ADC_CR2_EXTSEL_Msk, (uint32_t)trigger | (uint32_t)edge);
 }
 //---------------------------------------------------------------------------
     
-void Adc::addChannel(int channel, SampleTime sampleTime)
+void Adc::addChannel(Channel channel, SampleTime sampleTime)
 {
-    if (channel < 8)
-    {
-        Gpio::config(Gpio::PinName(Gpio::PA0 + channel), Gpio::modeAnalog);
-    }
-    else if (channel < 10)
-    {
-        Gpio::config(Gpio::PinName(Gpio::PB0 + (channel-8)), Gpio::modeAnalog);
-    }
-    else if (channel < 16)
-    {
-        Gpio::config(Gpio::PinName(Gpio::PC0 + (channel-10)), Gpio::modeAnalog);
-    }
-    else if (channel == TempSensor || channel == VrefInt)
-    {
-        ADC_TempSensorVrefintCmd(ENABLE);
-    }
+    if (channel == TempSensor || channel == VrefInt)
+        ADC->CCR |= ADC_CCR_TSVREFE;
     else if (channel == Vbat)
-    {
-        ADC_VBATCmd(ENABLE);
-    }
+        ADC->CCR |= ADC_CCR_VBATE;
   
     if (mEnabled)
         throw Exception::ResourceBusy;
     
-    mConfig.ADC_NbrOfConversion = ++mChannelCount;
-    ADC_Init(mAdc, &mConfig);
-    ADC_RegularChannelConfig(mAdc, channel, mChannelCount, sampleTime);
+    MODIFY_REG(mAdc->SQR1, ADC_SQR1_L_Msk, mChannelCount << ADC_SQR1_L_Pos);
+    mChannelCount++;
+    regularChannelConfig(channel, mChannelCount, sampleTime);
     mBuffer.resize(mChannelCount*2*mSampleCount);
     mChannelResultMap[channel] = mChannelCount - 1;
     
     mAdc->CR2 |= ADC_CR2_EOCS; // end of conversion flag is set on sequence complete
 }
 
-void Adc::addChannel(int channel, Gpio::PinName pin, SampleTime sampleTime)
+Adc::Channel Adc::addChannel(Gpio::Config pin, SampleTime sampleTime)
 {
-    Gpio::config(pin, Gpio::modeAnalog);
+    int periphNumber = GpioConfigGetPeriphNumber(pin);
+    Channel channel = (Channel)GpioConfigGetPeriphChannel(pin);
     
-    if (mEnabled)
-        throw Exception::ResourceBusy;
+    if (mInstances[periphNumber - 1] != this)
+        THROW(Exception::InvalidPeriph);
     
-    mConfig.ADC_NbrOfConversion = ++mChannelCount;
-    ADC_Init(mAdc, &mConfig);
-    ADC_RegularChannelConfig(mAdc, channel, mChannelCount, sampleTime);
-    mBuffer.resize(mChannelCount*2*mSampleCount);
-    mChannelResultMap[channel] = mChannelCount - 1;
+    Gpio::config(pin);
+    
+    addChannel(channel, sampleTime);
+    
+    return channel;
+}
+
+void Adc::regularChannelConfig(Channel channel, uint8_t rank, SampleTime sampleTime)
+{
+    __IO uint32_t *SMPR = &mAdc->SMPR2;
+    __IO uint32_t *SQR = 0L;
+    int smpr_pos = 0;
+    int sqr_pos = 0;
+    
+    if (channel > Channel9)
+    {
+        SMPR = &mAdc->SMPR1;
+        smpr_pos = 3 * (channel - 10);
+    }
+    else
+    {
+        SMPR = &mAdc->SMPR2;
+        smpr_pos = 3 * channel;
+    }
+    
+    if (rank < 7)
+    {
+        SQR = &mAdc->SQR3;
+        sqr_pos = 5 * (rank - 1);
+    }
+    else if (rank < 13)
+    {
+        SQR = &mAdc->SQR2;
+        sqr_pos = 5 * (rank - 7);
+    }
+    else
+    {
+        SQR = &mAdc->SQR1;
+        sqr_pos = 5 * (rank - 13);
+    }
+    
+    if (SMPR && SQR)
+    {
+        MODIFY_REG(*SMPR, 0x07 << smpr_pos, sampleTime << smpr_pos);
+        MODIFY_REG(*SQR, 0x1f << sqr_pos, rank << sqr_pos);
+    }
 }
 //---------------------------------------------------------------------------
 
@@ -182,11 +161,24 @@ void Adc::setMultisample(int sampleCount)
 }
 //---------------------------------------------------------------------------
 
+int Adc::maxValue() const
+{
+    switch (mResolution)
+    {
+        case Res6bit:  return (1<<6) - 1;
+        case Res8bit:  return (1<<8) - 1;
+        case Res10bit: return (1<<10) - 1;
+        case Res12bit: return (1<<12) - 1;
+        case Res16bit: return (1<<16) - 1;
+        default: return 0;
+    }
+}
+
 void Adc::setEnabled(bool enable)
 {
     if (!mDma && enable)
     {
-        mDma = Dma::getStreamForPeriph(mDmaChannel);
+        mDma = new Dma(mDmaChannel);
         mDma->setCircularBuffer(mBuffer.data(), mChannelCount*mSampleCount);
         mDma->setTransferCompleteEvent(mCompleteEvent);
         configDma(mDma);
@@ -194,8 +186,11 @@ void Adc::setEnabled(bool enable)
     }
   
     mEnabled = enable;
-    FunctionalState en = enable? ENABLE: DISABLE;
-    ADC_Cmd(mAdc, en);    
+    if (enable)
+        mAdc->CR2 |= ADC_CR2_ADON;
+    else
+        mAdc->CR2 &= ~ADC_CR2_ADON;
+      
 //    if (mAdc2)
 //        ADC_Cmd(mAdc2, en);
 //    if (mAdc3)
@@ -219,10 +214,11 @@ void Adc::configDma(Dma *dma)
     }
     mDma = dma;
     
-    if (mMode==ModeSingle)
-        ADC_DMARequestAfterLastTransferCmd(mAdc, ENABLE);
+    // Enable the selected ADC DMA request after last transfer
+    if (mMode == ModeSingle)
+        mAdc->CR2 |= ADC_CR2_DDS;
     
-    ADC_DMACmd(mAdc, ENABLE);
+    mAdc->CR2 |= ADC_CR2_DMA;
 }
 //---------------------------------------------------------------------------
 
@@ -245,8 +241,10 @@ bool Adc::isComplete() const
 
 void Adc::setContinuousMode(bool enabled)
 {
-    mConfig.ADC_ContinuousConvMode = enabled? ENABLE: DISABLE;
-    ADC_Init(mAdc, &mConfig);
+    if (enabled)
+        mAdc->CR2 |= ADC_CR2_CONT;
+    else
+        mAdc->CR2 &= ~ADC_CR2_CONT;
 }
 //---------------------------------------------------------------------------
 

@@ -3,13 +3,13 @@
 RgbLed::RgbLed(Gpio::Config pinR, Gpio::Config pinG, Gpio::Config pinB, int pwmFrequency, bool inverted) :
     mR(0), mG(0), mB(0)
 {
-    TimerNumber tim = HardwareTimer::getTimerByPin(pinR);
-    if (tim == TimNone)
+    HardwareTimer::TimerNumber tim = HardwareTimer::getTimerByPin(pinR);
+    if (tim == HardwareTimer::TimNone)
         tim = HardwareTimer::getTimerByPin(pinG);
-    if (tim == TimNone)
+    if (tim == HardwareTimer::TimNone)
         tim = HardwareTimer::getTimerByPin(pinB);
     
-    if (tim == TimNone)
+    if (tim == HardwareTimer::TimNone)
         throw Exception::InvalidPeriph;
     
     chR = HardwareTimer::getChannelByPin(pinR);
@@ -20,12 +20,12 @@ RgbLed::RgbLed(Gpio::Config pinR, Gpio::Config pinG, Gpio::Config pinB, int pwmF
 //        throw Exception::invalidPin;
   
     pwm = new PwmOutput(tim, 1 _kHz);
-    if (chR != ChNone)
-        pwm->configChannel(chR, pinR, Gpio::NoConfig, inverted); 
-    if (chG != ChNone)
-        pwm->configChannel(chG, pinG, Gpio::NoConfig, inverted);
-    if (chB != ChNone)
-        pwm->configChannel(chB, pinB, Gpio::NoConfig, inverted);
+    if (chR != HardwareTimer::ChNone)
+        pwm->configChannel(pinR, Gpio::NoConfig, inverted); 
+    if (chG != HardwareTimer::ChNone)
+        pwm->configChannel(pinG, Gpio::NoConfig, inverted);
+    if (chB != HardwareTimer::ChNone)
+        pwm->configChannel(pinB, Gpio::NoConfig, inverted);
 
     //for (int i=0; i<30000; i++);
     pwm->setAllChannelsEnabled(true);
@@ -34,21 +34,21 @@ RgbLed::RgbLed(Gpio::Config pinR, Gpio::Config pinG, Gpio::Config pinB, int pwmF
 void RgbLed::setR(int value)
 {
     mR = BOUND(0, value, 255);
-    if (chR != ChNone)
+    if (chR != HardwareTimer::ChNone)
         pwm->setDutyCycle(chR, value<<8);
 }
 
 void RgbLed::setG(int value)
 {
     mG = BOUND(0, value, 255);
-    if (chG != ChNone)
+    if (chG != HardwareTimer::ChNone)
         pwm->setDutyCycle(chG, value<<8);
 }
 
 void RgbLed::setB(int value)
 {
     mB = BOUND(0, value, 255);
-    if (chB != ChNone)
+    if (chB != HardwareTimer::ChNone)
         pwm->setDutyCycle(chB, value<<8);
 }
 
@@ -57,11 +57,11 @@ void RgbLed::setRgb(unsigned char r, unsigned char g, unsigned char b)
     mR = r;
     mG = g;
     mB = b;
-    if (chR != ChNone)
+    if (chR != HardwareTimer::ChNone)
         pwm->setDutyCycle(chR, r<<8);
-    if (chG != ChNone)
+    if (chG != HardwareTimer::ChNone)
         pwm->setDutyCycle(chG, g<<8);
-    if (chB != ChNone)
+    if (chB != HardwareTimer::ChNone)
         pwm->setDutyCycle(chB, b<<8);
 }
 //---------------------------------------------------------------------------

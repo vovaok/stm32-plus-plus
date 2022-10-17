@@ -5,140 +5,105 @@ Dac::Dac(Channels channels, Resolution resolution) :
     mEnabled(true)
 {
     mResolution = resolution;
-    mAlign = DAC_Align_8b_R;
-    if (mResolution == Res12bit)
-        mAlign = DAC_Align_12b_R;
-    else if (mResolution == Res16bit)
-        mAlign = DAC_Align_12b_L;
-
-    // GPIOA clock enable (to be used with DAC)
-#if !defined(STM32F37X)
-    RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE); 
-#else
-    RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOA, ENABLE); 
-#endif
 
     // DAC Periph clock enable
 #if !defined(STM32F37X)
-     RCC_APB1PeriphClockCmd(RCC_APB1Periph_DAC, ENABLE);
+    RCC->APB1ENR |= RCC_APB1ENR_DACEN;
 #else
-     RCC_APB1PeriphClockCmd(RCC_APB1Periph_DAC1, ENABLE); 
+    RCC->APB1ENR |= RCC_APB1ENR_DAC1EN;
 #endif
     
-
-    /* DAC pin(s) configuration */
-    uint32_t dacPins = ((mChannels & Channel1)? GPIO_Pin_4: 0) | 
-                       ((mChannels & Channel2)? GPIO_Pin_5: 0);
-    GPIO_InitTypeDef GPIO_InitStructure;
-    GPIO_InitStructure.GPIO_Pin = dacPins;
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AN;
-    GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
-    GPIO_Init(GPIOA, &GPIO_InitStructure);
-    
-//    RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOC, ENABLE);
-//    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_13;
-//    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
-//    GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
-//    GPIO_Init(GPIOC, &GPIO_InitStructure);
-//    GPIO_ResetBits(GPIOC, GPIO_Pin_13);
-
-    // DAC channel Configuration
-    DAC_StructInit(&mConfig);
-//    mConfig.DAC_OutputBuffer = DAC_OutputBuffer_Enable;
-    
-    // enable DAC
     if (mChannels & Channel1)
-    {
-        DAC_Init(DAC_Channel_1, &mConfig);
-        DAC_Cmd(DAC_Channel_1, ENABLE);
-    }
+        Gpio::config(Gpio::DAC_OUT1_PA4);
     if (mChannels & Channel2)
+        Gpio::config(Gpio::DAC_OUT2_PA5);
+        
+    uint8_t idx = (uint8_t)mResolution | mChannels;
+    switch (idx)
     {
-        DAC_Init(DAC_Channel_2, &mConfig);
-        DAC_Cmd(DAC_Channel_2, ENABLE);
+        case (uint8_t)Channel1    | Res8bit:  DR = &DAC->DHR8R1; break;
+        case (uint8_t)Channel1    | Res12bit: DR = &DAC->DHR12R1; break;
+        case (uint8_t)Channel1    | Res16bit: DR = &DAC->DHR12L1; break;
+        case (uint8_t)Channel2    | Res8bit:  DR = &DAC->DHR8R2; break;
+        case (uint8_t)Channel2    | Res12bit: DR = &DAC->DHR12R2; break;
+        case (uint8_t)Channel2    | Res16bit: DR = &DAC->DHR12L2; break;
+        case (uint8_t)ChannelBoth | Res8bit:  DR = &DAC->DHR8RD; break;
+        case (uint8_t)ChannelBoth | Res12bit: DR = &DAC->DHR12RD; break;
+        case (uint8_t)ChannelBoth | Res16bit: DR = &DAC->DHR12LD; break;
     }
+    
+    
+#warning TODO: maybe implement DAC start/stop functions?
+    setEnabled(true);
 }
 
 Dac::~Dac()
 {
-    if (mChannels & Channel1)
-    {
-        DAC_Cmd(DAC_Channel_1, DISABLE);
-        //DAC_DeInit();
-    }
-    if (mChannels & Channel2)
-    {
-        DAC_Cmd(DAC_Channel_2, DISABLE); 
-        //DAC_DeInit();
-    }
-    if (mChannels == ChannelBoth)
-    {
-        DAC_DeInit(); 
-    }
+    setEnabled(false);
+//    if (mChannels & Channel1)
+//        Gpio::release(Gpio::DAC_OUT1_PA4);
+//    if (mChannels & Channel2)
+//        Gpio::release(Gpio::DAC_OUT1_PA5);
 }
 //---------------------------------------------------------------------------
 
 void Dac::selectTrigger(Trigger trigger)
 {
-    mConfig.DAC_Trigger = trigger;
-    // reconfigure DAC
     if (mChannels & Channel1)
-        DAC_Init(DAC_Channel_1, &mConfig);
+        MODIFY_REG(DAC->CR, (DAC_CR_TSEL1_Msk | DAC_CR_TEN1_Msk), trigger);
     if (mChannels & Channel2)
-        DAC_Init(DAC_Channel_2, &mConfig);
+        MODIFY_REG(DAC->CR, (DAC_CR_TSEL2_Msk | DAC_CR_TEN2_Msk), trigger << 16);
 }
 
-void Dac::setValue(unsigned short value, unsigned short value2)
+void Dac::setValue(unsigned short value1, unsigned short value2)
 {
     switch (mChannels)
     {
       case Channel1:
-        DAC_SetChannel1Data(mAlign, value);
+        *DR = value1;
         break;
       case Channel2:
-        DAC_SetChannel2Data(mAlign, value);
+        *DR = value2;
         break;
       case ChannelBoth:
-        DAC_SetDualChannelData(mAlign, value2, value);
+        if (mResolution == Res8bit)
+            *DR = (value1 & 0xFF) | ((value2 & 0xFF) << 8);
+        else
+            *DR = value1 | (value2 << 16);
         break;
     };
 }
 
 void Dac::setEnabled(bool enabled)
 {
-    mEnabled = enabled;
+    uint32_t cr = 0;
     if (mChannels & Channel1)
-        DAC_Cmd(DAC_Channel_1, enabled? ENABLE: DISABLE);
+        cr |= DAC_CR_EN1;
     if (mChannels & Channel2)
-        DAC_Cmd(DAC_Channel_2, enabled? ENABLE: DISABLE);
+        cr |= DAC_CR_EN2;
+    
+    mEnabled = enabled;
+    if (enabled)
+        DAC->CR |= cr;
+    else
+        DAC->CR &= ~cr;
 }
 //---------------------------------------------------------------------------
 
 void Dac::configDma(Dma *dma)
 {
-    void *address;  
+    void *address = (void *)DR;  
     int dataSize = mResolution==Res8bit? 1: 2;
-    switch (mChannels)
-    {
-      case Channel1:
-        address = (unsigned char*)&(DAC->DHR12R1) + mAlign;
-        break;
-        
-      case Channel2:
-        address = (unsigned char*)&(DAC->DHR12R2) + mAlign;
-        break;
-        
-      case ChannelBoth:
+    if (mChannels == ChannelBoth)
         dataSize *= 2;
-        address = (unsigned char*)&(DAC->DHR12RD) + mAlign;
-        break;
-    }
-    
+       
     dma->setSink(address, dataSize);
     
+    uint32_t cr = 0;
     if (mChannels & Channel1)
-        DAC_DMACmd(DAC_Channel_1, ENABLE);
-    else if (mChannels & Channel2)
-        DAC_DMACmd(DAC_Channel_2, ENABLE);
+        cr |= DAC_CR_DMAEN1;
+    if (mChannels & Channel2)
+        cr |= DAC_CR_DMAEN2;
+    DAC->CR |= cr;
 }
 //---------------------------------------------------------------------------

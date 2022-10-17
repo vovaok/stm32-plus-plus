@@ -1,7 +1,7 @@
 #ifndef _CAN_H
 #define _CAN_H
 
-#include "stm32_conf.h"
+#include "stm32f4xx_can.h"
 #include "gpio.h"
 #include "core/core.h"
 
@@ -99,12 +99,12 @@ public:
     /*! Получение последней ошибки периферии CAN.
         \return код ошибки.
     */
-    ErrorCode lastError() const {return static_cast<ErrorCode>(CAN_GetLastErrorCode(mCan) >> 4);}
+    ErrorCode lastError() const {return static_cast<ErrorCode>((((uint8_t)mCan->ESR) & (uint8_t)CAN_ESR_LEC) >> 4);}
     
     /*! Количество ошибок передачи.
         \return значение счётчика ошибок передачи (TEC - transmit error counter).
     */
-    int tecValue() const {return CAN_GetLSBTransmitErrorCounter(mCan);}
+    int tecValue() const {return (uint8_t)((mCan->ESR & CAN_ESR_TEC) >> 16);}
     
     /*! Количество ошибок приёма.
         In case of an error during reception, this counter is incremented by 1 or by 8 depending on the error condition
@@ -112,7 +112,7 @@ public:
         if its value was higher than 128. When the counter value exceeds 127, the CAN controller enters the error passive state.
         \return значение счётчика ошибок приёма (REC - receive error counter).
     */
-    int recValue() const {return CAN_GetReceiveErrorCounter(mCan);}
+    int recValue() const {return (uint8_t)((mCan->ESR & CAN_ESR_REC)>> 24);}
     
     /*! Устанавливает обработчик приёма сообщения.
         В обработчик передается номер RX FIFO и принятое сообщение.

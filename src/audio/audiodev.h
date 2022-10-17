@@ -2,7 +2,7 @@
 #define _AUDIODEV_H
 
 #include <string.h>
-#include "../hardtimer.h"
+#include "../hardwaretimer.h"
 #include "../dma.h"
 #include "audioformat.h"
 

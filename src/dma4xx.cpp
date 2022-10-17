@@ -4,190 +4,124 @@
 #define DMA_FLAG_TC(i) (DMA_FLAG_TCIF##i)
 
 #define DMA_STREAM(x,y) DMA##x##_Stream##y
-#define DMA_IRQn(x,y) DMA##x##_Stream##y##_IRQn
+#define DMA_IRQn(x,y) DMA##x##_Stream##y##_IRQn,
 
-Dma *Dma::mStreams1[8] = {0, 0, 0, 0, 0, 0, 0, 0};
-Dma *Dma::mStreams2[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+Dma *Dma::mStreams[16] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
-Dma::Dma(unsigned char stream, unsigned char channel) :
-    mDmaFlagMask(false),
-    mBufferConfigured(false),
-    mPeriphConfigured(false),
-    mConfigured(false)
+Dma::Dma(Channel channelName)
 {
-    switch (stream)
+    int dma_num = channelName >> 8;
+    mStreamNum  = (channelName >> 4) & 7;
+    mChannelNum = channelName & 7;
+      
+    int idx = mStreamNum + 8*(dma_num - 1);
+    if (mStreams[idx])
+        THROW(Exception::ResourceBusy);
+    mStreams[idx] = this;
+    
+    if (dma_num == 1)
     {
-        #define DMA_STREAM_INIT(x,y) \
-        case x##y: \
-            mStream = DMA_STREAM(x,y); \
-            mDmaFlagMask = DMA_FLAG_MASK(y); \
-            mDmaFlagTc = DMA_FLAG_TC(y); \
-            mIrq = DMA_IRQn(x,y); \
-            break;
-            
-        FOR_EACH_DMA(DMA_STREAM_INIT)
+        mDma = DMA1;
+        mStream = DMA1_Stream0 + mStreamNum;
+        RCC->AHB1ENR |= RCC_AHB1ENR_DMA1EN;
+    }
+    if (dma_num == 2)
+    {
+        mDma = DMA2;
+        mStream = DMA2_Stream0 + mStreamNum;
+        RCC->AHB1ENR |= RCC_AHB1ENR_DMA2EN;
     }
     
-    if (stream < 20)
-    {
-        unsigned char idx = stream - 10;
-        if (mStreams1[idx])
-            throw Exception::ResourceBusy;
-        mStreams1[idx] = this;
-    }
-    else
-    {
-        unsigned char idx = stream - 20;
-        if (mStreams2[idx])
-            throw Exception::ResourceBusy;
-        mStreams2[idx] = this;
-    }
+    const IRQn_Type irq[16] = {FOR_EACH_DMA(DMA_IRQn)};
+    mIrq = irq[idx];
     
-    switch (channel)
-    {
-        case 0: mChannel = DMA_Channel_0; break;
-        case 1: mChannel = DMA_Channel_1; break;
-        case 2: mChannel = DMA_Channel_2; break;
-        case 3: mChannel = DMA_Channel_3; break;
-        case 4: mChannel = DMA_Channel_4; break;
-        case 5: mChannel = DMA_Channel_5; break;
-        case 6: mChannel = DMA_Channel_6; break;
-        case 7: mChannel = DMA_Channel_7; break;
-    }
-    
-    if (stream >= 10 && stream <= 17)
-        RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_DMA1, ENABLE);
-    else if (stream >= 20 && stream <= 27)
-        RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_DMA2, ENABLE);
-    
-    DMA_StructInit(&mConfig);
-    
-    mConfig.DMA_Channel = mChannel;
-    //mConfig.DMA_PeripheralBaseAddr = ;
-    //mConfig.DMA_Memory0BaseAddr = ;
-    //mConfig.DMA_DIR = ;
-    //mConfig.DMA_BufferSize = ;
-    mConfig.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
-    mConfig.DMA_MemoryInc = DMA_MemoryInc_Enable;
-    //mConfig.DMA_PeripheralDataSize = ;
-    //mConfig.DMA_MemoryDataSize = ;
-    mConfig.DMA_Mode = DMA_Mode_Circular;
-    mConfig.DMA_Priority = DMA_Priority_High;
-    mConfig.DMA_FIFOMode = DMA_FIFOMode_Disable;
-    mConfig.DMA_FIFOThreshold = DMA_FIFOThreshold_HalfFull;
-    mConfig.DMA_MemoryBurst = DMA_MemoryBurst_Single;
-    mConfig.DMA_PeripheralBurst = DMA_PeripheralBurst_Single;
-}
-
-Dma* Dma::getStreamForPeriph(DmaChannel channelName)
-{
-    switch (channelName)
-    {
-        case ChannelDac1:       return new Dma(15, 7);
-        case ChannelDac2:       return new Dma(16, 7);
-        case ChannelAdc1:       return new Dma(24, 0); // alternative (20, 0)
-        case ChannelAdc2:       return new Dma(23, 1); // alternative (22, 1)
-        case ChannelAdc3:       return new Dma(20, 2); // alternative (21, 2)
-        case ChannelUsart1_Rx:  return new Dma(25, 4); // alternative (22, 4)
-        case ChannelUsart1_Tx:  return new Dma(27, 4); 
-        case ChannelUsart2_Rx:  return new Dma(15, 4);
-        case ChannelUsart2_Tx:  return new Dma(16, 4);
-        case ChannelUsart3_Rx:  return new Dma(11, 4);
-        case ChannelUsart3_Tx:  return new Dma(13, 4); // alternative (14, 7);
-        case ChannelUsart4_Rx:  return new Dma(12, 4);
-        case ChannelUsart4_Tx:  return new Dma(14, 4);
-        case ChannelUsart5_Rx:  return new Dma(10, 4);
-        case ChannelUsart5_Tx:  return new Dma(17, 4);
-        case ChannelUsart6_Rx:  return new Dma(21, 5); // alternative (22, 5)
-        case ChannelUsart6_Tx:  return new Dma(26, 5); // alternative (27, 5)
-        case ChannelSpi1_Rx:    return new Dma(20, 3); // alternative (22, 3)
-        case ChannelSpi1_Tx:    return new Dma(23, 3); // alternative (25, 3)
-        case ChannelSpi2_Rx:    return new Dma(13, 0);
-        case ChannelSpi2_Tx:    return new Dma(14, 0);
-        case ChannelSpi3_Rx:    return new Dma(10, 0); // alternative (12, 0)
-        case ChannelSpi3_Tx:    return new Dma(17, 0); // alternative (15, 0)
-    }
-    return 0L;
+    mConfig.all = 0;
 }
 
 Dma::~Dma()
 {
-    DMA_Cmd(mStream, DISABLE);
-    DMA_DeInit(mStream);
+    mStream->CR &= ~DMA_SxCR_EN;
+    mStream->CR = 0;
+    mStream->NDTR = 0;
+    mStream->PAR = 0;
+    mStream->M0AR = 0;
+    mStream->M1AR = 0;
+    mStream->FCR = 0x00000021;
+    clearFlag(AllFlags);
 }
 //---------------------------------------------------------------------------
 
-void Dma::tryInit()
+bool Dma::testFlag(uint32_t flag) const
 {
-    if (mBufferConfigured && mPeriphConfigured)
-    {
-        DMA_Init(mStream, &mConfig);
-        mConfigured = true;
-    }
+    if (mStreamNum & 1)
+        flag <<= 6;
+    if (mStreamNum & 2)
+        flag <<= 16;
+    if (mStreamNum & 4)
+        return mDma->HISR & flag;
+    else
+        return mDma->LISR & flag;
+}
+
+void Dma::clearFlag(uint32_t flag)
+{
+    if (mStreamNum & 1)
+        flag <<= 6;
+    if (mStreamNum & 2)
+        flag <<= 16;
+    if (mStreamNum & 4)
+        mDma->HIFCR = flag;
+    else
+        mDma->LIFCR = flag;
 }
 //---------------------------------------------------------------------------
 
 void Dma::setSingleBuffer(void *buffer, int size)
 {
-    mConfig.DMA_Memory0BaseAddr = (uint32_t)buffer;
-    mConfig.DMA_BufferSize = size; 
-    mConfig.DMA_Mode = DMA_Mode_Normal;
-    mBufferConfigured = true;
-    tryInit();
-    
-    DMA_DoubleBufferModeCmd(mStream, DISABLE);
+    mConfig.DBM = 0;
+    mConfig.MINC = 1;
+    mConfig.CIRC = 0;
+
+    mStream->CR = mConfig.all;
+    mStream->NDTR = size;
+    mStream->M0AR = (uint32_t)buffer;
 }
 
 void Dma::setCircularBuffer(void *buffer, int size)
 {
-    mConfig.DMA_Memory0BaseAddr = (uint32_t)buffer;
-    mConfig.DMA_BufferSize = size; 
-    mConfig.DMA_Mode = DMA_Mode_Circular;
-    mBufferConfigured = true;
-    tryInit();
+    mConfig.DBM = 0;
+    mConfig.MINC = 1;
+    mConfig.CIRC = 1;
     
-    DMA_DoubleBufferModeCmd(mStream, DISABLE);
+    mStream->CR = mConfig.all;
+    mStream->NDTR = size;
+    mStream->M0AR = (uint32_t)buffer;
 }
 
 void Dma::setDoubleBuffer(void *buffer, void *buffer2, int size)
 {
-    mConfig.DMA_Memory0BaseAddr = (uint32_t)buffer;
-    mConfig.DMA_BufferSize = size;
-    mBufferConfigured = true;
-    tryInit();
+    mConfig.DBM = 1;
+    mConfig.MINC = 1;
+    mConfig.CIRC = 0;
     
-    DMA_DoubleBufferModeConfig(mStream, (uint32_t)buffer2, DMA_Memory_0);
-    DMA_DoubleBufferModeCmd(mStream, ENABLE);
+    mStream->CR = mConfig.all;
+    mStream->NDTR = size;
+    mStream->M0AR = (uint32_t)buffer;
+    mStream->M1AR = (uint32_t)buffer2;
 }
 
 void Dma::setPeriph(void *periph, int dataSize, bool isSource)
 {
-    uint32_t periphDataSize = 0;
-    uint32_t memoryDataSize = 0;
-    switch (dataSize)
-    {
-      case 1:
-        periphDataSize = DMA_PeripheralDataSize_Byte;
-        memoryDataSize = DMA_MemoryDataSize_Byte;
-        break;
-        
-      case 2:
-        periphDataSize = DMA_PeripheralDataSize_HalfWord;
-        memoryDataSize = DMA_MemoryDataSize_HalfWord;
-        break;
-        
-      case 4:
-        periphDataSize = DMA_PeripheralDataSize_Word;
-        memoryDataSize = DMA_MemoryDataSize_Word;
-        break;
-    }
-  
-    mConfig.DMA_PeripheralBaseAddr = (uint32_t)periph;
-    mConfig.DMA_DIR = isSource? DMA_DIR_PeripheralToMemory : DMA_DIR_MemoryToPeripheral;
-    mConfig.DMA_PeripheralDataSize = periphDataSize;
-    mConfig.DMA_MemoryDataSize = memoryDataSize;
-    mPeriphConfigured = true;
-    tryInit();
+    if (dataSize == 4)
+        --dataSize;
+    --dataSize;
+    
+    mConfig.PSIZE = dataSize;
+    mConfig.MSIZE = dataSize;
+    mConfig.DIR = isSource? 0: 1;
+    
+    mStream->PAR = (uint32_t)periph;
+    mStream->CR = mConfig.all;
 }
 
 void Dma::setSource(void *periph, int dataSize)
@@ -201,39 +135,53 @@ void Dma::setSink(void *periph, int dataSize)
 }
 //---------------------------------------------------------------------------
 
-void Dma::start(int itemCount)
+void Dma::start(int size)
 {
-    if (itemCount)
-    {
-        DMA_SetCurrDataCounter(mStream, itemCount);
-    }
+    mConfig.CHSEL = mChannelNum;
+    mConfig.MBURST = 0;
+    mConfig.PBURST = 0;
+    mConfig.CT = 0;
+    mConfig.PL = 2; // priority level high
+    mConfig.PINCOS = 0;
+    
+    mStream->CR = mConfig.all;
+    
+    if (size)
+        mStream->NDTR = size;
     // clearing flags is necessary for enabling dma streaming
-    DMA_ClearFlag(mStream, mDmaFlagMask);
-    setEnabled(true);
+    clearFlag(AllFlags);
+    // enable the stream
+    mStream->CR |= DMA_SxCR_EN;
 }
 
 void Dma::stop(bool wait)
 {
-    setEnabled(false);
-    if (wait)
-        DMA_GetCmdStatus(mStream);
-    if (mStream == DMA1_Stream5)
-        DMA_ClearFlag(mStream, DMA_FLAG_FEIF5);
-    
+    // if stream is enabled
+    if (mStream->CR & DMA_SxCR_EN)
+    {
+        // disable the stream
+        mStream->CR &= ~DMA_SxCR_EN;
+        // wait for transfer complete
+        if (wait && mStream->NDTR)
+        {
+            while (!testFlag(TCIF));
+        }
+    }
+//    if (mStream == DMA1_Stream5) // WUT??
+//        DMA_ClearFlag(mStream, DMA_FLAG_FEIF5); // ???
 }
 
-void Dma::setEnabled(bool enable)
+void Dma::setEnabled(bool enabled)
 {
-    if (mConfigured && enable)
-    {
-        DMA_Cmd(mStream, ENABLE);
-        mEnabled = true;
-    }
+    if (enabled) 
+        mStream->CR |= DMA_SxCR_EN;
     else
-    {
-        DMA_Cmd(mStream, DISABLE);
-        mEnabled = false;
-    }
+        mStream->CR &= ~DMA_SxCR_EN;
+}
+
+bool Dma::isEnabled() const
+{
+    return mStream->CR & DMA_SxCR_EN;
 }
 //---------------------------------------------------------------------------
 
@@ -241,34 +189,41 @@ void Dma::setTransferCompleteEvent(NotifyEvent event)
 {
     mOnTransferComplete = event;
     
-    NVIC_InitTypeDef NVIC_InitStructure;
-    NVIC_InitStructure.NVIC_IRQChannel = mIrq;
-    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 2;
-    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 2;
-    NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
-    NVIC_Init(&NVIC_InitStructure);
+//    NVIC_InitTypeDef NVIC_InitStructure;
+//    NVIC_InitStructure.NVIC_IRQChannel = mIrq;
+//    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 2;
+//    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 2;
+//    NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+//    NVIC_Init(&NVIC_InitStructure);
     
-    DMA_ClearFlag(mStream, mDmaFlagMask);
-    DMA_ITConfig(mStream, DMA_IT_TC, ENABLE);
+    NVIC_EnableIRQ(mIrq);
+    
+    clearFlag(AllFlags);
+    // enable Transfer Complete interrupt
+    mStream->CR |= DMA_SxCR_TCIE;
 }
 
 bool Dma::isComplete()
 {
-    bool result = DMA_GetFlagStatus(mStream, mDmaFlagTc);
+    bool result = testFlag(TCIF);
     if (result)
-        DMA_ClearFlag(mStream, mDmaFlagTc);
+        clearFlag(TCIF);
     return result;
+}
+
+int Dma::currentPage() const
+{
+    return (mStream->CR & DMA_SxCR_CT)? 1: 0;
 }
 //---------------------------------------------------------------------------
 
 void Dma::handleInterrupt()
 {
-    bool sts = DMA_GetFlagStatus(mStream, mDmaFlagTc);
-    DMA_ClearITPendingBit(mStream, mDmaFlagMask);
+    bool sts = testFlag(TCIF);
+    clearFlag(AllFlags);
     
     if (sts && mOnTransferComplete)
         mOnTransferComplete();
-    
 }
 //---------------------------------------------------------------------------
 
@@ -278,7 +233,7 @@ void Dma::handleInterrupt()
 #endif 
    
 #define DEFINE_DMA_IRQ_HANDLER(x,y) \
-    void DMA##x##_Stream##y##_IRQHandler() {Dma::mStreams##x[y]->handleInterrupt();}
+    void DMA##x##_Stream##y##_IRQHandler() {Dma::mStreams[8*(x-1)+y]->handleInterrupt();}
     
 FOR_EACH_DMA(DEFINE_DMA_IRQ_HANDLER)    
   

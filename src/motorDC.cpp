@@ -108,15 +108,13 @@ MotorDC::MotorDC(PwmOutput *pwmIn) : slopePwm(0),mEnable(false),kpPos(0), kiPos(
  }
   
   
-void MotorDC::SetChanels(ChannelNumber chnum1,Gpio::Config pin1,ChannelNumber chnum2,Gpio::Config pin2)
+void MotorDC::SetChanels(Gpio::Config pin1, Gpio::Config pin2)
 {
-
-  channelA  = chnum1;
-  channelB  = chnum2;
+    channelA = HardwareTimer::getChannelByPin(pin1);
+    channelB = HardwareTimer::getChannelByPin(pin2);
   
-  pwm->configChannel(chnum1, pin1, Gpio::NoConfig);
-  pwm->configChannel(chnum2, pin2, Gpio::NoConfig);
-  
+    pwm->configChannel(pin1);
+    pwm->configChannel(pin2);
 }
 
 void MotorDC::setEnable(bool enable)

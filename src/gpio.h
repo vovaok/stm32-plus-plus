@@ -2,7 +2,8 @@
 #define _GPIO_H
 
 #include <stdarg.h>
-#include "stm32_conf.h"
+#include "stm32f4xx.h"
+//#include "stm32_conf.h"
 #include "core/core.h"
 
 /*! Pin configuration macro.
@@ -43,10 +44,14 @@ class Gpio
 public:
     /*! Enumeration of pin names.
         Intended for short notation of port - pin pair.
+        PA0 is PORTA pin 0
+        PA1 is PORTA pin 1
+        ...
+        ...up to PORTI pin 11
     */
     typedef enum
     {
-        PA0  = 0x00, /*!< PORTA pin 0*/ PA1  = 0x01, /*!< PORTA pin 1, etc...*/ PA2  = 0x02, PA3  = 0x03, PA4  = 0x04, PA5  = 0x05, PA6  = 0x06, PA7  = 0x07,
+        PA0  = 0x00, PA1  = 0x01, PA2  = 0x02, PA3  = 0x03, PA4  = 0x04, PA5  = 0x05, PA6  = 0x06, PA7  = 0x07,
         PA8  = 0x08, PA9  = 0x09, PA10 = 0x0A, PA11 = 0x0B, PA12 = 0x0C, PA13 = 0x0D, PA14 = 0x0E, PA15 = 0x0F,
         PB0  = 0x10, PB1  = 0x11, PB2  = 0x12, PB3  = 0x13, PB4  = 0x14, PB5  = 0x15, PB6  = 0x16, PB7  = 0x17,
         PB8  = 0x18, PB9  = 0x19, PB10 = 0x1A, PB11 = 0x1B, PB12 = 0x1C, PB13 = 0x1D, PB14 = 0x1E, PB15 = 0x1F,
@@ -64,7 +69,7 @@ public:
         PH0  = 0x70, PH1  = 0x71, PH2  = 0x72, PH3  = 0x73, PH4  = 0x74, PH5  = 0x75, PH6  = 0x76, PH7  = 0x77,
         PH8  = 0x78, PH9  = 0x79, PH10 = 0x7A, PH11 = 0x7B, PH12 = 0x7C, PH13 = 0x7D, PH14 = 0x7E, PH15 = 0x7F,
         PI0  = 0x80, PI1  = 0x81, PI2  = 0x82, PI3  = 0x83, PI4  = 0x84, PI5  = 0x85, PI6  = 0x86, PI7  = 0x87,
-        PI8  = 0x88, PI9  = 0x89, PI10 = 0x8A, PI11 = 0x8B, //!< ...up to PORTI pin 11
+        PI8  = 0x88, PI9  = 0x89, PI10 = 0x8A, PI11 = 0x8B,
 #endif
         noPin = 0xFF  //!< no pin choosed
     } PinName;
@@ -107,7 +112,13 @@ public:
         speed25MHz = 1<<5,  //!< desired pin speed for output or alternate function is medium (25 MHz)
         speed50MHz = 2<<5,  //!< desired pin speed for output or alternate function is fast (50 MHz)
         speed100MHz = 3<<5, //!< desired pin speed for output or alternate function is high (100 MHz)
-        flagsDefault = modeIn | outPushPull | pullNone | speed2MHz //!< default flags combination
+        flagsDefault = modeIn | outPushPull | pullNone | speed2MHz, //!< default flags combination
+
+        Input = modeIn | pullNone | speed100MHz,
+        InputPullDown = modeIn | pullDown | speed100MHz,
+        InputPullUp = modeIn | pullUp | speed100MHz,
+        Output = modeOut | outPushPull | speed100MHz,
+        OutputOpenDrain = modeOut | outOpenDrain | speed100MHz
     } Flags;
     
     /*!
@@ -123,7 +134,7 @@ public:
         afTim3 = 2,/*!<.*/ afTim4 = 2,/*!<.*/ afTim5 = 2,/*!<.*/
         afTim8 = 3,/*!<.*/ afTim9 = 3,/*!<.*/ afTim10 = 3,/*!<.*/ afTim11 = 3,/*!<.*/
         afI2C1 = 4,/*!<.*/ afI2C2 = 4,/*!<.*/ afI2C3 = 4,/*!<.*/
-        afSpi1 = 5,/*!<.*/ afSpi2 = 5,/*!<.*/
+        afSpi1 = 5,/*!<.*/ afSpi2 = 5,/*!<.*/ afSpi4 = 5, afSpi5 = 5, afSpi6 = 5,
         afSpi3 = 6,/*!<.*/
         afUsart1 = 7,/*!<.*/ afUsart2 = 7,/*!<.*/ afUsart3 = 7,/*!<.*/ afI2S3ext = 7,/*!<.*/
         afUart4 = 8,/*!<.*/ afUart5 = 8,/*!<.*/ afUsart6 = 8,/*!<.*/
@@ -182,24 +193,24 @@ public:
         // timers
         // TIM1
         TIM1_BKIN_PA6 =     PINCONFIG(PA6,  modeAF | outPushPull | pullNone | speed50MHz, afTim1, 0x10), //!<.
-        TIM1_CH1N_PA7 =     PINCONFIG(PA7,  modeAF | outPushPull | pullNone | speed50MHz, afTim1, 0x10), //!<.
+        TIM1_CH1N_PA7 =     PINCONFIG(PA7,  modeAF | outPushPull | pullNone | speed50MHz, afTim1, 0x19), //!<.
         TIM1_CH1_PA8 =      PINCONFIG(PA8,  modeAF | outPushPull | pullNone | speed50MHz, afTim1, 0x11), //!<.
         TIM1_CH2_PA9 =      PINCONFIG(PA9,  modeAF | outPushPull | pullNone | speed50MHz, afTim1, 0x12), //!<.
         TIM1_CH3_PA10 =     PINCONFIG(PA10, modeAF | outPushPull | pullNone | speed50MHz, afTim1, 0x13), //!<.
         TIM1_CH4_PA11 =     PINCONFIG(PA11, modeAF | outPushPull | pullNone | speed50MHz, afTim1, 0x14), //!<.
         TIM1_ETR_PA12 =     PINCONFIG(PA12, modeAF | outPushPull | pullNone | speed50MHz, afTim1, 0x10), //!<.
-        TIM1_CH2N_PB0 =     PINCONFIG(PB0,  modeAF | outPushPull | pullNone | speed50MHz, afTim1, 0x12), //!<.
-        TIM1_CH3N_PB1 =     PINCONFIG(PB1,  modeAF | outPushPull | pullNone | speed50MHz, afTim1, 0x13), //!<.
+        TIM1_CH2N_PB0 =     PINCONFIG(PB0,  modeAF | outPushPull | pullNone | speed50MHz, afTim1, 0x1A), //!<.
+        TIM1_CH3N_PB1 =     PINCONFIG(PB1,  modeAF | outPushPull | pullNone | speed50MHz, afTim1, 0x1B), //!<.
         TIM1_BKIN_PB12 =    PINCONFIG(PB12, modeAF | outPushPull | pullNone | speed50MHz, afTim1, 0x10), //!<.
-        TIM1_CH1N_PB13 =    PINCONFIG(PB13, modeAF | outPushPull | pullNone | speed50MHz, afTim1, 0x11), //!<.
-        TIM1_CH2N_PB14 =    PINCONFIG(PB14, modeAF | outPushPull | pullNone | speed50MHz, afTim1, 0x12), //!<.
-        TIM1_CH3N_PB15 =    PINCONFIG(PB15, modeAF | outPushPull | pullNone | speed50MHz, afTim1, 0x13), //!<.
+        TIM1_CH1N_PB13 =    PINCONFIG(PB13, modeAF | outPushPull | pullNone | speed50MHz, afTim1, 0x19), //!<.
+        TIM1_CH2N_PB14 =    PINCONFIG(PB14, modeAF | outPushPull | pullNone | speed50MHz, afTim1, 0x1A), //!<.
+        TIM1_CH3N_PB15 =    PINCONFIG(PB15, modeAF | outPushPull | pullNone | speed50MHz, afTim1, 0x1B), //!<.
         TIM1_ETR_PE7 =      PINCONFIG(PE7,  modeAF | outPushPull | pullNone | speed50MHz, afTim1, 0x10), //!<.
-        TIM1_CH1N_PE8 =     PINCONFIG(PE8,  modeAF | outPushPull | pullNone | speed50MHz, afTim1, 0x11), //!<.
+        TIM1_CH1N_PE8 =     PINCONFIG(PE8,  modeAF | outPushPull | pullNone | speed50MHz, afTim1, 0x19), //!<.
         TIM1_CH1_PE9 =      PINCONFIG(PE9,  modeAF | outPushPull | pullNone | speed50MHz, afTim1, 0x11), //!<.
-        TIM1_CH2N_PE10 =    PINCONFIG(PE10, modeAF | outPushPull | pullNone | speed50MHz, afTim1, 0x12), //!<.
+        TIM1_CH2N_PE10 =    PINCONFIG(PE10, modeAF | outPushPull | pullNone | speed50MHz, afTim1, 0x1A), //!<.
         TIM1_CH2_PE11 =     PINCONFIG(PE11, modeAF | outPushPull | pullNone | speed50MHz, afTim1, 0x12), //!<.
-        TIM1_CH3N_PE12 =    PINCONFIG(PE12, modeAF | outPushPull | pullNone | speed50MHz, afTim1, 0x13), //!<.
+        TIM1_CH3N_PE12 =    PINCONFIG(PE12, modeAF | outPushPull | pullNone | speed50MHz, afTim1, 0x1B), //!<.
         TIM1_CH3_PE13 =     PINCONFIG(PE13, modeAF | outPushPull | pullNone | speed50MHz, afTim1, 0x13), //!<.
         TIM1_CH4_PE14 =     PINCONFIG(PE14, modeAF | outPushPull | pullNone | speed50MHz, afTim1, 0x14), //!<.
         TIM1_BKIN_PE15 =    PINCONFIG(PE15, modeAF | outPushPull | pullNone | speed50MHz, afTim1, 0x10), //!<.
@@ -249,20 +260,20 @@ public:
         TIM5_CH4_PI0 =      PINCONFIG(PI0,  modeAF | outPushPull | pullNone | speed50MHz, afTim5, 0x54), //!<.
         // TIM8
         TIM8_ETR_PA0 =      PINCONFIG(PA0,  modeAF | outPushPull | pullNone | speed50MHz, afTim8, 0x80), //!<.
-        TIM8_CH1N_PA5 =     PINCONFIG(PA5,  modeAF | outPushPull | pullNone | speed50MHz, afTim8, 0x81), //!<.
+        TIM8_CH1N_PA5 =     PINCONFIG(PA5,  modeAF | outPushPull | pullNone | speed50MHz, afTim8, 0x89), //!<.
         TIM8_BKIN_PA6 =     PINCONFIG(PA6,  modeAF | outPushPull | pullNone | speed50MHz, afTim8, 0x80), //!<.
-        TIM8_CH1N_PA7 =     PINCONFIG(PA7,  modeAF | outPushPull | pullNone | speed50MHz, afTim8, 0x81), //!<.
-        TIM8_CH2N_PB0 =     PINCONFIG(PB0,  modeAF | outPushPull | pullNone | speed50MHz, afTim8, 0x82), //!<.
-        TIM8_CH3N_PB1 =     PINCONFIG(PB1,  modeAF | outPushPull | pullNone | speed50MHz, afTim8, 0x83), //!<.
-        TIM8_CH2N_PB14 =    PINCONFIG(PB14, modeAF | outPushPull | pullNone | speed50MHz, afTim8, 0x82), //!<.
-        TIM8_CH3N_PB15 =    PINCONFIG(PB15, modeAF | outPushPull | pullNone | speed50MHz, afTim8, 0x83), //!<.
+        TIM8_CH1N_PA7 =     PINCONFIG(PA7,  modeAF | outPushPull | pullNone | speed50MHz, afTim8, 0x89), //!<.
+        TIM8_CH2N_PB0 =     PINCONFIG(PB0,  modeAF | outPushPull | pullNone | speed50MHz, afTim8, 0x8A), //!<.
+        TIM8_CH3N_PB1 =     PINCONFIG(PB1,  modeAF | outPushPull | pullNone | speed50MHz, afTim8, 0x8B), //!<.
+        TIM8_CH2N_PB14 =    PINCONFIG(PB14, modeAF | outPushPull | pullNone | speed50MHz, afTim8, 0x8A), //!<.
+        TIM8_CH3N_PB15 =    PINCONFIG(PB15, modeAF | outPushPull | pullNone | speed50MHz, afTim8, 0x8B), //!<.
         TIM8_CH1_PC6 =      PINCONFIG(PC6,  modeAF | outPushPull | pullNone | speed50MHz, afTim8, 0x81), //!<.
         TIM8_CH2_PC7 =      PINCONFIG(PC7,  modeAF | outPushPull | pullNone | speed50MHz, afTim8, 0x82), //!<.
         TIM8_CH3_PC8 =      PINCONFIG(PC8,  modeAF | outPushPull | pullNone | speed50MHz, afTim8, 0x83), //!<.
         TIM8_CH4_PC9 =      PINCONFIG(PC9,  modeAF | outPushPull | pullNone | speed50MHz, afTim8, 0x84), //!<.
-        TIM8_CH1N_PH13 =    PINCONFIG(PH13, modeAF | outPushPull | pullNone | speed50MHz, afTim8, 0x81), //!<.
-        TIM8_CH2N_PH14 =    PINCONFIG(PH14, modeAF | outPushPull | pullNone | speed50MHz, afTim8, 0x82), //!<.
-        TIM8_CH3N_PH15 =    PINCONFIG(PH15, modeAF | outPushPull | pullNone | speed50MHz, afTim8, 0x83), //!<.
+        TIM8_CH1N_PH13 =    PINCONFIG(PH13, modeAF | outPushPull | pullNone | speed50MHz, afTim8, 0x89), //!<.
+        TIM8_CH2N_PH14 =    PINCONFIG(PH14, modeAF | outPushPull | pullNone | speed50MHz, afTim8, 0x8A), //!<.
+        TIM8_CH3N_PH15 =    PINCONFIG(PH15, modeAF | outPushPull | pullNone | speed50MHz, afTim8, 0x8B), //!<.
         TIM8_CH4_PI2 =      PINCONFIG(PI2,  modeAF | outPushPull | pullNone | speed50MHz, afTim8, 0x84), //!<.
         TIM8_ETR_PI3 =      PINCONFIG(PI3,  modeAF | outPushPull | pullNone | speed50MHz, afTim8, 0x80), //!<.
         TIM8_BKIN_PI4 =     PINCONFIG(PI4,  modeAF | outPushPull | pullNone | speed50MHz, afTim8, 0x80), //!<.
@@ -442,7 +453,7 @@ public:
         I2S2_WS_PB12 =      PINCONFIG(PB12, modeAF | speed50MHz, afSpi2, 0x20), //!.
         SPI2_SCK_PB13 =     PINCONFIG(PB13, modeAF | speed50MHz, afSpi2, 0x20), //!.
         I2S2_CK_PB13 =      PINCONFIG(PB13, modeAF | speed50MHz, afSpi2, 0x20), //!.
-        SPI2_MISO_PB14 =    PINCONFIG(PB14, modeAF | speed50MHz | pullDown, afSpi2, 0x20), //!.
+        SPI2_MISO_PB14 =    PINCONFIG(PB14, modeAF | speed50MHz | pullUp, afSpi2, 0x20), //!.
         SPI2_MOSI_PB15 =    PINCONFIG(PB15, modeAF | speed50MHz, afSpi2, 0x20), //!.
         I2S2_SD_PB15 =      PINCONFIG(PB15, modeAF | speed50MHz, afSpi2, 0x20), //!.
         SPI2_MISO_PC2 =     PINCONFIG(PC2,  modeAF | speed50MHz | pullUp, afSpi2, 0x20), //!.
@@ -474,6 +485,18 @@ public:
         SPI3_MOSI_PC12 =    PINCONFIG(PC12, modeAF | speed50MHz, afSpi3, 0x30), //!.
         I2S3_SD_PC12 =      PINCONFIG(PC12, modeAF | speed50MHz, afSpi3, 0x30), //!.
         // nedodelano I2S3ext
+        SPI4_NSS_PE11 =     PINCONFIG(PE11, modeAF | speed50MHz, afSpi4, 0x40),
+        SPI4_SCK_PE12 =     PINCONFIG(PE12, modeAF | speed50MHz, afSpi4, 0x40),
+        SPI4_MISO_PE13 =    PINCONFIG(PE13, modeAF | speed50MHz | pullUp, afSpi4, 0x40),
+        SPI4_MOSI_PE14 =    PINCONFIG(PE14, modeAF | speed50MHz, afSpi4, 0x40),
+        SPI5_NSS_PF6 =      PINCONFIG(PF6,  modeAF | speed50MHz, afSpi5, 0x50),
+        SPI5_SCK_PF7 =      PINCONFIG(PF7,  modeAF | speed50MHz, afSpi5, 0x50),
+        SPI5_MISO_PF8 =     PINCONFIG(PF8,  modeAF | speed50MHz | pullUp, afSpi5, 0x50),
+        SPI5_MOSI_PF9 =     PINCONFIG(PF9,  modeAF | speed50MHz, afSpi5, 0x50),
+        SPI6_NSS_PG8 =      PINCONFIG(PG8,  modeAF | speed50MHz, afSpi6, 0x60),
+        SPI6_SCK_PG13 =     PINCONFIG(PG13, modeAF | speed50MHz, afSpi6, 0x60),
+        SPI6_MISO_PG12 =    PINCONFIG(PG12, modeAF | speed50MHz | pullUp, afSpi6, 0x60),
+        SPI6_MOSI_PG14 =    PINCONFIG(PG14, modeAF | speed50MHz, afSpi6, 0x60),
         // OTG_FS
         OTG_FS_SOF =        PINCONFIG(PA8,  modeAF | speed100MHz, afOtgFs, 0x10), //!<.
       //  OTG_FS_VBUS =       PINCONFIG(PA9,  modeAF | speed100MHz, afOtgFs, 0x10), //!<.
@@ -501,6 +524,9 @@ public:
         OTG_HS_ULPI_STP =   PINCONFIG(PC0,  modeAF | speed100MHz, afOtgHs, 0x21), //!<.
         OTG_HS_ULPI_NXT_PH4=PINCONFIG(PH4,  modeAF | speed100MHz, afOtgHs, 0x21), //!<.
         OTG_HS_ULPI_DIR_PI11=PINCONFIG(PI11,modeAF | speed100MHz, afOtgHs, 0x21), //!<.\n to be continued....
+
+        MCO1            =   PINCONFIG(PA8,  modeAF | speed100MHz, afMco, 0x10),
+        MCO2            =   PINCONFIG(PC9,  modeAF | speed100MHz, afMco, 0x20),
     } Config;
 #else
     
@@ -518,7 +544,7 @@ public:
         TIM12_CH2_PB15 =    PINCONFIG(PB15, modeAF | outPushPull | pullNone | speed50MHz, af9, 0xc2),
         // TIM15
         TIM15_CH1_PB14 =    PINCONFIG(PB14, modeAF | outPushPull | pullNone | speed50MHz, af1, 0xf1),
-        TIM15_CH1N_PB15 =   PINCONFIG(PB15, modeAF | outPushPull | pullNone | speed50MHz, af2, 0xf1),
+        TIM15_CH1N_PB15 =   PINCONFIG(PB15, modeAF | outPushPull | pullNone | speed50MHz, af2, 0xf9),
         TIM15_CH2_PB15 =    PINCONFIG(PB15, modeAF | outPushPull | pullNone | speed50MHz, af1, 0xf2),
         
         // USART1
@@ -659,7 +685,6 @@ private:
     void init();
     static GPIO_TypeDef *getPortByNumber(int port);
     void updateConfig();
-//    void setFlags(Flags flags);
     
 public:
     /*! Constructor with explicit pin configuration.
@@ -765,9 +790,9 @@ public:
     inline void reset() {mPort->BRR = mPin;}
 #else
     /*! Установка ноги в 1 */
-    inline void set() {mPort->BSRRL = mPin;}   
+    inline void set() {mPort->BSRR = mPin;}//{mPort->BSRRL = mPin;}   
     /*! Сброс ноги в 0 */
-    inline void reset() {mPort->BSRRH = mPin;}
+    inline void reset() {mPort->BSRR = mPin << 16;}
 #endif
     
     /*! Инверсия состояния ноги */
