@@ -149,7 +149,7 @@ void Adc::regularChannelConfig(Channel channel, uint8_t rank, SampleTime sampleT
     if (SMPR && SQR)
     {
         MODIFY_REG(*SMPR, 0x07 << smpr_pos, sampleTime << smpr_pos);
-        MODIFY_REG(*SQR, 0x1f << sqr_pos, rank << sqr_pos);
+        MODIFY_REG(*SQR, 0x1f << sqr_pos, channel << sqr_pos);
     }
 }
 //---------------------------------------------------------------------------

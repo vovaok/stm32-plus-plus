@@ -5,12 +5,22 @@ HardwareTimer* HardwareTimer::mTimers[19] = {0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L,
 HardwareTimer::HardwareTimer(TimerNumber timerNumber, unsigned int frequency_Hz) :
   mEnabled(false)
 {
+    unsigned int hclk = Rcc::hClk();
     unsigned int pclk1 = Rcc::pClk1();
     unsigned int pclk2 = Rcc::pClk2();
-//    if (pclk1 != Rcc::hClk())
-//        pclk1 *= 2;
-//    if (pclk2 != Rcc::hClk())
-//        pclk2 *= 2;
+    if (RCC->DCKCFGR & RCC_DCKCFGR_TIMPRE)
+    {
+//        if (RCC->CFGR & RCC_CFGR_PPRE1_Msk)
+        pclk1 = pclk2 = hclk;
+    }
+    else
+    {
+        if (RCC->CFGR & RCC_CFGR_PPRE1_Msk)
+            pclk1 *= 2;
+        if (RCC->CFGR & RCC_CFGR_PPRE2_Msk)
+            pclk2 *= 2;
+    }
+    
     mInputClk = pclk2;
     switch (timerNumber)
     {

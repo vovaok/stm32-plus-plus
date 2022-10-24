@@ -7877,7 +7877,7 @@
         </option>
         <option>
           <name>CCDefines</name>
-          <state>STM32F429_439xx</state>
+          <state>STM32F429xx</state>
         </option>
         <option>
           <name>CCPreprocFile</name>
@@ -9849,6 +9849,7 @@
     <file>
       <name>$PROJ_DIR$\src\serial\esp8266.cpp</name>
       <excluded>
+        <configuration>stm32f429zi</configuration>
         <configuration>stm32f446</configuration>
       </excluded>
     </file>
@@ -10286,6 +10287,7 @@
     <excluded>
       <configuration>stm32f373xB</configuration>
       <configuration>stm32f373xB_no-exceptions_no-rtti</configuration>
+      <configuration>stm32f429zi</configuration>
       <configuration>stm32f446</configuration>
     </excluded>
   </file>

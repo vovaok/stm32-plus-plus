@@ -161,7 +161,7 @@ void Rcc::configPll(unsigned long hseValue, unsigned long sysClk)
         RCC->CFGR |= RCC_CFGR_HPRE_DIV1;
         mAHBClk = mSysClk >> 0;
 
-    #if defined (STM32F40_41xxx) || defined(STM32F446xx) || defined (STM32F427_437xx) || defined (STM32F429_439xx)      
+    #if defined (STM32F40_41xxx) || defined(STM32F446xx) || defined (STM32F427_437xx) || defined (STM32F429xx)      
         /* PCLK2 = HCLK / 2*/
         RCC->CFGR |= RCC_CFGR_PPRE2_DIV2;
         mAPB2Clk = mAHBClk >> 1;
@@ -200,7 +200,7 @@ void Rcc::configPll(unsigned long hseValue, unsigned long sysClk)
         {
         }
        
-    #if defined (STM32F427_437xx) || defined (STM32F429_439xx)
+    #if defined (STM32F427_437xx) || defined (STM32F429xx)
         /* Enable the Over-drive to extend the clock frequency to 180 Mhz */
         PWR->CR |= PWR_CR_ODEN;
         while((PWR->CSR & PWR_CSR_ODRDY) == 0)

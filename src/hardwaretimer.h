@@ -139,6 +139,7 @@ public:
     
     bool isReady() const;
     
+    bool dir() const {return mTim->CR1 & TIM_CR1_DIR;}
     unsigned int counter() const {return mTim->CNT;}
     void setCounter(unsigned int value) {mTim->CNT = value;}
     unsigned int repetitionCounter() const {return mTim->RCR;}

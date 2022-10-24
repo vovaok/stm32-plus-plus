@@ -186,7 +186,7 @@ void SystemInit(void) // on Reset_Handler
     RCC->CIR = 0x00000000;
 #endif
 
-#if defined(STM32F429_439xx)
+#if defined(STM32F429xx)
     Rcc::configPll(0, 168000000);
 #else
     Rcc::configPll(0, CpuId::maxSysClk());

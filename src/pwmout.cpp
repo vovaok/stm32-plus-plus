@@ -54,7 +54,7 @@ void PwmOutput::init()
     mPeriod = autoReloadRegister() + 1;
 //    setEnabled(true);
     tim()->CR1 |= TIM_CR1_CMS_0; // center aligned mode 1
-    tim()->RCR = 0x01; // update event freq / 2;
+//    tim()->RCR = 0x01; // update event freq / 2;
     
     if (tim() == TIM1 || tim() == TIM8)
     {
