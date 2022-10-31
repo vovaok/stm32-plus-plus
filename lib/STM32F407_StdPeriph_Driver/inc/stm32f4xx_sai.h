@@ -155,8 +155,8 @@ typedef struct
 
 #define IS_SAI_PERIPH(PERIPH) ((PERIPH) == SAI1)
 
-#define IS_SAI_BLOCK_PERIPH(PERIPH) (((PERIPH) == SAI1_Block_A) || \
-                                     ((PERIPH) == SAI1_Block_B))
+//#define IS_SAI_BLOCK_PERIPH(PERIPH) (((PERIPH) == SAI1_Block_A) || \
+//                                     ((PERIPH) == SAI1_Block_B))
 
 
 /** @defgroup SAI_Block_Mode 

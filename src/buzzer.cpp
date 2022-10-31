@@ -19,7 +19,7 @@ Buzzer::Buzzer(Gpio::Config pin) :
     
     mPwm = new PwmOutput(tim, 1 _kHz);
     //mPwm->configChannel(mChan, pin);
-    mPwm->configChannelToggleMode(mChan, pin);
+    mPwm->configChannelToggleMode(pin);
 //    mPwm->setDutyCycle(mChan, 32768);
     
     stmApp()->registerTaskEvent(EVENT(&Buzzer::task));

@@ -134,15 +134,22 @@ void PwmOutput::configChannel(Gpio::Config pin)
         m_chMask |= channel;
 }
 
-void PwmOutput::configChannelToggleMode(ChannelNumber channel, Gpio::Config pin)
+void PwmOutput::configPwmMode(Gpio::Config pin, PwmMode mode)
 {
-    bool chEnabled = (pin != Gpio::NoConfig);
+    ChannelNumber channel = getChannelByPin(pin);
     Gpio::config(pin);
-    
+    configPwm(channel, mode);
+    m_chMask |= channel;
+}
+
+void PwmOutput::configChannelToggleMode(ChannelNumber channel)
+{
     configPwm(channel, PwmMode_Toggle);
-    
-    if (chEnabled)
-        m_chMask |= channel;
+}
+
+void PwmOutput::configChannelToggleMode(Gpio::Config pin)
+{
+    configPwmMode(pin, PwmMode_Toggle);
 }
 
 void PwmOutput::setChannelEnabled(ChannelNumber channel, bool enabled)

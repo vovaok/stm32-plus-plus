@@ -199,6 +199,11 @@ HardwareTimer::HardwareTimer(TimerNumber timerNumber, unsigned int frequency_Hz)
 }
 //---------------------------------------------------------------------------
 
+HardwareTimer::TimerNumber HardwareTimer::getTimerByPin(Gpio::Config pinConfig)
+{
+    return static_cast<TimerNumber>(GpioConfigGetPeriphNumber(pinConfig));
+}
+
 HardwareTimer::ChannelNumber HardwareTimer::getChannelByPin(Gpio::Config pinConfig)
 {
     int ch = GpioConfigGetPeriphChannel(pinConfig);

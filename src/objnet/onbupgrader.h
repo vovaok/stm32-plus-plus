@@ -2,7 +2,9 @@
 #define _ONBUPGRADER_H
 
 #include "objnetmaster.h"
+#ifndef QT_CORE_LIB
 #include "application.h"
+#endif
 
 namespace Objnet
 {

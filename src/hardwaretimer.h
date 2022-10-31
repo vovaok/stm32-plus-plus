@@ -122,6 +122,8 @@ public:
     HardwareTimer(TimerNumber timerNumber, unsigned int frequency_Hz=0);
     
     TIM_TypeDef* tim() {return mTim;}
+    const TIM_TypeDef* tim() const {return mTim;}
+    unsigned long inputClk() const {return mInputClk;}
     
     static TimerNumber getTimerByPin(Gpio::Config pinConfig);
     static ChannelNumber getChannelByPin(Gpio::Config pinConfig);
@@ -200,8 +202,7 @@ protected:
         PwmMode_PWM2     = 0x0070
     } PwmMode;
     
-    const TIM_TypeDef* tim() const {return mTim;}
-    unsigned long inputClk() const {return mInputClk;}
+//    unsigned long inputClk() const {return mInputClk;}
     
     void configPwm(ChannelNumber ch, PwmMode pwmMode=PwmMode_PWM2, bool inverted=false);
       
