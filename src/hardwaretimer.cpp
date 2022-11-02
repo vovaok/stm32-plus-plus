@@ -306,23 +306,39 @@ void HardwareTimer::setCaptureEvent(ChannelNumber ch, NotifyEvent event)
         setCC4Event(event);
 }
 
-void HardwareTimer::configCapture(ChannelNumber ch, Polarity pol)
+void HardwareTimer::configCapture(ChannelNumber ch, Polarity polarity)
 {
-#warning TODO
-    THROW(Exception::BadSoBad);
-//    TIM_ICInitTypeDef ic;
-//    ic.TIM_ICFilter = 2;
-//    ic.TIM_ICPolarity = TIM_ICPolarity_Falling;
-//    ic.TIM_ICPrescaler = TIM_ICPSC_DIV1;
-//    ic.TIM_ICSelection = TIM_ICSelection_DirectTI;
-//    switch (ch)
-//    {
-//        case Ch1: ic.TIM_Channel = TIM_Channel_1; break;
-//        case Ch2: ic.TIM_Channel = TIM_Channel_2; break;
-//        case Ch3: ic.TIM_Channel = TIM_Channel_3; break;
-//        case Ch4: ic.TIM_Channel = TIM_Channel_4; break;
-//    }
-//    TIM_ICInit(tim(), &ic);
+    uint16_t chmask = ch;
+    for (int i=0; i<4; i++, chmask >>= 4)
+    {
+        if (!(chmask & 1))
+            continue;
+        
+        __IO uint32_t &CCR = (&mTim->CCR1)[i];
+        __IO uint32_t &CCMR = (&mTim->CCMR1)[i>>1];
+          
+        int ccr_shift = i * 4;
+        int ccmr_shift = (i & 1) * 8;
+    
+        CCMR &= ~(0xFF << ccmr_shift);
+        CCMR |= TIM_CCMR1_CC1S_0 << ccmr_shift; // channel configuret as input, ICn mapped on TIn
+
+        CCR = 0;
+        mTim->ARR = 0xFFFF;
+        
+        // input capture become active after this init
+        mTim->CCER = mTim->CCER & ~(0xF << ccr_shift);
+        mTim->CCER |= (polarity | 0x1) << ccr_shift; // 0x1 = capture enabled
+    }
+}
+
+void HardwareTimer::configCapture(Gpio::Config pin, Polarity polarity, NotifyEvent event)
+{
+    Gpio::config(pin);
+    ChannelNumber chan = getChannelByPin(pin);
+    configCapture(chan, polarity);
+    setCaptureEvent(chan, event);
+//    return chan;
 }
 
 unsigned int HardwareTimer::captureValue(ChannelNumber ch) const
@@ -334,7 +350,7 @@ unsigned int HardwareTimer::captureValue(ChannelNumber ch) const
         case Ch3: return mTim->CCR3;
         case Ch4: return mTim->CCR4;
     }
-    return -1;
+    return 0;
 }
 
 void HardwareTimer::configPwm(ChannelNumber ch, PwmMode pwmMode, bool inverted)
