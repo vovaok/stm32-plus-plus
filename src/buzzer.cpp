@@ -13,9 +13,9 @@ Buzzer::Buzzer(Gpio::Config pin) :
     mChan = HardwareTimer::getChannelByPin(pin);
     
     if (tim == HardwareTimer::TimNone)
-        throw Exception::InvalidPeriph;
+        THROW(Exception::InvalidPeriph);
     if (mChan == HardwareTimer::ChNone)
-        throw Exception::InvalidPin;
+        THROW(Exception::InvalidPin);
     
     mPwm = new PwmOutput(tim, 1 _kHz);
     //mPwm->configChannel(mChan, pin);

@@ -1,7 +1,10 @@
 #ifndef _SERIALFRAME_H
 #define _SERIALFRAME_H
 
-#include "serialinterface.h"
+#include "core/device.h"
+#include "core/bytearray.h"
+#include "core/coretypes.h"
+#include "application.h"
 
 namespace Serial
 {
@@ -9,8 +12,8 @@ namespace Serial
 class SerialFrame
 {
 private:
-    SerialInterface *mInterface;
-    ByteArray buffer;
+    Device *m_device;
+    ByteArray m_buffer;
     static const char uartSOF = '{';
     static const char uartESC = '\\';
     static const char uartEOF = '}';
@@ -18,27 +21,23 @@ private:
     char cs;
     bool esc, cmd_acc;
     unsigned long mFramesSent;
-    
-    ConstDataEvent mDataReceived;
 
-//    void onByteRead(char byte, SerialInterface *sender);
-    void onReadyRead();
+    void task();
     
 protected:
     virtual void dataReceived(const ByteArray &ba);
 
 public:
-    explicit SerialFrame(SerialInterface *iface);
+    explicit SerialFrame(Device *iface);
     unsigned long framesSent() {return mFramesSent;}
     
-    void setReceiveEvent(ConstDataEvent event) {mDataReceived = event;}
-    ConstDataEvent receiveEvent() const {return mDataReceived;}
+    ConstDataEvent onDataReceived;
     
 //    void attach(SerialInterface *iface);
 
     void sendData(const ByteArray &data);
     
-    SerialInterface *getInterface() {return mInterface;}
+    Device *getInterface() {return m_device;}
 };
 
 }

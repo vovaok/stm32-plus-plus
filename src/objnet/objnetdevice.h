@@ -31,6 +31,8 @@ private:
     uint32_t mInfoValidFlags;
 
     void onObjectValueChanged(unsigned char id);
+    
+    Timer mSendTimer;
 
 protected:
 //    typedef struct
@@ -84,6 +86,11 @@ protected:
     void receiveGlobalMessage(unsigned char aid);
     
     virtual void readyEvent() {}
+    
+#ifdef QT_CORE_LIB
+protected slots:
+#endif
+    void onSendTimer(); 
 
 public:
     ObjnetDevice(unsigned char netaddr = 0);
@@ -209,8 +216,8 @@ signals:
 
     void objectValueChanged(QString name, QVariant value);
 
-    void ready();
-
+    void ready();   
+    
 public slots:
     void sendObject(QString name, QVariant value);
 #else

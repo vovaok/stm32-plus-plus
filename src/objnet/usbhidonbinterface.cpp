@@ -171,7 +171,7 @@ bool UsbHidOnbInterface::writeTx(UsbHidOnbMessage &msg)
 }
 //---------------------------------------------------------------------------
 
-bool UsbHidOnbInterface::write(Objnet::CommonMessage &msg)
+bool UsbHidOnbInterface::write(const Objnet::CommonMessage &msg)
 {
     if (msg.data().size() > mMaxFrameSize)
         return false;

@@ -3,16 +3,15 @@
 
 #include "usb/usb.h"
 #include "usb/usbcdc/usbcdc.h"
-#include "serial/serialinterface.h"
+#include "core/device.h"
 #include "usb/usbifcol.h"
 #include "cpuid.h"
 #include "application.h"
 
 using namespace Usb;
-using namespace Serial;
 
 #pragma pack(4)
-class UsbVcp : public SerialInterface
+class UsbVcp : public Device
 {
 private:
     UsbDevice *mDev;
@@ -34,11 +33,17 @@ public:
     UsbVcp(UsbConfiguration *usbconf);
     ~UsbVcp();
     
-    int write(const ByteArray &ba);
-    int read(ByteArray &ba);
+//    int write(const ByteArray &ba);
+//    int read(ByteArray &ba);
+    
+    int readData(char *data, int size);
+    int writeData(const char *data, int size);
     
     UsbConfiguration *usbCfgNode() {return mCfg;}
     //void setReadEvent(const ConstDataEvent &e) {mIfData->setReceiveEvent(e);}
+    
+protected:
+    virtual int bytesAvailable() const;
 };
 
 #endif

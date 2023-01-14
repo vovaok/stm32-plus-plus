@@ -1,7 +1,7 @@
 #include "core.h"
 
 #ifdef NO_EXCEPTIONS
-__root Exception::Reason gLastException = Exception::unknown;
+__root Exception::Reason gLastException = Exception::Unknown;
 #endif
 
 unsigned long upper_power_of_two(unsigned long v)

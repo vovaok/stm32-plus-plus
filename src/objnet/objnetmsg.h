@@ -36,12 +36,14 @@ public:
 
     uint32_t rawId() const {return mId;}
     void setId(uint32_t rawId) {mId = rawId;}
-    LocalMsgId localId() {return reinterpret_cast<LocalMsgId&>(mId);}
+    LocalMsgId localId() const {return reinterpret_cast<const LocalMsgId&>(mId);}
     void setLocalId(LocalMsgId id) {mId = reinterpret_cast<int&>(id);}
-    GlobalMsgId globalId() {return reinterpret_cast<GlobalMsgId&>(mId);}
+    GlobalMsgId globalId() const {return reinterpret_cast<const GlobalMsgId&>(mId);}
     void setGlobalId(GlobalMsgId id) {mId = reinterpret_cast<int&>(id);}
+    bool isLocal() const {return ((LocalMsgId&)mId).local;}
     bool isGlobal() const {return !((LocalMsgId&)mId).local;}
     ByteArray &data() {return mBa;}
+    const ByteArray &data() const {return mBa;}
     void setData(const ByteArray &ba) {mBa = ba;}
     int size() const {return mBa.size();}
 };

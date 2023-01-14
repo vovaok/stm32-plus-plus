@@ -44,8 +44,9 @@ public:
 private:
     static Usart *mUsarts[6];
     USART_TypeDef *mDev;
-    Config mConfig;
     int mBaudrate;
+    
+    Gpio *m_pinDE;
     
     IRQn_Type mIrq;
     
@@ -87,6 +88,8 @@ public:
     Usart(Gpio::Config pinTx, Gpio::Config pinRx);
     ~Usart();
     
+    void configPinDE(Gpio::PinName pin);
+    
     void setBufferSize(int size_bytes);
     void setUseDmaRx(bool useDma);
     void setUseDmaTx(bool useDma);
@@ -97,7 +100,7 @@ public:
     bool open(OpenMode mode = ReadWrite);
     void close();
     
-   
+    int bytesAvailable() const;
     
 //    bool canReadLine();
 //    int readLine(ByteArray &ba);

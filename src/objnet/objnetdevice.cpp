@@ -21,6 +21,12 @@ ObjnetDevice::ObjnetDevice(unsigned char netaddr) :
 //    mChildrenCount(0)
 {
     //mTimer.start();
+    #ifndef QT_CORE_LIB
+    mSendTimer.setTimeoutEvent(EVENT(&ObjnetDevice::onSendTimer));
+    #else
+    QObject::connect(&mSendTimer, SIGNAL(timeout()), this, SLOT(onSendTimer()));
+    #endif
+    mSendTimer.start(1);
 }
 //---------------------------------------------------------
 
@@ -435,11 +441,30 @@ void ObjnetDevice::autoRequest(_String name, int periodMs)
     {
         unsigned char oid = it->second.mDesc.id;
         ByteArray ba;
-        ba.append(reinterpret_cast<const char*>(&periodMs), sizeof(int));
+        ba.append(reinterpret_cast<const char*>(&periodMs), sizeof(uint32_t));
         ba.append(oid);
-        #ifdef QT_CORE_LIB
-        emit serviceRequest(mNetAddress, svcAutoRequest, ba);
-        #endif
+
+        if (mBusType == BusSwonb)
+        {
+            if (periodMs >= 0)
+            {
+                mObjects[oid]->mAutoPeriod = periodMs;
+                mObjects[oid]->mTimedRequest = false;
+            }
+            else
+            {
+                *reinterpret_cast<uint32_t*>(ba.data()) = mObjects[oid]->mAutoPeriod;
+            }
+            receiveServiceObject(svcAutoRequest, ba);
+        }
+        else
+        {
+            #ifdef QT_CORE_LIB
+            emit serviceRequest(mNetAddress, svcAutoRequest, ba);
+            #else
+            masterServiceRequest(mNetAddress, svcAutoRequest, ba);
+            #endif
+        }
     }
 }
 
@@ -450,11 +475,30 @@ void ObjnetDevice::timedRequest(_String name, int periodMs)
     {
         unsigned char oid = it->second.mDesc.id;
         ByteArray ba;
-        ba.append(reinterpret_cast<const char*>(&periodMs), sizeof(int));
+        ba.append(reinterpret_cast<const char*>(&periodMs), sizeof(uint32_t));
         ba.append(oid);
-        #ifdef QT_CORE_LIB
-        emit serviceRequest(mNetAddress, svcTimedRequest, ba);
-        #endif
+
+        if (mBusType == BusSwonb)
+        {
+            if (periodMs >= 0)
+            {
+                mObjects[oid]->mAutoPeriod = periodMs;
+                mObjects[oid]->mTimedRequest = true;
+            }
+            else
+            {
+                *reinterpret_cast<uint32_t*>(ba.data()) = mObjects[oid]->mAutoPeriod;
+            }
+            receiveServiceObject(svcTimedRequest, ba);
+        }
+        else
+        {
+            #ifdef QT_CORE_LIB
+            emit serviceRequest(mNetAddress, svcTimedRequest, ba);
+            #else
+            masterServiceRequest(mNetAddress, svcTimedRequest, ba);
+            #endif
+        }
     }
 }
 
@@ -556,3 +600,37 @@ void ObjnetDevice::changeBusAddress(unsigned char mac)
     }
 }
 //---------------------------------------------------------
+
+void ObjnetDevice::onSendTimer()
+{
+    for (unsigned char oid=0; oid<mObjects.size(); oid++)
+    {
+        ObjectInfo *obj = mObjects[oid];
+        if (obj->mAutoPeriod)
+        {
+            obj->mAutoTime++;
+            if (obj->mAutoTime >= obj->mAutoPeriod)
+            {
+                obj->mAutoTime = 0;
+//                if (obj.mTimedRequest)
+//                {
+//                    ByteArray ba;
+//                    ba.append(reinterpret_cast<const char*>(&oid), sizeof(unsigned char));
+//                    ba.append('\0'); // reserved byte
+//                    ba.append(reinterpret_cast<const char*>(&mTimestamp), sizeof(uint32_t));
+//                    ba.append(obj.read());
+//                    sendServiceMessage(obj.mAutoReceiverAddr, svcTimedObject, ba);
+//                }
+//                else 
+                {
+                    #ifdef QT_CORE_LIB
+                    emit sendObject(mNetAddress, oid, obj->read());
+                    #else
+                    masterSendObject(mNetAddress, oid, obj->read());
+                    #endif
+                }
+            }
+        }
+    }
+//    mTimestamp++;
+}

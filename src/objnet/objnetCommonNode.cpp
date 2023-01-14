@@ -19,7 +19,7 @@ ObjnetCommonNode::ObjnetCommonNode(ObjnetInterface *iface) :
 
     QTimer *timer = new QTimer(this);
     QObject::connect(timer, SIGNAL(timeout()), SLOT(task()));
-    timer->start(16);
+    timer->start(0);
 
 //    QtConcurrent::run([=](){
 //        task();
@@ -39,6 +39,10 @@ ObjnetCommonNode::~ObjnetCommonNode()
 
 void ObjnetCommonNode::task()
 {
+#if defined(QT_CORE_LIB)
+    mInterface->task();
+#endif
+
     // не выполняем задачу, пока физический адрес неправильный
     if (mBusAddress == 0xFF)
         return;

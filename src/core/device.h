@@ -2,6 +2,7 @@
 #define _DEVICE_H
 
 #include <string>
+#include "coretypes.h"
 
 class Device
 {
@@ -24,9 +25,13 @@ public:
     int read(char *data, int maxsize);
     int write(const char *data, int size);
     
+    virtual int bytesAvailable() const = 0; // {return 0;}
+    
     bool isOpen() const {return m_openMode;}
     bool isSequential() const {return m_sequential;}
     bool isHalfDuplex() const {return m_halfDuplex;}
+    
+//    NotifyEvent onReadyRead;
     
 protected:
     bool m_sequential;

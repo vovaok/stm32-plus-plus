@@ -95,29 +95,34 @@ void UsbVcp::onReceive(const ByteArray &ba)
             return;
         }
     }
-    if (onReadyRead)
-        onReadyRead();
+//    if (onReadyRead)
+//        onReadyRead();
 }
 //---------------------------------------------------------------------------
 
-int UsbVcp::write(const ByteArray &ba)
+int UsbVcp::writeData(const char *data, int size)
 {
+    ByteArray ba(data, size);
     mIfData->sendData(ba);
     return ba.size();
 }
 
-int UsbVcp::read(ByteArray &ba)
+int UsbVcp::readData(char *data, int size)
 {
     int sz = (mBufHead - mBufTail + mBufSize) % mBufSize;
+    if (sz > size)
+        sz = size;
     for (int i=0; i<sz; i++)
     {
-        ba.append(mBuffer[mBufTail++]);
+        *data++ = mBuffer[mBufTail++];
         if (mBufTail >= mBufSize)
             mBufTail = 0;
     }
-//    ba.append(mBuffer);
-//    int sz = mBuffer.size();
-//    mBuffer.clear();
     return sz;
+}
+
+int UsbVcp::bytesAvailable() const
+{
+    return (mBufHead - mBufTail + mBufSize) % mBufSize;
 }
 //---------------------------------------------------------------------------

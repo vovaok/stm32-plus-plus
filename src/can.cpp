@@ -33,7 +33,7 @@ Can::Can(int canNumber, int baudrate, Gpio::Config pinRx, Gpio::Config pinTx) :
         break;
         
       default:
-        throw Exception::InvalidPeriph;
+        THROW(Exception::InvalidPeriph);
     }
     
     // GPIO pin initialize
@@ -97,7 +97,7 @@ Can::~Can()
 }
 //---------------------------------------------------------------------------
 
-int Can::addFilter(unsigned long id, unsigned long mask, int fifoNumber)
+int Can::addFilterA(uint16_t id, uint16_t mask, int fifoNumber)
 {
     int filter = mStartFilter;
     // find free filter
@@ -116,9 +116,42 @@ int Can::addFilter(unsigned long id, unsigned long mask, int fifoNumber)
     CAN_FilterInitStructure.CAN_FilterMode = CAN_FilterMode_IdMask;
     CAN_FilterInitStructure.CAN_FilterScale = CAN_FilterScale_32bit;
     CAN_FilterInitStructure.CAN_FilterIdHigh = id >> 13;
-    CAN_FilterInitStructure.CAN_FilterIdLow = (id<<3) & 0xFFFF;
+    CAN_FilterInitStructure.CAN_FilterIdLow = ((id<<3) & 0xFFF8) | (0<<2); // IDE=0
     CAN_FilterInitStructure.CAN_FilterMaskIdHigh = mask >> 13;
-    CAN_FilterInitStructure.CAN_FilterMaskIdLow = (mask<<3) & 0xFFFF;
+    CAN_FilterInitStructure.CAN_FilterMaskIdLow = ((mask<<3) & 0xFFFF) | (1<<2);
+//    CAN_FilterInitStructure.CAN_FilterIdHigh = id << 5;
+//    CAN_FilterInitStructure.CAN_FilterIdLow = 0;
+//    CAN_FilterInitStructure.CAN_FilterMaskIdHigh = mask << 5;
+//    CAN_FilterInitStructure.CAN_FilterMaskIdLow = (1<<2);
+    CAN_FilterInitStructure.CAN_FilterFIFOAssignment = fifoNumber;
+    CAN_FilterInitStructure.CAN_FilterActivation = ENABLE;
+    CAN_FilterInit(&CAN_FilterInitStructure);
+    
+    return filter;
+}
+
+int Can::addFilterB(unsigned long id, unsigned long mask, int fifoNumber)
+{
+    int filter = mStartFilter;
+    // find free filter
+    for (int i=0; i<14; i++)
+    {
+        if (!(mFilterUsed & (1<<i)))
+        {
+            filter += i;
+            mFilterUsed |= (1<<i);
+            break;
+        }
+    }
+  
+    CAN_FilterInitTypeDef CAN_FilterInitStructure;
+    CAN_FilterInitStructure.CAN_FilterNumber = filter;
+    CAN_FilterInitStructure.CAN_FilterMode = CAN_FilterMode_IdMask;
+    CAN_FilterInitStructure.CAN_FilterScale = CAN_FilterScale_32bit;
+    CAN_FilterInitStructure.CAN_FilterIdHigh = id >> 13;
+    CAN_FilterInitStructure.CAN_FilterIdLow = ((id<<3) & 0xFFF8) | (1<<2); // IDE=1
+    CAN_FilterInitStructure.CAN_FilterMaskIdHigh = mask >> 13;
+    CAN_FilterInitStructure.CAN_FilterMaskIdLow = ((mask<<3) & 0xFFFF) | (1<<2);
     CAN_FilterInitStructure.CAN_FilterFIFOAssignment = fifoNumber;
     CAN_FilterInitStructure.CAN_FilterActivation = ENABLE;
     CAN_FilterInit(&CAN_FilterInitStructure);

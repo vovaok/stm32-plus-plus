@@ -33,13 +33,8 @@ public:
         ErrorInterface
     };
 
-protected:
-    int mMaxFrameSize; //!< Maximal data size in frame
-    BusType mBusType;
-    bool isMaster; // master sets this flag to true
-
-public:
-    ObjnetInterface() : mMaxFrameSize(8), mBusType(BusUnknown), isMaster(false) {}
+    ObjnetInterface();
+    
     virtual ~ObjnetInterface() {}
 
     /*! Place message msg into transmit queue.
@@ -48,20 +43,18 @@ public:
         then call this function to place the message into specific queue depending on
         range (local or global).
         Note that global messages have higher priority and will be sent to the network prior to local ones.
-        This function is pure virtual, you must reimplement it in your interface class.
         \param [in] msg Message to send
         \return true if message was sent with no errors
     */
-    virtual bool write(CommonMessage &msg) = 0;
+    virtual bool write(const CommonMessage &msg);
 
     /*! Retrieve next local message msg from receive queue.
         If this function returns true, it means the message msg is valid
         and data is copied to \b existing buffer (user must allocate memory).
-        This function is pure virtual, you must reimplement it in your interface class.
         \param [out] msg Received message
         \return true if message is valid
     */
-    virtual bool read(CommonMessage &msg) = 0;
+    virtual bool read(CommonMessage &msg);
 
 //    /*! Retrieve next global message msg from receive queue.
 //        This function differs from receive(), it retrieves only global messages
@@ -77,12 +70,12 @@ public:
         Необходимо для проверки возможности отправки фрагментированных сообщений
         \return число пакетов, доступных для записи.
     */
-    virtual int availableWriteCount() = 0;
+    int availableWriteCount();
 
     /*! Flush transmit queue.
 
     */
-    virtual void flush() = 0;
+    virtual void flush();
 
     /*! Добавление фильтра на приём пакетов.
         При приёме сообщение фильтруется по совпадению ID сообщения и фильтра,
@@ -109,6 +102,36 @@ public:
     void setMasterMode(bool enabled) {isMaster = enabled;}
 
     Closure<void(unsigned char, Error)> errorEvent;
+
+    // for internal use:
+    void task();
+    
+protected:
+    int mMaxFrameSize; //!< Maximal data size in frame
+    BusType mBusType;
+    bool isMaster; // master sets this flag to true
+    
+    /*! Try send pending message from TX queue.
+        This function is pure virtual, you must reimplement it in your interface class.
+        \param [in] msg Message to send
+        \return true if message was sent with no errors
+    */
+    virtual bool send(const CommonMessage &msg) = 0;
+
+    /*! Call this function from your interface class when the new message is received.
+        \param [out] msg Received message
+        \return true if message is valid
+    */
+    bool receive(const CommonMessage &msg);
+    
+    virtual void setReceiveEnabled(bool enabled) {(void)enabled;}
+    
+    int mTxQueueSize;
+    int mRxQueueSize;
+    
+private:
+    std::queue<CommonMessage> mTxQueue;
+    std::queue<CommonMessage> mRxQueue;
 };
 
 }

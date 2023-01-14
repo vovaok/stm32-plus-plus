@@ -19,7 +19,7 @@ bool OnbVirtualInterface::testFilter(unsigned long id)
     return false;
 }
 
-bool OnbVirtualInterface::write(CommonMessage &msg)
+bool OnbVirtualInterface::write(const CommonMessage &msg)
 {
     int cnt = mInterfaces.size();
     for (int i=0; i<cnt; i++)

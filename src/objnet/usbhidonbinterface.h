@@ -53,7 +53,7 @@ public:
     explicit UsbHidOnbInterface(UsbInterface *usbif);
 //    virtual ~UsbHidOnbInterface();
 
-    bool write(CommonMessage &msg);
+    bool write(const CommonMessage &msg);
     bool read(CommonMessage &msg);
     void flush();
     

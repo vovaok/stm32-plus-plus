@@ -64,7 +64,17 @@ public:
         \param fifoNumber Number of associated FIFO, may be 0 or 1.
         \return номер фильтра, который можно использовать для удаления, например.
     */
-    int addFilter(unsigned long id, unsigned long mask=0xFFFFFFFF, int fifoNumber=0);
+    int addFilterA(uint16_t id, uint16_t mask=0x7FF, int fifoNumber=0);
+    
+    /*! Add mask mode filter to bank.
+        Message is filtered when receiving by matching of message ID and filter ID applying the mask. Bits of ID's must match where the mask bits are 1. \n
+        \b Note: At least one filter should be configured before message reception.
+        \param id Filter ID.
+        \param mask Filter id matching mask, by default all bits must match.
+        \param fifoNumber Number of associated FIFO, may be 0 or 1.
+        \return номер фильтра, который можно использовать для удаления, например.
+    */
+    int addFilterB(unsigned long id, unsigned long mask=0xFFFFFFFF, int fifoNumber=0);
     
     /*! Удаление фильтра.
         \param [in] number номер фильтра, который будет удалён.

@@ -371,7 +371,7 @@ typedef struct
 #define RCC_AHB3Periph_FSMC                ((uint32_t)0x00000001)
 #endif /* STM32F40_41xxx */
 
-#if defined (STM32F427_437xx) || defined (STM32F429_439xx) 
+#if defined (STM32F427_437xx) || defined (STM32F429_439xx) || defined (STM32F429xx) || defined(STM32F439xx)
 #define RCC_AHB3Periph_FMC                ((uint32_t)0x00000001)
 #endif /* STM32F427_437xx ||  STM32F429_439xx */
 

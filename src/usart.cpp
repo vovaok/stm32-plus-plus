@@ -12,6 +12,7 @@ Usart *Usart::mUsarts[6] = {0L, 0L, 0L, 0L, 0L, 0L};
 //---------------------------------------------------------------------------
 
 Usart::Usart(Gpio::Config pinTx, Gpio::Config pinRx) :
+    m_pinDE(0L),
     mUseDmaRx(true), mUseDmaTx(true),
     mDmaRx(0L),
     mDmaTx(0L),
@@ -23,6 +24,8 @@ Usart::Usart(Gpio::Config pinTx, Gpio::Config pinRx) :
     mTxBufferSize(64),
     mLineEnd("\n")
 {
+    Device::m_sequential = true;
+  
     int no = 0;
     if (pinTx != Gpio::NoConfig)
         no = GpioConfigGetPeriphNumber(pinTx);
@@ -123,6 +126,12 @@ void Usart::setClockPin(Gpio::Config pinCk, bool inverted)
     Gpio::config(pinCk);
 /// @todo inverted clk pin is not implemented
 }
+
+void Usart::configPinDE(Gpio::PinName pin)
+{
+    m_pinDE = new Gpio(pin, Gpio::Output);
+    m_halfDuplex = true;
+}
 //---------------------------------------------------------------------------
 
 bool Usart::open(OpenMode mode)
@@ -216,18 +225,40 @@ void Usart::close()
 }
 //---------------------------------------------------------------------------
 
-static int written = 0;
+int Usart::bytesAvailable() const
+{
+    int mask = mRxBuffer.size() - 1;
+    if (mDmaRx)
+        return (-mDmaRx->dataCounter() - mRxPos) & mask;
+    else
+        return (mRxIrqDataCounter - mRxPos) & mask;
+}
 
 int Usart::writeData(const char *data, int size)
 {  
     if (!mDmaTx)
     {
+        if (m_halfDuplex)
+        {
+            mDev->CR1 &= ~USART_CR1_RE;
+            if (m_pinDE)
+                m_pinDE->set();
+        }
+        
         for (int i=0; i<size; i++)
         {
             while (!(mDev->SR & USART_SR_TC));
             mDev->TDR = data[i];
         }
         while (!(mDev->SR & USART_SR_TC));
+        
+        if (m_halfDuplex)
+        {
+            if (m_pinDE)
+                m_pinDE->reset();
+            mDev->CR1 |= USART_CR1_RE;
+        }
+        
         return size;
     }
     
@@ -244,7 +275,6 @@ int Usart::writeData(const char *data, int size)
     for (int i=0; i<sz; i++)
         mTxBuffer[(mTxPos + i) & mask] = data[i];
     mTxPos = (mTxPos + sz) & mask;
-    written += sz;
     
     if (mDmaTx->dataCounter() > 0) // if transmission in progress...
         return sz; // dma restarts in irq handler
@@ -257,7 +287,11 @@ int Usart::writeData(const char *data, int size)
     mTxReadPos = (mTxReadPos + sz) & mask;
     
     if (m_halfDuplex)
+    {
         mDev->CR1 &= ~USART_CR1_RE;
+        if (m_pinDE)
+            m_pinDE->set();
+    }
     
 //    if (mHalfDuplex)
 //        mDev->CR1 |= USART_CR1_RWU;
@@ -274,24 +308,24 @@ int Usart::writeData(const char *data, int size)
 
 int Usart::readData(char *data, int size)
 {
+    int cnt = bytesAvailable();
     int mask = mRxBuffer.size() - 1;
-    int curPos = mDmaRx? (mRxBuffer.size() - mDmaRx->dataCounter()): mRxIrqDataCounter;
-    int read = (curPos - mRxPos) & mask;
-    if (read > size)
-        read = size;
+    
+    if (cnt > size)
+        cnt = size;
     if (m7bits)
     {
-        for (int i=mRxPos; i<mRxPos+read; i++)
+        for (int i=mRxPos; i<mRxPos+cnt; i++)
             *data++ = (mRxBuffer[i & mask] & 0x7F);
     }
     else
     {
-        for (int i=mRxPos; i<mRxPos+read; i++)
+        for (int i=mRxPos; i<mRxPos+cnt; i++)
             *data++ = (mRxBuffer[i & mask]);
     }
        
-    mRxPos = curPos;
-    return read;
+    mRxPos = (mRxPos + cnt) & mask;
+    return cnt;
 }
 
 //bool Usart::canReadLine()
@@ -352,6 +386,9 @@ void Usart::dmaTxComplete()
         if (m_halfDuplex)
         {
             while (!(mDev->SR & USART_SR_TC)); // wait for last byte is being written
+            
+            if (m_pinDE)
+                m_pinDE->reset();
             mDev->CR1 |= USART_CR1_RE;
         }
         return;
@@ -375,7 +412,7 @@ void Usart::setBaudrate(int baudrate)
     uint32_t tmpreg = 0;
     
 #if defined(STM32F37X)
-    tmpreg = apbclock / mConfig.USART_BaudRate;
+    tmpreg = apbclock / mBaudrate;
     
 #else
     uint32_t integerdivider = 0;
@@ -418,10 +455,8 @@ void Usart::setConfig(Config config)
         m7bits = false;
     }
     
-    mConfig = config;
-    
-    mDev->CR2 = mDev->CR2 & ~((uint32_t)USART_CR2_STOP) | (mConfig >> 16);
-    mDev->CR1 = mDev->CR1 & ~((uint32_t)(USART_CR1_M | USART_CR1_PCE | USART_CR1_PS | (mConfig & 0xFFFF)));
+    mDev->CR2 = mDev->CR2 & ~((uint32_t)USART_CR2_STOP) | (config >> 16);
+    mDev->CR1 = mDev->CR1 & ~((uint32_t)(USART_CR1_M | USART_CR1_PCE | USART_CR1_PS | (config & 0xFFFF)));
     mDev->CR3 = mDev->CR3 & ~((uint32_t)(USART_CR3_RTSE | USART_CR3_CTSE));
 }
 //---------------------------------------------------------------------------

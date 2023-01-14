@@ -1,7 +1,7 @@
 #include "device.h"
 
 Device::Device() :
-    m_sequential(false),
+    m_sequential(true),
     m_halfDuplex(false),
     m_openMode(NotOpen)
 {

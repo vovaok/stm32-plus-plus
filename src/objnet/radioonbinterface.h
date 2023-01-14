@@ -62,7 +62,7 @@ public:
 public:
     RadioOnbInterface(CC1200 *device);
     
-    bool write(CommonMessage &msg);
+    bool write(const CommonMessage &msg);
     bool read(CommonMessage &msg);
     void flush();
     

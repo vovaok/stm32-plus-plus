@@ -86,7 +86,7 @@ void Adc::addChannel(Channel channel, SampleTime sampleTime)
         ADC->CCR |= ADC_CCR_VBATE;
   
     if (mEnabled)
-        throw Exception::ResourceBusy;
+        THROW(Exception::ResourceBusy);
     
     MODIFY_REG(mAdc->SQR1, ADC_SQR1_L_Msk, mChannelCount << ADC_SQR1_L_Pos);
     mChannelCount++;

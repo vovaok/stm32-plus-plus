@@ -4992,7 +4992,7 @@
         </option>
         <option>
           <name>CCDefines</name>
-          <state>STM32F40XX</state>
+          <state>STM32F405xx</state>
         </option>
         <option>
           <name>CCPreprocFile</name>
@@ -5953,7 +5953,7 @@
         </option>
         <option>
           <name>CCDefines</name>
-          <state>STM32F40XX</state>
+          <state>STM32F405xx</state>
           <state>NO_EXCEPTIONS</state>
           <state>NO_RTTI</state>
         </option>
@@ -9720,6 +9720,57 @@
     </file>
   </group>
   <group>
+    <name>device</name>
+    <file>
+      <name>$PROJ_DIR$\src\device\ads1220.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\src\device\ads1220.h</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\src\device\adxl345.cpp</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\src\device\adxl345.h</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\src\device\as5047d.cpp</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\src\device\as5047d.h</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\src\device\bmx055.cpp</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\src\device\bmx055.h</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\src\device\drv8320.cpp</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\src\device\drv8320.h</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\src\device\mt6818.cpp</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\src\device\mt6818.h</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\src\device\mt6825.cpp</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\src\device\mt6825.h</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\src\device\mt6835.cpp</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\src\device\mt6835.h</name>
+    </file>
+  </group>
+  <group>
     <name>objnet</name>
     <file>
       <name>$PROJ_DIR$\src\objnet\canInterface.cpp</name>
@@ -9807,6 +9858,9 @@
     </file>
     <file>
       <name>$PROJ_DIR$\src\objnet\usbhidonbinterface.cpp</name>
+      <excluded>
+        <configuration>stm32f405rg_no-exceptions_no-rtti</configuration>
+      </excluded>
     </file>
     <file>
       <name>$PROJ_DIR$\src\objnet\usbhidonbinterface.h</name>
@@ -9849,6 +9903,8 @@
     <file>
       <name>$PROJ_DIR$\src\serial\esp8266.cpp</name>
       <excluded>
+        <configuration>stm32f405rg</configuration>
+        <configuration>stm32f405rg_no-exceptions_no-rtti</configuration>
         <configuration>stm32f429zi</configuration>
         <configuration>stm32f446</configuration>
       </excluded>
@@ -9864,9 +9920,6 @@
     </file>
     <file>
       <name>$PROJ_DIR$\src\serial\serialframe.h</name>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\src\serial\serialinterface.h</name>
     </file>
     <file>
       <name>$PROJ_DIR$\src\serial\seriallink.cpp</name>
@@ -10052,6 +10105,9 @@
       <name>$PROJ_DIR$\src\usb\usbreq.h</name>
     </file>
   </group>
+  <file>
+    <name>$PROJ_DIR$\src\absoluteencoder.h</name>
+  </file>
   <file>
     <name>$PROJ_DIR$\src\adc.cpp</name>
     <excluded>
@@ -10287,6 +10343,8 @@
     <excluded>
       <configuration>stm32f373xB</configuration>
       <configuration>stm32f373xB_no-exceptions_no-rtti</configuration>
+      <configuration>stm32f405rg</configuration>
+      <configuration>stm32f405rg_no-exceptions_no-rtti</configuration>
       <configuration>stm32f429zi</configuration>
       <configuration>stm32f446</configuration>
     </excluded>

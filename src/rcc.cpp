@@ -161,16 +161,6 @@ void Rcc::configPll(unsigned long hseValue, unsigned long sysClk)
         RCC->CFGR |= RCC_CFGR_HPRE_DIV1;
         mAHBClk = mSysClk >> 0;
 
-    #if defined (STM32F40_41xxx) || defined(STM32F446xx) || defined (STM32F427_437xx) || defined (STM32F429xx)      
-        /* PCLK2 = HCLK / 2*/
-        RCC->CFGR |= RCC_CFGR_PPRE2_DIV2;
-        mAPB2Clk = mAHBClk >> 1;
-        
-        /* PCLK1 = HCLK / 4*/
-        RCC->CFGR |= RCC_CFGR_PPRE1_DIV4;
-        mAPB1Clk = mAHBClk >> 2;
-    #endif /* STM32F40_41xxx || STM32F427_437x || STM32F429_439xx */
-
     #if defined (STM32F401xx) || defined (STM32F37X)
         /* PCLK2 = HCLK / 2*/
         RCC->CFGR |= RCC_CFGR_PPRE2_DIV1;
@@ -179,6 +169,14 @@ void Rcc::configPll(unsigned long hseValue, unsigned long sysClk)
         /* PCLK1 = HCLK / 4*/
         RCC->CFGR |= RCC_CFGR_PPRE1_DIV2;
         mAPB1Clk = mAHBClk >> 1;
+    #else
+        /* PCLK2 = HCLK / 2*/
+        RCC->CFGR |= RCC_CFGR_PPRE2_DIV2;
+        mAPB2Clk = mAHBClk >> 1;
+        
+        /* PCLK1 = HCLK / 4*/
+        RCC->CFGR |= RCC_CFGR_PPRE1_DIV4;
+        mAPB1Clk = mAHBClk >> 2;
     #endif /* STM32F401xx */
        
     #if defined(STM32F37X)
@@ -212,16 +210,10 @@ void Rcc::configPll(unsigned long hseValue, unsigned long sysClk)
         }      
         /* Configure Flash prefetch, Instruction cache, Data cache and wait state */
         FLASH->ACR = FLASH_ACR_PRFTEN | FLASH_ACR_ICEN |FLASH_ACR_DCEN |FLASH_ACR_LATENCY_5WS;
-    #endif /* STM32F427_437x || STM32F429_439xx  */
-
-    #if defined (STM32F40_41xxx) || defined(STM32F446xx)     
-        /* Configure Flash prefetch, Instruction cache, Data cache and wait state */
-        FLASH->ACR = FLASH_ACR_PRFTEN | FLASH_ACR_ICEN |FLASH_ACR_DCEN |FLASH_ACR_LATENCY_5WS;
-    #endif /* STM32F40_41xxx  */
-
-    #if defined (STM32F401xx)
-        /* Configure Flash prefetch, Instruction cache, Data cache and wait state */
+    #elif defined (STM32F401xx)
         FLASH->ACR = FLASH_ACR_PRFTEN | FLASH_ACR_ICEN |FLASH_ACR_DCEN |FLASH_ACR_LATENCY_2WS;
+    #else
+        FLASH->ACR = FLASH_ACR_PRFTEN | FLASH_ACR_ICEN |FLASH_ACR_DCEN |FLASH_ACR_LATENCY_5WS;
     #endif /* STM32F401xx */
         
     #if defined (STM32F37X)

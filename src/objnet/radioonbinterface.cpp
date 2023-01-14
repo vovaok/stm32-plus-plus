@@ -532,7 +532,7 @@ bool RadioOnbInterface::readTx(CommonMessage &msg)
 }
 //---------------------------------------------------------------------------
 
-bool RadioOnbInterface::write(CommonMessage &msg)
+bool RadioOnbInterface::write(const CommonMessage &msg)
 {
     _txwrite = true;
     if (msg.size() > mMaxFrameSize)

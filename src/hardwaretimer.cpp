@@ -8,12 +8,14 @@ HardwareTimer::HardwareTimer(TimerNumber timerNumber, unsigned int frequency_Hz)
     unsigned int hclk = Rcc::hClk();
     unsigned int pclk1 = Rcc::pClk1();
     unsigned int pclk2 = Rcc::pClk2();
+#if defined(STM32F446xx)
     if (RCC->DCKCFGR & RCC_DCKCFGR_TIMPRE)
     {
 //        if (RCC->CFGR & RCC_CFGR_PPRE1_Msk)
         pclk1 = pclk2 = hclk;
     }
     else
+#endif
     {
         if (RCC->CFGR & RCC_CFGR_PPRE1_Msk)
             pclk1 *= 2;
