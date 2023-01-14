@@ -339,7 +339,7 @@ typedef struct
 #define GPIO_AF_FSMC             ((uint8_t)0xC)  /* FSMC Alternate Function mapping                     */
 #endif /* STM32F40_41xxx */
 
-#if defined (STM32F427_437xx) || defined (STM32F429_439xx)
+#if defined (STM32F427_437xx) || defined (STM32F429_439xx) || defined(STM32F429xx) || defined(STM32F439xx)
 #define GPIO_AF_FMC              ((uint8_t)0xC)  /* FMC Alternate Function mapping                      */
 #endif /* STM32F427_437xx ||  STM32F429_439xx */
 

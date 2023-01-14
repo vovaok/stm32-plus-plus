@@ -77,7 +77,7 @@
         </option>
         <option>
           <name>OGLastSavedByProductVersion</name>
-          <state>7.50.3.10745</state>
+          <state>7.40.7.9864</state>
         </option>
         <option>
           <name>GeneralEnableMisra</name>
@@ -646,7 +646,7 @@
       <name>ILINK</name>
       <archiveVersion>0</archiveVersion>
       <data>
-        <version>17</version>
+        <version>16</version>
         <wantNonLocal>1</wantNonLocal>
         <debug>1</debug>
         <option>
@@ -929,10 +929,6 @@
         <option>
           <name>IlinkThreadsSlave</name>
           <state>1</state>
-        </option>
-        <option>
-          <name>IlinkLogCallGraph</name>
-          <state>0</state>
         </option>
       </data>
     </settings>
@@ -1607,7 +1603,7 @@
       <name>ILINK</name>
       <archiveVersion>0</archiveVersion>
       <data>
-        <version>17</version>
+        <version>16</version>
         <wantNonLocal>1</wantNonLocal>
         <debug>1</debug>
         <option>
@@ -1624,7 +1620,7 @@
         </option>
         <option>
           <name>IlinkOutputFile</name>
-          <state>stm32++.out</state>
+          <state>###Unitialized###</state>
         </option>
         <option>
           <name>IlinkDebugInfoEnable</name>
@@ -1890,10 +1886,6 @@
         <option>
           <name>IlinkThreadsSlave</name>
           <state>1</state>
-        </option>
-        <option>
-          <name>IlinkLogCallGraph</name>
-          <state>0</state>
         </option>
       </data>
     </settings>
@@ -2570,7 +2562,7 @@
       <name>ILINK</name>
       <archiveVersion>0</archiveVersion>
       <data>
-        <version>17</version>
+        <version>16</version>
         <wantNonLocal>1</wantNonLocal>
         <debug>1</debug>
         <option>
@@ -2587,7 +2579,7 @@
         </option>
         <option>
           <name>IlinkOutputFile</name>
-          <state>stm32++.out</state>
+          <state>###Unitialized###</state>
         </option>
         <option>
           <name>IlinkDebugInfoEnable</name>
@@ -2853,10 +2845,6 @@
         <option>
           <name>IlinkThreadsSlave</name>
           <state>1</state>
-        </option>
-        <option>
-          <name>IlinkLogCallGraph</name>
-          <state>0</state>
         </option>
       </data>
     </settings>
@@ -3531,7 +3519,7 @@
       <name>ILINK</name>
       <archiveVersion>0</archiveVersion>
       <data>
-        <version>17</version>
+        <version>16</version>
         <wantNonLocal>1</wantNonLocal>
         <debug>1</debug>
         <option>
@@ -3548,7 +3536,7 @@
         </option>
         <option>
           <name>IlinkOutputFile</name>
-          <state>stm32++.out</state>
+          <state>###Unitialized###</state>
         </option>
         <option>
           <name>IlinkDebugInfoEnable</name>
@@ -3814,10 +3802,6 @@
         <option>
           <name>IlinkThreadsSlave</name>
           <state>1</state>
-        </option>
-        <option>
-          <name>IlinkLogCallGraph</name>
-          <state>0</state>
         </option>
       </data>
     </settings>
@@ -4492,7 +4476,7 @@
       <name>ILINK</name>
       <archiveVersion>0</archiveVersion>
       <data>
-        <version>17</version>
+        <version>16</version>
         <wantNonLocal>1</wantNonLocal>
         <debug>1</debug>
         <option>
@@ -4509,7 +4493,7 @@
         </option>
         <option>
           <name>IlinkOutputFile</name>
-          <state>stm32++.out</state>
+          <state>###Unitialized###</state>
         </option>
         <option>
           <name>IlinkDebugInfoEnable</name>
@@ -4775,10 +4759,6 @@
         <option>
           <name>IlinkThreadsSlave</name>
           <state>1</state>
-        </option>
-        <option>
-          <name>IlinkLogCallGraph</name>
-          <state>0</state>
         </option>
       </data>
     </settings>
@@ -5453,7 +5433,7 @@
       <name>ILINK</name>
       <archiveVersion>0</archiveVersion>
       <data>
-        <version>17</version>
+        <version>16</version>
         <wantNonLocal>1</wantNonLocal>
         <debug>1</debug>
         <option>
@@ -5470,7 +5450,7 @@
         </option>
         <option>
           <name>IlinkOutputFile</name>
-          <state>stm32++.out</state>
+          <state>###Unitialized###</state>
         </option>
         <option>
           <name>IlinkDebugInfoEnable</name>
@@ -5736,10 +5716,6 @@
         <option>
           <name>IlinkThreadsSlave</name>
           <state>1</state>
-        </option>
-        <option>
-          <name>IlinkLogCallGraph</name>
-          <state>0</state>
         </option>
       </data>
     </settings>
@@ -6416,7 +6392,7 @@
       <name>ILINK</name>
       <archiveVersion>0</archiveVersion>
       <data>
-        <version>17</version>
+        <version>16</version>
         <wantNonLocal>1</wantNonLocal>
         <debug>1</debug>
         <option>
@@ -6433,7 +6409,7 @@
         </option>
         <option>
           <name>IlinkOutputFile</name>
-          <state>stm32++.out</state>
+          <state>###Unitialized###</state>
         </option>
         <option>
           <name>IlinkDebugInfoEnable</name>
@@ -6699,10 +6675,6 @@
         <option>
           <name>IlinkThreadsSlave</name>
           <state>1</state>
-        </option>
-        <option>
-          <name>IlinkLogCallGraph</name>
-          <state>0</state>
         </option>
       </data>
     </settings>
@@ -7377,7 +7349,7 @@
       <name>ILINK</name>
       <archiveVersion>0</archiveVersion>
       <data>
-        <version>17</version>
+        <version>16</version>
         <wantNonLocal>1</wantNonLocal>
         <debug>1</debug>
         <option>
@@ -7661,10 +7633,6 @@
           <name>IlinkThreadsSlave</name>
           <state>1</state>
         </option>
-        <option>
-          <name>IlinkLogCallGraph</name>
-          <state>0</state>
-        </option>
       </data>
     </settings>
     <settings>
@@ -7769,7 +7737,7 @@
         </option>
         <option>
           <name>OGLastSavedByProductVersion</name>
-          <state>7.50.3.10745</state>
+          <state>7.40.7.9864</state>
         </option>
         <option>
           <name>GeneralEnableMisra</name>
@@ -7878,6 +7846,7 @@
         <option>
           <name>CCDefines</name>
           <state>STM32F429xx</state>
+          <state>HSE_VALUE=8000000</state>
         </option>
         <option>
           <name>CCPreprocFile</name>
@@ -8338,7 +8307,7 @@
       <name>ILINK</name>
       <archiveVersion>0</archiveVersion>
       <data>
-        <version>17</version>
+        <version>16</version>
         <wantNonLocal>1</wantNonLocal>
         <debug>1</debug>
         <option>
@@ -8622,10 +8591,6 @@
           <name>IlinkThreadsSlave</name>
           <state>1</state>
         </option>
-        <option>
-          <name>IlinkLogCallGraph</name>
-          <state>0</state>
-        </option>
       </data>
     </settings>
     <settings>
@@ -8730,7 +8695,7 @@
         </option>
         <option>
           <name>OGLastSavedByProductVersion</name>
-          <state>7.50.3.10745</state>
+          <state>7.40.7.9864</state>
         </option>
         <option>
           <name>GeneralEnableMisra</name>
@@ -9299,7 +9264,7 @@
       <name>ILINK</name>
       <archiveVersion>0</archiveVersion>
       <data>
-        <version>17</version>
+        <version>16</version>
         <wantNonLocal>1</wantNonLocal>
         <debug>1</debug>
         <option>
@@ -9582,10 +9547,6 @@
         <option>
           <name>IlinkThreadsSlave</name>
           <state>1</state>
-        </option>
-        <option>
-          <name>IlinkLogCallGraph</name>
-          <state>0</state>
         </option>
       </data>
     </settings>
@@ -10311,6 +10272,12 @@
       <configuration>stm32f373xB</configuration>
       <configuration>stm32f373xB_no-exceptions_no-rtti</configuration>
     </excluded>
+  </file>
+  <file>
+    <name>$PROJ_DIR$\src\flashdrive.cpp</name>
+  </file>
+  <file>
+    <name>$PROJ_DIR$\src\flashdrive.h</name>
   </file>
   <file>
     <name>$PROJ_DIR$\src\gpio.cpp</name>

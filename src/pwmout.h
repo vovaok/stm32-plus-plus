@@ -24,7 +24,9 @@ public:
     
     void configChannel(Gpio::Config pin, Gpio::Config complementaryPin, bool invert = 0);
     void configChannel(Gpio::Config pin);
-    void configChannelToggleMode(ChannelNumber channel, Gpio::Config pin = Gpio::NoConfig);
+    void configPwmMode(Gpio::Config pin, PwmMode mode);
+    void configChannelToggleMode(ChannelNumber channel);
+    void configChannelToggleMode(Gpio::Config pin);
     void setChannelEnabled(ChannelNumber channel, bool enabled);
     void setChannelEnabled(ChannelNumber channel, bool enabled, bool complementaryEnabled);
     void setAllChannelsEnabled(bool enabled);

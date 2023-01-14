@@ -379,8 +379,8 @@ public:
         I2C3_SDA_PH8  =     PINCONFIG(PH8,  modeAF | outOpenDrain| pullUp | speed50MHz, afI2C3, 0x30), //!<.
         I2C3_SMBA_PH9 =     PINCONFIG(PH9,  modeAF | outOpenDrain| pullUp | speed50MHz, afI2C3, 0x30), //!<.
         I2C2_SMBA_PB12  =   PINCONFIG(PB12,  modeAF | outOpenDrain| pullUp | speed50MHz, afI2C2, 0x20), //!<.
-        I2C3_SDA_PC9  =     PINCONFIG(PC9,  modeAF | outOpenDrain| pullUp | speed50MHz, afI2C3, 0x30), //!<.
-        I2C3_SCL_PA8  =     PINCONFIG(PA8,  modeAF | outOpenDrain| pullUp | speed50MHz, afI2C3, 0x30), //!<.
+        I2C3_SDA_PC9  =     PINCONFIG(PC9,  modeAF | outOpenDrain /* | pullUp*/ | speed50MHz, afI2C3, 0x30), //!<.
+        I2C3_SCL_PA8  =     PINCONFIG(PA8,  modeAF | outOpenDrain /* | pullUp*/ | speed50MHz, afI2C3, 0x30), //!<.
         I2C3_SMBA_PA9  =    PINCONFIG(PA9,  modeAF | outOpenDrain| pullUp | speed50MHz, afI2C3, 0x30), //!<.
         I2C1_SMBA_PB5  =    PINCONFIG(PB5,  modeAF | outOpenDrain| pullUp | speed50MHz, afI2C1, 0x10), //!<.
         I2C1_SCL_PB6  =     PINCONFIG(PB6,  modeAF | outOpenDrain| pullNone | speed50MHz, afI2C1, 0x10), //!<.

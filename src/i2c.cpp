@@ -11,6 +11,9 @@ I2c::I2c(Gpio::Config pinSDA, Gpio::Config pinSCL)
     if (i2cNumber != GpioConfigGetPeriphNumber(pinSCL))
         THROW(Exception::InvalidPeriph);
     
+    Gpio::config(pinSDA);
+    Gpio::config(pinSCL);
+    
     switch (i2cNumber)
     {
     case 1:
@@ -28,8 +31,6 @@ I2c::I2c(Gpio::Config pinSDA, Gpio::Config pinSCL)
         RCC->APB1ENR |= RCC_APB1ENR_I2C3EN;
         break;
     }
-    Gpio::config(pinSDA);
-    Gpio::config(pinSCL);
 }
 
 void I2c::setBusClock(int clk_Hz)
@@ -43,7 +44,7 @@ void I2c::setBusClock(int clk_Hz)
     m_dev->CR1 &= ~I2C_CR1_PE;
     uint16_t ccr = 0;
     
-    if (clk_Hz < 100000)
+    if (clk_Hz <= 100000)
     {
         ccr = pclk1 / (clk_Hz << 1);
         if (ccr < 4)
@@ -78,10 +79,9 @@ void I2c::setAddress(uint8_t address)
 }
 
 void I2c::open()
-{
-    m_dev->CR1 |= I2C_CR1_ACK; // enable ACK
- 
+{ 
     m_dev->CR1 |= I2C_CR1_PE;
+    m_dev->CR1 |= I2C_CR1_ACK; // enable ACK
 }
 
 void I2c::close()

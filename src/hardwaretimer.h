@@ -108,10 +108,9 @@ public:
     
     typedef enum
     {
-        None,
-        Rising,
-        Falling,
-        BothEdge
+        Rising = 0x0,
+        Falling = 0x2,
+        BothEdge = 0xA
     } Polarity;
     
     /*! Инициализация аппаратного таймера.
@@ -122,6 +121,8 @@ public:
     HardwareTimer(TimerNumber timerNumber, unsigned int frequency_Hz=0);
     
     TIM_TypeDef* tim() {return mTim;}
+    const TIM_TypeDef* tim() const {return mTim;}
+    unsigned long inputClk() const {return mInputClk;}
     
     static TimerNumber getTimerByPin(Gpio::Config pinConfig);
     static ChannelNumber getChannelByPin(Gpio::Config pinConfig);
@@ -168,7 +169,8 @@ public:
     void setBreakEvent(NotifyEvent event)    {emitEvent[isrcBreak] = event; enableInterrupt(isrcBreak);}
     
     void setCaptureEvent(ChannelNumber ch, NotifyEvent event);
-    void configCapture(ChannelNumber ch, Polarity pol);
+    void configCapture(ChannelNumber ch, Polarity polarity = Rising);
+    void configCapture(Gpio::Config pin, Polarity polarity = Rising, NotifyEvent event=NotifyEvent());
     unsigned int captureValue(ChannelNumber ch) const;
     
     void setChannelEnabled(ChannelNumber ch, bool enabled);
@@ -200,8 +202,7 @@ protected:
         PwmMode_PWM2     = 0x0070
     } PwmMode;
     
-    const TIM_TypeDef* tim() const {return mTim;}
-    unsigned long inputClk() const {return mInputClk;}
+//    unsigned long inputClk() const {return mInputClk;}
     
     void configPwm(ChannelNumber ch, PwmMode pwmMode=PwmMode_PWM2, bool inverted=false);
       
