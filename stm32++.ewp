@@ -4864,7 +4864,7 @@
         </option>
         <option>
           <name>OGLastSavedByProductVersion</name>
-          <state>7.50.3.10745</state>
+          <state>7.40.7.9864</state>
         </option>
         <option>
           <name>GeneralEnableMisra</name>
@@ -5450,7 +5450,7 @@
         </option>
         <option>
           <name>IlinkOutputFile</name>
-          <state>###Unitialized###</state>
+          <state>stm32++.out</state>
         </option>
         <option>
           <name>IlinkDebugInfoEnable</name>
@@ -5821,7 +5821,7 @@
         </option>
         <option>
           <name>OGLastSavedByProductVersion</name>
-          <state>7.50.3.10745</state>
+          <state>7.40.7.9864</state>
         </option>
         <option>
           <name>GeneralEnableMisra</name>
@@ -6409,7 +6409,7 @@
         </option>
         <option>
           <name>IlinkOutputFile</name>
-          <state>###Unitialized###</state>
+          <state>stm32++.out</state>
         </option>
         <option>
           <name>IlinkDebugInfoEnable</name>
@@ -9864,8 +9864,6 @@
     <file>
       <name>$PROJ_DIR$\src\serial\esp8266.cpp</name>
       <excluded>
-        <configuration>stm32f405rg</configuration>
-        <configuration>stm32f405rg_no-exceptions_no-rtti</configuration>
         <configuration>stm32f429zi</configuration>
         <configuration>stm32f446</configuration>
       </excluded>

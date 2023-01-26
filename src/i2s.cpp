@@ -38,7 +38,11 @@ I2S::I2S(Gpio::Config clkPin, Gpio::Config doPin) :
     config.I2S_MCLKOutput = I2S_MCLKOutput_Disable;
     I2S_Init(mSpi, &config);
     
+<<<<<<< Updated upstream
 #if defined (STM32F427_437xx) || defined (STM32F429_439xx) || defined(STM32F429xx)
+=======
+#if defined (STM32F427_437xx) || defined (STM32F429xx)
+>>>>>>> Stashed changes
     throw Exception::BadSoBad;
     #warning ne rabotaet for stm32f427 or 437 or 429 or 439
 #else

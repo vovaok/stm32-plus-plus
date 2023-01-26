@@ -31,7 +31,7 @@ ESP8266::ESP8266(Usart *usart, Gpio::PinName resetPin) :
     mUsart->setUseDmaRx(false);
     mUsart->setUseDmaTx(false);
 #endif
-    mUsart->setLineEnd("\r\n");
+//    mUsart->setLineEnd("\r\n");
     mUsart->open(ReadWrite);
     
     for (int i=0; i<10000; i++);
@@ -47,7 +47,67 @@ void ESP8266::task()
     {
         if (mConnected)
         {
-            mUsart->read(mLineBuffer);
+            char buf[64];
+            int sz = 0;
+            bool accept = false;
+            do
+            {
+                sz = mUsart->read(buf, sizeof(buf));
+                mLineBuffer.append(buf, sz);
+                if (sz)
+                {
+                    accept = true;
+//                    printf("USART,%d:\t", sz);
+//                    for (int i=0; i<sz; i++)
+//                    {
+//                        char b = buf[i];
+//                        if (b == '\r')
+//                            printf("\\r");
+//                        else if (b == '\n')
+//                            printf("\\n");
+//                        else if (b < 0x20 || b >= 0x80)
+//                            putchar('.');//printf("\\x%02X", b);
+//                        else
+//                            putchar(b);
+//                    }
+//                    putchar('\n');
+                  
+//                    printf("BUFER,%d:\t", mLineBuffer.size());
+//                    for (int i=0; i<mLineBuffer.size(); i++)
+//                    {
+//                        char b = mLineBuffer[i];
+//                        if (b == '\r')
+//                            printf("\\r");
+//                        else if (b == '\n')
+//                            printf("\\n");
+//                        else if (b < 0x20 || b >= 0x80)
+//                            putchar('.');//printf("\\x%02X", b);
+//                        else
+//                            putchar(b);
+//                    }
+//                    putchar('\n');
+                }
+            }
+            while (sz);
+            
+            if (accept)
+            {
+                printf("BUFFER,%d:\t", mLineBuffer.size());
+                for (int i=0; i<mLineBuffer.size(); i++)
+                {
+                    char b = mLineBuffer[i];
+                    if (b == '\r')
+                        printf("\\r");
+                    else if (b == '\n')
+                        printf("\\n");
+                    else if (b < 0x20 || b >= 0x80)
+                        putchar('.');//printf("\\x%02X", b);
+                    else
+                        putchar(b);
+                }
+                putchar('\n');
+            }
+                
             while (mLineBuffer.size())
             {
                 if (!mReceiveSize)
@@ -74,19 +134,20 @@ void ESP8266::task()
                             break;
                         }
                         
-                        if (mTransmitSize && mLastCmd == cmdIpSendBuf)
-                        {
-                            char cmd[32];
-                            //printf("send req repeat, sz=%d\n", mTransmitSize);
-                            sprintf(cmd, "AT+CIPSENDBUF=%d", mTransmitSize);
-                            sendCmd(cmd);
-                        }
+//                        if (mTransmitSize && mLastCmd == cmdIpSendBuf)
+//                        {
+//                            char cmd[32];
+//                            //printf("send req repeat, sz=%d\n", mTransmitSize);
+//                            sprintf(cmd, "AT+CIPSENDBUF=%d", mTransmitSize);
+//                            sendCmd(cmd);
+//                        }
                         
                     }
                     else if (mLineBuffer.startsWith('>'))
                     {
 //                        printf((string(mLineBuffer.data(), mLineBuffer.size()) + "\n").c_str());
                         mLineBuffer.clear();
+                        printf("write %d\n", mTransmitSize);
                         if (mTransmitSize)
                             mUsart->write(mOutBuffer.data(), mTransmitSize);
                         mOutBuffer.remove(0, mTransmitSize);
@@ -94,7 +155,7 @@ void ESP8266::task()
                     }
                     else
                     {
-                        int leidx = mLineBuffer.indexOf(mUsart->lineEnd());
+                        int leidx = mLineBuffer.indexOf("\r\n");
                         if (leidx == -1)
                             break;
                         
@@ -124,6 +185,17 @@ void ESP8266::task()
                 }
             }
             
+//            if (mTransmitSize && mLastCmd != cmdIpSendBuf)
+//            {
+//                mLastCmd = cmdIpSendBuf;
+//                char cmd[32];
+//                printf("send %d\n", mTransmitSize);
+//                //printf("send req repeat, sz=%d\n", mTransmitSize);
+//                sprintf(cmd, "AT+CIPSENDBUF=%d", mTransmitSize);
+//                
+//                sendCmd(cmd);
+//            }
+            
             char cmd[32];
             if (mServerActive && mOutBuffer.size() && !mTransmitSize)
             {
@@ -136,11 +208,13 @@ void ESP8266::task()
         else if (mUsart->canReadLine())
         {
             ByteArray line;
-            mUsart->readLine(line);
-            if (line.size() > 2)
+            line.resize(128);
+            int sz = mUsart->readLine(line.data(), 128);
+            line.resize(sz);
+            if (line.size() > 3)
             {
-                line.resize(line.size() - 2);
-                if (line[0] == 0x0A)
+                line.resize(line.size() - 3);
+                if (line[0] == 0x0A) // hack
                     line.remove(0, 1);
                 parseLine(line);
             }
@@ -362,6 +436,11 @@ void ESP8266::parseLine(ByteArray &line)
 //            sendCmd(cmd);
         }
         
+        if (mLastCmd == cmdIpSendBuf)
+        {
+            mLastCmd = cmdNone;
+        }
+        
         if (onError)
             onError();
     }
@@ -434,10 +513,21 @@ void ESP8266::parseLine(ByteArray &line)
         }
         mPeerIp = string(line.data(), line.size());
     }
-    else if (line == "SEND OK")
+//    else if (line == "SEND OK")
+//    {
+//        mTransmitSize = 0;
+////        printf("> send done, buffer size=%d\n", mOutBuffer.size());
+//    }
+    else if (line.endsWith("SEND OK")) // fro station mode naverno
     {
         mTransmitSize = 0;
-//        printf("> send done, buffer size=%d\n", mOutBuffer.size());
+        mLastCmd = cmdNone;
+        printf("send ok\n");
+    }
+    else if (line.endsWith("SEND FAIL"))
+    {
+        mLastCmd = cmdNone;
+        printf("send fail\n");
     }
     else if (mServerActive)
     {
@@ -460,7 +550,9 @@ void ESP8266::sendCmd(ByteArray ba)
 {
     ba.append(0x0d);
     ba.append(0x0a);
-    mUsart->write(ba);
+    mUsart->write(ba.data(), ba.size());
+    ba.append('\0');
+    printf("cmd=%s", ba.data());
 }
 
 void ESP8266::sendLine(string line)
@@ -558,33 +650,46 @@ void ESP8266::hardReset()
 }
 //---------------------------------------------------------------------------
 
-int ESP8266::read(ByteArray &ba)
+int ESP8266::bytesAvailable() const
 {
     if (mTransparentMode)
-    {
-        int result = mUsart->read(ba);
-//        if (ba.size())
-//            printf((string(ba.data(), ba.size()) + "\n").c_str());
-        return result;
-    }
-    else if (mConnected)
-    {
-        int cnt = mInBuffer.size();
-        ba.append(mInBuffer);
-        mInBuffer.clear();
-        return cnt;
-    }
+        return mUsart->bytesAvailable();
+    
+    if (mConnected)
+        return mInBuffer.size();
+    
     return 0;
 }
 
-int ESP8266::write(const ByteArray &ba)
+int ESP8266::readData(char *data, int size)
 {
     if (mTransparentMode)
-        return mUsart->write(ba);
-    else if (mConnected)
+        return mUsart->read(data, size);
+    
+    if (mConnected)
+    {
+        int sz = mInBuffer.size();
+        char *src = mInBuffer.data();
+        if (sz > size)
+            sz = size;
+        for (int i=0; i<sz; i++)
+            *data++ = *src++;
+        mInBuffer.remove(0, sz);
+        return sz;
+    }
+    
+    return 0;
+}
+
+int ESP8266::writeData(const char *data, int size)
+{
+    if (mTransparentMode)
+        return mUsart->write(data, size);
+    
+    if (mConnected)
     {
         bool fuckflag = false;
-        if (mOutBuffer.size() + ba.size() > 2048)
+        if (mOutBuffer.size() + size > 2048)
         {
             mTransmitSize = 0;
             mOutBuffer.clear();
@@ -593,7 +698,7 @@ int ESP8266::write(const ByteArray &ba)
         }
         else
         {
-            mOutBuffer.append(ba);
+            mOutBuffer.append(data, size);
 //            printf("> write to buffer\n");
 //            printf("> buffer size=%d\n", mOutBuffer.size());
         }
@@ -608,23 +713,24 @@ int ESP8266::write(const ByteArray &ba)
             sprintf(cmd, "AT+CIPSEND=0,%d", mTransmitSize);
             sendCmd(cmd);
         }
-        else if (!mTransmitSize)
+        else if (!mTransmitSize && mLastCmd != cmdIpSendBuf)
         {
             mLastCmd = cmdIpSendBuf;
             mTransmitSize = mOutBuffer.size();
-//            printf("send request, sz=%d\n", mTransmitSize);
+            printf("send request, sz=%d\n", mTransmitSize);
             sprintf(cmd, "AT+CIPSENDBUF=%d", mTransmitSize);
             sendCmd(cmd);
         }
-        return fuckflag? 0: ba.size();
+        return fuckflag? 0: size;
     }
+    
     return 0;
 }
 //---------------------------------------------------------------------------
 
 void ESP8266::interruptTransparentMode()
 {
-    mUsart->write("+++");
+    mUsart->write("+++", 4);
     for (int i=0; i<1000000; i++);
         mTransparentMode = false;
 }

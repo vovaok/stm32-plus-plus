@@ -76,6 +76,10 @@ public:
     bool endsWith(char c) const;
     bool endsWith(const char *str) const;
     
+    inline bool contains(const ByteArray &a) const{ return bool(indexOf(a) != -1); }
+    inline bool contains(char c) const { return bool(indexOf(c) != -1); }
+    inline bool contains(const char *str) const { return bool(indexOf(str) != -1); }
+    
     int indexOf(char c, int from = 0) const;
     int indexOf(const char *str, int from = 0) const;
     int indexOf(const ByteArray &ba, int from = 0) const;

@@ -21,8 +21,7 @@ Usart::Usart(Gpio::Config pinTx, Gpio::Config pinRx) :
     mRxBufferSize(64),
     mTxPos(0),
     mTxReadPos(0),
-    mTxBufferSize(64),
-    mLineEnd("\n")
+    mTxBufferSize(64)
 {
     Device::m_sequential = true;
   
@@ -328,29 +327,19 @@ int Usart::readData(char *data, int size)
     return cnt;
 }
 
-//bool Usart::canReadLine()
-//{
-//    int mask = mRxBuffer.size() - 1;
-//    int curPos = mDmaRx? (mRxBuffer.size() - mDmaRx->dataCounter()): mRxIrqDataCounter;
-//    int read = (curPos - mRxPos) & mask;
-//    unsigned char bitmask = m7bits? 0x7F: 0xFF;
-//    for (int i=mRxPos; i<mRxPos+read; i++)
-//    {
-//        bool flag = true;
-//        for (int j=0; j<mLineEnd.size(); j++)
-//        {
-//            if ((mRxBuffer[(i+j) & mask] & bitmask) != mLineEnd[j])
-//            {
-//                flag = false;
-//                break;
-//            }
-//        }
-//        if (flag)
-//            return true;
-//    }
-//    return false;
-//}
-//
+bool Usart::canReadLine() const
+{
+    int mask = mRxBuffer.size() - 1;
+    int curPos = mDmaRx? (mRxBuffer.size() - mDmaRx->dataCounter()): mRxIrqDataCounter;
+    int read = (curPos - mRxPos) & mask;
+    for (int i=mRxPos; i<mRxPos+read; i++)
+    {
+        if ((mRxBuffer[i & mask] & 0x7F) == '\n')
+            return true;
+    }
+    return false;
+}
+
 //int Usart::readLine(ByteArray &ba)
 //{
 //    int mask = mRxBuffer.size() - 1;
@@ -481,11 +470,6 @@ void Usart::setUseDmaTx(bool useDma)
     if (isOpen())
         THROW(Exception::ResourceBusy);
     mUseDmaTx = useDma;
-}
-
-void Usart::setLineEnd(ByteArray lineend)
-{
-    mLineEnd = lineend;
 }
 //---------------------------------------------------------------------------
 

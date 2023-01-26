@@ -1,7 +1,6 @@
 #ifndef _ESP8266_H
 #define _ESP8266_H
 
-#include "serialinterface.h"
 #include "usart.h"
 #include "gpio.h"
 #include "timer.h"
@@ -10,7 +9,7 @@
 namespace Serial
 {
 
-class ESP8266 : public SerialInterface
+class ESP8266 : public Device
 {
 private:
     Usart *mUsart;
@@ -97,8 +96,12 @@ public:
     void hardReset();
     void sendCmd(ByteArray ba);
     
-    int read(ByteArray &ba);
-    int write(const ByteArray &ba);
+//    int read(ByteArray &ba);
+//    int write(const ByteArray &ba);
+    
+    int bytesAvailable() const;
+    int readData(char *data, int size);
+    int writeData(const char *data, int size);
     
     void sendLine(string line);
     

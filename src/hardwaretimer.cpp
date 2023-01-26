@@ -322,15 +322,17 @@ void HardwareTimer::configCapture(ChannelNumber ch, Polarity polarity)
         int ccr_shift = i * 4;
         int ccmr_shift = (i & 1) * 8;
     
+        uint8_t filter = 15;
+        
         CCMR &= ~(0xFF << ccmr_shift);
-        CCMR |= TIM_CCMR1_CC1S_0 << ccmr_shift; // channel configuret as input, ICn mapped on TIn
+        CCMR |= (TIM_CCMR1_CC1S_0 << ccmr_shift) | (filter << (4 + ccmr_shift)); // channel configuret as input, ICn mapped on TIn
 
         CCR = 0;
-        mTim->ARR = 0xFFFF;
+        mTim->ARR = -1;
         
         // input capture become active after this init
         mTim->CCER = mTim->CCER & ~(0xF << ccr_shift);
-        mTim->CCER |= (polarity | 0x1) << ccr_shift; // 0x1 = capture enabled
+        mTim->CCER |= (polarity | 0x0) << ccr_shift; // 0x1 = capture enabled
     }
 }
 

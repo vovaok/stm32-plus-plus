@@ -31,6 +31,9 @@ public:
     bool isSequential() const {return m_sequential;}
     bool isHalfDuplex() const {return m_halfDuplex;}
     
+    virtual bool canReadLine() const {return false;}
+    int readLine(char *data, int maxsize);
+    
 //    NotifyEvent onReadyRead;
     
 protected:
@@ -40,6 +43,7 @@ protected:
     virtual int readData(char *data, int size) = 0;
     virtual int writeData(const char *data, int size) = 0;
     void setErrorString(const std::string &str);
+    virtual int readLineData(char *data, int size);
     
 private:
     OpenMode m_openMode;

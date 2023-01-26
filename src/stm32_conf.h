@@ -59,7 +59,7 @@
 	#include "stm32f37x_usart.h"
 	#include "stm32f37x_wwdg.h"
 	#include "stm32f37x_misc.h"
-#elif defined(STM32F4XX) | defined(STM32F40XX) | defined(STM32F405xx)
+#elif defined(STM32F4XX) | defined(STM32F40XX) | defined(STM32F405xx) | defined(STM32F407xx)
     #include "stm32f4xx.h"
     #include "stm32f4xx_adc.h"
     #include "stm32f4xx_can.h"

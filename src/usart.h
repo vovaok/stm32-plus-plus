@@ -64,7 +64,6 @@ private:
     int mTxPos;
     int mTxReadPos;
     int mTxBufferSize;
-    ByteArray mLineEnd;
     
     bool m7bits;
     
@@ -94,15 +93,13 @@ public:
     void setUseDmaRx(bool useDma);
     void setUseDmaTx(bool useDma);
     
-    void setLineEnd(ByteArray lineend);
-    const ByteArray &lineEnd() const {return mLineEnd;}
-    
     bool open(OpenMode mode = ReadWrite);
     void close();
     
     int bytesAvailable() const;
     
-//    bool canReadLine();
+    virtual bool canReadLine() const; // override
+    
 //    int readLine(ByteArray &ba);
     
     void setBaudrate(int baudrate);
