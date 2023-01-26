@@ -6,10 +6,11 @@ Button::Button(PinName pin, bool pullUp, bool inverted) :
     mState(false),
     mInverted(inverted),
     mDebounceTime(50),
-    mClickTime(0),
+    mHoldTime(0),
     mTime(mDebounceTime)
 {
     mState = mInverted ^ read();
+    mFilter = mState;
     m_taskid = stmApp()->registerTaskEvent(EVENT(&Button::task));
     m_tickid = stmApp()->registerTickEvent(EVENT(&Button::tick));
 }
@@ -32,16 +33,16 @@ void Button::task()
     {
         if (mFilter && !mState)
         {
-            mClickTime = 300;
-            if (mPressEvent)
-                mPressEvent();
+            mHoldTime = 0;
+            if (onPress)
+                onPress();
         }
         else if (!mFilter && mState)
         {
-            if (mReleaseEvent)
-                mReleaseEvent();
-            if (mClickTime && mClickEvent)
-                mClickEvent();
+            if (onRelease)
+                onRelease();
+            if (onClick && mHoldTime < 300)
+                onClick();
         }
         mState = mFilter;
     }
@@ -54,10 +55,10 @@ void Button::tick(int period)
     else
         mTime = 0;
     
-    if (mClickTime >= period)
-        mClickTime -= period;
+    if (mState)
+        mHoldTime += period;
     else
-        mClickTime = 0;
+        mHoldTime = 0;
 }
 //---------------------------------------------------------------------------
 
@@ -65,20 +66,14 @@ bool Button::state() const
 {
     return mState;
 }
-//---------------------------------------------------------------------------
-
-void Button::setPressEvent(NotifyEvent event)
+    
+int Button::holdTime() const 
 {
-    mPressEvent = event;
+    return mHoldTime;
 }
-
-void Button::setReleaseEvent(NotifyEvent event)
+    
+bool Button::isHolding() const
 {
-    mReleaseEvent = event;
-}
-  
-void Button::setClickEvent(NotifyEvent event)
-{
-    mClickEvent = event;
+    return mState && mHoldTime >= 300;
 }
 //---------------------------------------------------------------------------

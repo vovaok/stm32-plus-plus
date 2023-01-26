@@ -97,7 +97,7 @@ MotorDC::MotorDC(PwmOutput *pwmIn) : slopePwm(0),mEnable(false),kpPos(0), kiPos(
          
         float pwm = (err*kpCur+erriCur*kiCur);
              
-        setSpeed(pwm);
+        setSpeed(lrintf(pwm));
     }
   }
 

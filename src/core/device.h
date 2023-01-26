@@ -34,7 +34,7 @@ public:
     virtual bool canReadLine() const {return false;}
     int readLine(char *data, int maxsize);
     
-//    NotifyEvent onReadyRead;
+    NotifyEvent onReadyRead;
     
 protected:
     bool m_sequential;

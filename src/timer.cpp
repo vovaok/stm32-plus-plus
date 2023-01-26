@@ -39,8 +39,8 @@ void Timer::task()
     if (mUpdated)
     {
         mUpdated = false;
-        if (mTimeoutEvent)
-            mTimeoutEvent();
+        if (onTimeout)
+            onTimeout();
     }
 }
 //---------------------------------------------------------------------------
