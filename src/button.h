@@ -15,11 +15,8 @@ private:
     bool mState;
     bool mInverted;
     int mDebounceTime;
-    int mClickTime;
+    int mHoldTime;
     int mTime;
-    NotifyEvent mPressEvent;
-    NotifyEvent mReleaseEvent;
-    NotifyEvent mClickEvent;
     int m_taskid, m_tickid;
     
     void task();// stmApp task event
@@ -58,27 +55,37 @@ public:
     */
     bool state() const;
     
-    bool isHolding() const {return mState && !mClickTime;}
-    
-    /*! Установка обработчика события нажатия.
-        \param event Указатель на функцию, которая назначается обработчиком.\n
-        Пример использования: \code setPressEvent(EVENT(&MyClass::MyPressHandler)); \endcode
+    /*! Проверка состояния удержания кнопки.
+        Определяет, удерживается ли кнопка более заданного времени (300 мс).
+        \return \arg true нажата; \arg false отпущена.
     */
-    void setPressEvent(NotifyEvent event);
+    bool isHolding() const;
     
-    /*! Установка обработчика события отпускания.
-        \param event Указатель на функцию, которая назначается обработчиком.\n
-        Пример использования: \code setReleaseEvent(EVENT(&MyClass::MyReleaseHandler)); \endcode
+    /* Время удержания кнопки.
+        \return Время в миллисекундах удержания кнопки.
     */
-    void setReleaseEvent(NotifyEvent event);
+    int holdTime() const;
+    
+    /*! Обработчик события нажатия.
+        \param Указатель на функцию Closure<void(void)>, которая назначается обработчиком.\n
+        Пример использования: \code myButton->onPress = EVENT(&MyClass::MyPressHandler); \endcode
+    */
+    NotifyEvent onPress;
+    
+    /*! Обработчик события отпускания.
+        \param Указатель на функцию Closure<void(void)>, которая назначается обработчиком.\n
+        Пример использования: \code myButton->onPress = EVENT(&MyClass::MyReleaseHandler); \endcode
+    */
+    NotifyEvent onRelease;
+    
     
     /*! Установка обработчика события клика.
         Кликом считается кратковременное нажатие длительностью не более 300 мс.
         При этом событие возникает при отпускании кнопки.
-        \param event Указатель на функцию, которая назначается обработчиком.\n
-        Пример использования: \code setReleaseEvent(EVENT(&MyClass::MyReleaseHandler)); \endcode
+        \param Указатель на функцию Closure<void(void)>, которая назначается обработчиком.\n
+        Пример использования: \code myButton->onPress = EVENT(&MyClass::MyReleaseHandler); \endcode
     */
-    void setClickEvent(NotifyEvent event);
+    NotifyEvent onClick;
     
     using Gpio::read;
 };

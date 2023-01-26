@@ -10,13 +10,20 @@
 
 Can *Can::mInstances[2] = {0L, 0L};
 
-Can::Can(int canNumber, int baudrate, Gpio::Config pinRx, Gpio::Config pinTx) :
-    mStartFilter(canNumber==2? 14: 0),
+Can::Can(Gpio::Config pinRx, Gpio::Config pinTx, int baudrate) :
     mFilterUsed(0),
     mPacketsReceived(0),
     mPacketsSent(0),
     mPacketsSendFailed(0)
 {
+    int canNumber = GpioConfigGetPeriphNumber(pinRx);
+    if (canNumber == 0)
+        THROW(Exception::InvalidPin);
+    if (pinRx != Gpio::NoConfig && canNumber != GpioConfigGetPeriphNumber(pinTx))
+        THROW(Exception::InvalidPin);
+  
+//    mInstances[canNumber-1] = this;
+  
     switch (canNumber)
     {
       case 1: 
@@ -36,11 +43,8 @@ Can::Can(int canNumber, int baudrate, Gpio::Config pinRx, Gpio::Config pinTx) :
         THROW(Exception::InvalidPeriph);
     }
     
-    // GPIO pin initialize
-    if (pinRx == Gpio::NoConfig)
-        pinRx = (canNumber==2)? Gpio::CAN2_RX_PB5: Gpio::CAN1_RX_PD0;
-    if (pinTx == Gpio::NoConfig)
-        pinTx = (canNumber==2)? Gpio::CAN2_TX_PB6: Gpio::CAN1_TX_PD1;
+    mStartFilter = (mCan == CAN2)? 14: 0;
+    
     Gpio::config(pinRx);
     Gpio::config(pinTx);
     
@@ -79,9 +83,6 @@ Can::Can(int canNumber, int baudrate, Gpio::Config pinRx, Gpio::Config pinTx) :
     CAN_InitStructure.CAN_BS2 = t2 - 1;
     CAN_InitStructure.CAN_Prescaler = psc;
     CAN_Init(mCan, &CAN_InitStructure);
-      
-    /* Enable FIFO 0 message pending Interrupt */
-    // CAN_ITConfig(CANx, CAN_IT_FMP0, DISABLE);
 }
 
 Can::~Can()

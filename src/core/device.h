@@ -31,7 +31,7 @@ public:
     bool isSequential() const {return m_sequential;}
     bool isHalfDuplex() const {return m_halfDuplex;}
     
-//    NotifyEvent onReadyRead;
+    NotifyEvent onReadyRead;
     
 protected:
     bool m_sequential;

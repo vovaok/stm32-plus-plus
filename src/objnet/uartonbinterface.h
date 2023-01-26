@@ -4,23 +4,22 @@
 #include "objnetInterface.h"
 #include "core/device.h"
 
-//using namespace Serial;
-
 namespace Objnet
 {
-  
-//#pragma pack(push,1)
-//typedef struct
-//{
-//    unsigned long id;
-//    unsigned char size;
-//#warning nado peredelat na ByteArray, a lu4we usat CommonMessage, a ewe lu4we zapilit queue handling into base ObjnetInterface class
-//    unsigned char data[64];
-//} UartOnbMessage;
-//#pragma pack(pop)
 
 class UartOnbInterface : public ObjnetInterface
-{
+{  
+public:
+    UartOnbInterface(Device *serialInterface);
+    
+    int addFilter(uint32_t id, uint32_t mask=0xFFFFFFFF);
+    void removeFilter(int number);
+    
+    bool busPresent();
+    
+protected:
+    virtual bool send(const CommonMessage &msg);
+    
 private:
     Device *m_device;
 //    int mWriteTimer;
@@ -46,17 +45,6 @@ private:
     void msgReceived(const ByteArray &ba);
     
     int mHdBusyTimeout; // busy timeout for half-duplex mode
-  
-public:
-    UartOnbInterface(Device *serialInterface);
-    
-    int addFilter(uint32_t id, uint32_t mask=0xFFFFFFFF);
-    void removeFilter(int number);
-    
-    bool busPresent();
-    
-protected:
-    virtual bool send(const CommonMessage &msg);
 };
 
 };

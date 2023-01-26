@@ -12,14 +12,15 @@ class GenericOnbInterface : public ObjnetInterface
 public:
     GenericOnbInterface(Device *dev);
     
-    bool write(CommonMessage &msg);
-    bool read(CommonMessage &msg);
-    void flush();
+//    void flush();
     
     int availableWriteCount();
     
     int addFilter(uint32_t id, uint32_t mask=0xFFFFFFFF);
     void removeFilter(int number);
+    
+protected:
+    virtual bool send(const CommonMessage &msg);
   
 private:
     Device *m_device;
@@ -32,6 +33,8 @@ private:
     std::vector<Filter> mFilters;
     
     bool testFilter(unsigned long id);
+    
+    void receiveHandler();
 };
 
 }

@@ -21,6 +21,7 @@ Buzzer::Buzzer(Gpio::Config pin) :
     //mPwm->configChannel(mChan, pin);
     mPwm->configChannelToggleMode(pin);
 //    mPwm->setDutyCycle(mChan, 32768);
+    mPwm->start();
     
     stmApp()->registerTaskEvent(EVENT(&Buzzer::task));
     stmApp()->registerTickEvent(EVENT(&Buzzer::tick));
@@ -63,7 +64,7 @@ void Buzzer::tick(int dt)
 
 void Buzzer::setFrequency(int f_Hz)
 {
-    mPwm->setFrequency(f_Hz);
+    mPwm->setFrequency(f_Hz * 4);
 }
 
 void Buzzer::setEnabled(bool enabled)

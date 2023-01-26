@@ -200,7 +200,8 @@ void Dma::setTransferCompleteEvent(NotifyEvent event)
     
     clearFlag(AllFlags);
     // enable Transfer Complete interrupt
-    mStream->CR |= DMA_SxCR_TCIE;
+    mConfig.TCIE = 1;
+    mStream->CR = mConfig.all;
 }
 
 bool Dma::isComplete()

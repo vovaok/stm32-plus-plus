@@ -13,8 +13,6 @@ private:
     bool mUpdated;
     int m_taskid, m_tickid;
     
-    NotifyEvent mTimeoutEvent;
-    
     void tick(int period);
     void task();
     
@@ -25,8 +23,10 @@ public:
     int interval() const {return mInterval;}
     void setInterval(int interval) {mInterval = interval;}
     
-    NotifyEvent timeoutEvent() {return mTimeoutEvent;}
-    void setTimeoutEvent(NotifyEvent event) {mTimeoutEvent = event;}
+    NotifyEvent onTimeout;
+    
+    NotifyEvent timeoutEvent() {return onTimeout;}
+    void setTimeoutEvent(NotifyEvent event) {onTimeout = event;}
     
 //    void reset();
     void start(int interval = 0);

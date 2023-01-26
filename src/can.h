@@ -27,29 +27,14 @@ public:
         errCrc          = 0x6, //!< ошибка контрольной суммы
         errSoftware     = 0x7, //!< устанавливаемая пользователем ошибка
     } ErrorCode;
-  
-private:
-    static Can *mInstances[2];
-    CAN_TypeDef *mCan;
-    int mStartFilter;
-    unsigned long mFilterUsed;
-    CanReceiveEvent mReceiveEvent;
-    NotifyEvent mTransmitReadyEvent;
-    
-    unsigned long mPacketsReceived;
-    unsigned long mPacketsSent;
-    unsigned long mPacketsSendFailed;
-  
-public:  
-    /*! CAN constructor.
-        Creates CAN peripheral interface to CANx with specified baudrate and
-        maps it to default or given pins.
-        \param canNumber    Number of CAN interface, can be 1 or 2. Passing invalid number will cause initialization fail.
-        \param baudrate     Desired baudrate in bits per second. Standard values are 125000 (125 kbps), 250000 (250 kbps), 500000 (500 kbps), 1000000 (1 Mbps) but you can use your own baudrate.
-        \param pinRx        Predefined config for Rx pin, if not passed, default pin will be used: PD0 for CAN1, PB5 for CAN2
-        \param pinRx        Predefined config for Tx pin, if not passed, default pin will be used: PD1 for CAN1, PB6 for CAN2
+     
+    /*! CAN constructor by pins only
+        Creates CAN peripheral interface using the specified pins
+        \param pinRx        Predefined config for Rx pin
+        \param pinRx        Predefined config for Tx pin
+        \param baudrate     Desired baudrate, 1M by default
     */
-    Can(int canNumber, int baudrate, Gpio::Config pinRx=Gpio::NoConfig, Gpio::Config pinTx=Gpio::NoConfig);
+    Can(Gpio::Config pinRx, Gpio::Config pinTx, int baudrate=1000000);
     
     /*! CAN destructor.
     
@@ -153,6 +138,18 @@ public:
         \return Указатель на экземпляр класса, если он создан. В противном случае возвращает 0.
     */
     static Can* instance(int canNumber) {return canNumber>0 && canNumber<=2? mInstances[canNumber-1]: 0L;}
+
+private:
+    static Can *mInstances[2];
+    CAN_TypeDef *mCan;
+    int mStartFilter;
+    uint32_t mFilterUsed;
+    CanReceiveEvent mReceiveEvent;
+    NotifyEvent mTransmitReadyEvent;
+    
+    uint32_t mPacketsReceived;
+    uint32_t mPacketsSent;
+    uint32_t mPacketsSendFailed;
 };
 
 #endif

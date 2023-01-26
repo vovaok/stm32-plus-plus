@@ -77,6 +77,9 @@ void Gpio::config(const Config &conf)
         ConfigStruct cc = c;
         cc.pinNumber = pin;
         usePin(cc);
+    
+        if (c.outType)               // if output type is open drain
+            port->ODR |= (1 << pin); // initialize in Hi-Z state
         
         int pin_x2 = pin * 2;
         port->MODER = port->MODER & ~(0x3 << pin_x2) | (c.mode << pin_x2);
