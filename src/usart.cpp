@@ -445,7 +445,7 @@ void Usart::setConfig(Config config)
     }
     
     mDev->CR2 = mDev->CR2 & ~((uint32_t)USART_CR2_STOP) | (config >> 16);
-    mDev->CR1 = mDev->CR1 & ~((uint32_t)(USART_CR1_M | USART_CR1_PCE | USART_CR1_PS | (config & 0xFFFF)));
+    mDev->CR1 = mDev->CR1 & ~((uint32_t)(USART_CR1_M | USART_CR1_PCE | USART_CR1_PS)) | (config & 0xFFFF);
     mDev->CR3 = mDev->CR3 & ~((uint32_t)(USART_CR3_RTSE | USART_CR3_CTSE));
 }
 //---------------------------------------------------------------------------
