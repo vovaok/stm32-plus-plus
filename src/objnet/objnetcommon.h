@@ -63,6 +63,7 @@ typedef enum
     svcBusType          = 0x09, //!< тип шины физического уровня
     svcBusAddress       = 0x0A, //!< физический адрес (можно поменять)
     svcObjectInfo       = 0x80, //!< описание объекта
+//    svcSubobjectInfo    = 0x81, //!< описание поля объекта
     
     svcTimedObject      = 0x90, //!< ответ узла синхронизованным объектом
     svcGroupedObject    = 0xA0, //!< ответ узла группированным объектом

@@ -59,7 +59,7 @@ ObjnetNode::ObjnetNode(ObjnetInterface *iface) :
 }
 //---------------------------------------------------------------------------
 
-unsigned char ObjnetNode::bindObject(const ObjectInfo &info)
+ObjectInfo &ObjnetNode::bindObject(const ObjectInfo &info)
 {
     mObjects.push_back(info);
     ObjectInfo &obj = mObjects.back();
@@ -69,7 +69,7 @@ unsigned char ObjnetNode::bindObject(const ObjectInfo &info)
         objnetStorage()->load(obj);
     #endif
     obj.onValueChanged = EVENT(&ObjnetNode::objectValueChanged);
-    return obj.mDesc.id;
+    return obj;//.mDesc.id;
 }
 
 void ObjnetNode::task()
@@ -337,12 +337,27 @@ void ObjnetNode::parseServiceMessage(CommonMessage &msg)
 
       case svcObjectInfo:
       {
-        unsigned char _oid = msg.data()[0];
+        ByteArray ba;
+        uint8_t _oid = msg.data()[0];
+        ObjectInfo *obj = 0L;
         if (_oid < mObjects.size())
+            obj = &mObjects[_oid];
+        for (uint8_t i=1; i<msg.data().size(); i++)
         {
-            ByteArray ba;
-            mObjects[_oid].mDesc.read(ba);
+            ba.append(0xFF);
+            ba.append(_oid);
+            _oid = msg.data()[i];
+            if (obj && _oid < obj->subobjectCount())
+                obj = &obj->subobject(_oid);
+        }
+        if (obj)
+        {
+            obj->mDesc.read(ba);
             sendServiceMessage(remoteAddr, svcObjectInfo, ba);
+        }
+        else
+        {
+            sendServiceMessage(remoteAddr, svcFail, oid);
         }
       } break;
         
@@ -366,6 +381,7 @@ void ObjnetNode::parseServiceMessage(CommonMessage &msg)
         }
         else if (mBusType == BusRadio)
         {
+            // TODO: add support of subobjects in the Radio bus
             for (int i=0; i<mObjects.size(); i++)
             {
                 ByteArray ba;

@@ -33,6 +33,9 @@ private:
     void onObjectValueChanged(unsigned char id);
     
     Timer mSendTimer;
+    
+    void parseObjectInfo(const ByteArray &ba);
+    ObjectInfo *prepareObject(const ObjectInfo::Description &desc);
 
 protected:
 //    typedef struct
@@ -72,7 +75,6 @@ protected:
     map<string, ObjectInfo> mObjMap;
     vector<ByteArray> mObjBuffers;
 
-    void prepareObject(const ObjectInfo::Description &desc); //only master calls
     Closure<void(unsigned char, unsigned char)> masterRequestObject;
     Closure<void(unsigned char, unsigned char, const ByteArray&)> masterSendObject;
     Closure<void(unsigned char, SvcOID, const ByteArray&)> masterServiceRequest;

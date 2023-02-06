@@ -8,14 +8,18 @@ ObjectInfo::ObjectInfo() :
     mReadPtr(0L), mWritePtr(0L),
     mAutoPeriod(0), mAutoTime(0),
     mTimedRequest(false),
-    mIsDevice(false)
+    mIsDevice(false),
+    mValid(false),
+    m_parentObject(0L)
 {
 }
 
 template<> ObjectInfo::ObjectInfo(string name, ByteArray &var, Flags flags) :
     mReadPtr(0), mWritePtr(0),
     mAutoPeriod(0), mAutoTime(0), mAutoReceiverAddr(0),
-    mIsDevice(false)
+    mIsDevice(false),
+    mValid(true),
+    m_parentObject(0L)
 {
     if (flags & Read)
     {
@@ -38,7 +42,9 @@ template<> ObjectInfo::ObjectInfo(string name, ByteArray &var, Flags flags) :
 template<> ObjectInfo::ObjectInfo<void>(string name, Closure<void(void)> event, ObjectInfo::Flags flags) :
     mAutoPeriod(0), mAutoTime(0), mAutoReceiverAddr(0),
     mTimedRequest(false),
-    mIsDevice(false)
+    mIsDevice(false),
+    mValid(true),
+    m_parentObject(0L)
 {
     mDesc.readSize = 0; // no return
     mDesc.writeSize = 0; // no param
@@ -57,7 +63,9 @@ template<>
 ObjectInfo::ObjectInfo(string name, Closure<ByteArray(void)> event, ObjectInfo::Flags flags) :
     mReadPtr(0), mWritePtr(0),
     mAutoPeriod(0), mAutoTime(0), mAutoReceiverAddr(0),
-    mIsDevice(false)
+    mIsDevice(false),
+    mValid(true),
+    m_parentObject(0L)
 {
     mDesc.readSize = 0; // pure ByteArray
     mDesc.writeSize = 0; // no param
@@ -78,7 +86,9 @@ template<>
 ObjectInfo::ObjectInfo(string name, Closure<void(ByteArray)> event, ObjectInfo::Flags flags) :
     mReadPtr(0), mWritePtr(0),
     mAutoPeriod(0), mAutoTime(0), mAutoReceiverAddr(0),
-    mIsDevice(false)
+    mIsDevice(false),
+    mValid(true),
+    m_parentObject(0L)
 {
     mDesc.readSize = 0; // no return
     mDesc.writeSize = 0; // pure ByteArray
@@ -99,7 +109,9 @@ template<>
 ObjectInfo::ObjectInfo(string name, Closure<ByteArray(ByteArray)> event, ObjectInfo::Flags flags) :
     mReadPtr(0), mWritePtr(0),
     mAutoPeriod(0), mAutoTime(0), mAutoReceiverAddr(0),
-    mIsDevice(false)
+    mIsDevice(false),
+    mValid(true),
+    m_parentObject(0L)
 {
     mDesc.readSize = 0; // pure ByteArray
     mDesc.writeSize = 0; // pure ByteArray
@@ -117,6 +129,45 @@ ObjectInfo::ObjectInfo(string name, Closure<ByteArray(ByteArray)> event, ObjectI
 }
 #endif
 //---------------------------------------------------------
+
+ObjectInfo &ObjectInfo::group(string name)
+{
+    ObjectInfo info;
+    m_subobjects.push_back(info);
+    ObjectInfo &obj = m_subobjects.back();
+    obj.m_parentObject = this;
+    if (mDesc.flags & Read)
+    {
+//        obj.mReadPtr = &var;
+        obj.mDesc.readSize = 0;
+        obj.mDesc.rType = Compound;
+    }
+    if (mDesc.flags & Write)
+    {
+//        obj.mWritePtr = &var;
+        obj.mDesc.writeSize = 0;
+        obj.mDesc.wType = Compound;
+    }
+    obj.mDesc.flags = mDesc.flags;
+    obj.mDesc.name = name;
+    obj.mDesc.id = m_subobjects.size() - 1;
+    mDesc.rType = (uint8_t)Compound + m_subobjects.size();
+    mDesc.wType = (uint8_t)Compound + m_subobjects.size();
+    return obj;
+}
+
+ObjectInfo &ObjectInfo::endGroup()
+{
+    return *m_parentObject;
+}
+
+bool ObjectInfo::isValid() const
+{
+    bool result = mValid;
+    for (int i=0; i<m_subobjects.size(); i++)
+        result = result && m_subobjects[i].isValid();
+    return result;
+}
 
 ByteArray ObjectInfo::read()
 {
@@ -363,6 +414,16 @@ QVariant ObjectInfo::toVariant()
 //    if (mDesc.type == String)
 //        return *reinterpret_cast<_String*>(mWritePtr);
 
+    if (isCompound())
+    {
+        QVariantMap comp;
+        for (int i=0; i<m_subobjects.size(); i++)
+        {
+            QString name = m_subobjects[i].name();
+            comp[name] = m_subobjects[i].toVariant();
+        }
+        return comp;
+    }
 
     if (mDesc.flags & Array)
     {
@@ -382,8 +443,6 @@ QVariant ObjectInfo::toVariant()
 
 bool ObjectInfo::fromVariant(QVariant &v)
 {
-    if (mDesc.rType != v.type())
-        return false;
     if (mDesc.rType == Common && mDesc.readSize)
     {
         ByteArray ba = v.toByteArray();
@@ -398,6 +457,19 @@ bool ObjectInfo::fromVariant(QVariant &v)
         *const_cast<ByteArray*>(reinterpret_cast<const ByteArray*>(mReadPtr)) = *reinterpret_cast<ByteArray*>(v.data());
         return true;
     }
+
+    if (isCompound())
+    {
+        bool ok = true;
+        QVariantMap comp = v.toMap();
+        for (int i=0; i<m_subobjects.size(); i++)
+        {
+            QString name = m_subobjects[i].name();
+            ok = ok && m_subobjects[i].fromVariant(comp[name]);
+        }
+        return ok;
+    }
+
     if (mDesc.flags & Array)
     {
         QVariantList list = v.toList();
@@ -406,16 +478,27 @@ bool ObjectInfo::fromVariant(QVariant &v)
         for (int j=0; j<N && j<list.size(); j++)
         {
             QVariant v = list[j];
+            if (mDesc.rType != v.type())
+                return false;
             for (int i=0; i<mDesc.readSize; i++)
                 const_cast<unsigned char*>(reinterpret_cast<const unsigned char*>(mReadPtr))[i+j*sz] = reinterpret_cast<unsigned char*>(v.data())[i];
         }
+        return true;
     }
-    else
+    else if (mDesc.rType == v.type())
     {
         for (int i=0; i<mDesc.readSize; i++)
             const_cast<unsigned char*>(reinterpret_cast<const unsigned char*>(mReadPtr))[i] = reinterpret_cast<unsigned char*>(v.data())[i];
+        return true;
     }
-    return true;
+    return false;
 }
 #endif
 //---------------------------------------------------------
+
+ObjectInfo &ObjectInfo::subobject(uint8_t idx)
+{
+    if (idx < m_subobjects.size())
+        return m_subobjects[idx];
+    return *this;
+}

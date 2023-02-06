@@ -30,7 +30,75 @@ ObjnetDevice::ObjnetDevice(unsigned char netaddr) :
 }
 //---------------------------------------------------------
 
-void ObjnetDevice::prepareObject(const ObjectInfo::Description &desc)
+void ObjnetDevice::parseObjectInfo(const ByteArray &ba)
+{
+    ObjectInfo *obj = 0L;
+    ByteArray idba;
+    if ((uint8_t)ba[0] != 0xFF)
+    {
+        obj = prepareObject(ba);
+    }
+    else
+    {
+        obj = mObjects[ba[1]];
+        idba.append(obj->id());
+        ByteArray baba = ba.mid(2);
+        while (obj && baba[0] == 0xFF)
+        {
+            obj = &obj->subobject(baba[1]);
+            idba.append(obj->id());
+            baba.remove(0, 2);
+        }
+        
+        if (obj)
+        {
+            uint8_t subid = baba[0];
+            ObjectInfo &sub = obj->subobject(subid);
+            sub.mDesc = baba;
+            uint8_t roff=0, woff=0;
+            for (int i=0; i<subid; i++)
+            {
+                if (obj->mDesc.flags | ObjectInfo::ReadOnly)
+                    roff += obj->subobject(i).mDesc.readSize;
+                if (obj->mDesc.flags | ObjectInfo::WriteOnly)
+                    woff += obj->subobject(i).mDesc.writeSize;
+            }
+            if (obj->mDesc.flags | ObjectInfo::ReadOnly)
+                sub.mReadPtr = (uint8_t*)obj->mReadPtr + roff;
+            if (obj->mDesc.flags | ObjectInfo::WriteOnly)
+                sub.mWritePtr = (uint8_t*)obj->mWritePtr + woff;
+            
+            if (sub.isCompound())
+            {
+                uint8_t cnt = sub.mDesc.rType - (uint8_t)ObjectInfo::Compound;
+                sub.m_subobjects.resize(cnt);
+            }
+
+            sub.mIsDevice = true;
+            obj = &sub;
+        }
+    }
+    
+    if (obj && obj->isCompound())
+    {
+        idba.append(obj->id());
+        int subsz = obj->mDesc.rType - (uint8_t)ObjectInfo::Compound;
+        int idx = idba.size();
+        idba.append((char)0);
+        for (int i=0; i<subsz; i++)
+        {
+            idba[idx] = i;
+            #ifdef QT_CORE_LIB
+            emit serviceRequest(mNetAddress, svcObjectInfo, idba);
+            #else
+            masterServiceRequest(mNetAddress, svcObjectInfo, idba);
+            #endif
+        }
+    }
+    return;
+}
+
+ObjectInfo *ObjnetDevice::prepareObject(const ObjectInfo::Description &desc)
 {
     ObjectInfo *obj = &mObjMap[desc.name];
     obj->mIsDevice = true;
@@ -92,9 +160,19 @@ void ObjnetDevice::prepareObject(const ObjectInfo::Description &desc)
         for (int i=sz; i<id; i++)
             mObjects[i] = 0L;
     }
+    
+    bool wIsCommonType = (desc.wType == ObjectInfo::Common || obj->isCompound());
+    bool rIsCommonType = (desc.rType == ObjectInfo::Common || obj->isCompound());
+    
+    if (desc.rType >= ObjectInfo::Compound)
+    {
+        uint8_t cnt = desc.rType - (uint8_t)ObjectInfo::Compound;
+        obj->m_subobjects.resize(cnt);
+    }
 
     mObjects[id] = obj;
-    if (!obj->mWritePtr && (desc.writeSize || desc.wType == ObjectInfo::Common))
+    
+    if (!obj->mWritePtr && (desc.writeSize || wIsCommonType))
     {
         if (desc.wType == ObjectInfo::String)
         {
@@ -105,7 +183,7 @@ void ObjnetDevice::prepareObject(const ObjectInfo::Description &desc)
             for (size_t i=0; i<sizeof(_String); i++)
                 reinterpret_cast<unsigned char*>(obj->mWritePtr)[i] = reinterpret_cast<unsigned char*>(&x3)[i];
         }
-        else if (desc.wType == ObjectInfo::Common && desc.writeSize == 0)
+        else if (wIsCommonType && desc.writeSize == 0)
         {
             mObjBuffers[id].resize(sizeof(ByteArray));
             obj->mWritePtr = mObjBuffers[id].data();
@@ -120,10 +198,10 @@ void ObjnetDevice::prepareObject(const ObjectInfo::Description &desc)
         }
     }
     
-    if (!obj->mReadPtr && (desc.readSize || desc.rType == ObjectInfo::Common))
+    if (!obj->mReadPtr && (desc.readSize || rIsCommonType))
     {
         int sz = (desc.rType == ObjectInfo::String)? sizeof(_String): desc.readSize;
-        if ((desc.rType == ObjectInfo::Common && desc.readSize == 0))
+        if ((rIsCommonType && desc.readSize == 0))
             sz = sizeof(ByteArray);
 
         if (desc.flags & ObjectInfo::Dual)
@@ -133,7 +211,7 @@ void ObjnetDevice::prepareObject(const ObjectInfo::Description &desc)
             obj->mWritePtr = mObjBuffers[id].data();
             obj->mReadPtr = mObjBuffers[id].data() + osz;
         }
-        else if (desc.writeSize || desc.wType == ObjectInfo::Common)
+        else if (desc.writeSize || wIsCommonType)
         {
             obj->mReadPtr = mObjBuffers[id].data();
         }
@@ -149,7 +227,7 @@ void ObjnetDevice::prepareObject(const ObjectInfo::Description &desc)
             for (size_t i=0; i<sizeof(_String); i++)
                 const_cast<unsigned char*>(reinterpret_cast<const unsigned char*>(obj->mReadPtr))[i] = reinterpret_cast<unsigned char*>(&x3)[i];
         }
-        else if (desc.rType == ObjectInfo::Common && desc.readSize == 0)
+        else if (rIsCommonType && desc.readSize == 0)
         {
             ByteArray x3;
             for (size_t i=0; i<sizeof(ByteArray); i++)
@@ -161,7 +239,15 @@ void ObjnetDevice::prepareObject(const ObjectInfo::Description &desc)
     for (unsigned int i=0; i<mObjectCount; i++)
     {
         if (i>=mObjects.size() || !mObjects[i])
+        {
             readyFlag = false;
+            break;
+        }
+        if (!mObjects[i]->isValid())
+        {
+            readyFlag = false;
+            break;
+        }
     }
     
     if (readyFlag)
@@ -174,6 +260,8 @@ void ObjnetDevice::prepareObject(const ObjectInfo::Description &desc)
             onReady(this);
 #endif
     }
+    
+    return obj;
 }
 //---------------------------------------------------------
 
@@ -231,7 +319,7 @@ void ObjnetDevice::receiveServiceObject(unsigned char oid, const ByteArray &ba)
         break;
 
       case svcObjectInfo:
-        prepareObject(ba);
+        parseObjectInfo(ba);
         break;
 
       case svcTimedObject:

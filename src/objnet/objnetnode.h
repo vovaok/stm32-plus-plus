@@ -99,7 +99,7 @@ public:
 
     bool isConnected() const {return mNetState > netnConnecting;}
 
-    unsigned char bindObject(const ObjectInfo &info);
+    ObjectInfo &bindObject(const ObjectInfo &info);
     #define BindObject(obj) bindObject(ObjectInfo(#obj, obj)) // convenient macro
     #define BindObjectEx(obj, flags) bindObject(ObjectInfo(#obj, obj, flags)) // convenient macro
     #define BindDualObject(objRead, objWrite) bindObject(ObjectInfo(#objRead":"#objWrite, objRead, objWrite))
@@ -108,27 +108,27 @@ public:
     #define BindMethodEx(name, object, method) bindObject(ObjectInfo(name, CLOSURE(object, &method)))
     #define BindMethodHiddenEx(name, object, method) bindObject(ObjectInfo(name, CLOSURE(object, &method), ObjectInfo::Hidden))
     
-    template <typename T> unsigned char bindVariable(string name, T &var)
+    template <typename T> ObjectInfo &bindVariable(string name, T &var)
     {
         return bindObject(ObjectInfo(name, var));
     }
     
-    template <typename T> unsigned char bindInput(string name, T &var)
+    template <typename T> ObjectInfo &bindInput(string name, T &var)
     {
         return bindObject(ObjectInfo(name, var, ObjectInfo::Control));
     }
     
-    template <typename T> unsigned char bindOutput(string name, T &var)
+    template <typename T> ObjectInfo &bindOutput(string name, T &var)
     {
         return bindObject(ObjectInfo(name, var, ObjectInfo::Measurement));
     }
     
-    template <typename T> unsigned char bindIO(string name, T &var)
+    template <typename T> ObjectInfo &bindIO(string name, T &var)
     {
         return bindObject(ObjectInfo(name, var, ObjectInfo::Exchange));
     }
     
-    template <typename T> unsigned char bindSetting(string name, T &var)
+    template <typename T> ObjectInfo &bindSetting(string name, T &var)
     {
         return bindObject(ObjectInfo(name, var, ObjectInfo::Storage));
     }
