@@ -444,6 +444,7 @@ void HardwareTimer::enableInterrupt(InterruptSource source)
 //    NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
 //    NVIC_Init(&NVIC_InitStructure);
     
+    NVIC_SetPriority(mIrq, 1);
     NVIC_EnableIRQ(mIrq);
     
     

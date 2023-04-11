@@ -2,7 +2,7 @@
 
 <workspace>
   <project>
-    <path>$WS_DIR$\stm32++_IAR_8.ewp</path>
+    <path>$WS_DIR$\stm32++_IAR_9.ewp</path>
   </project>
   <batchBuild/>
 </workspace>

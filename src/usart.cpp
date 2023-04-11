@@ -390,7 +390,7 @@ void Usart::dmaTxComplete()
 
 void Usart::setBaudrate(int baudrate)
 {
-    mBaudrate = baudrate;
+//    mBaudrate = baudrate;
     
     #if defined(STM32F37X)
     int apbclock = (mDev == USART1)? Rcc::pClk2(): Rcc::pClk1();
@@ -398,35 +398,49 @@ void Usart::setBaudrate(int baudrate)
     int apbclock = ((mDev == USART1) || (mDev == USART6))? Rcc::pClk2(): Rcc::pClk1();
     #endif
 
-    uint32_t tmpreg = 0;
+    uint32_t tmpreg = apbclock / baudrate;
+    mBaudrate = apbclock / tmpreg;
     
 #if defined(STM32F37X)
-    tmpreg = apbclock / mBaudrate;
-    
+//    mBaudrate = apbclock / tmpreg;
 #else
-    uint32_t integerdivider = 0;
-    uint32_t fractionaldivider = 0x00;
-    // Determine the integer part
-    if (mDev->CR1 & USART_CR1_OVER8)
+    
+    if (tmpreg < 8)
+        THROW(Exception::OutOfRange);
+    if (tmpreg < 16)
     {
-        // Integer part computing in case Oversampling mode is 8 Samples
-        integerdivider = (25 * apbclock) / (2 * mBaudrate);    
+        mDev->CR1 |= USART_CR1_OVER8;
+        tmpreg = ((tmpreg & ~0x7) << 1) | (tmpreg & 0x7);
     }
     else
     {
-        // Integer part computing in case Oversampling mode is 16 Samples
-        integerdivider = (25 * apbclock) / (4 * mBaudrate);    
+        mDev->CR1 &= ~USART_CR1_OVER8;
     }
-    tmpreg = (integerdivider / 100) << 4;
-
-    // Determine the fractional part
-    fractionaldivider = integerdivider - (100 * (tmpreg >> 4));
-
-    // Implement the fractional part in the register
-    if ((mDev->CR1 & USART_CR1_OVER8) != 0)
-        tmpreg |= ((((fractionaldivider * 8) + 50) / 100)) & ((uint8_t)0x07);
-    else
-        tmpreg |= ((((fractionaldivider * 16) + 50) / 100)) & ((uint8_t)0x0F);
+    
+    
+//    uint32_t integerdivider = 0;
+//    uint32_t fractionaldivider = 0x00;
+//    // Determine the integer part
+//    if (mDev->CR1 & USART_CR1_OVER8)
+//    {
+//        // Integer part computing in case Oversampling mode is 8 Samples
+//        integerdivider = (25 * apbclock) / (2 * mBaudrate);    
+//    }
+//    else
+//    {
+//        // Integer part computing in case Oversampling mode is 16 Samples
+//        integerdivider = (25 * apbclock) / (4 * mBaudrate);    
+//    }
+//    tmpreg = (integerdivider / 100) << 4;
+//
+//    // Determine the fractional part
+//    fractionaldivider = integerdivider - (100 * (tmpreg >> 4));
+//
+//    // Implement the fractional part in the register
+//    if ((mDev->CR1 & USART_CR1_OVER8) != 0)
+//        tmpreg |= ((((fractionaldivider * 8) + 50) / 100)) & ((uint8_t)0x07);
+//    else
+//        tmpreg |= ((((fractionaldivider * 16) + 50) / 100)) & ((uint8_t)0x0F);
 #endif
     
     // Write to USART BRR register

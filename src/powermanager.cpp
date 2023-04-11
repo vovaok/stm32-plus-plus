@@ -35,13 +35,13 @@ void PowerManager::onTimer()
     if (!mTemperature)
         mTemperature = temp;
     else
-        mTemperature = 0.95*mTemperature + 0.05*temp;
+        mTemperature = 0.95f*mTemperature + 0.05f*temp;
     
     float v = mAdc->result(Adc::Vbat) * (2.0f * 3.3f / 4095.0f);
-    if (!mVbat)
+//    if (!mVbat)
         mVbat = v;
-    else
-        mVbat = 0.9*mVbat + 0.1*v;
+//    else
+//        mVbat = 0.9*mVbat + 0.1*v;
     
     for (map<string, VoltageEntry>::iterator it = mVoltages.begin(); it != mVoltages.end(); ++it)
     {

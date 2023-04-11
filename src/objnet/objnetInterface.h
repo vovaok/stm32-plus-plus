@@ -9,7 +9,8 @@
     otherwise program will \b crash and may \b burn your board. MUHAHAHAHAHAHA!!
     */
 
-#include <queue>
+//#include <queue>
+#include "core/ringbuffer.h"
 #include "objnetmsg.h"
 #include "stdint.h"
 
@@ -126,12 +127,15 @@ protected:
     
     virtual void setReceiveEnabled(bool enabled) {(void)enabled;}
     
-    int mTxQueueSize;
-    int mRxQueueSize;
+//    int mTxQueueSize;
+//    int mRxQueueSize;
+    
+    void setTxQueueSize(int size) {mTxQueue.resize(size);}
+    void setRxQueueSize(int size) {mRxQueue.resize(size);}
     
 private:
-    std::queue<CommonMessage> mTxQueue;
-    std::queue<CommonMessage> mRxQueue;
+    RingBuffer<CommonMessage> mTxQueue;
+    RingBuffer<CommonMessage> mRxQueue;
 };
 
 }

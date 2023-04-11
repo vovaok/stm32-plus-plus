@@ -101,6 +101,8 @@ public:
     bool isPresent() const {return mPresent;}
     bool isValid() const {return (mInfoValidFlags & 3) == 3;}
     bool isInfoValid() const {return (mInfoValidFlags & mInfoValidMask) == mInfoValidMask;}
+    bool isObjectInfoValid() const;
+    bool isReady() const {return isInfoValid() && isObjectInfoValid();}
 
     unsigned char netAddress() const {return mNetAddress;}
     unsigned char busAddress() const {return mBusAddress;}
@@ -121,6 +123,12 @@ public:
 
     int objectCount() const {return mObjectCount;}
     ObjectInfo *objectInfo(unsigned char oid) {if (oid < mObjects.size()) return mObjects[oid]; return 0L;}
+    ObjectInfo *objectInfo(_String name)
+    {
+        if (mObjMap.count(_fromString(name))) 
+            return &mObjMap[_fromString(name)];
+        return 0L;
+    }
     bool hasObject(_String name) {return mObjMap.find(_fromString(name)) != mObjMap.end();}
 
     void changeName(_String name);
@@ -203,6 +211,7 @@ public:
 
     void requestMetaInfo();
     void requestInfo(unsigned char oid);
+    void requestObjectInfo(unsigned char oid);
 
 #ifdef QT_CORE_LIB
 signals:

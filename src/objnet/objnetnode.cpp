@@ -38,8 +38,9 @@ ObjnetNode::ObjnetNode(ObjnetInterface *iface) :
     
     mBusType = iface->busType();
     
-    if (mBusType == BusSwonb || mBusType == BusRadio)
-        mSendTimer.stop();
+    // sendTimer must be running for mTimestamp++
+//    if (mBusType == BusSwonb || mBusType == BusRadio)
+//        mSendTimer.stop();
     
     if (mNodesCount)
         mSerial ^= rand();
@@ -360,6 +361,25 @@ void ObjnetNode::parseServiceMessage(CommonMessage &msg)
             sendServiceMessage(remoteAddr, svcFail, oid);
         }
       } break;
+      
+      case svcGetTimedObject:
+      {
+        uint8_t _oid = msg.data()[0];
+        if (_oid < mObjects.size())
+        {
+            ByteArray ba;
+            ObjectInfo &obj = mObjects[_oid];
+            ba.append(reinterpret_cast<const char*>(&_oid), sizeof(unsigned char));
+            ba.append('\0'); // reserved byte
+            ba.append(reinterpret_cast<const char*>(&mTimestamp), sizeof(uint32_t));
+            ba.append(obj.read());
+            sendServiceMessage(remoteAddr, svcTimedObject, ba);
+        }
+        else
+        {
+            sendServiceMessage(remoteAddr, svcFail, oid);
+        }
+      } break;
         
       case svcRequestAllInfo:
         if (mBusType == BusSwonb)// || mBusType == BusRadio)
@@ -568,27 +588,30 @@ void ObjnetNode::onTimeoutTimer()
 
 void ObjnetNode::onSendTimer()
 {
-    for (unsigned char oid=0; oid<mObjects.size(); oid++)
+    if (mBusType != BusSwonb && mBusType != BusRadio)
     {
-        ObjectInfo &obj = mObjects[oid];
-        if (obj.mAutoPeriod)
+        for (unsigned char oid=0; oid<mObjects.size(); oid++)
         {
-            obj.mAutoTime++;
-            if (obj.mAutoTime >= obj.mAutoPeriod)
+            ObjectInfo &obj = mObjects[oid];
+            if (obj.mAutoPeriod)
             {
-                obj.mAutoTime = 0;
-                if (obj.mTimedRequest)
+                obj.mAutoTime++;
+                if (obj.mAutoTime >= obj.mAutoPeriod)
                 {
-                    ByteArray ba;
-                    ba.append(reinterpret_cast<const char*>(&oid), sizeof(unsigned char));
-                    ba.append('\0'); // reserved byte
-                    ba.append(reinterpret_cast<const char*>(&mTimestamp), sizeof(uint32_t));
-                    ba.append(obj.read());
-                    sendServiceMessage(obj.mAutoReceiverAddr, svcTimedObject, ba);
-                }
-                else // usual request
-                {
-                    sendMessage(obj.mAutoReceiverAddr, oid, obj.read());
+                    obj.mAutoTime = 0;
+                    if (obj.mTimedRequest)
+                    {
+                        ByteArray ba;
+                        ba.append(reinterpret_cast<const char*>(&oid), sizeof(unsigned char));
+                        ba.append('\0'); // reserved byte
+                        ba.append(reinterpret_cast<const char*>(&mTimestamp), sizeof(uint32_t));
+                        ba.append(obj.read());
+                        sendServiceMessage(obj.mAutoReceiverAddr, svcTimedObject, ba);
+                    }
+                    else // usual request
+                    {
+                        sendMessage(obj.mAutoReceiverAddr, oid, obj.read());
+                    }
                 }
             }
         }

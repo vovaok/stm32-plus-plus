@@ -26,7 +26,7 @@ using namespace std;
 #endif
 
 #ifndef APP_COMPANY
-#define APP_COMPANY     "MIPT"
+#define APP_COMPANY     ""
 #endif
 
 #if !defined(APP_VERSION)

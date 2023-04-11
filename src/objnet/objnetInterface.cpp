@@ -6,8 +6,8 @@ ObjnetInterface::ObjnetInterface() :
     mMaxFrameSize(8),
     mBusType(BusUnknown),
     isMaster(false),
-    mTxQueueSize(32),
-    mRxQueueSize(32)
+    mTxQueue(32),
+    mRxQueue(32)
 {
 #if !defined(QT_CORE_LIB)
     stmApp()->registerTaskEvent(EVENT(&ObjnetInterface::task));
@@ -16,11 +16,11 @@ ObjnetInterface::ObjnetInterface() :
 
 void ObjnetInterface::task()
 {
-    while (mTxQueue.size())
+    while (!mTxQueue.isEmpty())
     {
-        CommonMessage &msg = mTxQueue.front();
+        const CommonMessage &msg = mTxQueue.front();
         if (send(msg))
-            mTxQueue.pop();
+            mTxQueue.pop_front();
         else
             break;
     }
@@ -28,25 +28,25 @@ void ObjnetInterface::task()
 
 int ObjnetInterface::availableWriteCount()
 {
-    return mTxQueueSize - mTxQueue.size();
+    return mTxQueue.maxsize() - mTxQueue.size();
 }
 
 void ObjnetInterface::flush()
 {
-    while (!mTxQueue.empty())
-        mTxQueue.pop();
+    while (!mTxQueue.isEmpty())
+        mTxQueue.pop_front();
 }
 
 bool ObjnetInterface::write(const CommonMessage &msg)
 {
-    if (mTxQueue.empty())
+    if (mTxQueue.isEmpty())
     {
         if (send(msg))
             return true;
     }
-    if (mTxQueue.size() < mTxQueueSize - 1)
+    if (mTxQueue.size() < mTxQueue.maxsize() - 1)
     {
-        mTxQueue.push(msg);
+        mTxQueue.push_back(msg);
         return true;
     }
     return false;
@@ -54,11 +54,11 @@ bool ObjnetInterface::write(const CommonMessage &msg)
    
 bool ObjnetInterface::read(CommonMessage &msg)
 {
-    if (mRxQueue.size())
+    if (!mRxQueue.isEmpty())
     {
         setReceiveEnabled(false);
         msg = mRxQueue.front();
-        mRxQueue.pop();
+        mRxQueue.pop_front();
         setReceiveEnabled(true);
         return true;
     }
@@ -67,9 +67,9 @@ bool ObjnetInterface::read(CommonMessage &msg)
 
 bool ObjnetInterface::receive(const CommonMessage &msg)
 {
-    if (mRxQueue.size() < mRxQueueSize - 1)
+    if (mRxQueue.size() < mRxQueue.maxsize() - 1)
     {
-        mRxQueue.push(msg);
+        mRxQueue.push_back(msg);
         return true;
     }
     return false;

@@ -34,10 +34,10 @@ private:
     
     enum {stateInit, stateCalibrate, stateIdle, stateTx, stateRx} mState;
     
-    std::queue<CommonMessage> mTxQueue;
-    std::queue<CommonMessage> mRxQueue;
-    const static int mTxQueueSize = 64;
-    const static int mRxQueueSize = 64;
+//    std::queue<CommonMessage> mTxQueue;
+//    std::queue<CommonMessage> mRxQueue;
+//    const static int mTxQueueSize = 64;
+//    const static int mRxQueueSize = 64;
     
     bool writeRx(const CommonMessage &msg);
     bool readTx(CommonMessage &msg);

@@ -23,8 +23,13 @@ public:
     virtual void close();
     
     int read(char *data, int maxsize);
+    ByteArray read(int maxsize);
+    ByteArray readAll();
     int write(const char *data, int size);
+    int write(const char *data); // null-terminated string
+    int write(const ByteArray &data);
     
+    virtual bool atEnd() const {return !bytesAvailable();}
     virtual int bytesAvailable() const = 0; // {return 0;}
     
     bool isOpen() const {return m_openMode;}
@@ -33,6 +38,7 @@ public:
     
     virtual bool canReadLine() const {return false;}
     int readLine(char *data, int maxsize);
+    ByteArray readLine(int maxsize=0);
     
     NotifyEvent onReadyRead;
     

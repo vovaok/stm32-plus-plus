@@ -190,6 +190,29 @@ ByteArray ObjectInfo::read()
     {
         return *reinterpret_cast<const ByteArray*>(mReadPtr);
     }
+    else if (!mDesc.readSize && (mDesc.flags & Array)) // this is RingBuffer
+    {
+        ByteArray ba;
+        if (mDesc.rType == Float)
+        {
+            RingBuffer<float> *ring = reinterpret_cast<RingBuffer<float> *>(mWritePtr);
+            int sz = ring->size();
+            ba.resize(sz * sizeof(float));
+            float *dst = reinterpret_cast<float *>(ba.data());
+//            while (!ring->isEmpty())
+            for (; sz; --sz)
+                *dst++ = ring->take_front();
+//            int csz = ring->cont_size() * sizeof(float);
+//            ba.append(reinterpret_cast<const char *>(&ring->front()), csz);
+//            ba.append(reinterpret_cast<const char *>(ring->data()), sz - csz);
+//            ring->clear();
+        }
+        else if (mDesc.rType == Int) 
+        {
+            /// @todo Implement other types in the ObjectInfo with RingBuffer
+        }
+        return ba;
+    }
     else
     {
         return ByteArray(reinterpret_cast<const char*>(mReadPtr), mDesc.readSize);
@@ -224,6 +247,21 @@ bool ObjectInfo::write(const ByteArray &ba)
         if (onValueChanged && (oldBa != ba))
             changed = true;
         oldBa = ba;
+    }
+    else if (!mDesc.writeSize && (mDesc.flags & Array)) // this is RingBuffer
+    {
+        if (mDesc.wType == Float)
+        {
+            RingBuffer<float> *ring = reinterpret_cast<RingBuffer<float> *>(mWritePtr);
+            const float *src = reinterpret_cast<const float *>(ba.data());
+            int sz = ba.size() / sizeof(float);
+            for (; sz; --sz)
+                ring->push_back(*src++);
+        }
+        else if (mDesc.wType == Int)
+        {
+            /// @todo Implement other types in the ObjectInfo with RingBuffer
+        }
     }
     else if ((size_t)ba.size() == mDesc.writeSize)
     {
@@ -427,6 +465,22 @@ QVariant ObjectInfo::toVariant()
 
     if (mDesc.flags & Array)
     {
+        if (!mDesc.writeSize) // this is RingBuffer
+        {
+            QList<QVariant> vec;
+            if (mDesc.wType == Float)
+            {
+                RingBuffer<float> *ring = reinterpret_cast<RingBuffer<float> *>(mWritePtr);
+                while (!ring->isEmpty())
+                    vec << ring->take_front();
+            }
+            else if (mDesc.wType == Int)
+            {
+              
+            }
+            return vec;
+        }
+      
         int sz = sizeofType((Type)mDesc.wType);
         if (sz)
         {
@@ -473,6 +527,24 @@ bool ObjectInfo::fromVariant(QVariant &v)
     if (mDesc.flags & Array)
     {
         QVariantList list = v.toList();
+        
+        if (!mDesc.readSize) // this is RingBuffer
+        {
+            QList<QVariant> vec;
+            if (mDesc.rType == Float)
+            {
+                RingBuffer<float> *ring = reinterpret_cast<RingBuffer<float> *>(mWritePtr);
+                for (QVariant &v: list)
+                    ring->push_back(v.toFloat());
+                return true;
+            }
+            else if (mDesc.wType == Int)
+            {
+              
+            }
+            return false;
+        }
+      
         int sz = sizeofType((Type)mDesc.rType);
         int N = mDesc.readSize / sz;
         for (int j=0; j<N && j<list.size(); j++)

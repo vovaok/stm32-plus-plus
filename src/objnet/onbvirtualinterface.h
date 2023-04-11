@@ -2,6 +2,7 @@
 #define _ONBVIRTUALINTERFACE_H
 
 #include "objnetInterface.h"
+#include <queue>
 
 namespace Objnet
 {

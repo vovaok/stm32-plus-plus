@@ -180,7 +180,8 @@ void Adc::setEnabled(bool enable)
     {
         mDma = new Dma(mDmaChannel);
         mDma->setCircularBuffer(mBuffer.data(), mChannelCount*mSampleCount);
-        mDma->setTransferCompleteEvent(mCompleteEvent);
+        if (mCompleteEvent)
+            mDma->setTransferCompleteEvent(mCompleteEvent);
         configDma(mDma);
         mDmaOwner = true;
     }

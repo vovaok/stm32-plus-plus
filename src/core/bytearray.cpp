@@ -1,4 +1,5 @@
 #include "bytearray.h"
+#include "application.h"
 
 //#define ASSERT_SIZE()   if (mSize > mAllocSize) while (1)
 
@@ -30,7 +31,9 @@ ByteArray::ByteArray(const char *str) :
     mSize(0),
     mAllocSize(0)
 {
-    append(str);
+//    append(str); // do not copy the string before it is changed
+    mData = const_cast<char *>(str);
+    mSize = strlen(str);
 }
 
 ByteArray::ByteArray(int size, char ch) :
@@ -39,47 +42,84 @@ ByteArray::ByteArray(int size, char ch) :
     mAllocSize(0)
 {
     allocMore(size);
-//    ASSERT_SIZE();
     mSize = size;
-//    ASSERT_SIZE();
     char *p = mData;
     while (size--)
         *p++ = ch;
+    mData[mSize] = '\0';
 }
 
 ByteArray::~ByteArray()
 {
-    clear();
+    if (mAllocSize)
+        clear();
 }
 
 ByteArray &ByteArray::operator=(const ByteArray &other)
 {
-    clear();
+    if (mAllocSize)
+        clear();
     append(other);
     return (*this);
+}
+
+#if __cplusplus > 199711L
+ByteArray::ByteArray(ByteArray &&other)
+{
+    mData = other.mData;
+    mSize = other.mSize;
+    mAllocSize = other.mAllocSize;
+    other.mData = nullptr;
+    other.mSize = 0;
+    other.mAllocSize = 0;
+}
+
+ByteArray &ByteArray::operator=(ByteArray &&other)
+{
+    if (mAllocSize)
+        clear();
+    mData = other.mData;
+    mSize = other.mSize;
+    mAllocSize = other.mAllocSize;
+    other.mData = nullptr;
+    other.mSize = 0;
+    other.mAllocSize = 0;
+    return *this;
+}
+#endif
+//---------------------------------------------------------------------------
+
+char ByteArray::readHex(char *ptr)
+{
+    char bh = *ptr++ & 0x4F;
+    char bl = *ptr++ & 0x4F;
+    return ((bh & 0x40? bh - 55: bh) << 4) | (bl & 0x40? bl - 55: bl);
 }
 //---------------------------------------------------------------------------
 
 void ByteArray::allocMore(int size)
 { 
-    unsigned int desiredSize = mSize + size; // compute desired buffer size
-//    ASSERT_SIZE();
+    unsigned int desiredSize = mSize + size + 1; // compute desired buffer size // +1 FOR '\0'-terminating string
     if (desiredSize <= mAllocSize)
         return;
-    unsigned long _primask = __get_PRIMASK();
-    __disable_irq();
-    while (mAllocSize < desiredSize) // compute nearest allocation size
-        mAllocSize = mAllocSize? (mAllocSize << 1): 16; // minimum size = 16 bytes
-//    ASSERT_SIZE();
-    char *temp = new char[mAllocSize]; // allocate new buffer
+    int allocSize = mAllocSize;
+    
+    __istate_t interrupt_state = __get_interrupt_state();
+    __disable_interrupt();
+    
+    while (allocSize < desiredSize) // compute nearest allocation size
+        allocSize = allocSize? (allocSize << 1): 16; // minimum size = 16 bytes
+    char *temp = new char[allocSize]; // allocate new buffer
     if (mData)
     {
         memcpy(temp, mData, mSize); // copy old data
-        delete [] mData;               // delete old buffer
+        if (mAllocSize)             // if this ByteArray is the owner of the data
+            delete [] mData;        // delete old buffer
     }
-    mData = temp; 
-    if (!_primask)
-        __enable_irq();
+    mData = temp;
+    mAllocSize = allocSize;
+    
+    __set_interrupt_state(interrupt_state);
 }
 //---------------------------------------------------------------------------
 
@@ -88,15 +128,14 @@ ByteArray &ByteArray::append(const void *data, unsigned int size)
     if (size > 0)
     {
         allocMore(size); // relocate buffer by <size> bytes
-//        ASSERT_SIZE();
         const unsigned char *dataptr = reinterpret_cast<const unsigned char*>(data);
         char *mdataptr = mData + mSize;
         mSize += size;
-//        ASSERT_SIZE();
         while (size--)
             *mdataptr++ = *dataptr++;
 //        memcpy(mData + mSize, data, size); // copy new data    
 //        mSize += size;
+        mData[mSize] = '\0';
     }
     return *this;
 }
@@ -114,48 +153,40 @@ ByteArray &ByteArray::append(const ByteArray &ba)
 ByteArray &ByteArray::append(char byte)
 {
     allocMore(1);
-//    ASSERT_SIZE();
     mData[mSize++] = byte;
-//    ASSERT_SIZE();
+    mData[mSize] = '\0';
     return *this;
 }
 //---------------------------------------------------------------------------
 
 void ByteArray::resize(int size)
 {
-//    unsigned long _primask = __get_PRIMASK();
-//    __disable_irq();
     int addsize = size - mSize;
     if (size > mSize)
     {
         allocMore(size - mSize);
-//        ASSERT_SIZE();
     }
     int oldSize = mSize;
     mSize = size;
-//    ASSERT_SIZE();
     size = oldSize;
     oldSize = addsize;
-//    if (!_primask)
-//        __enable_irq();
 }
 //---------------------------------------------------------------------------
 
 void ByteArray::clear()
 {
-    unsigned long _primask = __get_PRIMASK();
-    __disable_irq();
+    __istate_t interrupt_state = __get_interrupt_state();
+    __disable_interrupt();
+    
     if (mData)
     {
         delete [] mData;
         mData = 0L;
     }
     mSize = 0;
-//    ASSERT_SIZE();
     mAllocSize = 0;
-//    ASSERT_SIZE();
-    if (!_primask)
-        __enable_irq();
+    
+    __set_interrupt_state(interrupt_state);
 }
 //---------------------------------------------------------------------------
 
@@ -166,14 +197,13 @@ ByteArray &ByteArray::remove(int index, int count)
         if (index + count >= mSize)
         {
             mSize = index;
-//            ASSERT_SIZE();
         }
         else
         {
+            allocMore(0); // copy data if nececcary before change it
             const char *srcptr = mData + index + count;
             char *destptr = mData + index;
             mSize -= count;
-//            ASSERT_SIZE();
             count = mSize;
             while (count--)
                 *destptr++ = *srcptr++;
@@ -290,6 +320,23 @@ ByteArray ByteArray::mid(int pos, int len) const
         return *this;
     return ByteArray(mData + pos, len);
 }
+
+void ByteArray::chop(int n)
+{
+    if (n <= 0)
+        return;
+    
+    if (n < mSize)
+        mSize -= n;
+    else
+        mSize = 0;
+}
+
+void ByteArray::truncate(int pos)
+{
+    if (pos >= 0 && pos < mSize)
+        mSize = pos;
+}
 //---------------------------------------------------------------------------
 
 int findByteArray(const char *b, int blen, int from, const char *s, int slen)
@@ -350,4 +397,117 @@ int ByteArray::indexOf(char c, int from) const
     }
     return -1;
 }
+
+int ByteArray::lastIndexOf(char c, int from) const
+{
+    if (from < 0)
+        from = from + mSize;
+    if (from < 0)
+        from = 0;
+    if (from > 0)
+    {
+        const char *n = mData + from;
+        const char *e = mData;
+        while (--n != e)
+        if (*n == c)
+            return n - mData;
+    }
+    return -1;
+}
 //---------------------------------------------------------------------------
+
+int ByteArray::toInt() const
+{
+    if (!mSize)
+        return 0; // alarm
+    int value;
+    sscanf(mData, "%d", &value);
+    return value;
+}
+
+float ByteArray::toFloat() const
+{
+    if (!mSize)
+        return 0; // alarm
+    float value;
+    sscanf(mData, "%f", &value);
+    return value;
+}
+
+std::string ByteArray::toStdString() const
+{
+    return std::string(mData, mSize);
+}
+//---------------------------------------------------------------------------
+
+ByteArray ByteArray::fromStdString(const std::string &str)
+{
+    return ByteArray(str.c_str(), str.size());
+}
+
+ByteArray ByteArray::fromRawData(const char *data, int size)
+{
+    ByteArray ba;
+    ba.mData = const_cast<char *>(data);
+    ba.mSize = size;
+    return ba;
+}
+
+ByteArray ByteArray::fromPercentEncoding(const ByteArray &ba)
+{
+    ByteArray out;
+    char *ptr = ba.mData;
+    for (int i=0; i<ba.mSize; i++)
+    {
+        if (*ptr == '%')
+        {
+            out.append(readHex(ptr++));
+            i += 2;
+            ptr += 2;
+        }
+        else
+        {
+            out.append(*ptr++);
+        }
+    }
+    return out;
+}
+
+ByteArray ByteArray::number(int n)
+{
+    ByteArray ba;
+    ba.resize(16);
+    sprintf(ba.data(), "%d", n);
+    ba.resize(strlen(ba.data()));
+    return ba;
+}
+
+ByteArray ByteArray::number(float n)
+{
+    ByteArray ba;
+    ba.resize(16);
+    sprintf(ba.data(), "%f", n);
+    ba.resize(strlen(ba.data()));
+    return ba;
+}
+
+ByteArray ByteArray::number(double n)
+{
+    ByteArray ba;
+    ba.resize(16);
+    sprintf(ba.data(), "%f", n);
+    ba.resize(strlen(ba.data()));
+    return ba;
+}
+//---------------------------------------------------------------------------
+
+ByteArray operator +(const ByteArray &ba1, const ByteArray ba2)
+{
+    return ByteArray(ba1).append(ba2);
+}
+
+bool operator<(const ByteArray &ba1, const ByteArray &ba2)
+{
+    int n = ba1.mSize > ba2.mSize? ba1.mSize: ba2.mSize;
+    return strncmp(ba1.mData, ba2.mData, n) < 0;
+}

@@ -8,7 +8,7 @@
 #include "core/core.h"
 #else
 #include <QtCore>
-#include "closure.h"
+#include "core/closure.h"
 #define ByteArray QByteArray
 #endif
 #include "objnetclasses.h"
@@ -66,6 +66,7 @@ typedef enum
 //    svcSubobjectInfo    = 0x81, //!< описание поля объекта
     
     svcTimedObject      = 0x90, //!< ответ узла синхронизованным объектом
+    svcGetTimedObject   = 0x91, //!< запрос синхронизованного объекта
     svcGroupedObject    = 0xA0, //!< ответ узла группированным объектом
 
     // дублирование глобальных запросов для работы локально

@@ -75,6 +75,7 @@ void ObjnetDevice::parseObjectInfo(const ByteArray &ba)
             }
 
             sub.mIsDevice = true;
+            sub.mValid = true;
             obj = &sub;
         }
     }
@@ -127,42 +128,45 @@ ObjectInfo *ObjnetDevice::prepareObject(const ObjectInfo::Description &desc)
     obj->mDesc.wType = wt;
     obj->mDesc.rType = rt;
     unsigned char id = desc.id;
-    if (id >= mObjects.size())
-    {
-        int sz = mObjects.size();
-        mObjects.resize(id + 1);
-        mObjBuffers.resize(id + 1);
-        for (int i=0; i<sz; i++)
-        {
-            ObjectInfo *o = mObjects[i];
-            if (o)
-            {
-                char *ptr = mObjBuffers[i].data();
-                if (o->mWritePtr && o->mWritePtr != ptr)
-                {
-                    if (o->mReadPtr == o->mWritePtr)
-                        o->mReadPtr = o->mWritePtr = ptr;
-                    else if (!o->mReadPtr)
-                        o->mWritePtr = ptr;
-                    else
-                    {
-                        uintptr_t off = (uintptr_t)o->mReadPtr - (uintptr_t)o->mWritePtr;
-                        o->mWritePtr = ptr;
-                        o->mReadPtr = ptr + off;
-                    }
-                }
-                else if (o->mReadPtr && o->mReadPtr != ptr)
-                {
-                    o->mReadPtr = ptr;
-                }
-            }
-        }
-        for (int i=sz; i<id; i++)
-            mObjects[i] = 0L;
-    }
+//    if (id >= mObjects.size())
+//    {
+//        int sz = mObjects.size();
+//        mObjects.resize(id + 1);
+//        mObjBuffers.resize(id + 1);
+//        for (int i=0; i<sz; i++)
+//        {
+//            ObjectInfo *o = mObjects[i];
+//            if (o)
+//            {
+//                char *ptr = mObjBuffers[i].data();
+//                if (o->mWritePtr && o->mWritePtr != ptr)
+//                {
+//                    if (o->mReadPtr == o->mWritePtr)
+//                        o->mReadPtr = o->mWritePtr = ptr;
+//                    else if (!o->mReadPtr)
+//                        o->mWritePtr = ptr;
+//                    else
+//                    {
+//                        uintptr_t off = (uintptr_t)o->mReadPtr - (uintptr_t)o->mWritePtr;
+//                        o->mWritePtr = ptr;
+//                        o->mReadPtr = ptr + off;
+//                    }
+//                }
+//                else if (o->mReadPtr && o->mReadPtr != ptr)
+//                {
+//                    o->mReadPtr = ptr;
+//                }
+//            }
+//        }
+//        for (int i=sz; i<id; i++)
+//            mObjects[i] = 0L;
+//    }
     
     bool wIsCommonType = (desc.wType == ObjectInfo::Common || obj->isCompound());
     bool rIsCommonType = (desc.rType == ObjectInfo::Common || obj->isCompound());
+    
+    bool wIsBuffer = (!desc.writeSize && (desc.flags & ObjectInfo::Array));
+    bool rIsBuffer = (!desc.readSize && (desc.flags & ObjectInfo::Array));
     
     if (desc.rType >= ObjectInfo::Compound)
     {
@@ -172,7 +176,7 @@ ObjectInfo *ObjnetDevice::prepareObject(const ObjectInfo::Description &desc)
 
     mObjects[id] = obj;
     
-    if (!obj->mWritePtr && (desc.writeSize || wIsCommonType))
+    if (!obj->mWritePtr && (desc.writeSize || wIsCommonType || wIsBuffer))
     {
         if (desc.wType == ObjectInfo::String)
         {
@@ -191,6 +195,16 @@ ObjectInfo *ObjnetDevice::prepareObject(const ObjectInfo::Description &desc)
             for (size_t i=0; i<sizeof(ByteArray); i++)
                 reinterpret_cast<unsigned char*>(obj->mWritePtr)[i] = reinterpret_cast<unsigned char*>(&x3)[i];
         }
+        else if (wIsBuffer)
+        {
+            if (desc.wType == ObjectInfo::Float)
+            {
+                RingBuffer<float> ring(20);
+                mObjBuffers[id].resize(sizeof(RingBuffer<float>));
+                obj->mWritePtr = mObjBuffers[id].data();
+                *reinterpret_cast<RingBuffer<float>*>(obj->mWritePtr) = ring;
+            }
+        }
         else
         {
             mObjBuffers[id].resize(desc.writeSize);
@@ -198,11 +212,13 @@ ObjectInfo *ObjnetDevice::prepareObject(const ObjectInfo::Description &desc)
         }
     }
     
-    if (!obj->mReadPtr && (desc.readSize || rIsCommonType))
+    if (!obj->mReadPtr && (desc.readSize || rIsCommonType || rIsBuffer))
     {
         int sz = (desc.rType == ObjectInfo::String)? sizeof(_String): desc.readSize;
         if ((rIsCommonType && desc.readSize == 0))
             sz = sizeof(ByteArray);
+        else if (rIsBuffer)
+            sz = sizeof(RingBuffer<float>);
 
         if (desc.flags & ObjectInfo::Dual)
         {
@@ -233,24 +249,19 @@ ObjectInfo *ObjnetDevice::prepareObject(const ObjectInfo::Description &desc)
             for (size_t i=0; i<sizeof(ByteArray); i++)
                 const_cast<unsigned char*>(reinterpret_cast<const unsigned char*>(obj->mReadPtr))[i] = reinterpret_cast<unsigned char*>(&x3)[i];
         }
+        else if (rIsBuffer)
+        {
+            if (desc.rType == ObjectInfo::Float)
+            {
+                RingBuffer<float> ring(20);
+                *reinterpret_cast<RingBuffer<float>*>(const_cast<void *>(obj->mReadPtr)) = ring;
+            }
+        }
     }
 
-    bool readyFlag = true;
-    for (unsigned int i=0; i<mObjectCount; i++)
-    {
-        if (i>=mObjects.size() || !mObjects[i])
-        {
-            readyFlag = false;
-            break;
-        }
-        if (!mObjects[i]->isValid())
-        {
-            readyFlag = false;
-            break;
-        }
-    }
+    obj->mValid = true;
     
-    if (readyFlag)
+    if (isReady())
     {
         readyEvent();
 #ifdef QT_CORE_LIB
@@ -262,6 +273,18 @@ ObjectInfo *ObjnetDevice::prepareObject(const ObjectInfo::Description &desc)
     }
     
     return obj;
+}
+
+bool ObjnetDevice::isObjectInfoValid() const
+{
+    for (unsigned int i=0; i<mObjectCount; i++)
+    {
+        if (i>=mObjects.size() || !mObjects[i])
+            return false;
+        if (!mObjects[i]->isValid())
+            return false;
+    }
+    return true;
 }
 //---------------------------------------------------------
 
@@ -312,6 +335,10 @@ void ObjnetDevice::receiveServiceObject(unsigned char oid, const ByteArray &ba)
 
       case svcObjectCount:
         mObjectCount = ba[0];
+        mObjects.resize(mObjectCount);
+        for (int i=0; i<mObjectCount; i++)
+            mObjects[i] = 0L;
+        mObjBuffers.resize(mObjectCount);
         break;
         
       case svcBusType:
@@ -598,6 +625,16 @@ void ObjnetDevice::requestInfo(unsigned char oid)
     }
 }
 
+void ObjnetDevice::requestObjectInfo(unsigned char oid)
+{
+    if (mMaster)
+    {
+        ByteArray ba;
+        ba.append(oid);
+        mMaster->sendServiceRequest(mNetAddress, svcObjectInfo, ba);
+    }
+}
+
 void ObjnetDevice::requestMetaInfo()
 {
     if (mMaster)
@@ -694,27 +731,28 @@ void ObjnetDevice::onSendTimer()
     for (unsigned char oid=0; oid<mObjects.size(); oid++)
     {
         ObjectInfo *obj = mObjects[oid];
-        if (obj->mAutoPeriod)
+        if (obj && obj->mAutoPeriod)
         {
             obj->mAutoTime++;
             if (obj->mAutoTime >= obj->mAutoPeriod)
             {
                 obj->mAutoTime = 0;
-//                if (obj.mTimedRequest)
-//                {
-//                    ByteArray ba;
-//                    ba.append(reinterpret_cast<const char*>(&oid), sizeof(unsigned char));
-//                    ba.append('\0'); // reserved byte
-//                    ba.append(reinterpret_cast<const char*>(&mTimestamp), sizeof(uint32_t));
-//                    ba.append(obj.read());
-//                    sendServiceMessage(obj.mAutoReceiverAddr, svcTimedObject, ba);
-//                }
-//                else 
+                if (obj->mTimedRequest)
+                {
+                    ByteArray ba;
+                    ba.append(oid);
+                    #ifdef QT_CORE_LIB
+                    emit serviceRequest(mNetAddress, svcGetTimedObject, ba);
+                    #else
+                    masterServiceRequest(mNetAddress, svcGetTimedObject, ba);
+                    #endif
+                }
+                else 
                 {
                     #ifdef QT_CORE_LIB
-                    emit sendObject(mNetAddress, oid, obj->read());
+                    emit requestObject(mNetAddress, oid);
                     #else
-                    masterSendObject(mNetAddress, oid, obj->read());
+                    masterRequestObject(mNetAddress, oid);
                     #endif
                 }
             }

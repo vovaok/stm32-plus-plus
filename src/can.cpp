@@ -82,7 +82,9 @@ Can::Can(Gpio::Config pinRx, Gpio::Config pinTx, int baudrate) :
     CAN_InitStructure.CAN_BS1 = t1 - 1;
     CAN_InitStructure.CAN_BS2 = t2 - 1;
     CAN_InitStructure.CAN_Prescaler = psc;
-    CAN_Init(mCan, &CAN_InitStructure);
+    uint8_t status = CAN_Init(mCan, &CAN_InitStructure);
+    if (status != CAN_InitStatus_Success)
+      THROW(Exception::BadSoBad);
 }
 
 Can::~Can()
@@ -229,8 +231,8 @@ void Can::setReceiveEvent(CanReceiveEvent event)
 //    nvic.NVIC_IRQChannelCmd = ENABLE;
 //    NVIC_Init(&nvic);
     
-    NVIC_SetPriority(IRQn1, 1);
-    NVIC_SetPriority(IRQn2, 1);
+    NVIC_SetPriority(IRQn1, 3);
+    NVIC_SetPriority(IRQn2, 3);
     NVIC_EnableIRQ(IRQn1);
     NVIC_EnableIRQ(IRQn2);
     

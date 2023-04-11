@@ -23,6 +23,32 @@ public:
         mId(0)
     {
     }
+    
+    CommonMessage(const CommonMessage &other) :
+        mBa(other.mBa),
+        mId(other.mId)
+    {
+    }
+    
+    CommonMessage &operator=(const CommonMessage &other)
+    {
+        mBa = other.mBa;
+        mId = other.mId;
+        return *this;
+    }
+    
+    CommonMessage(CommonMessage &&other)
+    {
+        mId = other.mId;
+        mBa = std::move(other.mBa);
+    }
+    
+    CommonMessage &operator=(CommonMessage &&other)
+    {
+        mId = other.mId;
+        mBa = std::move(other.mBa);
+        return *this;
+    }
 
     CommonMessage(const ByteArray &ba) :
         mId(0)

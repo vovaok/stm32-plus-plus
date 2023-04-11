@@ -1,18 +1,10 @@
 #ifndef _BYTEARRAY_H
 #define _BYTEARRAY_H
 
+#include <string>
 #include <string.h>
+#include <stdio.h>
 #include "coreexception.h"
-
-#if defined(STM32F37X)
-    #include "stm32f37x.h"
-#elif defined(NRF52840_XXAA)
-    #include "nrf52840.h"
-#else
-    #include "stm32f4xx.h"
-#endif
-
-#include "core_cm4.h"
 
 class ByteArray
 {
@@ -22,15 +14,20 @@ private:
     unsigned int mAllocSize;
     
     void allocMore(int size);
+    static char readHex(char *ptr);
     
 public:
     ByteArray();
     ByteArray(const void *data, unsigned int size);
     ByteArray(const char *str);
     ByteArray(int size, char ch);
-    ByteArray(const ByteArray &other);
     ~ByteArray();
+    ByteArray(const ByteArray &other);
     ByteArray &operator=(const ByteArray &other);
+#if __cplusplus > 199711L
+    ByteArray(ByteArray &&other);
+    ByteArray &operator=(ByteArray &&other);
+#endif
     
     ByteArray &append(const void *data, unsigned int size);
     ByteArray &append(const char *str);
@@ -48,8 +45,9 @@ public:
     inline int size() const {return mSize;}
     inline int length() const {return mSize;}
     inline int count() const {return mSize;}
+    inline bool isEmpty() const {return !mSize;}
     
-#ifndef NO_EXCEPTIONS
+#if defined(__CPP_EXCEPTIONS__) | defined(__CPP_Exceptions) | defined(__cpp_exceptions)
     inline char& operator [](unsigned int idx) {if (idx >= mSize) throw Exception::OutOfRange; else return mData[idx];}
     inline const char &operator[](unsigned int idx) const {if (idx >= mSize) throw Exception::OutOfRange; else return mData[idx];}
     inline char at(unsigned int idx) const {if (idx >= mSize) throw Exception::OutOfRange; else return mData[idx];}
@@ -60,6 +58,8 @@ public:
 #endif
 
     inline ByteArray &operator +=(const ByteArray &ba) {return append(ba);}
+    friend ByteArray operator +(const ByteArray &ba1, const ByteArray ba2);
+    friend bool operator<(const ByteArray &a1, const ByteArray &a2);
     
     bool operator ==(const ByteArray &ba) const;
     bool operator !=(const ByteArray &ba) const;
@@ -67,6 +67,8 @@ public:
     ByteArray left(int len) const;
     ByteArray right(int len) const;
     ByteArray mid(int index, int len = -1) const;
+    void chop(int n);
+    void truncate(int pos);
 
     bool startsWith(const ByteArray &ba) const;
     bool startsWith(char c) const;
@@ -83,7 +85,22 @@ public:
     int indexOf(char c, int from = 0) const;
     int indexOf(const char *str, int from = 0) const;
     int indexOf(const ByteArray &ba, int from = 0) const;
+    
+    int lastIndexOf(char c, int from = -1) const;
+    
+    int toInt() const;
+    float toFloat() const;
+    std::string toStdString() const;
+    
+    static ByteArray fromStdString(const std::string &str);
+    static ByteArray fromRawData(const char *data, int size);
+    static ByteArray fromPercentEncoding(const ByteArray &ba);
+    static ByteArray number(int n);
+    static ByteArray number(float n);
+    static ByteArray number(double n);
 };
 
+ByteArray operator +(const ByteArray &ba1, const ByteArray ba2);
+bool operator<(const ByteArray &ba1, const ByteArray &ba2);
 
 #endif

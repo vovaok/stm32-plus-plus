@@ -6,6 +6,7 @@
 //#endif
 
 #include "objnetcommon.h"
+#include "core/ringbuffer.h"
 
 #ifndef QT_CORE_LIB
 #define _String string
@@ -202,6 +203,10 @@ public:
     ObjectInfo(string name, Closure<void(P0)> event, Flags flags=Write);
     template<class R, class P0>
     ObjectInfo(string name, Closure<R(P0)> event, Flags flags=ReadWrite);
+    
+    // buffer binding:
+    template<typename T>
+    ObjectInfo(string name, RingBuffer<T> &buffer, Flags flags=ReadWrite);
 
     ByteArray read();
     bool write(const ByteArray &ba);
@@ -223,6 +228,7 @@ public:
     inline bool isInvokable() const {return mDesc.flags & Function;}
     inline bool isArray() const {return mDesc.flags & Array;}
     inline bool isCompound() const {return mDesc.rType >= Compound;}
+    inline bool isBuffer() const {return !mDesc.writeSize && !mDesc.readSize && (mDesc.flags & Array);}
 
     inline int wCount() const {int sz = sizeofType((Type)mDesc.wType); return (isArray() && sz)? mDesc.writeSize / sz: 1;}
     inline int rCount() const {int sz = sizeofType((Type)mDesc.rType); return (isArray() && sz)? mDesc.readSize / sz: 1;}
@@ -531,6 +537,33 @@ ObjectInfo::ObjectInfo(string name, Closure<R(P0)> event, ObjectInfo::Flags flag
     mDesc.name = name;
     mDesc.id = mAssignId++;
 }
+
+
+template<typename T>
+ObjectInfo::ObjectInfo(string name, RingBuffer<T> &buffer, Flags flags) :
+    mReadPtr(0), mWritePtr(0),
+    mAutoPeriod(0), mAutoTime(0), mAutoReceiverAddr(0),
+    mIsDevice(false),
+    mValid(true),
+    m_parentObject(0L)
+{
+    mDesc.readSize = 0;
+    mDesc.writeSize = 0;
+    
+    mReadPtr = &buffer;
+    mWritePtr = &buffer;
+    
+    T var;
+    if (flags & Read)
+        mDesc.rType = typeOfVar(var);
+    if (flags & Write)
+        mDesc.wType = typeOfVar(var);
+    mDesc.flags = (flags | Array) & ~Save;
+    mDesc.name = name;
+    mDesc.id = mAssignId++;
+}
+
+
 
 }
 

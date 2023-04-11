@@ -35,6 +35,9 @@ bool GenericOnbInterface::send(const CommonMessage &msg)
     return (sz == written);
 }
 
+//static uint32_t onb_id[256];
+//static uint8_t onb_id_idx = 0;
+
 void GenericOnbInterface::receiveHandler()
 {
 //    if (!m_device->isOpen())
@@ -48,6 +51,8 @@ void GenericOnbInterface::receiveHandler()
     if (testFilter(id))
     {
         CommonMessage msg;
+//        if (id & 0x10000000)
+//            onb_id[onb_id_idx++] = id;
         msg.setId(id);
         msg.setData(ByteArray(data + 1, sz - 4));
         receive(msg);

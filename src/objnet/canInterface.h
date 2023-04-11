@@ -13,16 +13,6 @@ private:
     Can *mCan;
     int mCurFilterFifo;
     
-//    std::queue<CanTxMsg> mTxQueue;
-//    std::queue<CanRxMsg> mRxQueue;
-//    const static int mTxQueueSize = 32;
-//    const static int mRxQueueSize = 32;
-//    
-//    bool readRx(CanRxMsg &msg);
-//    bool writeRx(CanRxMsg &msg);
-//    bool readTx(CanTxMsg &msg);
-//    bool writeTx(CanTxMsg& msg);
-    
     void receiveHandler(int fifoNumber, CanRxMsg &canmsg);
     virtual void setReceiveEnabled(bool enabled);
 //    void transmitHandler();
