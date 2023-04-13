@@ -8616,11 +8616,11 @@
                 </option>
                 <option>
                     <name>Input description</name>
-                    <state>Automatic choice of formatter.</state>
+                    <state>Automatic choice of formatter, without multibyte support.</state>
                 </option>
                 <option>
                     <name>Output description</name>
-                    <state>Automatic choice of formatter.</state>
+                    <state>Automatic choice of formatter, without multibyte support.</state>
                 </option>
                 <option>
                     <name>GOutputBinary</name>
@@ -8642,7 +8642,7 @@
                 </option>
                 <option>
                     <name>RTDescription</name>
-                    <state>To be used with the full configuration of the C/C++ runtime library. Full locale interface, C locale, file descriptor support, multibytes in printf and scanf, and hex floats in strtod.</state>
+                    <state>To be used with a complete configuration of the C/C++14 runtime library. Full locale interface, C locale, file descriptor support, multibytes in printf and scanf, and hex floats in strtod.</state>
                 </option>
                 <option>
                     <name>OGProductVersion</name>
@@ -8650,11 +8650,11 @@
                 </option>
                 <option>
                     <name>OGLastSavedByProductVersion</name>
-                    <state>7.50.3.10745</state>
+                    <state>9.30.1.50052</state>
                 </option>
                 <option>
                     <name>OGChipSelectEditMenu</name>
-                    <state>STM32F427II	ST STM32F427II</state>
+                    <state>STM32F429ZI	ST STM32F429ZI</state>
                 </option>
                 <option>
                     <name>GenLowLevelInterface</name>
@@ -8674,7 +8674,7 @@
                 </option>
                 <option>
                     <name>RTConfigPath2</name>
-                    <state>$TOOLKIT_DIR$\INC\c\DLib_Config_Full.h</state>
+                    <state>$TOOLKIT_DIR$\inc\c\DLib_Config_Full.h</state>
                 </option>
                 <option>
                     <name>GBECoreSlave</name>
@@ -8700,7 +8700,7 @@
                 </option>
                 <option>
                     <name>GFPUDeviceSlave</name>
-                    <state>STM32F427II	ST STM32F427II</state>
+                    <state>STM32F429ZI	ST STM32F429ZI</state>
                 </option>
                 <option>
                     <name>FPU2</name>
@@ -8760,7 +8760,7 @@
                 </option>
                 <option>
                     <name>DSPExtension</name>
-                    <state>0</state>
+                    <state>1</state>
                 </option>
                 <option>
                     <name>TrustZone</name>
@@ -8806,7 +8806,7 @@
                 </option>
                 <option>
                     <name>CCDefines</name>
-                    <state>STM32F429_439xx</state>
+                    <state>STM32F429xx</state>
                 </option>
                 <option>
                     <name>CCPreprocFile</name>
@@ -9648,7 +9648,7 @@
                 </option>
                 <option>
                     <name>IarchiveOutput</name>
-                    <state>D:\projects\iar\components\stm32++\bin\stm32f429zi\stm32++.a</state>
+                    <state>D:\projects\iar\components\stm32++\bin\stm32f429zi\stm32++_IAR_9.a</state>
                 </option>
             </data>
         </settings>
@@ -10954,6 +10954,7 @@
             <name>$PROJ_DIR$\src\objnet\radioonbinterface.cpp</name>
             <excluded>
                 <configuration>stm32f407vg</configuration>
+                <configuration>stm32f429zi</configuration>
                 <configuration>stm32f446</configuration>
             </excluded>
         </file>
@@ -10991,6 +10992,7 @@
                 <configuration>stm32f407vg</configuration>
                 <configuration>stm32f405rg</configuration>
                 <configuration>stm32f405rg_no-exceptions_no-rtti</configuration>
+                <configuration>stm32f429zi</configuration>
                 <configuration>stm32f446</configuration>
             </excluded>
         </file>
@@ -11109,6 +11111,33 @@
             </file>
             <file>
                 <name>$PROJ_DIR$\src\usb\usbHid\usbhid.h</name>
+            </file>
+        </group>
+        <group>
+            <name>usbMsc</name>
+            <file>
+                <name>$PROJ_DIR$\src\usb\usbMsc\mscbot.cpp</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\src\usb\usbMsc\mscbot.h</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\src\usb\usbMsc\scsi.cpp</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\src\usb\usbMsc\scsi.h</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\src\usb\usbMsc\scsiinterface.cpp</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\src\usb\usbMsc\scsiinterface.h</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\src\usb\usbMsc\usbmsc.cpp</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\src\usb\usbMsc\usbmsc.h</name>
             </file>
         </group>
         <group>
@@ -11426,6 +11455,7 @@
             <configuration>stm32f373xB</configuration>
             <configuration>stm32f373xB_no-exceptions_no-rtti</configuration>
             <configuration>stm32f407vg</configuration>
+            <configuration>stm32f429zi</configuration>
             <configuration>stm32f446</configuration>
         </excluded>
     </file>
