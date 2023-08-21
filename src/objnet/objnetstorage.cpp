@@ -133,7 +133,10 @@ bool ObjnetStorage::find(ObjectInfo &info)
     
     for (Description *desc = reinterpret_cast<Description*>(mFirstBlock); desc->isValid(); desc = desc->next())
     {
-        if ((info.mDesc.wType == desc->dHdr.type) && (info.mDesc.writeSize == desc->dHdr.size)) // if size and type are matched
+        uint8_t tp = info.mDesc.wType;
+        if (info.mDesc.wType == ObjectInfo::Common && desc->dHdr.type >= ObjectInfo::Compound)
+            tp = desc->dHdr.type;
+        if ((tp == desc->dHdr.type) && (info.mDesc.writeSize == desc->dHdr.size)) // if size and type are matched
         {
             if (!strcmp(info.mDesc.name.c_str(), &desc->name)) // and name is matched
             {

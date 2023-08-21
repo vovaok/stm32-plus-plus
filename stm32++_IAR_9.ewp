@@ -5398,11 +5398,11 @@
                 </option>
                 <option>
                     <name>Input description</name>
-                    <state>Automatic choice of formatter.</state>
+                    <state>Automatic choice of formatter, without multibyte support.</state>
                 </option>
                 <option>
                     <name>Output description</name>
-                    <state>Automatic choice of formatter.</state>
+                    <state>Automatic choice of formatter, without multibyte support.</state>
                 </option>
                 <option>
                     <name>GOutputBinary</name>
@@ -5424,7 +5424,7 @@
                 </option>
                 <option>
                     <name>RTDescription</name>
-                    <state>To be used with the full configuration of the C/C++ runtime library. Full locale interface, C locale, file descriptor support, multibytes in printf and scanf, and hex floats in strtod.</state>
+                    <state>To be used with a complete configuration of the C/C++14 runtime library. Full locale interface, C locale, file descriptor support, multibytes in printf and scanf, and hex floats in strtod.</state>
                 </option>
                 <option>
                     <name>OGProductVersion</name>
@@ -5432,7 +5432,7 @@
                 </option>
                 <option>
                     <name>OGLastSavedByProductVersion</name>
-                    <state>8.32.2.19370</state>
+                    <state>9.30.1.50052</state>
                 </option>
                 <option>
                     <name>OGChipSelectEditMenu</name>
@@ -5588,7 +5588,7 @@
                 </option>
                 <option>
                     <name>CCDefines</name>
-                    <state>STM32F40XX</state>
+                    <state>STM32F405xx</state>
                 </option>
                 <option>
                     <name>CCPreprocFile</name>
@@ -6430,7 +6430,7 @@
                 </option>
                 <option>
                     <name>IarchiveOutput</name>
-                    <state>D:\projects\iar\components\stm32++\bin\stm32f405rg\stm32++_IAR_8.a</state>
+                    <state>D:\projects\iar\components\stm32++\bin\stm32f405rg\stm32++_IAR_9.a</state>
                 </option>
             </data>
         </settings>
@@ -6470,11 +6470,11 @@
                 </option>
                 <option>
                     <name>Input description</name>
-                    <state>Automatic choice of formatter.</state>
+                    <state>Automatic choice of formatter, without multibyte support.</state>
                 </option>
                 <option>
                     <name>Output description</name>
-                    <state>Automatic choice of formatter.</state>
+                    <state>Automatic choice of formatter, without multibyte support.</state>
                 </option>
                 <option>
                     <name>GOutputBinary</name>
@@ -6496,7 +6496,7 @@
                 </option>
                 <option>
                     <name>RTDescription</name>
-                    <state>To be used with the full configuration of the C/C++ runtime library. Full locale interface, C locale, file descriptor support, multibytes in printf and scanf, and hex floats in strtod.</state>
+                    <state>To be used with a complete configuration of the C/C++14 runtime library. Full locale interface, C locale, file descriptor support, multibytes in printf and scanf, and hex floats in strtod.</state>
                 </option>
                 <option>
                     <name>OGProductVersion</name>
@@ -6504,7 +6504,7 @@
                 </option>
                 <option>
                     <name>OGLastSavedByProductVersion</name>
-                    <state>8.22.2.15993</state>
+                    <state>9.30.1.50052</state>
                 </option>
                 <option>
                     <name>OGChipSelectEditMenu</name>
@@ -6528,7 +6528,7 @@
                 </option>
                 <option>
                     <name>RTConfigPath2</name>
-                    <state>$TOOLKIT_DIR$\INC\c\DLib_Config_Full.h</state>
+                    <state>$TOOLKIT_DIR$\inc\c\DLib_Config_Full.h</state>
                 </option>
                 <option>
                     <name>GBECoreSlave</name>
@@ -6660,7 +6660,7 @@
                 </option>
                 <option>
                     <name>CCDefines</name>
-                    <state>STM32F40XX</state>
+                    <state>STM32F405xx</state>
                     <state>NO_EXCEPTIONS</state>
                     <state>NO_RTTI</state>
                 </option>
@@ -7504,7 +7504,7 @@
                 </option>
                 <option>
                     <name>IarchiveOutput</name>
-                    <state>D:\projects\iar\components\stm32++\bin\stm32f405rg_no-exceptions_no-rtti\stm32++.a</state>
+                    <state>D:\projects\iar\components\stm32++\bin\stm32f405rg_no-exceptions_no-rtti\stm32++_IAR_9.a</state>
                 </option>
             </data>
         </settings>
@@ -10858,6 +10858,9 @@
             <name>$PROJ_DIR$\src\device\drv8320.h</name>
         </file>
         <file>
+            <name>$PROJ_DIR$\src\device\eeprom24c.h</name>
+        </file>
+        <file>
             <name>$PROJ_DIR$\src\device\mt6818.cpp</name>
         </file>
         <file>
@@ -10954,6 +10957,8 @@
             <name>$PROJ_DIR$\src\objnet\radioonbinterface.cpp</name>
             <excluded>
                 <configuration>stm32f407vg</configuration>
+                <configuration>stm32f405rg</configuration>
+                <configuration>stm32f405rg_no-exceptions_no-rtti</configuration>
                 <configuration>stm32f446</configuration>
             </excluded>
         </file>
@@ -11426,6 +11431,8 @@
             <configuration>stm32f373xB</configuration>
             <configuration>stm32f373xB_no-exceptions_no-rtti</configuration>
             <configuration>stm32f407vg</configuration>
+            <configuration>stm32f405rg</configuration>
+            <configuration>stm32f405rg_no-exceptions_no-rtti</configuration>
             <configuration>stm32f446</configuration>
         </excluded>
     </file>
@@ -11484,6 +11491,8 @@
         <name>$PROJ_DIR$\src\pwminput.cpp</name>
         <excluded>
             <configuration>stm32f407vg</configuration>
+            <configuration>stm32f405rg</configuration>
+            <configuration>stm32f405rg_no-exceptions_no-rtti</configuration>
             <configuration>stm32f446</configuration>
         </excluded>
     </file>

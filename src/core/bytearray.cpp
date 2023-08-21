@@ -107,8 +107,14 @@ void ByteArray::allocMore(int size)
     __istate_t interrupt_state = __get_interrupt_state();
     __disable_interrupt();
     
-    while (allocSize < desiredSize) // compute nearest allocation size
-        allocSize = allocSize? (allocSize << 1): 16; // minimum size = 16 bytes
+    if (desiredSize <= 16)
+        allocSize = 16;
+    if (desiredSize <= 512)
+        allocSize = upper_power_of_two(desiredSize);
+    else
+        allocSize = (desiredSize | 511) + 1;
+//    while (allocSize < desiredSize) // compute nearest allocation size
+//        allocSize = allocSize? (allocSize << 1): 16; // minimum size = 16 bytes
     char *temp = new char[allocSize]; // allocate new buffer
     if (mData)
     {
@@ -178,11 +184,9 @@ void ByteArray::clear()
     __istate_t interrupt_state = __get_interrupt_state();
     __disable_interrupt();
     
-    if (mData)
-    {
+    if (mData && mAllocSize)
         delete [] mData;
-        mData = 0L;
-    }
+    mData = 0L;
     mSize = 0;
     mAllocSize = 0;
     

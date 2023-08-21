@@ -56,17 +56,29 @@ void ObjnetDevice::parseObjectInfo(const ByteArray &ba)
             ObjectInfo &sub = obj->subobject(subid);
             sub.mDesc = baba;
             uint8_t roff=0, woff=0;
-            for (int i=0; i<subid; i++)
+            for (int i=0; i<obj->subobjectCount(); i++)
             {
+                if (i > 0)
+                {
+                    ObjectInfo &prev = obj->subobject(i-1);
+                    if (!prev.isValid())
+                        break;
+                    if (obj->mDesc.flags | ObjectInfo::ReadOnly)
+                        roff += obj->subobject(i).mDesc.readSize;
+                    if (obj->mDesc.flags | ObjectInfo::WriteOnly)
+                        woff += obj->subobject(i).mDesc.writeSize;
+                }
+                // update all pointers
+                ObjectInfo &cur = obj->subobject(i);
                 if (obj->mDesc.flags | ObjectInfo::ReadOnly)
-                    roff += obj->subobject(i).mDesc.readSize;
+                    cur.mReadPtr = (uint8_t*)obj->mReadPtr + roff;
                 if (obj->mDesc.flags | ObjectInfo::WriteOnly)
-                    woff += obj->subobject(i).mDesc.writeSize;
+                    cur.mWritePtr = (uint8_t*)obj->mWritePtr + woff;
             }
-            if (obj->mDesc.flags | ObjectInfo::ReadOnly)
-                sub.mReadPtr = (uint8_t*)obj->mReadPtr + roff;
-            if (obj->mDesc.flags | ObjectInfo::WriteOnly)
-                sub.mWritePtr = (uint8_t*)obj->mWritePtr + woff;
+//            if (obj->mDesc.flags | ObjectInfo::ReadOnly)
+//                sub.mReadPtr = (uint8_t*)obj->mReadPtr + roff;
+//            if (obj->mDesc.flags | ObjectInfo::WriteOnly)
+//                sub.mWritePtr = (uint8_t*)obj->mWritePtr + woff;
             
             if (sub.isCompound())
             {
@@ -76,6 +88,7 @@ void ObjnetDevice::parseObjectInfo(const ByteArray &ba)
 
             sub.mIsDevice = true;
             sub.mValid = true;
+            sub.m_parentObject = obj;
             obj = &sub;
         }
     }

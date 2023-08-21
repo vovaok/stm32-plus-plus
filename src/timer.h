@@ -24,6 +24,7 @@ public:
     void setInterval(int interval) {mInterval = interval;}
     
     NotifyEvent onTimeout;
+    void (*callback)(void) = nullptr;
     
     NotifyEvent timeoutEvent() {return onTimeout;}
     void setTimeoutEvent(NotifyEvent event) {onTimeout = event;}

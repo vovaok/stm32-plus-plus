@@ -35,6 +35,8 @@ void Application::exec()
     if (SysTick_Config((Rcc::sysClk() / 1000) * mSysClkPeriod) != 0)
         THROW(Exception::BadSoBad);
     
+//    NVIC_SetPriorityGrouping(0);
+    
     __enable_interrupt();
     
     // main loop
@@ -186,11 +188,13 @@ void SystemInit(void) // on Reset_Handler
     RCC->CIR = 0x00000000;
 #endif
 
-#if defined(STM32F429xx)
-    Rcc::configPll(0, 168000000);
-#else
-    Rcc::configPll(0, CpuId::maxSysClk());
-#endif
+//#if defined(STM32F429xx)
+//    Rcc::configPll(0, 168000000);
+//#else
+//    Rcc::configPll(0, CpuId::maxSysClk());
+//#endif
+
+    Rcc::configPll(0, 160000000);
 
     /* Configure the Vector Table location add offset address ------------------*/
     #ifdef VECT_TAB_SRAM

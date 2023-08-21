@@ -15,25 +15,26 @@ public:
     void open();
     void close();
     
+    // common interface:
     bool read(uint8_t address, uint8_t *data, uint16_t size);
     bool write(uint8_t address, uint8_t *data, uint16_t size);
     
-//    bool regRead(unsigned char address, unsigned char index, unsigned char *buffer);
-//    bool multipleRead(unsigned char address, unsigned char index, void *buffer, unsigned char length);
-//    bool regWrite(unsigned char address, unsigned char index, unsigned char byte);
-//    bool multipleWrite(unsigned char address, unsigned char index, const void *buffer, unsigned char length);
-//    
-//    unsigned char failAddress;
-    
-private:
-    I2C_TypeDef *m_dev;
-    unsigned char lastAddress;
-    
+    // low-level interface:
     typedef enum
     {
         DirectionTransmitter    = 0x00,
         DirectionReceiver       = 0x01
     } Direction;
+    
+    bool startTransmission(Direction dir, uint8_t slaveAddress);
+    bool stopTransmission();
+    bool writeData(uint8_t data);
+    bool readData(unsigned char *buf);
+    void setAcknowledge(bool state);
+    
+private:
+    I2C_TypeDef *m_dev;
+    unsigned char lastAddress;
     
     typedef enum
     {
@@ -57,11 +58,6 @@ private:
     } Event;
 
     bool checkEvent(Event e);
-    bool startTransmission(Direction dir, uint8_t slaveAddress);
-    bool stopTransmission();
-    bool writeData(uint8_t data);
-    bool readData(unsigned char *buf);
-    void setAcknowledge(bool state);
 };
 
 #endif

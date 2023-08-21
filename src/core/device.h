@@ -29,18 +29,24 @@ public:
     int write(const char *data); // null-terminated string
     int write(const ByteArray &data);
     
+    virtual uint32_t pos() const {return 0;}
+    virtual bool seek(uint32_t pos) {return false;}
+    
     virtual bool atEnd() const {return !bytesAvailable();}
     virtual int bytesAvailable() const = 0; // {return 0;}
     
     bool isOpen() const {return m_openMode;}
     bool isSequential() const {return m_sequential;}
     bool isHalfDuplex() const {return m_halfDuplex;}
+    bool isReadable() const {return m_openMode & ReadOnly;}
+    bool isWritable() const {return m_openMode & WriteOnly;}
     
     virtual bool canReadLine() const {return false;}
     int readLine(char *data, int maxsize);
     ByteArray readLine(int maxsize=0);
     
     NotifyEvent onReadyRead;
+    NotifyEvent onBytesWritten;
     
 protected:
     bool m_sequential;

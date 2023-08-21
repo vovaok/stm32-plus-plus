@@ -47,6 +47,8 @@ public:
     inline int count() const {return mSize;}
     inline bool isEmpty() const {return !mSize;}
     
+    inline int capacity() const {return mAllocSize;}
+    
 #if defined(__CPP_EXCEPTIONS__) | defined(__CPP_Exceptions) | defined(__cpp_exceptions)
     inline char& operator [](unsigned int idx) {if (idx >= mSize) throw Exception::OutOfRange; else return mData[idx];}
     inline const char &operator[](unsigned int idx) const {if (idx >= mSize) throw Exception::OutOfRange; else return mData[idx];}

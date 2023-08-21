@@ -150,7 +150,7 @@ bool Usart::open(OpenMode mode)
             mDmaRx->setCircularBuffer(mRxBuffer.data(), mRxBuffer.size());
             mDmaRx->setSource((void*)&mDev->RDR, 1);
         }
-        else
+        if (!mUseDmaRx || onReadyRead)
         {
 //            NVIC_InitTypeDef NVIC_InitStructure;
 //            NVIC_InitStructure.NVIC_IRQChannel = mIrq;
@@ -159,6 +159,7 @@ bool Usart::open(OpenMode mode)
 //            NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
 //            NVIC_Init(&NVIC_InitStructure);
           
+            NVIC_SetPriority(mIrq, 1);
             NVIC_EnableIRQ(mIrq);
             mDev->CR1 |= USART_CR1_RXNEIE;
         }
@@ -379,6 +380,9 @@ void Usart::dmaTxComplete()
             if (m_pinDE)
                 m_pinDE->reset();
             mDev->CR1 |= USART_CR1_RE;
+            
+            if (onBytesWritten)
+                onBytesWritten();
         }
         return;
     }
@@ -416,34 +420,8 @@ void Usart::setBaudrate(int baudrate)
     {
         mDev->CR1 &= ~USART_CR1_OVER8;
     }
-    
-    
-//    uint32_t integerdivider = 0;
-//    uint32_t fractionaldivider = 0x00;
-//    // Determine the integer part
-//    if (mDev->CR1 & USART_CR1_OVER8)
-//    {
-//        // Integer part computing in case Oversampling mode is 8 Samples
-//        integerdivider = (25 * apbclock) / (2 * mBaudrate);    
-//    }
-//    else
-//    {
-//        // Integer part computing in case Oversampling mode is 16 Samples
-//        integerdivider = (25 * apbclock) / (4 * mBaudrate);    
-//    }
-//    tmpreg = (integerdivider / 100) << 4;
-//
-//    // Determine the fractional part
-//    fractionaldivider = integerdivider - (100 * (tmpreg >> 4));
-//
-//    // Implement the fractional part in the register
-//    if ((mDev->CR1 & USART_CR1_OVER8) != 0)
-//        tmpreg |= ((((fractionaldivider * 8) + 50) / 100)) & ((uint8_t)0x07);
-//    else
-//        tmpreg |= ((((fractionaldivider * 16) + 50) / 100)) & ((uint8_t)0x0F);
 #endif
     
-    // Write to USART BRR register
     mDev->BRR = (uint16_t)tmpreg;
 }
 
@@ -508,14 +486,19 @@ void Usart::handleInterrupt()
     }
 #endif
   
-    // read from USART_SR register followed by a read from USART_DR
-    if (mDev->SR & USART_SR_RXNE)
+    if (!mUseDmaRx)
     {
-        mRxBuffer[mRxIrqDataCounter++] = mDev->RDR & (uint16_t)0x01FF;
-        if (mRxIrqDataCounter >= mRxBuffer.size())
-            mRxIrqDataCounter = 0;
-        //USART_ClearITPendingBit(mDev, USART_IT_RXNE);
+        // read from USART_SR register followed by a read from USART_DR
+        if (mDev->SR & USART_SR_RXNE)
+        {
+            mRxBuffer[mRxIrqDataCounter++] = mDev->RDR & (uint16_t)0x01FF;
+            if (mRxIrqDataCounter >= mRxBuffer.size())
+                mRxIrqDataCounter = 0;
+        }
     }
+    
+    if (onReadyRead)
+        onReadyRead();
 }
 //---------------------------------------------------------------------------
 

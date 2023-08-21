@@ -444,7 +444,7 @@ void HardwareTimer::enableInterrupt(InterruptSource source)
 //    NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
 //    NVIC_Init(&NVIC_InitStructure);
     
-    NVIC_SetPriority(mIrq, 1);
+    NVIC_SetPriority(mIrq, 2);
     NVIC_EnableIRQ(mIrq);
     
     
@@ -452,13 +452,13 @@ void HardwareTimer::enableInterrupt(InterruptSource source)
 }
 
 void HardwareTimer::handleInterrupt()
-{
+{  
     for (int i=0; i<8; i++)
     {
         if (mEnabledIrq[i])
         {
             uint16_t flag = (1 << i);
-            if (mTim->SR & flag)
+            if (mTim->DIER & mTim->SR & flag)
             {
                 mTim->SR = ~flag;
                 emitEvent[i]();
@@ -474,18 +474,24 @@ void HardwareTimer::handleInterrupt()
 
 void TIM1_BRK_TIM9_IRQHandler()
 {
+    if (HardwareTimer::mTimers[9-1])
+        HardwareTimer::mTimers[9-1]->handleInterrupt();
     if (HardwareTimer::mTimers[1-1])
         HardwareTimer::mTimers[1-1]->handleInterrupt();
 }
 
 void TIM1_UP_TIM10_IRQHandler()
 {
+    if (HardwareTimer::mTimers[10-1])
+        HardwareTimer::mTimers[10-1]->handleInterrupt();
     if (HardwareTimer::mTimers[1-1])
         HardwareTimer::mTimers[1-1]->handleInterrupt();
 }
 
 void TIM1_TRG_COM_TIM11_IRQHandler()
 {
+    if (HardwareTimer::mTimers[11-1])
+        HardwareTimer::mTimers[11-1]->handleInterrupt();
     if (HardwareTimer::mTimers[1-1])
         HardwareTimer::mTimers[1-1]->handleInterrupt();
 }
@@ -534,18 +540,24 @@ void TIM7_IRQHandler()
 
 void TIM8_BRK_TIM12_IRQHandler()
 {
+    if (HardwareTimer::mTimers[12-1])
+        HardwareTimer::mTimers[12-1]->handleInterrupt();
     if (HardwareTimer::mTimers[8-1])
         HardwareTimer::mTimers[8-1]->handleInterrupt();
 }
 
 void TIM8_UP_TIM13_IRQHandler()
 {
+    if (HardwareTimer::mTimers[13-1])
+        HardwareTimer::mTimers[13-1]->handleInterrupt();
     if (HardwareTimer::mTimers[8-1])
         HardwareTimer::mTimers[8-1]->handleInterrupt();
 }
 
 void TIM8_TRG_COM_TIM14_IRQHandler()
 {
+    if (HardwareTimer::mTimers[14-1])
+        HardwareTimer::mTimers[14-1]->handleInterrupt();
     if (HardwareTimer::mTimers[8-1])
         HardwareTimer::mTimers[8-1]->handleInterrupt();
 }
@@ -556,42 +568,7 @@ void TIM8_CC_IRQHandler()
         HardwareTimer::mTimers[8-1]->handleInterrupt();
 }
 
-void TIM9_IRQHandler()
-{
-    if (HardwareTimer::mTimers[9-1])
-        HardwareTimer::mTimers[9-1]->handleInterrupt();
-}
-
-void TIM10_IRQHandler()
-{
-    if (HardwareTimer::mTimers[10-1])
-        HardwareTimer::mTimers[10-1]->handleInterrupt();
-}
-
-void TIM11_IRQHandler()
-{
-    if (HardwareTimer::mTimers[11-1])
-        HardwareTimer::mTimers[11-1]->handleInterrupt();
-}
-
-void TIM12_IRQHandler()
-{
-    if (HardwareTimer::mTimers[12-1])
-        HardwareTimer::mTimers[12-1]->handleInterrupt();
-}
-
-void TIM13_IRQHandler()
-{
-    if (HardwareTimer::mTimers[13-1])
-        HardwareTimer::mTimers[13-1]->handleInterrupt();
-}
-
-void TIM14_IRQHandler()
-{
-    if (HardwareTimer::mTimers[14-1])
-        HardwareTimer::mTimers[14-1]->handleInterrupt();
-}
-
+// TODO: check existence of this IRQ handler
 void TIM15_IRQHandler()
 {
     if (HardwareTimer::mTimers[15-1])
