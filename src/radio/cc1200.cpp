@@ -156,8 +156,8 @@ CC1200::CC1200(Spi *spi, Gpio::PinName csPin, Gpio::PinName resetPin) :
     conf.enable = 0;
     conf.LSBfirst = 0;
     conf.RXonly = 0;
-    conf.frame16bit = 0;
     mSpi->setConfig(conf);
+//    mSpi->setDataSize(8);
     mSpi->open();
     
     unsigned long sync = getSyncWord();

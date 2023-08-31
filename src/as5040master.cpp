@@ -9,10 +9,8 @@ As5040Master::As5040Master(Spi *spi) :
     conf.CPOL = 0;
     conf.master = 1;
     conf.baudrate = 6; // clock / 128
-//    conf.LSBfirst = 0;
-//    conf.RXonly = 1;
-    conf.frame16bit = 1;
     mSpi->setConfig(conf);
+    mSpi->setDataSize(16);
     mSpi->setTransferCompleteEvent(EVENT(&As5040Master::onRead));  
     mSpi->open();
 }

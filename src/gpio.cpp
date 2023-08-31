@@ -61,7 +61,11 @@ void Gpio::config(const Config &conf)
     if (!port)
         return;
     
+#if defined(STM32F4)
     RCC->AHB1ENR |= (1 << c.portNumber); // enable port clocks
+#elif defined(STM32L4)
+    RCC->AHB2ENR |= (1 << c.portNumber); // enable port clocks
+#endif
      
     unsigned short mask;  
     if (c.manyPins)

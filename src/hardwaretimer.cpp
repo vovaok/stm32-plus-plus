@@ -30,35 +30,35 @@ HardwareTimer::HardwareTimer(TimerNumber timerNumber, unsigned int frequency_Hz)
       case 1:
         RCC->APB2ENR |= RCC_APB2ENR_TIM1EN;
         mTim = TIM1;
-        mIrq = TIM1_UP_TIM10_IRQn;
+        mIrq = TIM_IRQn(1_UP); // у этого таймера 4 прерывания, задаётся позже, когда нужно
         break;
 #endif
         
       case 2:
         RCC->APB1ENR |= RCC_APB1ENR_TIM2EN;
         mTim = TIM2;
-        mIrq = TIM2_IRQn;
+        mIrq = TIM_IRQn(2);
         mInputClk = pclk1;
         break;
         
       case 3:
         RCC->APB1ENR |= RCC_APB1ENR_TIM3EN;
         mTim = TIM3;
-        mIrq = TIM3_IRQn;
+        mIrq = TIM_IRQn(3);
         mInputClk = pclk1;
         break;
         
       case 4:
         RCC->APB1ENR |= RCC_APB1ENR_TIM4EN;
         mTim = TIM4;
-        mIrq = TIM4_IRQn;
+        mIrq = TIM_IRQn(4);
         mInputClk = pclk1;
         break;
         
       case 5:
         RCC->APB1ENR |= RCC_APB1ENR_TIM5EN;
         mTim = TIM5;
-        mIrq = TIM5_IRQn;
+        mIrq = TIM_IRQn(5);
         mInputClk = pclk1;
         break;
         
@@ -66,110 +66,103 @@ HardwareTimer::HardwareTimer(TimerNumber timerNumber, unsigned int frequency_Hz)
         RCC->APB1ENR |= RCC_APB1ENR_TIM6EN;
         mTim = TIM6;
         mInputClk = pclk1;
-#if !defined(STM32F37X)
-        mIrq = TIM6_DAC_IRQn;
-#else
-        mIrq = TIM6_DAC1_IRQn;
-#endif
+        mIrq = TIM_IRQn(6);
         break;
         
       case 7:
         RCC->APB1ENR |= RCC_APB1ENR_TIM7EN;
         mTim = TIM7;
-        mIrq = TIM7_IRQn;
+        mIrq = TIM_IRQn(7);
         mInputClk = pclk1;
         break;
         
-#if !defined(STM32F37X)        
+#if defined(TIM8_UP_IRQ)     
       case 8:
         RCC->APB2ENR |= RCC_APB2ENR_TIM8EN;
         mTim = TIM8;
-        mIrq = TIM8_UP_TIM13_IRQn;
+        mIrq = TIM_IRQn(8_UP); // у этого таймера 4 прерывания, задаётся позже, когда нужно
         break;
-        
+#endif
+#if defined(TIM9_IRQ)
       case 9:
         RCC->APB2ENR |= RCC_APB2ENR_TIM9EN;
         mTim = TIM9;
-        mIrq = TIM1_BRK_TIM9_IRQn;
+        mIrq = TIM_IRQn(9);
         break;
-        
+#endif
+#if defined(TIM10_IRQ)      
       case 10:
         RCC->APB2ENR |= RCC_APB2ENR_TIM10EN;
         mTim = TIM10;
-        mIrq = TIM1_UP_TIM10_IRQn;
-        mInputClk = pclk1; // or pclk2 ? 
+        mIrq = TIM_IRQn(10);
+        mInputClk = pclk1; // or pclk2 ??? 
         break;
-        
+#endif
+#if defined(TIM11_IRQ)     
       case 11:
         RCC->APB2ENR |= RCC_APB2ENR_TIM11EN;
         mTim = TIM11;
-        mIrq = TIM1_TRG_COM_TIM11_IRQn;
+        mIrq = TIM_IRQn(11);
         break;
 #endif
-        
+#if defined(TIM12_IRQ)        
       case 12:
         RCC->APB1ENR |= RCC_APB1ENR_TIM12EN;
         mTim = TIM12;
         mInputClk = pclk1;
-#if !defined(STM32F37X)
-        mIrq = TIM8_BRK_TIM12_IRQn;
-#else
-        mIrq = TIM12_IRQn;
-#endif
+        mIrq = TIM_IRQn(12);
         break;
-        
+#endif
+#if defined(TIM13_IRQ)         
       case 13:
         RCC->APB1ENR |= RCC_APB1ENR_TIM13EN;
         mTim = TIM13;
         mInputClk = pclk1;
-#if !defined(STM32F37X)        
-        mIrq = TIM8_UP_TIM13_IRQn;
-#else
-        mIrq = TIM13_IRQn;
-#endif
+        mIrq = TIM_IRQn(13);
         break;
-        
+#endif
+#if defined(TIM14_IRQ)         
       case 14:
         RCC->APB1ENR |= RCC_APB1ENR_TIM14EN;
         mTim = TIM14;
         mInputClk = pclk1;
-#if !defined(STM32F37X)
-        mIrq = TIM8_TRG_COM_TIM14_IRQn;
-#else
-        mIrq = TIM14_IRQn;
-#endif
+        mIrq = TIM_IRQn(14);
         break;
-        
-#if defined(STM32F37X)
+#endif
+#if defined(TIM15_IRQ)         
       case 15:
         RCC->APB2ENR |= RCC_APB2ENR_TIM15EN;
         mTim = TIM15;
-        mIrq = TIM15_IRQn;
+        mIrq = TIM_IRQn(15);
         break;
-        
+#endif
+#if defined(TIM16_IRQ)         
       case 16:
         RCC->APB2ENR |= RCC_APB2ENR_TIM16EN;
         mTim = TIM16;
-        mIrq = TIM16_IRQn;
+        mIrq = TIM_IRQn(16);
         break;
-        
+#endif
+#if defined(TIM17_IRQ)         
       case 17:
         RCC->APB2ENR |= RCC_APB2ENR_TIM17EN;
         mTim = TIM17;
-        mIrq = TIM17_IRQn;
+        mIrq = TIM_IRQn(17);
         break;
-        
+#endif
+#if defined(TIM18_IRQ)         
       case 18:
         RCC->APB1ENR |= RCC_APB1ENR_TIM18EN;
         mTim = TIM18;
-        mIrq = TIM18_DAC2_IRQn;
+        mIrq = TIM_IRQn(18);
         mInputClk = pclk1;
         break;
-        
+#endif
+#if defined(TIM19_IRQ)         
       case 19:
         RCC->APB2ENR |= RCC_APB2ENR_TIM19EN;
         mTim = TIM19;
-        mIrq = TIM19_IRQn;
+        mIrq = TIM_IRQn(19);
         break;
 #endif
         
@@ -420,20 +413,20 @@ void HardwareTimer::enableInterrupt(InterruptSource source)
     {
         switch (source)
         {
-          case isrcUpdate: mIrq = TIM1_UP_TIM10_IRQn; break;
-          case isrcCC1: case isrcCC2: case isrcCC3: case isrcCC4: mIrq = TIM1_CC_IRQn; break;
-          case isrcCom: case isrcTrigger: mIrq = TIM1_TRG_COM_TIM11_IRQn; break;
-          case isrcBreak: mIrq = TIM1_BRK_TIM9_IRQn; break;
+          case isrcUpdate: mIrq = TIM_IRQn(1_UP); break;
+          case isrcCC1: case isrcCC2: case isrcCC3: case isrcCC4: mIrq = TIM_IRQn(1_CC); break;
+          case isrcCom: case isrcTrigger: mIrq = TIM_IRQn(1_TRG_COM); break;
+          case isrcBreak: mIrq = TIM_IRQn(1_BRK); break;
         }
     }
     else if (mTim == TIM8)
     {
         switch (source)
         {
-          case isrcUpdate: mIrq = TIM8_UP_TIM13_IRQn; break;
-          case isrcCC1: case isrcCC2: case isrcCC3: case isrcCC4: mIrq = TIM8_CC_IRQn; break;
-          case isrcCom: case isrcTrigger: mIrq = TIM8_TRG_COM_TIM14_IRQn; break;
-          case isrcBreak: mIrq = TIM8_BRK_TIM12_IRQn; break;
+          case isrcUpdate: mIrq = TIM_IRQn(8_UP); break;
+          case isrcCC1: case isrcCC2: case isrcCC3: case isrcCC4: mIrq = TIM_IRQn(8_CC); break;
+          case isrcCom: case isrcTrigger: mIrq = TIM_IRQn(8_TRG_COM); break;
+          case isrcBreak: mIrq = TIM_IRQn(8_BRK); break;
         }
     }
     
@@ -472,6 +465,7 @@ void HardwareTimer::handleInterrupt()
  extern "C" {
 #endif 
 
+#if defined(STM32F4)
 void TIM1_BRK_TIM9_IRQHandler()
 {
     if (HardwareTimer::mTimers[9-1])
@@ -495,6 +489,33 @@ void TIM1_TRG_COM_TIM11_IRQHandler()
     if (HardwareTimer::mTimers[1-1])
         HardwareTimer::mTimers[1-1]->handleInterrupt();
 }
+#endif
+
+#if defined(STM32L4)
+void TIM1_BRK_TIM15_IRQHandler()
+{
+    if (HardwareTimer::mTimers[15-1])
+        HardwareTimer::mTimers[15-1]->handleInterrupt();
+    if (HardwareTimer::mTimers[1-1])
+        HardwareTimer::mTimers[1-1]->handleInterrupt();
+}
+
+void TIM1_UP_TIM16_IRQHandler()
+{
+    if (HardwareTimer::mTimers[16-1])
+        HardwareTimer::mTimers[16-1]->handleInterrupt();
+    if (HardwareTimer::mTimers[1-1])
+        HardwareTimer::mTimers[1-1]->handleInterrupt();
+}
+
+void TIM1_TRG_COM_TIM17_IRQHandler()
+{
+    if (HardwareTimer::mTimers[17-1])
+        HardwareTimer::mTimers[17-1]->handleInterrupt();
+    if (HardwareTimer::mTimers[1-1])
+        HardwareTimer::mTimers[1-1]->handleInterrupt();
+}
+#endif
 
 void TIM1_CC_IRQHandler()
 {
@@ -538,6 +559,7 @@ void TIM7_IRQHandler()
         HardwareTimer::mTimers[7-1]->handleInterrupt();
 }
 
+#if defined(STM32F4)
 void TIM8_BRK_TIM12_IRQHandler()
 {
     if (HardwareTimer::mTimers[12-1])
@@ -561,18 +583,32 @@ void TIM8_TRG_COM_TIM14_IRQHandler()
     if (HardwareTimer::mTimers[8-1])
         HardwareTimer::mTimers[8-1]->handleInterrupt();
 }
+#endif
 
-void TIM8_CC_IRQHandler()
+#if defined(STM32L4)
+void TIM8_BRK_IRQHandler()
 {
     if (HardwareTimer::mTimers[8-1])
         HardwareTimer::mTimers[8-1]->handleInterrupt();
 }
 
-// TODO: check existence of this IRQ handler
-void TIM15_IRQHandler()
+void TIM8_UP_IRQHandler()
 {
-    if (HardwareTimer::mTimers[15-1])
-        HardwareTimer::mTimers[15-1]->handleInterrupt();
+    if (HardwareTimer::mTimers[8-1])
+        HardwareTimer::mTimers[8-1]->handleInterrupt();
+}
+
+void TIM8_TRG_COM_IRQHandler()
+{
+    if (HardwareTimer::mTimers[8-1])
+        HardwareTimer::mTimers[8-1]->handleInterrupt();
+}
+#endif
+
+void TIM8_CC_IRQHandler()
+{
+    if (HardwareTimer::mTimers[8-1])
+        HardwareTimer::mTimers[8-1]->handleInterrupt();
 }
 
 #ifdef __cplusplus

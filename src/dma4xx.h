@@ -1,8 +1,7 @@
 #ifndef _DMA4XX_H
 #define _DMA4XX_H
 
-//#include "stm32_conf.h"
-#include "stm32f4xx.h"
+#include "stm32.h"
 #include "core/core.h"
 
 #define FOR_EACH_DMA(f) \

@@ -1,11 +1,44 @@
 #include "usart.h"
 
-#if defined(STM32F37X) 
-    #define SR ISR
-    #define USART_SR_TC USART_ISR_TC
-#else
-    #define RDR DR
-    #define TDR DR
+#if defined(STM32F4)
+#define USART1_RX_DMA   Dma::USART1_RX_Stream2; // Dma::USART1_RX_Stream5
+#define USART1_TX_DMA   Dma::USART1_TX_Stream7;
+#define USART2_RX_DMA   Dma::USART2_RX_Stream5;
+#define USART2_TX_DMA   Dma::USART2_TX_Stream6;
+#define USART3_RX_DMA   Dma::USART3_RX_Stream1;
+#define USART3_TX_DMA   Dma::USART3_TX_Stream3; // Dma::USART3_TX_Stream4
+#define UART4_RX_DMA    Dma::UART4_RX_Stream2;
+#define UART4_TX_DMA    Dma::UART4_TX_Stream4;
+#define UART5_RX_DMA    Dma::UART5_RX_Stream0;
+#define UART5_TX_DMA    Dma::UART5_TX_Stream7;
+#define USART6_RX_DMA   Dma::USART6_RX_Stream1; //Dma::USART6_RX_Stream2
+#define USART6_TX_DMA   Dma::USART6_TX_Stream6; //Dma::USART6_TX_Stream7
+#define RDR             DR
+#define TDR             DR
+
+#elif defined(STM32L4)
+#define USART1_RX_DMA   Dma::USART1_RX_Channel5; // USART1_RX_Channel7
+#define USART1_TX_DMA   Dma::USART1_TX_Channel4; // USART1_TX_Channel6
+#define USART2_RX_DMA   Dma::USART2_RX_Channel6;
+#define USART2_TX_DMA   Dma::USART2_TX_Channel7;
+#define USART3_RX_DMA   Dma::USART3_RX_Channel3;
+#define USART3_TX_DMA   Dma::USART3_TX_Channel2;
+#define UART4_RX_DMA    Dma::UART4_RX_Channel5;
+#define UART4_TX_DMA    Dma::UART4_TX_Channel3;
+#define UART5_RX_DMA    Dma::UART5_RX_Channel2;
+#define UART5_TX_DMA    Dma::UART5_TX_Channel1;
+#define RCC_APB1ENR_USART2EN    RCC_APB1ENR1_USART2EN
+#define RCC_APB1ENR_USART3EN    RCC_APB1ENR1_USART3EN
+#define RCC_APB1ENR_UART4EN     RCC_APB1ENR1_UART4EN
+#define RCC_APB1ENR_UART5EN     RCC_APB1ENR1_UART5EN
+#define SR                      ISR
+#define USART_SR_TC             USART_ISR_TC
+#define USART_SR_RXNE           USART_ISR_RXNE
+
+#elif defined(STM32F37X) 
+#define SR                      ISR
+#define USART_SR_TC             USART_ISR_TC
+#define USART_SR_RXNE           USART_ISR_RXNE
 #endif
 
 Usart *Usart::mUsarts[6] = {0L, 0L, 0L, 0L, 0L, 0L};
@@ -54,49 +87,51 @@ void Usart::commonConstructor(int number)
       case 1:  
         mDev = USART1;
         RCC->APB2ENR |= RCC_APB2ENR_USART1EN;
-        mDmaChannelRx = Dma::USART1_RX_Stream2; // Dma::USART1_RX_Stream5
-        mDmaChannelTx = Dma::USART1_TX_Stream7;
+        mDmaChannelRx = USART1_RX_DMA;
+        mDmaChannelTx = USART1_TX_DMA;
         mIrq = USART1_IRQn;
         break;
         
       case 2:  
         mDev = USART2;
         RCC->APB1ENR |= RCC_APB1ENR_USART2EN;
-        mDmaChannelRx = Dma::USART2_RX_Stream5;
-        mDmaChannelTx = Dma::USART2_TX_Stream6;
+        mDmaChannelRx = USART2_RX_DMA;
+        mDmaChannelTx = USART2_TX_DMA;
         mIrq = USART2_IRQn;
         break;
         
       case 3:  
         mDev = USART3;
         RCC->APB1ENR |= RCC_APB1ENR_USART3EN;
-        mDmaChannelRx = Dma::USART3_RX_Stream1;
-        mDmaChannelTx = Dma::USART3_TX_Stream3; // Dma::USART3_TX_Stream4
+        mDmaChannelRx = USART3_RX_DMA;
+        mDmaChannelTx = USART3_TX_DMA;
         mIrq = USART3_IRQn;
         break;
         
-#if !defined(STM32F37X)       
+#if defined(STM32F4) || defined(STM32L4)       
       case 4:  
         mDev = UART4;
         RCC->APB1ENR |= RCC_APB1ENR_UART4EN;
-        mDmaChannelRx = Dma::UART4_RX_Stream2;
-        mDmaChannelTx = Dma::UART4_TX_Stream4;
+        mDmaChannelRx = UART4_RX_DMA;
+        mDmaChannelTx = UART4_TX_DMA;
         mIrq = UART4_IRQn;
         break;
         
       case 5:  
         mDev = UART5;
         RCC->APB1ENR |= RCC_APB1ENR_UART5EN;
-        mDmaChannelRx = Dma::UART5_RX_Stream0;
-        mDmaChannelTx = Dma::UART5_TX_Stream7;
+        mDmaChannelRx = UART5_RX_DMA;
+        mDmaChannelTx = UART5_TX_DMA;
         mIrq = UART5_IRQn;
         break;
         
+#endif
+#if defined(STM32F4)
       case 6:  
         mDev = USART6;
         RCC->APB2ENR |= RCC_APB2ENR_USART6EN;
-        mDmaChannelRx = Dma::USART6_RX_Stream1; //Dma::USART6_RX_Stream2
-        mDmaChannelTx = Dma::USART6_TX_Stream6; //Dma::USART6_TX_Stream7
+        mDmaChannelRx = USART6_RX_DMA;
+        mDmaChannelTx = USART6_TX_DMA;
         mIrq = USART6_IRQn;
         break;
 #endif
@@ -398,8 +433,10 @@ void Usart::setBaudrate(int baudrate)
     
     #if defined(STM32F37X)
     int apbclock = (mDev == USART1)? Rcc::pClk2(): Rcc::pClk1();
-    #else
+    #elif defined(STM32F4)
     int apbclock = ((mDev == USART1) || (mDev == USART6))? Rcc::pClk2(): Rcc::pClk1();
+    #elif defined(STM32L4)
+    int apbclock = (mDev == USART1)? Rcc::pClk2(): Rcc::pClk1();
     #endif
 
     uint32_t tmpreg = apbclock / baudrate;

@@ -28,6 +28,13 @@ void Application::sysTickHandler()
     }
 }
 
+void Application::delay(int ms)
+{
+    Application *app = instance();
+    uint32_t alarm = app->mTimestamp + ms;
+    while (app->mTimestamp < alarm);
+}
+
 void Application::exec()
 {       
     //RCC_ClockSecuritySystemCmd(ENABLE);
@@ -147,7 +154,7 @@ void SysTick_Handler(void)
 
 void SystemInit(void) // on Reset_Handler
 {
-#if defined(STM32F37X)
+#if defined(STM32F3)
     /* FPU settings ------------------------------------------------------------*/
   #if (__FPU_PRESENT == 1) && (__FPU_USED == 1)
     SCB->CPACR |= ((3UL << 10*2)|(3UL << 11*2));  /* set CP10 and CP11 Full Access */
@@ -168,7 +175,7 @@ void SystemInit(void) // on Reset_Handler
     RCC->CFGR3 &= (uint32_t)0xFFF0F8C;
     /* Disable all interrupts */
     RCC->CIR = 0x00000000;
-#else  
+#elif defined(STM32F4)  
     /* FPU settings ------------------------------------------------------------*/
     #if (__FPU_PRESENT == 1) && (__FPU_USED == 1)
     SCB->CPACR |= ((3UL << 10*2)|(3UL << 11*2));  /* set CP10 and CP11 Full Access */
@@ -186,6 +193,29 @@ void SystemInit(void) // on Reset_Handler
     RCC->CR &= (uint32_t)0xFFFBFFFF;
     /* Disable all interrupts */
     RCC->CIR = 0x00000000;
+#elif defined(STM32L4)
+  /* FPU settings ------------------------------------------------------------*/
+  #if (__FPU_PRESENT == 1) && (__FPU_USED == 1)
+    SCB->CPACR |= ((3UL << 10*2)|(3UL << 11*2));  /* set CP10 and CP11 Full Access */
+  #endif
+  /* Reset the RCC clock configuration to the default reset state ------------*/
+  /* Set MSION bit */
+  RCC->CR |= RCC_CR_MSION;
+
+  /* Reset CFGR register */
+  RCC->CFGR = 0x00000000;
+
+  /* Reset HSEON, CSSON , HSION, and PLLON bits */
+  RCC->CR &= (uint32_t)0xEAF6FFFF;
+
+  /* Reset PLLCFGR register */
+  RCC->PLLCFGR = 0x00001000;
+
+  /* Reset HSEBYP bit */
+  RCC->CR &= (uint32_t)0xFFFBFFFF;
+
+  /* Disable all interrupts */
+  RCC->CIER = 0x00000000;
 #endif
 
 //#if defined(STM32F429xx)
@@ -194,6 +224,7 @@ void SystemInit(void) // on Reset_Handler
 //    Rcc::configPll(0, CpuId::maxSysClk());
 //#endif
 
+//    Rcc::configPll(0, 80000000);
     Rcc::configPll(0, 160000000);
 
     /* Configure the Vector Table location add offset address ------------------*/

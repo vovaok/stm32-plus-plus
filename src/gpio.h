@@ -2,7 +2,7 @@
 #define _GPIO_H
 
 #include <stdarg.h>
-#include "stm32f4xx.h"
+#include "stm32.h"
 //#include "stm32_conf.h"
 #include "core/core.h"
 
@@ -438,9 +438,9 @@ public:
         
         // SPI (I2S)
         SPI1_NSS_PA4 =      PINCONFIG(PA4,  modeAF | speed50MHz, afSpi1, 0x10), //!.
-        SPI1_SCK_PA5 =      PINCONFIG(PA5,  modeAF | speed50MHz, afSpi1, 0x10), //!.
-        SPI1_MISO_PA6 =     PINCONFIG(PA6,  modeAF | speed50MHz | pullUp , afSpi1, 0x10), //!.
-        SPI1_MOSI_PA7 =     PINCONFIG(PA7,  modeAF | speed50MHz, afSpi1, 0x10), //!.
+        SPI1_SCK_PA5 =      PINCONFIG(PA5,  modeAF | speed100MHz, afSpi1, 0x10), //!.
+        SPI1_MISO_PA6 =     PINCONFIG(PA6,  modeAF | speed100MHz | pullUp , afSpi1, 0x10), //!.
+        SPI1_MOSI_PA7 =     PINCONFIG(PA7,  modeAF | speed100MHz, afSpi1, 0x10), //!.
         SPI1_NSS_PA15 =     PINCONFIG(PA15, modeAF | speed50MHz, afSpi1, 0x10), //!.
         SPI1_SCK_PB3 =      PINCONFIG(PB3,  modeAF | speed50MHz, afSpi1, 0x10), //!.
         SPI1_MISO_PB4 =     PINCONFIG(PB4,  modeAF | speed50MHz | pullUp, afSpi1, 0x10), //!.

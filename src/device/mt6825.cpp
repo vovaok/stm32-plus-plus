@@ -12,8 +12,8 @@ MT6825::MT6825(Spi *spi, Gpio::PinName csPin, Gpio *pinMux) :
         conf.CPOL = 1;
         conf.master = 1;
         conf.baudrate = 1;
-        conf.frame16bit = 1;
         spi->setConfig(conf);
+        spi->setDataSize(16);
         spi->open();
     }
   
@@ -28,8 +28,8 @@ uint32_t MT6825::readValue()
     if (m_mux)
         m_mux->write(0);
     m_cs->write(0);
-    buf[0] = m_spi->write(0x8300);
-    buf[1] = m_spi->read();
+    buf[0] = m_spi->write16(0x8300);
+    buf[1] = m_spi->read16();
     m_cs->write(1);
     uint32_t result = 0;
     result = (buf[0] & 0xFF) << 10;

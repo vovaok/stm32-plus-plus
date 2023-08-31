@@ -12,8 +12,8 @@ AS5047D::AS5047D(Spi *spi, Gpio::PinName csPin) :
     conf.CPOL = 0;
     conf.master = 1;
     conf.baudrate = 3; // clock / 16
-    conf.frame16bit = 1;
     spi->setConfig(conf);
+    spi->setDataSize(16);
 }
 
 unsigned short AS5047D::read()

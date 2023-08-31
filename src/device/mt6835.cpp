@@ -11,8 +11,8 @@ MT6835::MT6835(Spi *spi, Gpio::PinName csPin) :
         conf.CPOL = 1;
         conf.master = 1;
         conf.baudrate = 1;
-        conf.frame16bit = 0;
         spi->setConfig(conf);
+        spi->setDataSize(8);
         spi->open();
     }
   

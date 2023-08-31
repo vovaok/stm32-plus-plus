@@ -19,7 +19,9 @@ __NO_INIT( unsigned long Rcc::mAPB2Clk );
 
 //#if !defined(STM32F37X)
 
-void Rcc::configPll(unsigned long hseValue, unsigned long sysClk)
+#if defined(STM32F4)
+
+void Rcc::configPll(uint32_t hseValue, uint32_t sysClk)
 {
     __IO uint32_t StartUpCounter = 0, HSEStatus = 0;
     
@@ -266,3 +268,37 @@ void Rcc::configPll(unsigned long hseValue, unsigned long sysClk)
         THROW(Exception::BadSoBad);
     }
 }
+
+#elif defined(STM32L4)
+
+void Rcc::configPll(uint32_t hseValue, uint32_t sysClk)
+{
+    //! @todo Dopilit RCC config for STM32L4
+    
+    uint32_t pllR = 2;
+    uint32_t pllvco = sysClk * pllR;
+    uint32_t clkin = 4000000; // MSI clock
+//    mHseValue = clkin;
+    mPllM = 1;
+    mPllN = pllvco / (clkin / mPllM);
+    if (mPllN > 0x7F)
+        THROW(Exception::BadSoBad);
+    mPllQ = pllvco / 48000000;
+//    mPllP = 7;
+    
+
+    mSysClk = clkin / mPllM * mPllN / pllR;
+    
+    FLASH->ACR = FLASH_ACR_PRFTEN | FLASH_ACR_ICEN |FLASH_ACR_DCEN |FLASH_ACR_LATENCY_2WS;
+    
+    RCC->PLLCFGR = ((mPllM - 1) << 4) | ((mPllN & 0x7F) << 8) | (((mPllQ>>1)-1) << 21) | (((pllR>>1)-1) << 25) | (RCC_PLLCFGR_PLLSRC_MSI) | (RCC_PLLCFGR_PLLREN);
+    RCC->CR |= RCC_CR_PLLON;
+    
+    while (!(RCC->CR & RCC_CR_PLLRDY));
+    
+    RCC->CFGR = RCC->CFGR & ~RCC_CFGR_SW | RCC_CFGR_SW_PLL;
+    
+    while ((RCC->CFGR & RCC_CFGR_SWS) != RCC_CFGR_SWS_PLL);
+}
+
+#endif

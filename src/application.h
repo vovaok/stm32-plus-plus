@@ -154,6 +154,8 @@ public:
     /*! Возвращает время в миллисекундах с момента запуска.    
     */
     inline unsigned long timestamp() const {return mTimestamp;}
+    
+    static void delay(int ms);
 };
 
 /*! Экземпляр приложения.

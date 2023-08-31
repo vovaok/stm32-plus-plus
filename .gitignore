@@ -19,3 +19,4 @@ stm32f405rg_no-exceptions_no-rtti/
 
 BrowseInfo/
 .ninja*
+/stm32l476rg/

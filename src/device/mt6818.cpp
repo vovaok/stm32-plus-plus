@@ -24,7 +24,7 @@ uint32_t MT6818::readValue()
     for (int i=0; i<2; i++)
     {
         m_cs->write(0);
-        buf[i] = m_spi->write(buf[i]);
+        buf[i] = m_spi->write16(buf[i]);
         m_cs->write(1);
     }
     uint32_t result = 0;

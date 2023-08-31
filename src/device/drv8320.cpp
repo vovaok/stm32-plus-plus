@@ -19,8 +19,8 @@ Drv8320::Drv8320(Spi *spi, Gpio::PinName csPin, Gpio::PinName enablePin) :
     conf.CPOL = 0;
     conf.master = 1;
     conf.baudrate = 5;
-    conf.frame16bit = 1;
     m_spi->setConfig(conf);
+    m_spi->setDataSize(16);
     m_spi->open(); 
     
     __root static uint16_t jopa;
@@ -57,7 +57,7 @@ void Drv8320::writeReg(uint8_t reg, uint16_t data)
     
     m_csPin->reset();
     for (int w=0; w<100; w++);
-    m_spi->write(tmp);
+    m_spi->write16(tmp);
     for (int w=0; w<100; w++);
     m_csPin->set();
 }
@@ -70,7 +70,7 @@ uint16_t Drv8320::readReg(uint8_t reg)
     
     m_csPin->reset();
     for (int w=0; w<100; w++);
-    tmp = m_spi->write(tmp);
+    tmp = m_spi->write16(tmp);
     for (int w=0; w<100; w++);
     m_csPin->set();
     

@@ -13,27 +13,52 @@
 #define _kHz    *1000
 #define _MHz    *1000000
 
-extern "C" void TIM1_BRK_TIM9_IRQHandler();
-extern "C" void TIM1_UP_TIM10_IRQHandler();
-extern "C" void TIM1_TRG_COM_TIM11_IRQHandler();
-extern "C" void TIM1_CC_IRQHandler();
-extern "C" void TIM2_IRQHandler();
-extern "C" void TIM3_IRQHandler();
-extern "C" void TIM4_IRQHandler();
-extern "C" void TIM5_IRQHandler();
-extern "C" void TIM6_DAC_IRQHandler();
-extern "C" void TIM7_IRQHandler();
-extern "C" void TIM8_BRK_TIM12_IRQHandler();
-extern "C" void TIM8_UP_TIM13_IRQHandler();
-extern "C" void TIM8_TRG_COM_TIM14_IRQHandler();
-extern "C" void TIM8_CC_IRQHandler();
-extern "C" void TIM9_IRQHandler();
-extern "C" void TIM10_IRQHandler();
-extern "C" void TIM11_IRQHandler();
-extern "C" void TIM12_IRQHandler();
-extern "C" void TIM13_IRQHandler();
-extern "C" void TIM14_IRQHandler();
-extern "C" void TIM15_IRQHandler();
+#if defined(STM32F4)
+#define TIM1_UP_IRQ         TIM1_UP_TIM10_IRQ
+#define TIM1_TRG_COM_IRQ    TIM1_TRG_COM_TIM11_IRQ
+#define TIM1_BRK_IRQ        TIM1_BRK_TIM9_IRQ
+#define TIM8_UP_IRQ         TIM8_UP_TIM13_IRQ
+#define TIM8_TRG_COM_IRQ    TIM8_TRG_COM_TIM14_IRQ
+#define TIM8_BRK_IRQ        TIM8_BRK_TIM12_IRQ
+#define TIM9_IRQ            TIM1_BRK_TIM9_IRQ
+#define TIM10_IRQ           TIM1_UP_TIM10_IRQ
+#define TIM11_IRQ           TIM1_TRG_COM_TIM11_IRQ
+#define TIM12_IRQ           TIM8_BRK_TIM12_IRQ
+#define TIM13_IRQ           TIM8_UP_TIM13_IRQ
+#define TIM14_IRQ           TIM8_TRG_COM_TIM14_IRQ
+
+#elif defined(STM32L4)
+#define RCC_APB1ENR_TIM2EN  RCC_APB1ENR1_TIM2EN
+#define RCC_APB1ENR_TIM3EN  RCC_APB1ENR1_TIM3EN
+#define RCC_APB1ENR_TIM4EN  RCC_APB1ENR1_TIM4EN
+#define RCC_APB1ENR_TIM5EN  RCC_APB1ENR1_TIM5EN
+#define RCC_APB1ENR_TIM6EN  RCC_APB1ENR1_TIM2EN
+#define RCC_APB1ENR_TIM7EN  RCC_APB1ENR1_TIM7EN
+#define TIM1_UP_IRQ         TIM1_UP_TIM16_IRQ
+//#define TIM1_TRG_COM_IRQ    TIM1_TRG_COM_TIM17_IRQ // already defined
+#define TIM1_BRK_IRQ        TIM1_BRK_TIM15_IRQ
+#define TIM8_UP_IRQ         TIM8_UP_IRQ
+#define TIM8_TRG_COM_IRQ    TIM8_TRG_COM_IRQ
+#define TIM8_BRK_IRQ        TIM8_BRK_IRQ
+#define TIM15_IRQ           TIM1_BRK_TIM15_IRQ
+#define TIM16_IRQ           TIM1_UP_TIM16_IRQ
+#define TIM17_IRQ           TIM1_TRG_COM_TIM17_IRQ
+#endif
+
+#define TIM6_IRQ            TIM6_DAC_IRQ
+
+#define TIM_IRQn(x)         GLUE(TIM##x##_IRQ, n)
+#define TIM_IRQHandler(x)   GLUE(TIM##x##_IRQ, Handler)
+
+#define DECLARE_TIM_IRQ_HANDLER(x) extern "C" void TIM_IRQHandler(x)();
+#define DECLARE_TIM_FRIEND(x) friend void TIM_IRQHandler(x)();
+#define FOREACH_TIM_IRQ(f) \
+    f(1_BRK) f(1_UP) f(1_TRG_COM) f(1_CC) \
+    f(2) f(3)  f(4)  f(5)  f(6)  f(7) \
+    f(8_BRK) f(8_UP) f(8_TRG_COM) f(8_CC) \
+    f(9) f(10) f(11) f(12) f(13) f(14)
+
+FOREACH_TIM_IRQ(DECLARE_TIM_IRQ_HANDLER)
 
 class HardwareTimer
 {
@@ -220,27 +245,7 @@ private:
     void enableInterrupt(InterruptSource source);
     void handleInterrupt();
     
-    friend void TIM1_BRK_TIM9_IRQHandler();
-    friend void TIM1_UP_TIM10_IRQHandler();
-    friend void TIM1_TRG_COM_TIM11_IRQHandler();
-    friend void TIM1_CC_IRQHandler();
-    friend void TIM2_IRQHandler();
-    friend void TIM3_IRQHandler();
-    friend void TIM4_IRQHandler();
-    friend void TIM5_IRQHandler();
-    friend void TIM6_DAC_IRQHandler();
-    friend void TIM7_IRQHandler();
-    friend void TIM8_BRK_TIM12_IRQHandler();
-    friend void TIM8_UP_TIM13_IRQHandler();
-    friend void TIM8_TRG_COM_TIM14_IRQHandler();
-    friend void TIM8_CC_IRQHandler();
-    friend void TIM9_IRQHandler();
-    friend void TIM10_IRQHandler();
-    friend void TIM11_IRQHandler();
-    friend void TIM12_IRQHandler();
-    friend void TIM13_IRQHandler();
-    friend void TIM14_IRQHandler();
-    friend void TIM15_IRQHandler();
+    FOREACH_TIM_IRQ(DECLARE_TIM_FRIEND)
 };
 
 #endif
