@@ -215,6 +215,10 @@ public:
     void setSingleBuffer(void *buffer, int size);
     void setCircularBuffer(void *buffer, int size);
     void setDoubleBuffer(void *buffer, void *buffer2, int size);
+    void setMemorySource(void *ptr, int dataSize);
+    void setMemorySource(uint8_t *ptr);
+    void setMemorySource(uint16_t *ptr);
+    void setMemorySource(uint32_t *ptr);
     void setSource(void *periph, int dataSize);
     void setSink(void *periph, int dataSize);
     

@@ -98,8 +98,8 @@ public:
     static ByteArray fromRawData(const char *data, int size);
     static ByteArray fromPercentEncoding(const ByteArray &ba);
     static ByteArray number(int n);
-    static ByteArray number(float n);
-    static ByteArray number(double n);
+    static ByteArray number(float n, int prec=-1);
+    static ByteArray number(double n, int prec=-1);
 };
 
 ByteArray operator +(const ByteArray &ba1, const ByteArray ba2);

@@ -224,8 +224,11 @@ void SystemInit(void) // on Reset_Handler
 //    Rcc::configPll(0, CpuId::maxSysClk());
 //#endif
 
-//    Rcc::configPll(0, 80000000);
+#if defined(STM32L4)
+    Rcc::configPll(0, 80000000);
+#elif defined(STM32F4)
     Rcc::configPll(0, 160000000);
+#endif
 
     /* Configure the Vector Table location add offset address ------------------*/
     #ifdef VECT_TAB_SRAM

@@ -84,6 +84,35 @@ void Dma::setCircularBuffer(void *buffer, int size)
     mChannel->CMAR = (uint32_t)buffer;
 }
 
+void Dma::setMemorySource(void *ptr, int dataSize)
+{
+    if (dataSize == 4)
+        --dataSize;
+    --dataSize;
+    
+    mConfig.MINC = 0;
+    mConfig.CIRC = 0;
+    mConfig.MSIZE = dataSize;
+    
+    mChannel->CCR = mConfig.all;
+    mChannel->CMAR = (uint32_t)ptr;
+}
+
+void Dma::setMemorySource(uint8_t *ptr)
+{
+    setMemorySource(ptr, 1);
+}
+
+void Dma::setMemorySource(uint16_t *ptr)
+{
+    setMemorySource(ptr, 2);
+}
+
+void Dma::setMemorySource(uint32_t *ptr)
+{
+    setMemorySource(ptr, 4);
+}
+
 void Dma::setPeriph(void *periph, int dataSize, bool isSource)
 {
     if (dataSize == 4)

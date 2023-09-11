@@ -486,20 +486,38 @@ ByteArray ByteArray::number(int n)
     return ba;
 }
 
-ByteArray ByteArray::number(float n)
+ByteArray ByteArray::number(float n, int prec)
 {
     ByteArray ba;
     ba.resize(16);
-    sprintf(ba.data(), "%f", n);
+    if (prec >= 0)
+    {
+        char fmt[8];
+        sprintf(fmt, "%%.%df", prec);
+        sprintf(ba.data(), fmt, n);
+    }
+    else
+    {
+        sprintf(ba.data(), "%f", n);
+    }
     ba.resize(strlen(ba.data()));
     return ba;
 }
 
-ByteArray ByteArray::number(double n)
+ByteArray ByteArray::number(double n, int prec)
 {
     ByteArray ba;
     ba.resize(16);
-    sprintf(ba.data(), "%f", n);
+    if (prec >= 0)
+    {
+        char fmt[8];
+        sprintf(fmt, "%%.%df", prec);
+        sprintf(ba.data(), fmt, n);
+    }
+    else
+    {
+        sprintf(ba.data(), "%f", n);
+    }
     ba.resize(strlen(ba.data()));
     return ba;
 }

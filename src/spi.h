@@ -85,6 +85,7 @@ private:
     Dma *mDmaRx;
     Dma *mDmaTx;
     bool mUseDmaRx, mUseDmaTx;
+    uint8_t m_dataSize;
     
     friend void SPI1_IRQHandler(void);
     friend void SPI2_IRQHandler(void);
@@ -132,6 +133,9 @@ public:
     
     void read(uint8_t* data, int size);
     bool write(const uint8_t *data, int size);
+    
+    // write (count) words of the same values (*value)
+    bool writeFill16(uint16_t *value, int count);
     
     void waitForBytesWritten();
     

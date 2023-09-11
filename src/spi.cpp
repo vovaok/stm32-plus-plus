@@ -145,6 +145,7 @@ void Spi::setDataSize(int size)
 #else
     mConfig.DFF = (size == 16)? 1: 0;
 #endif
+    m_dataSize = size;
     updateConfig();
 }
 
@@ -180,10 +181,10 @@ void Spi::open()
         if (!mDmaTx)
             mDmaTx = new Dma(mDmaChannelTx);
         mDmaTx->setTransferCompleteEvent(EVENT(&Spi::handleDmaInterrupt));
-        // if (m_dataSize <= 8)
-        mDmaTx->setSink((void*)&mDev->DR, 1);
-        // else
-        //     mDmaTx->setSink((void*)&mDev->DR, 2);
+        if (m_dataSize <= 8)
+            mDmaTx->setSink((void*)&mDev->DR, 1);
+        else
+            mDmaTx->setSink((void*)&mDev->DR, 2);
         mConfig.TXDMAEN = 1;
         updateConfig();
     }   
@@ -309,14 +310,53 @@ bool Spi::write(const uint8_t *data, int size)
     {
         if (mDmaTx->isEnabled() && !mDmaTx->isComplete())
             return false;
-        mDmaTx->setSingleBuffer(const_cast<uint8_t*>(data), size);
+        if (m_dataSize <= 8)
+            mDmaTx->setSingleBuffer(const_cast<uint8_t*>(data), size);
+        else
+            mDmaTx->setSingleBuffer(const_cast<uint8_t*>(data), size / 2);
         mDmaTx->start();
     }
     else
     {
-        while (size--)
+        if (m_dataSize <= 8)
         {
-            *((__IO uint8_t *)(&mDev->DR)) = *data++;
+            while (size--)
+            {
+                *((__IO uint8_t *)(&mDev->DR)) = *data++;
+                while (!(mDev->SR & SPI_SR_RXNE)); // wait for RX Not Empty
+                (void)mDev->DR;
+            }
+        }
+        else
+        {
+            size = (size + 1) >> 1;
+            const uint16_t *src = reinterpret_cast<const uint16_t *>(data);
+            while (size--)
+            {
+                *((__IO uint16_t *)(&mDev->DR)) = *src++;
+                while (!(mDev->SR & SPI_SR_RXNE)); // wait for RX Not Empty
+                (void)mDev->DR;
+            }
+        }
+    }
+    return true;
+}
+
+bool Spi::writeFill16(uint16_t *value, int count)
+{
+    if (mDmaTx)
+    {
+        if (mDmaTx->isEnabled() && !mDmaTx->isComplete())
+            return false;
+        mDmaTx->setMemorySource(value);
+        mDmaTx->start(count);
+    }
+    else
+    {
+        uint16_t v = *value;
+        while (count--)
+        {
+            *((__IO uint16_t *)(&mDev->DR)) = v;
             while (!(mDev->SR & SPI_SR_RXNE)); // wait for RX Not Empty
             (void)mDev->DR;
         }

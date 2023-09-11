@@ -110,6 +110,36 @@ void Dma::setDoubleBuffer(void *buffer, void *buffer2, int size)
     mStream->M1AR = (uint32_t)buffer2;
 }
 
+void Dma::setMemorySource(void *ptr, int dataSize)
+{
+    if (dataSize == 4)
+        --dataSize;
+    --dataSize;
+    
+    mConfig.DBM = 0;
+    mConfig.MINC = 0;
+    mConfig.CIRC = 0;
+    mConfig.MSIZE = dataSize;
+    
+    mStream->CR = mConfig.all;
+    mStream->M0AR = (uint32_t)ptr;
+}
+
+void Dma::setMemorySource(uint8_t *ptr)
+{
+    setMemorySource(ptr, 1);
+}
+
+void Dma::setMemorySource(uint16_t *ptr)
+{
+    setMemorySource(ptr, 2);
+}
+
+void Dma::setMemorySource(uint32_t *ptr)
+{
+    setMemorySource(ptr, 4);
+}
+
 void Dma::setPeriph(void *periph, int dataSize, bool isSource)
 {
     if (dataSize == 4)
