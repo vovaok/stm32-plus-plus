@@ -2,7 +2,7 @@
 #define _POWER_MANAGER_H
 
 #include "adc.h"
-#include "timer.h"
+#include "core/timer.h"
 #include <string>
 #include <map>
 

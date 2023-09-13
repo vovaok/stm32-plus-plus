@@ -1,10 +1,11 @@
 #ifndef _SERIALFRAME_H
 #define _SERIALFRAME_H
 
+#include "core/core.h"
 #include "core/device.h"
-#include "core/bytearray.h"
-#include "core/coretypes.h"
-#include "application.h"
+//#include "core/bytearray.h"
+//#include "core/coretypes.h"
+//#include "application.h"
 
 namespace Serial
 {

@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include "rcc.h"
 #include "cpuid.h"
-#include "core/core.h"
+#include "core.h"
 #include "stm32_conf.h"
 //---------------------------------------------------------------------------
 

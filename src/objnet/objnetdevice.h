@@ -6,7 +6,7 @@
 #include "objnetcommon.h"
 #include "objectinfo.h"
 #ifndef QT_CORE_LIB
-#include "timer.h"
+#include "core/timer.h"
 #else
 #include <QtCore>
 #include <QObject>

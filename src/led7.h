@@ -2,7 +2,7 @@
 #define _LED7_H
 
 #include "gpio.h"
-#include "timer.h"
+#include "core/timer.h"
 #include <stdlib.h>
 
 class Led7 

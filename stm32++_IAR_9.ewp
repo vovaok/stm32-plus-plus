@@ -11854,6 +11854,12 @@
     <group>
         <name>core</name>
         <file>
+            <name>$PROJ_DIR$\src\core\application.cpp</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\core\application.h</name>
+        </file>
+        <file>
             <name>$PROJ_DIR$\src\core\bytearray.cpp</name>
         </file>
         <file>
@@ -11895,6 +11901,12 @@
         <file>
             <name>$PROJ_DIR$\src\core\ringbuffer.h</name>
         </file>
+        <file>
+            <name>$PROJ_DIR$\src\core\timer.cpp</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\core\timer.h</name>
+        </file>
     </group>
     <group>
         <name>device</name>
@@ -11932,6 +11944,12 @@
             <name>$PROJ_DIR$\src\device\eeprom24c.h</name>
         </file>
         <file>
+            <name>$PROJ_DIR$\src\device\ili9486.cpp</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\device\ili9486.h</name>
+        </file>
+        <file>
             <name>$PROJ_DIR$\src\device\mt6818.cpp</name>
         </file>
         <file>
@@ -11948,6 +11966,90 @@
         </file>
         <file>
             <name>$PROJ_DIR$\src\device\mt6835.h</name>
+        </file>
+    </group>
+    <group>
+        <name>gfx</name>
+        <group>
+            <name>gui</name>
+            <file>
+                <name>$PROJ_DIR$\src\gfx\gui\flexlayout.h</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\src\gfx\gui\font_Tahoma_13.cpp</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\src\gfx\gui\gridlayout.h</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\src\gfx\gui\guiapplication.cpp</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\src\gfx\gui\guiapplication.h</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\src\gfx\gui\guitypes.h</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\src\gfx\gui\label.cpp</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\src\gfx\gui\label.h</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\src\gfx\gui\layout.h</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\src\gfx\gui\ledwidget.cpp</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\src\gfx\gui\ledwidget.h</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\src\gfx\gui\pagelayout.h</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\src\gfx\gui\pushbutton.cpp</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\src\gfx\gui\pushbutton.h</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\src\gfx\gui\widget.cpp</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\src\gfx\gui\widget.h</name>
+            </file>
+        </group>
+        <file>
+            <name>$PROJ_DIR$\src\gfx\color.h</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\gfx\display.cpp</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\gfx\display.h</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\gfx\font.cpp</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\gfx\font.h</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\gfx\fontdatabase.cpp</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\gfx\fontdatabase.h</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\gfx\fontinfo.h</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\gfx\image.cpp</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\gfx\image.h</name>
         </file>
     </group>
     <group>
@@ -12326,12 +12428,6 @@
         <name>$PROJ_DIR$\src\analogservo.h</name>
     </file>
     <file>
-        <name>$PROJ_DIR$\src\application.cpp</name>
-    </file>
-    <file>
-        <name>$PROJ_DIR$\src\application.h</name>
-    </file>
-    <file>
         <name>$PROJ_DIR$\src\as5040master.cpp</name>
         <excluded>
             <configuration>stm32f373xB</configuration>
@@ -12486,12 +12582,16 @@
         <excluded>
             <configuration>stm32f407vg</configuration>
             <configuration>stm32f405rg</configuration>
+            <configuration>stm32f429zi</configuration>
+            <configuration>stm32f446</configuration>
         </excluded>
     </file>
     <file>
         <name>$PROJ_DIR$\src\dma_l4.h</name>
         <excluded>
             <configuration>stm32f405rg</configuration>
+            <configuration>stm32f429zi</configuration>
+            <configuration>stm32f446</configuration>
         </excluded>
     </file>
     <file>
@@ -12700,12 +12800,6 @@
     </file>
     <file>
         <name>$PROJ_DIR$\src\stm32_conf.h</name>
-    </file>
-    <file>
-        <name>$PROJ_DIR$\src\timer.cpp</name>
-    </file>
-    <file>
-        <name>$PROJ_DIR$\src\timer.h</name>
     </file>
     <file>
         <name>$PROJ_DIR$\src\usart.cpp</name>

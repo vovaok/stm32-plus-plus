@@ -12,7 +12,7 @@
 #endif
 
 #if !defined(QT_CORE_LIB)
-    #include "timer.h"
+    #include "core/timer.h"
 #else
     #define Timer QTimer
 #endif

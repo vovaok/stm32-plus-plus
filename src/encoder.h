@@ -4,7 +4,7 @@
 //#include <macs_task.hpp>
 #include "hardwaretimer.h"
 #include "precisetimer.h"
-#include "timer.h"
+#include "core/timer.h"
 
 class Encoder : private HardwareTimer//, public Task
 {

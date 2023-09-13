@@ -3,7 +3,7 @@
 
 #include "usart.h"
 #include "gpio.h"
-#include "timer.h"
+#include "core/timer.h"
 #include <string>
 
 namespace Serial

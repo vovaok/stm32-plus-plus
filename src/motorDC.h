@@ -2,7 +2,7 @@
 #define _MOTORDC_H
 
 #include "pwmout.h"
-#include "timer.h"
+#include "core/timer.h"
 
 
 class MotorDC

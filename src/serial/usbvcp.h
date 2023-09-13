@@ -6,7 +6,7 @@
 #include "core/device.h"
 #include "usb/usbifcol.h"
 #include "cpuid.h"
-#include "application.h"
+#include "core/application.h"
 
 using namespace Usb;
 
