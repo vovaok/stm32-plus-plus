@@ -46,6 +46,7 @@ public:
     void drawCircle(int16_t x0, int16_t y0, int16_t r);
     void drawFillCircle(int16_t x0, int16_t y0, int16_t r);
     void drawRoundRect(int16_t x, int16_t y, int16_t w, int16_t h, int16_t r);
+    void drawFillRoundRect(int16_t x, int16_t y, int16_t w, int16_t h, int16_t r);
     void drawImage(int x, int y, const Image &img);
     void fillRect(int x, int y, int w, int h);
     

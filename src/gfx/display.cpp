@@ -284,6 +284,21 @@ void Display::drawRoundRect(int16_t x, int16_t y, int16_t w, int16_t h, int16_t 
     DrawCircle_Helper(x+r    , y+h-r-1, r, 8);
 }
 
+void Display::drawFillRoundRect(int16_t x, int16_t y, int16_t w, int16_t h, int16_t r)
+{
+    if (r > w/2)
+        r = w/2;
+    if (r > h/2)
+        r = h/2;
+    Color temp = m_color;
+    m_color = m_bgColor;
+    fillRect(x+r, y, w-2*r, h);
+    FillCircle_Helper(x+w-r-1, y+r, r, 1, h-2*r-1);
+    FillCircle_Helper(x+r, y+r, r, 2, h-2*r-1);
+    m_color = temp;
+    drawRoundRect(x, y, w, h, r);
+}
+
 void Display::Draw_Pixel(int x, int y)
 {
     setPixel(m_x+x, m_y+y, m_color.rgb565());

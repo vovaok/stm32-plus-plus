@@ -4,27 +4,40 @@
 
 class FlexLayout : public Layout
 {
-public:    
-    FlexLayout(Direction direction = Horizontal) :
-        m_direction(direction)
+public:  
+    enum JustifyContent
+    {
+        FlexStart   = 0x0001,
+        FlexEnd     = 0x0002,
+        Center      = 0x0003,
+        SpaceBetween= 0x0004, 
+        SpaceAround = 0x0005,
+        SpaceEvenly = 0x0006,
+        JustifyContent_Mask = 0x0007
+    };
+  
+    FlexLayout(Direction direction = Horizontal, int flags=SpaceEvenly) :
+        m_direction(direction),
+        m_flags(flags)
     {
     }
     
 protected:
     Direction m_direction;
+    int m_flags;
     
     virtual void update() override
     {
         int cnt = items().size();        
-        int w = m_widget->width();
-        int h = m_widget->height();
+        int w = m_widget->width() - marginLeft - marginRight;
+        int h = m_widget->height() - marginTop - marginBottom;
         
-        if (!cnt || !w || !h)
+        if (!cnt || w <= 0 || h <= 0)
             return;
         
         int avg, size;
-        int x = 0;
-        int y = 0;
+        int x = marginLeft;
+        int y = marginTop;
         int len;
         int sz_min;
         int sz_max;
@@ -98,14 +111,28 @@ protected:
         }
         while (size != len);
         
-        int gap = 0, gaprem = 0;
-        if (cnt > 1)
-        {
-            gap = (size - len) / (cnt - 1);
-            gaprem = (size - len) % (cnt - 1);
-        }
+        int space = size - len;
+
+        int coord = x;
+        int jc = m_flags & JustifyContent_Mask;
+        if (jc == FlexEnd)
+            coord += space;
+        else if (jc == Center)
+            coord += space / 2;
+        else if (jc == SpaceBetween && cnt > 1)
+            --cnt;
+        else if (jc == SpaceEvenly)
+            ++cnt;
         
-        int coord = 0;
+        int g = 0;
+        if (cnt > 0)
+            g = space / cnt;
+            
+        if (jc == SpaceAround)
+            coord += g / 2;
+        else if (jc == SpaceEvenly)
+            coord += g;
+        
         int i = 0;
         for (Widget *widget: items())
         {
@@ -116,17 +143,8 @@ protected:
             else
                 setWidgetGeometry(widget, x, coord, w, sz);
             
-            coord += sz + gap;
-            if (gaprem > 0)
-            {
-                coord++;
-                --gaprem;
-            }
-            else if (gaprem < 0)
-            {
-                --coord;
-                gaprem++;
-            }
+            g = space / cnt--;
+            coord += sz + g;
         }
     }
 

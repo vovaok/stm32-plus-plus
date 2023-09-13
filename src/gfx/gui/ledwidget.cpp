@@ -35,13 +35,23 @@ void LedWidget::toggle()
 void LedWidget::update()
 {
     int d = m_img.width();
-    m_img.fill(m_backgroundColor.rgb565());
+    
+    Color bgcolor = m_backgroundColor;
+    if (parent())
+        bgcolor = parent()->backgroundColor();
+//    Widget *wid = parent();
+//    while (wid && !wid->backgroundColor().alpha())
+//        wid = wid->parent();
+//    if (wid)
+//        bgcolor = wid->backgroundColor();
+    
+    m_img.fill(bgcolor.rgb565());
     m_img.setColor(Gray);
     Color back = m_color;
     if (!m_state)
     {
         back = Color::blend(m_color, Black, 64);
-        back = Color::blend(back, m_backgroundColor, 64);
+        back = Color::blend(back, bgcolor, 64);
     }
     m_img.setBackgroundColor(back);  
 //    m_img.drawFillCircle(d/2, d/2, d/2 - 1);
@@ -70,7 +80,7 @@ void LedWidget::update()
             Color c = back;
             if (a > 0)
             {
-                c = Color::blend(back, m_backgroundColor, a);
+                c = Color::blend(back, bgcolor, a);
                 m_img.setPixelColor(x, y, c);
             }
         }
@@ -81,5 +91,7 @@ void LedWidget::update()
 
 void LedWidget::paintEvent(Display *d)
 {
+    if (parent() && m_backgroundColor != parent()->backgroundColor())
+        update();
     d->drawImage(0, 0, m_img);
 }

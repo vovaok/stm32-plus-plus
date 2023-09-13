@@ -5,6 +5,7 @@ GuiApplication::GuiApplication() : Application()
     FontDatabase::addApplicationFontFromData(font_Tahoma_13);
     
     m_widget = new Widget(nullptr);
+    m_widget->setBackgroundColor(Color(192, 192, 192));
     m_paintTimer = new Timer;
     m_paintTimer->onTimeout = EVENT(&GuiApplication::paintTask);
     m_paintTimer->setInterval(16);

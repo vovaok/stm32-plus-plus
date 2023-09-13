@@ -6,6 +6,8 @@
 //#define GREEN(c)        (((uint16_t)(c) >> 5) & 0x3F)
 //#define BLUE(c)         ((uint16_t)(c) & 0x1F)
 
+//#define RGB(r, g, b)    (((uint8_t)(r)<<16) | ((uint8_t)(g) << 8) | (uint8_t)(b)) // 32-bit color
+
 enum StdColor: uint16_t
 {
 	Black 	= RGB(0, 0, 0),

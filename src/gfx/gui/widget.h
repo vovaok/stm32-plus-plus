@@ -15,8 +15,11 @@ public:
     void removeWidget(Widget *w);
     
     Widget *parent() {return m_parent;}
+    Widget *child(int idx);
+    int childrenCount() const {return m_children.size();}
     
     void setLayout(Layout *layout);
+    Layout *layout() {return m_layout;}
     
     int x() const {return m_x;}
     int y() const {return m_y;}

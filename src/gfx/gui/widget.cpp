@@ -33,6 +33,13 @@ void Widget::removeWidget(Widget *w)
     m_children.erase(it);
     updateGeometry();
 }
+
+Widget *Widget::child(int idx)
+{
+    if (idx >= 0 && idx < m_children.size())
+        return m_children.at(idx);
+    return nullptr;
+}
     
 void Widget::setLayout(Layout *layout)
 {
