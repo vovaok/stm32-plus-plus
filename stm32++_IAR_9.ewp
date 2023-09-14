@@ -12006,6 +12006,12 @@
                 <name>$PROJ_DIR$\src\gfx\gui\ledwidget.h</name>
             </file>
             <file>
+                <name>$PROJ_DIR$\src\gfx\gui\lineedit.cpp</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\src\gfx\gui\lineedit.h</name>
+            </file>
+            <file>
                 <name>$PROJ_DIR$\src\gfx\gui\pagelayout.h</name>
             </file>
             <file>
@@ -12013,6 +12019,12 @@
             </file>
             <file>
                 <name>$PROJ_DIR$\src\gfx\gui\pushbutton.h</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\src\gfx\gui\spinbox.cpp</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\src\gfx\gui\spinbox.h</name>
             </file>
             <file>
                 <name>$PROJ_DIR$\src\gfx\gui\widget.cpp</name>

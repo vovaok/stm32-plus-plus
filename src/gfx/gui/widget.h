@@ -67,9 +67,10 @@ protected:
     bool m_visible = true;
     
     // style
-    Color m_backgroundColor = Color(192, 192, 192);
+    Color m_backgroundColor = Color(224, 224, 224);
     Color m_color;
     Font m_font;
+    int m_borderRadius = 0;
     
     Widget *m_parent = nullptr;
     std::vector<Widget *> m_children;

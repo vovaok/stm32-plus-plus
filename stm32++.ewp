@@ -5446,7 +5446,7 @@
       <archiveVersion>1</archiveVersion>
       <data>
         <prebuild></prebuild>
-        <postbuild>cmd /C start /D "$PROJ_DIR$\doxygen" doxygen Doxyfile</postbuild>
+        <postbuild>cmd /C rem start /D "$PROJ_DIR$\doxygen" doxygen Doxyfile</postbuild>
       </data>
     </settings>
     <settings>

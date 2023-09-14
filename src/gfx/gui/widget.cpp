@@ -45,6 +45,7 @@ void Widget::setLayout(Layout *layout)
 {
     if (m_layout)
         m_layout->m_widget = nullptr;
+    delete m_layout;
     m_layout = layout;
     m_layout->m_widget = this;
     updateGeometry();

@@ -22,8 +22,8 @@ public:
     
     using HardwareTimer::setEnabled;
     
-    void configChannel(Gpio::Config pin, Gpio::Config complementaryPin, bool invert = 0);
-    void configChannel(Gpio::Config pin);
+    void configChannel(Gpio::Config pin, Gpio::Config complementaryPin, bool invert = false);
+    void configChannel(Gpio::Config pin, bool invert = false);
     void configPwmMode(Gpio::Config pin, PwmMode mode);
     void configChannelToggleMode(ChannelNumber channel);
     void configChannelToggleMode(Gpio::Config pin);

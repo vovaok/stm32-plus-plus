@@ -34,5 +34,6 @@ void GuiApplication::paintTask()
     if (m_display)
     {
         m_widget->paint(m_display);
+        m_paintDone = true;
     }
 }

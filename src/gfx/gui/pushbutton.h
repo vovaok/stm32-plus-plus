@@ -2,6 +2,7 @@
 
 #include "widget.h"
 #include "../image.h"
+#include "core/coretypes.h"
 
 class PushButton: public Widget
 {
@@ -10,6 +11,8 @@ public:
     
     void setText(const ByteArray &text);
     const ByteArray &text() const {return m_text;}
+    
+    NotifyEvent onClick; // it is not implemented for now
 
 //    void update();
     

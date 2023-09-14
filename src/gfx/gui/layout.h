@@ -6,6 +6,8 @@ class Layout
 {
 public:
 //    Layout();
+    virtual ~Layout() {}
+  
     void setMargins(int value)
     {
         marginTop = marginRight = marginBottom = marginLeft = value;

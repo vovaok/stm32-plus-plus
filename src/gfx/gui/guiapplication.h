@@ -17,11 +17,13 @@ public:
 protected:
     void setDisplay(Display *d);
     Widget *rootWidget() {return m_widget;}
+    bool paintDone() const {return m_paintDone;} // first time painted
     
 private:
     Widget *m_widget = nullptr; // root widget
     Display *m_display = nullptr;
     Timer *m_paintTimer;
+    bool m_paintDone = false;
     
     void paintTask();
 };

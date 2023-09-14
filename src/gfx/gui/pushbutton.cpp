@@ -3,7 +3,8 @@
 PushButton::PushButton(const ByteArray &text, Widget *parent) :
     Widget(parent)
 {
-    setBackgroundColor(Color(160, 160, 160));
+    m_borderRadius = 4;
+    setBackgroundColor(Color(192, 192, 192));
     setText(text);
 }
 
@@ -32,7 +33,7 @@ void PushButton::paintEvent(Display *d)
         img.setColor(m_color);
         img.setBackgroundColor(m_backgroundColor);
         img.setFont(m_font);
-        img.drawFillRoundRect(1, 1, w-2, h-2, 4);
+        img.drawFillRoundRect(1, 1, w-2, h-2, m_borderRadius);
         img.drawString(0, 0, w, h, AlignCenter | TextWordWrap, m_text.data());
 //        Widget::paintEvent(d); // fill background
         d->drawImage(0, 0, img);
