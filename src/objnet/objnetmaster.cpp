@@ -74,6 +74,7 @@ void ObjnetMaster::onError(unsigned char mac, ObjnetInterface::Error error)
         case ObjnetInterface::ErrorChecksum: cause = "Checksum error"; break;
         case ObjnetInterface::ErrorNoSOF: cause = "No SOF"; break;
         case ObjnetInterface::ErrorInterface: cause = "Internal error"; break;
+        default: cause = "Unknown error"; break;
     }
     printf("SWONB error on address %d: %s\n", mac, cause.c_str());
     

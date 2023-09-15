@@ -92,6 +92,9 @@ protected:
     Application() :
         m_sleeping(false)
     {
+        if (!rcc().sysClk())
+            rcc().configPll(CpuId::maxSysClk());
+        
         self = this;
         mName = APP_NAME;
         mDescription = APP_DESCRIPTION;
@@ -100,7 +103,7 @@ protected:
         mBurnCount = APP_BURNCOUNT;
         mBuildDate = string(__DATE__ " " __TIME__);
         char tempstr[64];
-        sprintf(tempstr, "%s @ %d MHz, %dK flash", CpuId::name(), (int)(Rcc::sysClk() / 1000000), CpuId::flashSizeK());
+        sprintf(tempstr, "%s @ %d MHz, %dK flash", CpuId::name(), (int)(rcc().sysClk() / 1000000), CpuId::flashSizeK());
         mCpuInfo = string(tempstr);
     }
     void setVersion(unsigned short ver) {mVersion = ver;}

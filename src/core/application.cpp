@@ -39,7 +39,7 @@ void Application::exec()
 {       
     //RCC_ClockSecuritySystemCmd(ENABLE);
     // configure system clock to mSysClkPeriod milliseconds
-    if (SysTick_Config((Rcc::sysClk() / 1000) * mSysClkPeriod) != 0)
+    if (SysTick_Config((rcc().sysClk() / 1000) * mSysClkPeriod) != 0)
         THROW(Exception::BadSoBad);
     
 //    NVIC_SetPriorityGrouping(0);
@@ -216,18 +216,6 @@ void SystemInit(void) // on Reset_Handler
 
   /* Disable all interrupts */
   RCC->CIER = 0x00000000;
-#endif
-
-//#if defined(STM32F429xx)
-//    Rcc::configPll(0, 168000000);
-//#else
-//    Rcc::configPll(0, CpuId::maxSysClk());
-//#endif
-
-#if defined(STM32L4)
-    Rcc::configPll(0, 80000000);
-#elif defined(STM32F4)
-    Rcc::configPll(0, 160000000);
 #endif
 
     /* Configure the Vector Table location add offset address ------------------*/

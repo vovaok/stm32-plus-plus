@@ -56,8 +56,11 @@ const char *CpuId::name()
         case 0x433: return "STM32F401xD/E";
         case 0x434: return "STM32F469_479";
         case 0x458: return "STM32F410";
-        
+#if defined(STM32F4)
         default:    return "STM32F4 family";
+#elif defined(STM32L4)
+        default:    return "STM32L4 family";
+#endif
     }
 }
 
@@ -87,7 +90,11 @@ unsigned long CpuId::maxSysClk()
         case 0x434: return 180000000; // "STM32F469_479";
         case 0x458: return 100000000; // "STM32F410"
         
+#if defined(STM32F4)
         default:    return 0;
+#elif defined(STM32L4)
+        default:    return 80000000;
+#endif
     }
 }
 

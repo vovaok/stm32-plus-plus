@@ -62,7 +62,7 @@ Can::Can(Gpio::Config pinRx, Gpio::Config pinTx, int baudrate) :
     CAN_InitStructure.CAN_TXFP = ENABLE; //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! TX priority by transmit request order. This mode is very useful for segmented transmission.
     CAN_InitStructure.CAN_Mode = CAN_Mode_Normal;
     
-    int APB1freq = Rcc::pClk1();
+    int APB1freq = rcc().pClk1();
     int psc = 0;
     int mod = 0;
     int btq = 0;

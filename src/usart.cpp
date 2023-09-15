@@ -432,11 +432,11 @@ void Usart::setBaudrate(int baudrate)
 //    mBaudrate = baudrate;
     
     #if defined(STM32F37X)
-    int apbclock = (mDev == USART1)? Rcc::pClk2(): Rcc::pClk1();
+    int apbclock = (mDev == USART1)? rcc().pClk2(): rcc().pClk1();
     #elif defined(STM32F4)
-    int apbclock = ((mDev == USART1) || (mDev == USART6))? Rcc::pClk2(): Rcc::pClk1();
+    int apbclock = ((mDev == USART1) || (mDev == USART6))? rcc().pClk2(): rcc().pClk1();
     #elif defined(STM32L4)
-    int apbclock = (mDev == USART1)? Rcc::pClk2(): Rcc::pClk1();
+    int apbclock = (mDev == USART1)? rcc().pClk2(): rcc().pClk1();
     #endif
 
     uint32_t tmpreg = apbclock / baudrate;

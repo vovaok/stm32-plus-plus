@@ -33,7 +33,7 @@
 void USB_OTG_BSP_uDelay (const uint32_t usec)
 {
   uint32_t count = 0;
-  const uint32_t utime = ((Rcc::sysClk()/1000000) * usec / 7);
+  const uint32_t utime = ((rcc().sysClk()/1000000) * usec / 7);
   do
   {
     if ( ++count > utime )

@@ -1,121 +1,126 @@
 #include "rcc.h"
 #include "core/core.h"
 
-__NO_INIT( unsigned long Rcc::mHseValue );
-__NO_INIT( unsigned long Rcc::mPllM );
-__NO_INIT( unsigned long Rcc::mPllN );
-#if !defined(STM32F37X)
-__NO_INIT( unsigned long Rcc::mPllP );
-__NO_INIT( unsigned long Rcc::mPllQ );
-#endif
-__NO_INIT( unsigned long Rcc::mSysClk );
-__NO_INIT( unsigned long Rcc::mAHBClk );
-__NO_INIT( unsigned long Rcc::mAPB1Clk );
-__NO_INIT( unsigned long Rcc::mAPB2Clk );
+Rcc *Rcc::m_self = nullptr;
 
-#if !defined(HSE_STARTUP_TIMEOUT) 
-  #define HSE_STARTUP_TIMEOUT    ((uint16_t)0x5000)
-#endif
-
-//#if !defined(STM32F37X)
-
-#if defined(STM32F4)
-
-void Rcc::configPll(uint32_t hseValue, uint32_t sysClk)
+Rcc *Rcc::instance()
 {
-    __IO uint32_t StartUpCounter = 0, HSEStatus = 0;
-    
-    mHseValue = 0;
-    
-    // Enable HSE
-    RCC->CR |= ((uint32_t)RCC_CR_HSEON);
- 
-    // Wait till HSE is ready and if Time out is reached exit;
-    do
-    {
-        HSEStatus = RCC->CR & RCC_CR_HSERDY;
-        StartUpCounter++;
-    } while((HSEStatus == 0) && (StartUpCounter != HSE_STARTUP_TIMEOUT));
+    if (!m_self)
+        m_self = new Rcc();
+    return m_self;
+}
 
-    if ((RCC->CR & RCC_CR_HSERDY) != RESET)
-        HSEStatus = (uint32_t)0x01;
-    else
-        HSEStatus = (uint32_t)0x00;
+Rcc &rcc()
+{
+    return *Rcc::instance();
+}
 
-    if (HSEStatus == (uint32_t)0x01)
-    {
-      
-#if defined(STM32F37X)
-#warning RCC clock measurement not implemented!!! HSE hardcoded to 8 MHz
-//            TIM_TypeDef *tim11 = TIM14;
-      
-      hseValue = 8000000;
-      
-#else
-      
-        if (hseValue == 0)
-        {
-            // measure HSE frequency
-            RCC->APB2ENR |= (1<<18); // enable peripheral clock for TIM11
-            unsigned long rccCfgr = RCC->CFGR;
-            unsigned long temp = rccCfgr;
-            temp &= ~(0x1F << 16);
-            temp |= (30 << 16); // RTC = HSE / 30
-            RCC->CFGR = temp;
-            
-            int loopCount = 10;
-            int fr0, fr1;
-            TIM_TypeDef *tim11 = TIM11;
-            asm("ADD  R1, %[tim], #16\n"        // R1 = TIM1->SR
-                "ADD  R2, %[tim], #52\n"        // R2 = TIM1->CCR1
-                "MOV  R3, %[cnt]\n"             // counter = 10
-                "MOV  R0, #2\n"
-                "STRH R0, [%[tim], #80]\n"      // TIM11->OR = 0x0002; // HSE connect to TIM11_CH1 input
-                "MOVW R0, #65535\n"
-                "STR  R0, [%[tim], #44]\n"      // TIM11->ARR = 0xFFFF;
-                "MOV  R0, #1\n"
-                "STRH R0, [%[tim], #24]\n"      // TIM11->CCMR1 = 0x0001; // CC1 channel configured as input
-                "STRH R0, [%[tim], #32]\n"      // TIM11->CCER = 0x0001; // enable capture of rising edge
-                "STRH R0, [%[tim]]\n"           // TIM11->CR1 = 0x0001; // enable TIM11
-                "MOV  R0, #0\n"
-                "STRH R0, [R1]\n"               // TIM11->SR = 0;
-                "wait0:\n"
-                "LDR R0, [R1]\n"
-                "LSLS R0, R0, #30\n"            // test bit 2
-                "BPL wait0\n"                   // wait for bit 2
-                "LDR %[f0], [R2]\n"             // fr0 = TIM11->CCR1;
-                "wait1: LDR R0, [R1]\n"
-                "LSLS R0, R0, #30\n"            // test bit 2
-                "BPL wait1\n"                   // wait for bit 2
-                "LDR %[f1], [R2]\n"             // fr1 = TIM11->CCR1;
-                "SUBS R3, R3, #1\n"             // decrement counter
-                "BNE wait1\n"                   // continue loop
-                "MOVS R0, #0\n"
-                "STRH R0, [%[tim]]\n"           // TIM11->CR1 = 0x0000; // disable TIM11
-                "STRH R0, [R1]\n"               // TIM11->SR = 0;
-                : [f0]"=r"(fr0), [f1]"=r"(fr1)
-                : [tim]"r"(tim11), [cnt]"r"(loopCount)
-                : "cc", "R0", "R1", "R2", "R3");     
-            
-            RCC->CFGR = rccCfgr;
-            RCC->APB2ENR &= ~(1<<18); // disable peripheral clock to TIM11
-            // end of measure
-            
-            // calculate hseValue
-            fr1 -= fr0;
-            hseValue = ((16 * 30) * loopCount + fr1 / 2) / fr1;
-            hseValue *= 1000000;
-        }        
+Rcc::Rcc() :
+    mHseValue(0),
+    mPllM(0),
+    mPllN(0),
+#if !defined(STM32F37X)
+    mPllP(0),
+    mPllQ(0),
 #endif
-        
+    mSysClk(0),
+    mAHBClk(0),
+    mAPB1Clk(0),
+    mAPB2Clk(0)
+{
+    #if defined(STM32F4) // noKa 4To only for F4
+    measureHseFreq();
+    #endif
+}
+
+bool Rcc::setSystemClockSource(ClockSource src)
+{
+    if (src > PLL)
+        return false;
+    
+    uint32_t sws = src << RCC_CFGR_SWS_Pos;
+    
+    // if the clock is already in use
+    if ((RCC->CFGR & RCC_CFGR_SWS) == sws)
+        return true; // do nothing
+ 
+    RCC->CFGR &= ~(RCC_CFGR_SW);
+    RCC->CFGR |= src;
+
+    uint32_t timeout = 50000;
+    while (((RCC->CFGR & RCC_CFGR_SWS) != sws) && timeout--);
+    
+    return timeout;
+}
+
+Rcc::ClockSource Rcc::systemClockSource() const
+{
+    return static_cast<ClockSource>((RCC->CFGR & RCC_CFGR_SWS) >> RCC_CFGR_SWS_Pos);
+}
+
+bool Rcc::setEnabled(ClockSource src, bool enabled)
+{
+    uint32_t mask = 0;
+    switch (src)
+    {
+#if defined(STM32L4)
+    case MSI: mask = RCC_CR_MSION; break;
+#endif
+    case HSI: mask = RCC_CR_HSION; break;
+    case HSE: mask = RCC_CR_HSEON; break;
+    case PLL: mask = RCC_CR_PLLON; break;
+    };
+    
+    if (enabled)
+    {
+        RCC->CR |= mask;
+        uint32_t timeout = 50000;
+        while (!isReady(src) && timeout--);
+        return timeout;
+    }
+    
+    RCC->CR &= ~mask;
+    return true;
+}
+
+bool Rcc::isReady(ClockSource src)
+{
+    switch (src)
+    {
+#if defined(STM32L4)
+    case MSI: return RCC->CR & RCC_CR_MSIRDY;
+#endif
+    case HSI: return RCC->CR & RCC_CR_HSIRDY;
+    case HSE: return RCC->CR & RCC_CR_HSERDY;
+    case PLL: return RCC->CR & RCC_CR_PLLRDY;
+    };
+    return false;
+}
+
+bool Rcc::configPll(uint32_t hseValue, uint32_t sysClk)
+{
+    mHseValue = hseValue;
+    return configPll(sysClk);
+}
+
+#if defined(STM32F4)    
+bool Rcc::configPll(uint32_t sysClk)
+{
+    uint32_t inputClk = mHseValue;
+    if (!inputClk)
+        inputClk = hsiValue();
+    
+    if (systemClockSource() == PLL)
+    {
+        if (!setSystemClockSource(HSI))
+            return false;
+        setEnabled(PLL, false);
+    }
+    
 #if defined(STM32F37X)
-        // calc pllM, pllN, etc...
-        if (hseValue > 26000000)
-            hseValue = 16000000;
-        mHseValue = hseValue;
-        
-        int mul = sysClk / mHseValue;
-        if (mul * mHseValue == sysClk)
+        // calc pllM, pllN, etc...        
+        int mul = sysClk / inputClk;
+        if (mul * inputClk == sysClk)
         {
             mPllM = 1; // divisor
             mPllN = mul;
@@ -131,15 +136,12 @@ void Rcc::configPll(uint32_t hseValue, uint32_t sysClk)
         if (mPllN > 16)
             THROW(Exception::BadSoBad);
 
-        mSysClk = mHseValue / mPllM * mPllN;
+        mSysClk = inputClk / mPllM * mPllN;
         //end of calc
 #else
         // calc pllM, pllN, etc...
         unsigned long pllvco = sysClk << 1;
-        if (hseValue > 26000000)
-            hseValue = 16000000;
-        mHseValue = hseValue;
-        mPllM = mHseValue / 1000000;
+        mPllM = inputClk / 1000000;
         if (mPllM > 0x3F)
             THROW(Exception::BadSoBad);
         mPllN = pllvco / 1000000;
@@ -148,7 +150,7 @@ void Rcc::configPll(uint32_t hseValue, uint32_t sysClk)
         mPllP = 2;
         mPllQ = pllvco / 48000000;
 
-        mSysClk = mHseValue / mPllM * mPllN / mPllP;
+        mSysClk = inputClk / mPllM * mPllN / mPllP;
         //end of calc
 #endif
         
@@ -180,7 +182,7 @@ void Rcc::configPll(uint32_t hseValue, uint32_t sysClk)
         RCC->CFGR |= RCC_CFGR_PPRE1_DIV4;
         mAPB1Clk = mAHBClk >> 2;
     #endif /* STM32F401xx */
-       
+        
     #if defined(STM32F37X)
         RCC->CFGR2 = mPllM - 1;
         RCC->CFGR &= ~(RCC_CFGR_PLLMULL);
@@ -188,17 +190,14 @@ void Rcc::configPll(uint32_t hseValue, uint32_t sysClk)
         RCC->CFGR |= (mPllN - 2) << 18;
     #else
         /* Configure the main PLL */
-        RCC->PLLCFGR = mPllM | (mPllN << 6) | (((mPllP >> 1) -1) << 16) |
-                       (RCC_PLLCFGR_PLLSRC_HSE) | (mPllQ << 24);
+        RCC->PLLCFGR = mPllM | (mPllN << 6) | (((mPllP >> 1) -1) << 16) | (mPllQ << 24);
+        
+        if (mHseValue) // if HSE is present make it the clock source of PLL
+            RCC->PLLCFGR |= RCC_PLLCFGR_PLLSRC_HSE;
     #endif
 
-        /* Enable the main PLL */
-        RCC->CR |= RCC_CR_PLLON;
-
-        /* Wait till the main PLL is ready */
-        while((RCC->CR & RCC_CR_PLLRDY) == 0)
-        {
-        }
+        
+        setEnabled(PLL, true);
        
     #if defined (STM32F427_437xx) || defined (STM32F429xx)
         /* Enable the Over-drive to extend the clock frequency to 180 Mhz */
@@ -226,16 +225,13 @@ void Rcc::configPll(uint32_t hseValue, uint32_t sysClk)
         /* Enable Prefetch Buffer and set Flash Latency */
         FLASH->ACR = FLASH_ACR_PRFTBE | (uint32_t)FLASH_ACR_LATENCY_1;
     #endif
-
-        /* Select the main PLL as system clock source */
-        RCC->CFGR &= (uint32_t)((uint32_t)~(RCC_CFGR_SW));
-        RCC->CFGR |= RCC_CFGR_SW_PLL;
-
-        /* Wait till the main PLL is used as system clock source */
-        while ((RCC->CFGR & (uint32_t)RCC_CFGR_SWS ) != RCC_CFGR_SWS_PLL);
-        {
-        }
+        
+        return setSystemClockSource(PLL);
       
+        /*     The original configuration procedure     *\
+        |  Use it for reference if something goes wrong  |
+        \*                                              */
+        
 //        RCC->CFGR |= RCC_CFGR_HPRE_DIV1;  // HCLK = SYSCLK / 1
 //        mAHBClk = mSysClk >> 0;
 //        RCC->CFGR |= RCC_CFGR_PPRE2_DIV2; // PCLK2 = HCLK / 2
@@ -261,17 +257,87 @@ void Rcc::configPll(uint32_t hseValue, uint32_t sysClk)
 //
 //        // Wait till the main PLL is used as system clock source 
 //        while ((RCC->CFGR & (uint32_t)RCC_CFGR_SWS ) != RCC_CFGR_SWS_PLL);
+}
+
+bool Rcc::measureHseFreq()
+{    
+    mHseValue = 0;
+    
+    // Enable HSE
+    RCC->CR |= RCC_CR_HSEON;
+ 
+    // Wait till HSE is ready and if Time out is reached exit;
+    uint32_t timeout = 20000;
+    while (!(RCC->CR & RCC_CR_HSERDY) && timeout--);
+
+    if (!timeout) // HSE doesn't work :c
+    {
+        // Disable HSE
+        RCC->CR &= ~RCC_CR_HSEON;
+        return false;
     }
-    else
-    { 
-        // If HSE fails to start-up, the application will have wrong clockconfiguration.
-        THROW(Exception::BadSoBad);
-    }
+      
+    // measure HSE frequency
+    RCC->APB2ENR |= RCC_APB2ENR_TIM11EN; // enable peripheral clock for TIM11
+    unsigned long rccCfgr = RCC->CFGR;
+    unsigned long temp = rccCfgr;
+    temp &= ~(0x1F << 16);
+    temp |= (30 << 16); // RTC = HSE / 30
+    RCC->CFGR = temp;
+    
+    int loopCount = 10;
+    int fr0, fr1;
+    TIM_TypeDef *tim11 = TIM11;
+    asm("ADD  R1, %[tim], #16\n"        // R1 = TIM1->SR
+        "ADD  R2, %[tim], #52\n"        // R2 = TIM1->CCR1
+        "MOV  R3, %[cnt]\n"             // counter = 10
+        "MOV  R0, #2\n"
+        "STRH R0, [%[tim], #80]\n"      // TIM11->OR = 0x0002; // HSE connect to TIM11_CH1 input
+        "MOVW R0, #65535\n"
+        "STR  R0, [%[tim], #44]\n"      // TIM11->ARR = 0xFFFF;
+        "MOV  R0, #1\n"
+        "STRH R0, [%[tim], #24]\n"      // TIM11->CCMR1 = 0x0001; // CC1 channel configured as input
+        "STRH R0, [%[tim], #32]\n"      // TIM11->CCER = 0x0001; // enable capture of rising edge
+        "STRH R0, [%[tim]]\n"           // TIM11->CR1 = 0x0001; // enable TIM11
+        "MOV  R0, #0\n"
+        "STRH R0, [R1]\n"               // TIM11->SR = 0;
+        "wait0:\n"
+        "LDR R0, [R1]\n"
+        "LSLS R0, R0, #30\n"            // test bit 2
+        "BPL wait0\n"                   // wait for bit 2
+        "LDR %[f0], [R2]\n"             // fr0 = TIM11->CCR1;
+        "wait1: LDR R0, [R1]\n"
+        "LSLS R0, R0, #30\n"            // test bit 2
+        "BPL wait1\n"                   // wait for bit 2
+        "LDR %[f1], [R2]\n"             // fr1 = TIM11->CCR1;
+        "SUBS R3, R3, #1\n"             // decrement counter
+        "BNE wait1\n"                   // continue loop
+        "MOVS R0, #0\n"
+        "STRH R0, [%[tim]]\n"           // TIM11->CR1 = 0x0000; // disable TIM11
+        "STRH R0, [R1]\n"               // TIM11->SR = 0;
+        : [f0]"=r"(fr0), [f1]"=r"(fr1)
+        : [tim]"r"(tim11), [cnt]"r"(loopCount)
+        : "cc", "R0", "R1", "R2", "R3");     
+    
+    RCC->CFGR = rccCfgr;
+    RCC->APB2ENR &= ~RCC_APB2ENR_TIM11EN; // disable peripheral clock to TIM11
+    // end of measure
+    
+    // calculate hseValue
+    int hseValue;
+    fr1 -= fr0;
+    hseValue = ((16 * 30) * loopCount + fr1 / 2) / fr1;
+    hseValue *= 1000000;   
+
+    if (hseValue > 26000000)
+        hseValue = 16000000;
+    mHseValue = hseValue;
+    return true;
 }
 
 #elif defined(STM32L4)
 
-void Rcc::configPll(uint32_t hseValue, uint32_t sysClk)
+bool Rcc::configPll(uint32_t sysClk)
 {
     //! @todo Dopilit RCC config for STM32L4
     
@@ -299,6 +365,13 @@ void Rcc::configPll(uint32_t hseValue, uint32_t sysClk)
     RCC->CFGR = RCC->CFGR & ~RCC_CFGR_SW | RCC_CFGR_SW_PLL;
     
     while ((RCC->CFGR & RCC_CFGR_SWS) != RCC_CFGR_SWS_PLL);
+    
+    return true;
+}
+
+bool Rcc::measureHseFreq()
+{
+    return false;
 }
 
 #endif

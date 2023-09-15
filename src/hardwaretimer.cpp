@@ -5,9 +5,9 @@ HardwareTimer* HardwareTimer::mTimers[19] = {0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L,
 HardwareTimer::HardwareTimer(TimerNumber timerNumber, unsigned int frequency_Hz) :
   mEnabled(false)
 {
-    unsigned int hclk = Rcc::hClk();
-    unsigned int pclk1 = Rcc::pClk1();
-    unsigned int pclk2 = Rcc::pClk2();
+    unsigned int hclk = rcc().hClk();
+    unsigned int pclk1 = rcc().pClk1();
+    unsigned int pclk2 = rcc().pClk2();
 #if defined(STM32F446xx)
     if (RCC->DCKCFGR & RCC_DCKCFGR_TIMPRE)
     {

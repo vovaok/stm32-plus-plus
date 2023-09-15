@@ -35,7 +35,7 @@ I2c::I2c(Gpio::Config pinSDA, Gpio::Config pinSCL)
 
 void I2c::setBusClock(int clk_Hz)
 {
-    int pclk1 = Rcc::pClk1();
+    int pclk1 = rcc().pClk1();
     uint16_t freqrange = pclk1 / 1000000;
     // prescaler config:
     m_dev->CR2 = (m_dev->CR2 & ~I2C_CR2_FREQ) | (freqrange & I2C_CR2_FREQ);

@@ -9,7 +9,7 @@ PreciseTimer::PreciseTimer()
     if (!s_tim)
     {
         s_tim = new HardwareTimer(HardwareTimer::PRECISE_TIMER);
-        s_tim->setPrescaler(Rcc::pClk1() / PRECISE_TIMER_FREQ);
+        s_tim->setPrescaler(rcc().pClk1() / PRECISE_TIMER_FREQ);
         s_tim->setAutoReloadRegister(0xFFFF);
         s_tim->start();
     }

@@ -59,8 +59,8 @@
 	#include "stm32f37x_usart.h"
 	#include "stm32f37x_wwdg.h"
 	#include "stm32f37x_misc.h"
-#elif defined(STM32F4XX) | defined(STM32F40XX) | defined(STM32F405xx) | defined(STM32F407xx)
-    #include "stm32f4xx.h"
+//#elif defined(STM32F4XX) | defined(STM32F40XX) | defined(STM32F405xx) | defined(STM32F407xx)
+//    #include "stm32f4xx.h"
 //    #include "stm32f4xx_adc.h"
 //    #include "stm32f4xx_can.h"
 //    #include "stm32f4xx_crc.h"
@@ -119,8 +119,8 @@
     #include "stm32f4xx_usart.h"
     #include "stm32f4xx_wwdg.h"
     #include "misc.h" /* High level functions for NVIC and SysTick (add-on to CMSIS functions) */
-#elif defined(STM32F446xx)
-    #include "stm32f446xx.h"
+//#elif defined(STM32F446xx)
+//    #include "stm32f446xx.h"
 #endif
 
 
@@ -155,10 +155,10 @@
   #define assert_param(expr) ((void)0)
 #endif /* USE_FULL_ASSERT */
 
-#ifdef __GNUC__
-#define __NO_INIT(definition) definition __attribute__((section (".noinit")))
-#else
-#define __NO_INIT(definition) __no_init definition
-#endif
+//#ifdef __GNUC__
+//#define __NO_INIT(definition) definition __attribute__((section (".noinit")))
+//#else
+//#define __NO_INIT(definition) __no_init definition
+//#endif
 
 #endif

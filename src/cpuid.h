@@ -1,8 +1,7 @@
 #ifndef _CPUID_H
 #define _CPUID_H
 
-#include "stm32_conf.h"
-//#include "core/core.h"
+#include "stm32.h"
 
 class CpuId
 {
