@@ -24,5 +24,5 @@ protected:
 private:
     Color m_color;
     Image m_img;
-    bool m_state;
+    bool m_state = false;
 };

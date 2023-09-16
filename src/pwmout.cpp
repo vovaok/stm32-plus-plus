@@ -58,19 +58,9 @@ void PwmOutput::init()
     
     if (tim() == TIM1 || tim() == TIM8)
     {
-        tim()->BDTR &= 0xFF;
+        tim()->BDTR &= 0xFF; //! @todo check this
         tim()->BDTR |= 100;
         tim()->BDTR |= TIM_BDTR_MOE | TIM_BDTR_AOE;
-#warning TODO
-//        TIM_BDTRInitTypeDef TIM_BDTRInitStructure;
-//        TIM_BDTRInitStructure.TIM_OSSRState = TIM_OSSRState_Enable;
-//        TIM_BDTRInitStructure.TIM_OSSIState = TIM_OSSIState_Enable;
-//        TIM_BDTRInitStructure.TIM_LOCKLevel = TIM_LOCKLevel_OFF;
-//        TIM_BDTRInitStructure.TIM_DeadTime = 100;
-//        TIM_BDTRInitStructure.TIM_Break = TIM_Break_Disable;
-//        TIM_BDTRInitStructure.TIM_BreakPolarity = TIM_BreakPolarity_High;
-//        TIM_BDTRInitStructure.TIM_AutomaticOutput = TIM_AutomaticOutput_Enable;
-//        TIM_BDTRConfig(tim(), &TIM_BDTRInitStructure);
     }
 }
 
@@ -152,6 +142,18 @@ void PwmOutput::configChannelToggleMode(Gpio::Config pin)
     configPwmMode(pin, PwmMode_Toggle);
 }
 
+void PwmOutput::setChannelInverted(Gpio::Config pin, bool inverted)
+{
+    ChannelNumber channel = getChannelByPin(pin);
+    setChannelInverted(channel, inverted);
+}
+
+void PwmOutput::setChannelEnabled(Gpio::Config pin, bool enabled)
+{
+    ChannelNumber channel = getChannelByPin(pin);
+    setChannelEnabled(channel, enabled);
+}
+
 void PwmOutput::setChannelEnabled(ChannelNumber channel, bool enabled)
 {
     HardwareTimer::setChannelEnabled(channel, enabled);
@@ -172,16 +174,22 @@ void PwmOutput::setAllChannelsEnabled(bool enabled)
     generateComEvent();
 }
 
-void PwmOutput::setDutyCycle(ChannelNumber channel, int dutyCycle)
+void PwmOutput::setDutyCycle(ChannelNumber channel, int value)
 {
-    int pwm = dutyCycle * mPeriod >> 16;
+    int pwm = value * mPeriod >> 16;
     setCompareValue(channel, pwm);
     generateComEvent();
 }
 
-void PwmOutput::setDutyCyclePercent(ChannelNumber channel, float dutyCycle)
+void PwmOutput::setDutyCycle(Gpio::Config pin, int value)
 {
-    setDutyCycle(channel, (int)(BOUND(0.0f, dutyCycle, 100.0f) * 655.36f));
+    ChannelNumber channel = getChannelByPin(pin);
+    setDutyCycle(channel, value);
+}
+
+void PwmOutput::setDutyCyclePercent(ChannelNumber channel, float value)
+{
+    setDutyCycle(channel, (int)(BOUND(0.0f, value, 100.0f) * 655.36f));
 }
 
 void PwmOutput::setDutyCycle(int dutyCycle1, int dutyCycle2, int dutyCycle3, int dutyCycle4)
@@ -206,4 +214,10 @@ void PwmOutput::setFrequency(int f_Hz)
 void PwmOutput::setPwmMode(uint8_t mode)
 {
     tim()->CR1 = tim()->CR1 & ~TIM_CR1_CMS | (mode & TIM_CR1_CMS);
+}
+
+void PwmOutput::setAllChannelsInverted(bool inverted)
+{
+    setChannelInverted((ChannelNumber)(m_chMask & 0xFFFF), inverted);
+    setComplementaryChannelInverted((ChannelNumber)(m_chMask >> 16), inverted);
 }

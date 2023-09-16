@@ -127,7 +127,8 @@ void Widget::update()
     m_needRepaint = true;
     for (Widget *w: m_children)
     {
-        w->update();
+        if (w)
+            w->update();
 //        w->m_needRepaint = true;
     }
 }

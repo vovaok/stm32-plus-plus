@@ -61,6 +61,9 @@ void LedWidget::update()
     int r0 = d / 3;
     int r02 = r0 * r0;
     
+    int blik = d / 3;
+    int b2 = r02;//r * r;
+    
     for (int y=0; y<d; y++)
     {
         for (int x=0; x<d; x++)
@@ -77,10 +80,18 @@ void LedWidget::update()
             {
                 a = 255 - (dr2 - r02) * 255 / (r02);
             }
+            
+            int bdx = x - blik;
+            int bdy = y - blik;
+            int bd2 = bdx*bdx + bdy*bdy;
+            int ba = (b2 > bd2)? (b2 - bd2) * 255 / b2: 0;
+            ba = ba * ba / 255 / 2;
+            
             Color c = back;
             if (a > 0)
             {
                 c = Color::blend(back, bgcolor, a);
+                c = Color::blend(White, c, ba); // blik
                 m_img.setPixelColor(x, y, c);
             }
         }

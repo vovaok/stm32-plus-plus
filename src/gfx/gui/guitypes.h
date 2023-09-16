@@ -2,6 +2,7 @@
 
 #define RGB565(r, g, b) (uint16_t)((b) | ((g)<<5) | ((r)<<11))
 #define RGB(r, g, b)	RGB565((uint8_t)(r)>>3, (uint8_t)(g) >> 2, (uint8_t)(b) >> 3)
+#define RGBHEX(h)       RGB(((h) >> 16) & 0xFF, ((h) >> 8) & 0xFF, (h) & 0xFF)
 //#define RED(c)          (((uint16_t)(c) >> 11) & 0x1F)
 //#define GREEN(c)        (((uint16_t)(c) >> 5) & 0x3F)
 //#define BLUE(c)         ((uint16_t)(c) & 0x1F)
@@ -18,7 +19,9 @@ enum StdColor: uint16_t
 	Blue 	= RGB(0, 0, 255),
 	Magenta	= RGB(255, 0, 255),
 	White	= RGB(255, 255, 255),
-	Gray	= RGB(128, 128, 128)	
+	Gray	= RGB(128, 128, 128),
+    Orange  = RGB(255, 128, 0),
+    Pink    = RGBHEX(0xFC0FC0)
 };
 
 enum Alignment

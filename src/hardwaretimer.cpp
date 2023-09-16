@@ -394,10 +394,30 @@ void HardwareTimer::setChannelEnabled(ChannelNumber ch, bool enabled)
 //    mTim->EGR = 1; // generate update event
 }
 
+void HardwareTimer::setChannelInverted(ChannelNumber ch, bool inverted)
+{
+    uint16_t mask = ((uint16_t)ch & 0x1111) << 1;
+    if (inverted)
+        mTim->CCER |= mask;
+    else
+        mTim->CCER &= ~mask;
+//    mTim->EGR = 1; // generate update event
+}
+
 void HardwareTimer::setComplementaryChannelEnabled(ChannelNumber ch, bool enabled)
 {
     uint16_t mask = ((uint16_t)ch & 0x0111) << 2;
     if (enabled)
+        mTim->CCER |= mask;
+    else
+        mTim->CCER &= ~mask;
+//    mTim->EGR = 1; // generate update event
+}
+
+void HardwareTimer::setComplementaryChannelInverted(ChannelNumber ch, bool inverted)
+{
+    uint16_t mask = ((uint16_t)ch & 0x0111) << 3;
+    if (inverted)
         mTim->CCER |= mask;
     else
         mTim->CCER &= ~mask;

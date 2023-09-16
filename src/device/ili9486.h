@@ -2,6 +2,7 @@
 #define _ILI9486_H
 
 #include "spi.h"
+#include "pwmout.h"
 #include "gfx/display.h"
 
 #define LCD_WIDTH   480
@@ -11,6 +12,9 @@ class ILI9486 : public Display
 {
 public:
     ILI9486(Spi *spi, Gpio::PinName cs, Gpio::PinName dc, Gpio::PinName rst);
+    void setBacklightPin(Gpio::Config pin);
+    
+    void setBacklight(int percent); // 0 to 255
     
     void init(Orientation ori);
     void setOrientation(Orientation ori);
@@ -24,8 +28,8 @@ public:
 private:
     Spi *m_spi;
     Gpio *m_cs, *m_dc, *m_rst;
-    
-    
+    Gpio::Config m_pwmPin;
+    PwmOutput *m_backlightPwm;
     
     void hardwareReset();
     void delay(int ms) {for (int w=ms*20000; --w;);}

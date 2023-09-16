@@ -3,23 +3,9 @@
 #include "flexlayout.h"
 #include "pushbutton.h"
 
-SpinBox::SpinBox(Widget *parent) : Widget(parent)
+SpinBox::SpinBox(Widget *parent) : AbstractSpinBox(parent)
 {
-    const FontInfo &fi = m_font.info();
-    setFixedHeight(fi.height() + 4);
-    int bw = fi.width('<') * 2;
-    PushButton *btnDown = new PushButton("<");
-    btnDown->setFixedWidth(bw);
-    btnDown->onClick = EVENT(&SpinBox::stepDown);
-    PushButton *btnUp = new PushButton(">");
-    btnUp->setFixedWidth(bw);
-    btnUp->onClick = EVENT(&SpinBox::stepUp);
-    m_edit = new LineEdit("0");
-    m_edit->setAlignment(AlignCenter);
-    addWidget(btnDown);
-    addWidget(m_edit);
-    addWidget(btnUp);
-    setLayout(new FlexLayout(Horizontal));
+    setValue(0);
 }
 
 void SpinBox::setValue(int value)
@@ -68,21 +54,6 @@ void SpinBox::setSuffix(const ByteArray &s)
     updateText();
 }
 
-void SpinBox::stepUp()
-{
-    stepBy(1);
-}
-
-void SpinBox::stepDown()
-{
-    stepBy(-1);
-}
-
-//void SpinBox::paintEvent(Display *d)
-//{
-//    
-//}
-
 void SpinBox::stepBy(int steps)
 {
     setValue(m_value + m_step * steps);
@@ -90,5 +61,5 @@ void SpinBox::stepBy(int steps)
 
 void SpinBox::updateText()
 {
-    m_edit->setText(m_prefix + ByteArray::number(m_value) + m_suffix);
+    lineEdit()->setText(m_prefix + ByteArray::number(m_value) + m_suffix);
 }

@@ -40,6 +40,7 @@ void LineEdit::paintEvent(Display *d)
 {
     d->setColor(m_color);
     d->setBackgroundColor(m_backgroundColor);
+    d->setColor(m_borderColor);
     d->drawFillRoundRect(0, 0, m_width, m_height, m_borderRadius);
   
     //Widget::paintEvent(d); // fill background

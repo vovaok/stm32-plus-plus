@@ -27,11 +27,16 @@ public:
     void configPwmMode(Gpio::Config pin, PwmMode mode);
     void configChannelToggleMode(ChannelNumber channel);
     void configChannelToggleMode(Gpio::Config pin);
+    void setChannelInverted(Gpio::Config pin, bool inverted);
+    using HardwareTimer::setChannelInverted;
+    void setChannelEnabled(Gpio::Config pin, bool enabled);
     void setChannelEnabled(ChannelNumber channel, bool enabled);
     void setChannelEnabled(ChannelNumber channel, bool enabled, bool complementaryEnabled);
+    void setAllChannelsInverted(bool inverted);
     void setAllChannelsEnabled(bool enabled);
-    void setDutyCycle(ChannelNumber channel, int dutyCycle); // in 16-bit range
-    void setDutyCyclePercent(ChannelNumber channel, float dutyCycle);
+    void setDutyCycle(ChannelNumber channel, int value); // in 16-bit range
+    void setDutyCycle(Gpio::Config pin, int value); // in 16-bit range
+    void setDutyCyclePercent(ChannelNumber channel, float value);
     void setDutyCycle(int dutyCycle1, int dutyCycle2 = 0, int dutyCycle3 = 0, int dutyCycle4 = 0);
     
     void setPwmMode(uint8_t mode);

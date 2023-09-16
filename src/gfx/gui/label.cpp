@@ -37,7 +37,7 @@ void Label::setNum(float n, int prec)
 void Label::update()
 {
     setMinimumWidth(textWidth());
-    setMinimumHeight(textHeight());
+    setFixedHeight(textHeight());
     updateGeometry();
     Widget::update();
 }

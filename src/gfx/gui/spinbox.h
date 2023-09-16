@@ -1,9 +1,9 @@
 #pragma once
 
-#include "widget.h"
+#include "abstractspinbox.h"
 #include "lineedit.h"
 
-class SpinBox: public Widget
+class SpinBox: public AbstractSpinBox
 {
 public:
     SpinBox(Widget *parent=nullptr);
@@ -22,16 +22,10 @@ public:
     const ByteArray &prefix() const {return m_prefix;}
     void setSuffix(const ByteArray &s);
     const ByteArray &suffix() const {return m_suffix;}
-
-    void stepUp();
-    void stepDown();
     
-//    void update();
-    
-protected:
-//    void paintEvent(Display *d);
-    
-    void stepBy(int steps);
+protected:    
+    virtual void updateText();
+    virtual void stepBy(int steps);
     
 private:
     int m_value = 0;
@@ -39,7 +33,4 @@ private:
     int m_max = 0x7FFFFFFF;
     int m_step = 1;
     ByteArray m_prefix, m_suffix;
-    LineEdit *m_edit;
-    
-    void updateText();
 };

@@ -4955,7 +4955,7 @@
             <data>
                 <extensions></extensions>
                 <cmdline></cmdline>
-                <hasPrio>192</hasPrio>
+                <hasPrio>1</hasPrio>
                 <buildSequence>inputOutputBased</buildSequence>
             </data>
         </settings>
@@ -11973,7 +11973,19 @@
         <group>
             <name>gui</name>
             <file>
+                <name>$PROJ_DIR$\src\gfx\gui\abstractspinbox.cpp</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\src\gfx\gui\abstractspinbox.h</name>
+            </file>
+            <file>
                 <name>$PROJ_DIR$\src\gfx\gui\flexlayout.h</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\src\gfx\gui\floatspinbox.cpp</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\src\gfx\gui\floatspinbox.h</name>
             </file>
             <file>
                 <name>$PROJ_DIR$\src\gfx\gui\font_Tahoma_13.cpp</name>
@@ -12031,6 +12043,9 @@
             </file>
             <file>
                 <name>$PROJ_DIR$\src\gfx\gui\widget.h</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\src\gfx\gui\widgets.h</name>
             </file>
         </group>
         <file>

@@ -7,27 +7,42 @@ class FlexLayout : public Layout
 public:  
     enum JustifyContent
     {
-        FlexStart   = 0x0001,
-        FlexEnd     = 0x0002,
-        Center      = 0x0003,
-        SpaceBetween= 0x0004, 
-        SpaceAround = 0x0005,
-        SpaceEvenly = 0x0006,
+        Justify_FlexStart   = 0x0001,
+        Justify_FlexEnd     = 0x0002,
+        Justify_Center      = 0x0003,
+        Justify_SpaceBetween= 0x0004, 
+        Justify_SpaceAround = 0x0005,
+        Justify_SpaceEvenly = 0x0006,
         JustifyContent_Mask = 0x0007
     };
+    
+    enum AlignItems
+    {
+        Align_FlexStart     = 0x0010,
+        Align_FlexEnd       = 0x0020,
+        Align_Center        = 0x0030,
+        Align_Stretch       = 0x0040,
+        AlignItems_Mask     = 0x0070
+    };
   
-    FlexLayout(Direction direction = Horizontal, int flags=SpaceEvenly) :
+    FlexLayout(Direction direction = Horizontal, int flags=Justify_SpaceEvenly | Align_Center) :
         m_direction(direction),
         m_flags(flags)
     {
     }
     
+    void setGap(int value) {m_gap = value;}
+    int gap() const {return m_gap;}
+    
 protected:
     Direction m_direction;
-    int m_flags;
+    int m_flags = 0;
+    int m_gap = 0;
     
     virtual void update() override
     {
+        if (!m_widget)
+            return;
         int cnt = items().size();        
         int w = m_widget->width() - marginLeft - marginRight;
         int h = m_widget->height() - marginTop - marginBottom;
@@ -57,7 +72,7 @@ protected:
         
         do
         {
-            len = 0;
+            len = m_gap * (cnt - 1);
             int dcnt = 0;
             int i = 0;
             for (Widget *widget: items())
@@ -115,36 +130,62 @@ protected:
 
         int coord = x;
         int jc = m_flags & JustifyContent_Mask;
-        if (jc == FlexEnd)
+        int align = m_flags & AlignItems_Mask;
+        if (jc == Justify_FlexEnd)
             coord += space;
-        else if (jc == Center)
+        else if (jc == Justify_Center)
             coord += space / 2;
-        else if (jc == SpaceBetween && cnt > 1)
+        else if (jc == Justify_SpaceBetween && cnt > 1)
             --cnt;
-        else if (jc == SpaceEvenly)
+        else if (jc == Justify_SpaceEvenly)
             ++cnt;
         
         int g = 0;
         if (cnt > 0)
             g = space / cnt;
             
-        if (jc == SpaceAround)
+        if (jc == Justify_SpaceAround)
             coord += g / 2;
-        else if (jc == SpaceEvenly)
+        else if (jc == Justify_SpaceEvenly)
             coord += g;
         
         int i = 0;
         for (Widget *widget: items())
         {
             int sz = sizes[i++];
+            int off2 = 0;
+            int size2 = 0;
+            int maxSize2 = 0;
             
             if (m_direction == Horizontal)
-                setWidgetGeometry(widget, coord, y, sz, h);
+            {
+                size2 = h;
+                maxSize2 = widget->maximumHeight();
+            }
             else
-                setWidgetGeometry(widget, x, coord, w, sz);
+            {
+                size2 = w;
+                maxSize2 = widget->maximumWidth();
+            }
+            
+            if (maxSize2 > size2)
+                maxSize2 = size2;
+            
+            if (align == Align_FlexEnd)
+                off2 = size2 - maxSize2;
+            else if (align == Align_Center)
+                off2 = (size2 - maxSize2) / 2;
+            
+            if (align != Align_Stretch)
+                size2 = maxSize2;
+            
+            if (m_direction == Horizontal)
+                setWidgetGeometry(widget, coord, y+off2, sz, size2);
+            else
+                setWidgetGeometry(widget, x+off2, coord, size2, sz);
             
             g = space / cnt--;
-            coord += sz + g;
+            coord += sz + g + m_gap;
         }
     }
 

@@ -70,6 +70,7 @@ protected:
     Color m_backgroundColor = Color(224, 224, 224);
     Color m_color;
     Font m_font;
+    Color m_borderColor = Gray;
     int m_borderRadius = 0;
     
     Widget *m_parent = nullptr;

@@ -199,7 +199,9 @@ public:
     unsigned int captureValue(ChannelNumber ch) const;
     
     void setChannelEnabled(ChannelNumber ch, bool enabled);
+    void setChannelInverted(ChannelNumber ch, bool inverted);
     void setComplementaryChannelEnabled(ChannelNumber ch, bool enabled);
+    void setComplementaryChannelInverted(ChannelNumber ch, bool inverted);
     
     inline void generateUpdateEvent() {mTim->EGR = TIM_EGR_UG;}
     inline void generateComEvent() {mTim->EGR = TIM_EGR_COMG;}

@@ -2,7 +2,8 @@
 
 ILI9486::ILI9486(Spi *spi, Gpio::PinName cs, Gpio::PinName dc, Gpio::PinName rst) :
     Display(),
-    m_spi(spi)
+    m_spi(spi),
+    m_backlightPwm(nullptr)
 {    
     m_cs = new Gpio(cs, Gpio::Output);
     m_cs->set();
@@ -17,6 +18,24 @@ ILI9486::ILI9486(Spi *spi, Gpio::PinName cs, Gpio::PinName dc, Gpio::PinName rst
     m_spi->setUseDmaTx(true);
 //    m_spi->onBytesWritten = CLOSURE(m_cs, &Gpio::set);
     m_spi->open();
+}
+
+void ILI9486::setBacklightPin(Gpio::Config pin)
+{
+    m_pwmPin = pin;
+    m_backlightPwm = new PwmOutput(pin);
+    m_backlightPwm->setFrequency(60000);
+    m_backlightPwm->setChannelInverted(pin, true);
+    m_backlightPwm->setChannelEnabled(pin, true);
+    m_backlightPwm->start();
+}
+
+void ILI9486::setBacklight(int percent)
+{
+    percent = BOUND(0, percent, 100);
+    int pwm = 256*powf(1.057018f, percent) - 1;
+    if (m_backlightPwm)
+        m_backlightPwm->setDutyCycle(m_pwmPin, pwm);
 }
 
 void ILI9486::init(Orientation ori)
