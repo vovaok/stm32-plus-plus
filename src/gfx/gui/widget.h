@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../display.h"
+#include "../touchscreen.h"
 //#include "layout.h"
 
 class Layout;
@@ -59,12 +60,15 @@ public:
     void setFont(Font font);
     Font font() const {return m_font;}
     
+    Widget *widgetAt(int x, int y);
+    
 protected:
     int m_x = 0, m_y = 0;
     int m_width = 0, m_height = 0;
     int m_minWidth = 0, m_minHeight = 0;
     int m_maxWidth = 9999, m_maxHeight = 9999;
     bool m_visible = true;
+    bool m_acceptTouchEvents = false;
     
     // style
     Color m_backgroundColor = Color(224, 224, 224);
@@ -79,6 +83,10 @@ protected:
     friend class Layout;
     
     virtual void paintEvent(Display *d);
+    
+    virtual void pressEvent(int x, int y) {}
+    virtual void moveEvent(int x, int y) {}
+    virtual void releaseEvent(int x, int y) {}
 
 private:
     bool m_needRepaint = true;

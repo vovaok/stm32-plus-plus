@@ -160,6 +160,25 @@ void Widget::setFont(Font font)
     update();
 }
 
+Widget *Widget::widgetAt(int x, int y)
+{
+//    int x0 = x - m_x;
+//    int y0 = y - m_y;
+    for (Widget *w: m_children)
+    {
+        if (!w->m_visible)
+            continue;
+        int rx = x - w->m_x;
+        int ry = y - w->m_y;
+        if (rx >= 0 && rx < w->m_width &&
+            ry >= 0 && ry < w->m_height)
+        {
+            return w->widgetAt(rx, ry);
+        }
+    }
+    return this;
+}
+
 void Widget::paintEvent(Display *d)
 {
     // fill background

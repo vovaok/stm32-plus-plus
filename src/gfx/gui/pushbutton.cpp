@@ -3,8 +3,11 @@
 PushButton::PushButton(const ByteArray &text, Widget *parent) :
     Widget(parent)
 {
+    m_acceptTouchEvents = true;
     m_borderRadius = 4;
-    setBackgroundColor(Color(192, 192, 192));
+    m_upColor = Color(192, 192, 192);
+    m_downColor = Color(128, 128, 128);
+    setBackgroundColor(m_upColor);
     setText(text);
 }
 
@@ -12,6 +15,12 @@ void PushButton::setText(const ByteArray &text)
 {
     m_text = text;
     update();
+}
+
+void PushButton::click()
+{
+    if (onClick)
+        onClick();
 }
 
 //void PushButton::update()
@@ -30,14 +39,36 @@ void PushButton::paintEvent(Display *d)
         int h = height();
         Image img(w, h);
         img.fill(parent()->backgroundColor().rgb565()); // a la transparent background
+        int off = 0;
+        if (m_down)
+            off = 1;
         img.setBackgroundColor(m_backgroundColor);
         img.setFont(m_font);
         img.setColor(m_borderColor);
-        img.drawFillRoundRect(0, 0, w, h, m_borderRadius);
+        img.drawFillRoundRect(off, off, w-off, h-off, m_borderRadius);
         img.setColor(m_color);
-        img.drawString(0, 0, w, h, AlignCenter | TextWordWrap, m_text.data());
+        img.drawString(off, off, w-off*2, h-off*2, AlignCenter | TextWordWrap, m_text.data());
 //        Widget::paintEvent(d); // fill background
         d->drawImage(0, 0, img);
+    }
+}
+
+void PushButton::pressEvent(int x, int y)
+{
+    m_down = true;
+    setBackgroundColor(m_downColor);
+//    update();
+}
+
+void PushButton::releaseEvent(int x, int y)
+{
+    if (m_down)
+    {
+        m_down = false;
+        setBackgroundColor(m_upColor);
+        update();
+        if (onClick)
+            onClick();
     }
 }
 

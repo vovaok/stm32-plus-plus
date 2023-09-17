@@ -5,11 +5,14 @@
 class PageLayout : public Layout
 {
 public:
-    void setPage(int index)
+    void setIndex(int index)
     {
         m_index = index;
         update();
     }
+    
+    int currentIndex() const {return m_index;}
+    Widget *currentWidget() {return items().size()? items().at(m_index): nullptr;}
 
 protected:
     virtual void update() override

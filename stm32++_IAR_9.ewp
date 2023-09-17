@@ -11967,6 +11967,12 @@
         <file>
             <name>$PROJ_DIR$\src\device\mt6835.h</name>
         </file>
+        <file>
+            <name>$PROJ_DIR$\src\device\xpt2046.cpp</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\device\xpt2046.h</name>
+        </file>
     </group>
     <group>
         <name>gfx</name>
@@ -12077,6 +12083,12 @@
         </file>
         <file>
             <name>$PROJ_DIR$\src\gfx\image.h</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\gfx\touchscreen.cpp</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\gfx\touchscreen.h</name>
         </file>
     </group>
     <group>

@@ -28,6 +28,44 @@ void GuiApplication::setDisplay(Display *d)
     m_widget->resize(d->width(), d->height());
     m_paintTimer->start();
 }
+
+void GuiApplication::addTouchScreen(TouchScreen *ts)
+{
+    ts->onTouch = EVENT(&GuiApplication::touchEvent);
+}
+
+void GuiApplication::touchEvent(TouchEvent *event)
+{
+    if (m_widget)
+    {
+        if (!m_touchedWidget)
+        {
+            m_touchedWidget = m_widget->widgetAt(event->x(), event->y());
+            while (!m_touchedWidget->m_acceptTouchEvents)
+            {
+                m_touchedWidget = m_touchedWidget->parent();
+                if (!m_touchedWidget)
+                    return;
+            }
+        }
+        
+        switch (event->type())
+        {
+        case TouchEvent::Press:
+            m_touchedWidget->pressEvent(event->x(), event->y());
+            break;
+            
+        case TouchEvent::Move:
+            m_touchedWidget->moveEvent(event->x(), event->y());
+            break;
+            
+        case TouchEvent::Release:
+            m_touchedWidget->releaseEvent(event->x(), event->y());
+            m_touchedWidget = nullptr;
+            break;
+        };
+    }
+}
     
 void GuiApplication::paintTask()
 {
