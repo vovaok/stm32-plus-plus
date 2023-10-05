@@ -103,6 +103,8 @@ public:
     void setMasterMode(bool enabled) {isMaster = enabled;}
 
     Closure<void(unsigned char, Error)> errorEvent;
+    
+    NotifyEvent onReceive;
 
     // for internal use:
     void task();

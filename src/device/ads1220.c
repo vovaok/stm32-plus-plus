@@ -13,12 +13,16 @@ Ads1220::Ads1220(Spi *spi, Gpio::PinName csPin) :
     mCsPin->setAsOutput();
   
     deselect();
-    Spi::Config conf; 
-    conf.CPHA = 1;
-    conf.CPOL = 0;
-    conf.master = 1;
-    conf.baudrate = 5;
-    mSpi->setConfig(conf);
+//    Spi::Config conf; 
+//    conf.CPHA = 1;
+//    conf.CPOL = 0;
+//    conf.master = 1;
+//    conf.baudrate = 5;
+//    mSpi->setConfig(conf);
+    mSpi->setMasterMode();
+    mSpi->setCPOL_CPHA(0, 1);
+    mSpi->setBaudratePrescaler(5);
+    mSpi->setDataSize(8);
     mSpi->open();    
     
     mConf.word = 0;

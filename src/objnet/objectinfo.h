@@ -424,6 +424,8 @@ ObjectInfo &ObjectInfo::field(string name)
     ObjectInfo info;
     m_subobjects.push_back(info);
     ObjectInfo &obj = m_subobjects.back();
+    /// @todo Fix the bug with m_parentObject! it is invalidated in the future :c
+    /// This bug can lead to Hard Fault
     obj.m_parentObject = this;
     size_t sz = sizeof(T);
     T var;

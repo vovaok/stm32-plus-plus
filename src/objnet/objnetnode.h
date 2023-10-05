@@ -52,6 +52,8 @@ private:
     // словарь объектов
     std::vector<ObjectInfo> mObjects;
     
+    bool sendObjectInfo(uint8_t remoteAddr, ObjectInfo *obj, const ByteArray &loc=ByteArray());
+    
     void objectValueChanged(unsigned char oid);
 
 #ifndef QT_CORE_LIB
@@ -105,7 +107,7 @@ public:
     #define BindDualObject(objRead, objWrite) bindObject(ObjectInfo(#objRead":"#objWrite, objRead, objWrite))
     #define BindMethod(method) bindObject(ObjectInfo(#method, CLOSURE(this, &method)))
     #define BindMethodHidden(method) bindObject(ObjectInfo(#method, CLOSURE(this, &method), ObjectInfo::Hidden))
-    #define BindMethodEx(name, object, method) bindObject(ObjectInfo(name, CLOSURE(object, &method)))
+    #define BindMethodEx(name, object, method) bindObject(ObjectInfo(name, CLOSURE(object, method)))
     #define BindMethodHiddenEx(name, object, method) bindObject(ObjectInfo(name, CLOSURE(object, &method), ObjectInfo::Hidden))
     
     template <typename T> ObjectInfo &bindVariable(string name, T &var)

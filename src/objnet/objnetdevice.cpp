@@ -93,23 +93,35 @@ void ObjnetDevice::parseObjectInfo(const ByteArray &ba)
         }
     }
     
-    if (obj && obj->isCompound())
+    if (isReady())
     {
-        idba.append(obj->id());
-        int subsz = obj->mDesc.rType - (uint8_t)ObjectInfo::Compound;
-        int idx = idba.size();
-        idba.append((char)0);
-        for (int i=0; i<subsz; i++)
-        {
-            idba[idx] = i;
-            #ifdef QT_CORE_LIB
-            emit serviceRequest(mNetAddress, svcObjectInfo, idba);
-            #else
-            masterServiceRequest(mNetAddress, svcObjectInfo, idba);
-            #endif
-        }
+        readyEvent();
+#ifdef QT_CORE_LIB
+        emit ready();
+#else 
+        if (onReady)
+            onReady(this);
+#endif
     }
-    return;
+    
+    // don't request subobjects! node should send it by own means
+    
+//    if (obj && obj->isCompound())
+//    {
+//        idba.append(obj->id());
+//        int subsz = obj->mDesc.rType - (uint8_t)ObjectInfo::Compound;
+//        int idx = idba.size();
+//        idba.append((char)0);
+//        for (int i=0; i<subsz; i++)
+//        {
+//            idba[idx] = i;
+//            #ifdef QT_CORE_LIB
+//            emit serviceRequest(mNetAddress, svcObjectInfo, idba);
+//            #else
+//            masterServiceRequest(mNetAddress, svcObjectInfo, idba);
+//            #endif
+//        }
+//    }
 }
 
 ObjectInfo *ObjnetDevice::prepareObject(const ObjectInfo::Description &desc)
@@ -273,17 +285,6 @@ ObjectInfo *ObjnetDevice::prepareObject(const ObjectInfo::Description &desc)
     }
 
     obj->mValid = true;
-    
-    if (isReady())
-    {
-        readyEvent();
-#ifdef QT_CORE_LIB
-        emit ready();
-#else 
-        if (onReady)
-            onReady(this);
-#endif
-    }
     
     return obj;
 }
