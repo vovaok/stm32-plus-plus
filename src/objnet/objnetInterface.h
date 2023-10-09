@@ -20,7 +20,7 @@ namespace Objnet
 typedef Closure<void(unsigned char)> NakEvent;
 
 /*! Media access interface.
-    Provide access to link layer of the network
+    Provides access to link layer of the network
 */
 class ObjnetInterface
 {
@@ -37,6 +37,11 @@ public:
     ObjnetInterface();
     
     virtual ~ObjnetInterface() {}
+    
+    /*! Test connection
+        \return true if the interface is connected to the bus
+    */
+    virtual bool isBusPresent() const {return true;} // true for backward compatibility
 
     /*! Place message msg into transmit queue.
         Complete fields of msg with message ID (using LocalMsgId or GlobalMsgId),
@@ -108,6 +113,8 @@ public:
 
     // for internal use:
     void task();
+    
+    virtual void reconnect() {}
     
 protected:
     int mMaxFrameSize; //!< Maximal data size in frame

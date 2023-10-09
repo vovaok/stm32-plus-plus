@@ -8,7 +8,7 @@ GenericOnbInterface::GenericOnbInterface(Device *dev) :
     m_device(dev)
 {
     mMaxFrameSize = 1024;
-    mBusType = BusEthernet;
+    mBusType = BusUnknown;
     
     m_device->onReadyRead = EVENT(&GenericOnbInterface::receiveHandler);
     m_device->open();
@@ -27,34 +27,47 @@ bool GenericOnbInterface::testFilter(unsigned long id)
 
 bool GenericOnbInterface::send(const CommonMessage &msg)
 {
+    if (!m_device->isOpen())
+        return false;
+    
     uint32_t *data = reinterpret_cast<uint32_t *>(buf);
-    data[0] = msg.rawId();
-    memcpy(data + 1, msg.data().data(), msg.size());
-    int sz = msg.size() + 4;
+    int sz = msg.size();
+    if (prefix)
+    {
+        *data++ = *prefix;
+        sz += 4;
+    }
+    *data++ = msg.rawId();
+    sz += 4;
+    memcpy(data, msg.data().data(), msg.size());
     int written = m_device->write(buf, sz);
     return (sz == written);
 }
-
-//static uint32_t onb_id[256];
-//static uint8_t onb_id_idx = 0;
 
 void GenericOnbInterface::receiveHandler()
 {
 //    if (!m_device->isOpen())
 //        return false;
     int sz = m_device->read(buf, 1024);
+    
+    uint32_t *data = reinterpret_cast<uint32_t *>(buf);
+    if (prefix)
+    {
+        if (sz < 4 || *data++ != *prefix)
+            return;
+        sz -= 4;
+    }
+    
     if (sz < 4)
         return;
     
-    uint32_t *data = reinterpret_cast<uint32_t *>(buf);
-    uint32_t id = data[0];
+    uint32_t id = *data++;
+    sz -= 4;
     if (testFilter(id))
     {
         CommonMessage msg;
-//        if (id & 0x10000000)
-//            onb_id[onb_id_idx++] = id;
         msg.setId(id);
-        msg.setData(ByteArray(data + 1, sz - 4));
+        msg.setData(ByteArray(data, sz));
         receive(msg);
     }
 }

@@ -12118,7 +12118,7 @@
             <name>$PROJ_DIR$\src\objnet\objectinfo.cpp</name>
         </file>
         <file>
-            <name>$PROJ_DIR$\src\objnet\ObjectInfo.h</name>
+            <name>$PROJ_DIR$\src\objnet\objectinfo.h</name>
         </file>
         <file>
             <name>$PROJ_DIR$\src\objnet\objnetclasses.h</name>
@@ -12193,6 +12193,18 @@
         </file>
         <file>
             <name>$PROJ_DIR$\src\objnet\uartonbinterface.h</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\objnet\udponbinterface.cpp</name>
+            <excluded>
+                <configuration>stm32f407vg</configuration>
+            </excluded>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\objnet\udponbinterface.h</name>
+            <excluded>
+                <configuration>stm32f407vg</configuration>
+            </excluded>
         </file>
         <file>
             <name>$PROJ_DIR$\src\objnet\usbhidonbinterface.cpp</name>

@@ -108,7 +108,8 @@ void ObjnetMaster::adjacentConnected()
 
 void ObjnetMaster::onTimer()
 {
-    sendGlobalServiceMessage(aidPollNodes);
+    if (mInterface->isBusPresent())
+        sendGlobalServiceMessage(aidPollNodes);
     
     // if there are no devices then search them
     if (mDevices.empty() && mSwonbMode)

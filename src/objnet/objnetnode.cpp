@@ -559,9 +559,10 @@ void ObjnetNode::parseMessage(CommonMessage &msg)
 
 void ObjnetNode::onTimeoutTimer()
 {
+    mNetTimeout += mTimer.interval();
+    
     if (mBusType == BusSwonb || mBusType == BusRadio)
     {
-        mNetTimeout += mTimer.interval();
         return;
     }
   
@@ -569,8 +570,6 @@ void ObjnetNode::onTimeoutTimer()
     {
         mNetState = netnDisconnecting;
     }
-
-    mNetTimeout += mTimer.interval();
     
     if (mNetTimeout >= 1000)
     {
@@ -584,6 +583,8 @@ void ObjnetNode::onTimeoutTimer()
             obj.mTimedRequest = false;
         }
     }
+    
+    mInterface->reconnect(); //! @todo maybe there is better solution
 }
 //---------------------------------------------------------
 
