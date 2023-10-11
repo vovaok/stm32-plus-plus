@@ -573,6 +573,8 @@ void ObjnetNode::onTimeoutTimer()
     
     if (mNetTimeout >= 1000)
     {
+        mInterface->reconnect(); //! @todo maybe there is better solution
+
         mNetState = netnStart;
         
         for (unsigned int oid=0; oid<mObjects.size(); oid++)
@@ -583,8 +585,6 @@ void ObjnetNode::onTimeoutTimer()
             obj.mTimedRequest = false;
         }
     }
-    
-    mInterface->reconnect(); //! @todo maybe there is better solution
 }
 //---------------------------------------------------------
 

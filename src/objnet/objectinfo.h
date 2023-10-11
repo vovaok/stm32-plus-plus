@@ -366,8 +366,10 @@ ObjectInfo::ObjectInfo(string name, T (&var)[N], Flags flags) :
     mValid(true),
     m_parentObject(0L)
 {
-    size_t sz = sizeof(T) * N;
     Type t = typeOfVar(var[0]);
+    size_t sz = sizeof(T) * N;
+    if (t == String)
+        sz = N;
     if (flags & Read)
     {
         mReadPtr = &var;
