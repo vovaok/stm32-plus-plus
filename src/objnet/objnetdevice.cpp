@@ -43,7 +43,7 @@ void ObjnetDevice::parseObjectInfo(const ByteArray &ba)
         obj = mObjects[ba[1]];
         idba.append(obj->id());
         ByteArray baba = ba.mid(2);
-        while (obj && baba[0] == 0xFF)
+        while (obj && baba[0] == (char)0xFF)
         {
             obj = &obj->subobject(baba[1]);
             idba.append(obj->id());
@@ -422,7 +422,7 @@ void ObjnetDevice::receiveObject(unsigned char oid, const ByteArray &ba)
         ObjectInfo *obj = mObjects[oid];
         if (obj)
         {
-            bool res = obj->write(ba);
+            /*bool res =*/ obj->write(ba);
 //            if (!res)
 //                qDebug() << "failed to write obj" << obj->name();
             #ifndef QT_CORE_LIB

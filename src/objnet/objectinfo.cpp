@@ -1,4 +1,4 @@
-#include "ObjectInfo.h"
+#include "objectinfo.h"
 
 using namespace Objnet;
 
@@ -182,12 +182,10 @@ ByteArray ObjectInfo::read()
         if (str)
         {
             ByteArray ba;
-            const char *src = ba.data();
-            const char *end = src + ba.size();
             int N = 1;
             if (isArray())
                 N = mDesc.writeSize;
-            for (int i=0; i<N && src < end; i++)
+            for (int i=0; i<N; i++)
             {
                 if (i)
                     ba.append('\0');
@@ -507,7 +505,7 @@ QVariant ObjectInfo::toVariant()
         {
             int N = sz? mDesc.writeSize / sz: mDesc.writeSize;
             if (mDesc.wType == String)
-                sz = sizeof(QString);
+                sz = sizeof(_String);
             QList<QVariant> vec;
             for (int i=0; i<N; i++)
                 vec << QVariant(mDesc.wType, reinterpret_cast<const char*>(mWritePtr) + sz*i);
@@ -575,14 +573,22 @@ bool ObjectInfo::fromVariant(QVariant &v)
             QVariant v = list[j];
             if (mDesc.rType != v.type())
                 return false;
-            for (int i=0; i<mDesc.readSize; i++)
+
+            if (mDesc.rType == String)
+            {
+                _String *str = const_cast<_String *>(reinterpret_cast<const _String *>(mReadPtr));
+                str[j] = v.toString();
+            }
+            else for (int i=0; i<sz; i++)
                 const_cast<unsigned char*>(reinterpret_cast<const unsigned char*>(mReadPtr))[i+j*sz] = reinterpret_cast<unsigned char*>(v.data())[i];
         }
         return true;
     }
     else if (mDesc.rType == v.type())
     {
-        for (int i=0; i<mDesc.readSize; i++)
+        if (mDesc.rType == String)
+            *const_cast<_String *>(reinterpret_cast<const _String *>(mReadPtr)) = v.toString();
+        else for (int i=0; i<mDesc.readSize; i++)
             const_cast<unsigned char*>(reinterpret_cast<const unsigned char*>(mReadPtr))[i] = reinterpret_cast<unsigned char*>(v.data())[i];
         return true;
     }

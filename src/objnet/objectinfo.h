@@ -230,8 +230,20 @@ public:
     inline bool isCompound() const {return mDesc.rType >= Compound;}
     inline bool isBuffer() const {return !mDesc.writeSize && !mDesc.readSize && (mDesc.flags & Array);}
 
-    inline int wCount() const {int sz = sizeofType((Type)mDesc.wType); return (isArray() && sz)? mDesc.writeSize / sz: 1;}
-    inline int rCount() const {int sz = sizeofType((Type)mDesc.rType); return (isArray() && sz)? mDesc.readSize / sz: 1;}
+    inline int wCount() const
+    {
+        int sz = sizeofType((Type)mDesc.wType);
+        if (isArray() && mDesc.wType == String)
+            return mDesc.writeSize;
+        return (isArray() && sz)? mDesc.writeSize / sz: 1;
+    }
+    inline int rCount() const
+    {
+        int sz = sizeofType((Type)mDesc.rType);
+        if (isArray() && mDesc.rType == String)
+            return mDesc.readSize;
+        return (isArray() && sz)? mDesc.readSize / sz: 1;
+    }
 
     inline const Description &description() {return mDesc;}
     inline uint8_t id() const {return mDesc.id;}
