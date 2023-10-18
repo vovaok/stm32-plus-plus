@@ -354,6 +354,9 @@ bool Rcc::configPll(uint32_t sysClk)
     
 
     mSysClk = clkin / mPllM * mPllN / pllR;
+    mAHBClk = mSysClk;
+    mAPB1Clk = mSysClk;
+    mAPB2Clk = mSysClk;
     
     FLASH->ACR = FLASH_ACR_PRFTEN | FLASH_ACR_ICEN |FLASH_ACR_DCEN |FLASH_ACR_LATENCY_2WS;
     
