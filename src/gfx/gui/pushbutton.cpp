@@ -23,6 +23,15 @@ void PushButton::click()
         onClick();
 }
 
+void PushButton::setDown(bool value)
+{
+    m_down = value;
+    if (value)
+        setBackgroundColor(m_downColor);
+    else
+        setBackgroundColor(m_upColor);
+}
+
 //void PushButton::update()
 //{
 //    setMinimumWidth(textWidth());
@@ -47,7 +56,7 @@ void PushButton::paintEvent(Display *d)
         img.setColor(m_borderColor);
         img.drawFillRoundRect(off, off, w-off, h-off, m_borderRadius);
         img.setColor(m_color);
-        img.drawString(off, off, w-off*2, h-off*2, AlignCenter | TextWordWrap, m_text.data());
+        img.drawString(off, off, w-off*2, h-off*2, (int)AlignCenter | (int)TextWordWrap, m_text.data());
 //        Widget::paintEvent(d); // fill background
         d->drawImage(0, 0, img);
     }
@@ -55,8 +64,7 @@ void PushButton::paintEvent(Display *d)
 
 void PushButton::pressEvent(int x, int y)
 {
-    m_down = true;
-    setBackgroundColor(m_downColor);
+    setDown(true);
 //    update();
 }
 
@@ -64,8 +72,7 @@ void PushButton::releaseEvent(int x, int y)
 {
     if (m_down)
     {
-        m_down = false;
-        setBackgroundColor(m_upColor);
+        setDown(false);
         update();
         if (onClick)
             onClick();

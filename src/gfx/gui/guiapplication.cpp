@@ -3,7 +3,7 @@
 GuiApplication::GuiApplication() : Application()
 {
     FontDatabase::addApplicationFontFromData(font_Tahoma_13);
-    
+
     m_widget = new Widget(nullptr);
     m_widget->setBackgroundColor(Color(192, 192, 192));
     m_paintTimer = new Timer;
@@ -15,6 +15,19 @@ GuiApplication::GuiApplication() : Application()
 Widget *GuiApplication::widget()
 {
     return static_cast<GuiApplication*>(instance())->rootWidget();
+}
+
+Widget *GuiApplication::focusWidget()
+{
+    return static_cast<GuiApplication*>(instance())->m_focusWidget;
+}
+
+void GuiApplication::setFocusWidget(Widget *w)
+{
+    GuiApplication *a = static_cast<GuiApplication*>(instance());
+    if (a->m_focusWidget)
+        a->m_focusWidget->update();
+    a->m_focusWidget = w;
 }
 
 Display *GuiApplication::display()
@@ -48,17 +61,17 @@ void GuiApplication::touchEvent(TouchEvent *event)
                     return;
             }
         }
-        
+
         switch (event->type())
         {
         case TouchEvent::Press:
             m_touchedWidget->pressEvent(event->x(), event->y());
             break;
-            
+
         case TouchEvent::Move:
             m_touchedWidget->moveEvent(event->x(), event->y());
             break;
-            
+
         case TouchEvent::Release:
             m_touchedWidget->releaseEvent(event->x(), event->y());
             m_touchedWidget = nullptr;
@@ -66,7 +79,7 @@ void GuiApplication::touchEvent(TouchEvent *event)
         };
     }
 }
-    
+
 void GuiApplication::paintTask()
 {
     if (m_display)

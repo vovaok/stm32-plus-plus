@@ -1,6 +1,6 @@
 #include "widget.h"
 #include "layout.h"
-//#include "guiapplication.h"
+#include "guiapplication.h"
 
 Widget::Widget(Widget *parent)
 {
@@ -40,7 +40,7 @@ Widget *Widget::child(int idx)
         return m_children.at(idx);
     return nullptr;
 }
-    
+
 void Widget::setLayout(Layout *layout)
 {
     if (m_layout)
@@ -122,6 +122,26 @@ void Widget::setVisible(bool visible)
     }
 }
 
+bool Widget::hasFocus() const
+{
+    return this == GuiApplication::focusWidget();
+}
+
+void Widget::setFocus()
+{
+    GuiApplication::setFocusWidget(this);
+    update();
+}
+
+void Widget::clearFocus()
+{
+    if (hasFocus())
+    {
+        GuiApplication::setFocusWidget(nullptr);
+        update();
+    }
+}
+
 void Widget::update()
 {
     m_needRepaint = true;
@@ -190,24 +210,32 @@ void Widget::paint(Display *d)
 {
     if (!m_visible)
         return;
-    
+
     if (m_layout && m_layout->m_needUpdate)
     {
         m_layout->m_needUpdate = false;
         m_layout->update();
     }
-    
+
     int oldx = d->xPos();
     int oldy = d->yPos();
     d->moveTo(oldx + m_x, oldy + m_y);
-    
+
     if (m_needRepaint)
         paintEvent(d);
     m_needRepaint = false;
-    
+
     // recursive repaint child widgets
     for (Widget *w: m_children)
         w->paint(d);
-    
+
+    if (hasFocus())
+    {
+//        Color tmp = d->color();
+        d->setColor(Black);
+        d->drawRoundRect(0, 0, m_width, m_height, 3);
+//        d->setColor(tmp);
+    }
+
     d->moveTo(oldx, oldy);
 }
