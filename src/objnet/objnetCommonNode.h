@@ -54,6 +54,8 @@ private:
 
     std::map<unsigned char, unsigned char> mNatTable;
 
+    void onNewMessage();
+    void handleMessage(CommonMessage &msg);
     bool sendCommonMessage(CommonMessage &msg);
 
 protected:

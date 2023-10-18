@@ -1,4 +1,4 @@
-#include "ObjectInfo.h"
+#include "objectinfo.h"
 
 using namespace Objnet;
 
@@ -181,8 +181,18 @@ ByteArray ObjectInfo::read()
         const _String *str = reinterpret_cast<const _String*>(mReadPtr);
         if (str)
         {
-            string s = _fromString(*str);
-            return ByteArray(s.data(), s.length());
+            ByteArray ba;
+            int N = 1;
+            if (isArray())
+                N = mDesc.writeSize;
+            for (int i=0; i<N; i++)
+            {
+                if (i)
+                    ba.append('\0');
+                string s = _fromString(str[i]);
+                ba.append(s.c_str());
+            }
+            return ba;
         }
         return ByteArray();
     }
@@ -190,7 +200,7 @@ ByteArray ObjectInfo::read()
     {
         return *reinterpret_cast<const ByteArray*>(mReadPtr);
     }
-    else if (!mDesc.readSize && (mDesc.flags & Array)) // this is RingBuffer
+    else if (!mDesc.readSize && isArray()) // this is RingBuffer
     {
         ByteArray ba;
         if (mDesc.rType == Float)
@@ -233,12 +243,21 @@ bool ObjectInfo::write(const ByteArray &ba)
         _String *str = reinterpret_cast<_String*>(mWritePtr);
         if (!str)
             return false;
-        else
+        else 
         {
-            _String newstr = _toString(string(ba.data(), ba.size()));
-            if (onValueChanged && (*str != newstr))
-                changed = true;
-            *str = newstr;
+            const char *src = ba.data();
+            const char *end = src + ba.size();
+            int N = 1;
+            if (isArray())
+                N = mDesc.writeSize;
+            for (int i=0; i<N && src < end; i++)
+            {
+                _String newstr = _toString(string(src));
+                if (onValueChanged && (str[i] != newstr))
+                    changed = true;
+                str[i] = newstr;
+                src += newstr.length() + 1;
+            }
         }
     }
     else if (mDesc.wType == Common && mDesc.writeSize == 0) // pure (Q)ByteArray
@@ -248,7 +267,7 @@ bool ObjectInfo::write(const ByteArray &ba)
             changed = true;
         oldBa = ba;
     }
-    else if (!mDesc.writeSize && (mDesc.flags & Array)) // this is RingBuffer
+    else if (!mDesc.writeSize && isArray()) // this is RingBuffer
     {
         if (mDesc.wType == Float)
         {
@@ -482,9 +501,11 @@ QVariant ObjectInfo::toVariant()
         }
       
         int sz = sizeofType((Type)mDesc.wType);
-        if (sz)
+        if (sz || isArray())
         {
-            int N = mDesc.writeSize / sz;
+            int N = sz? mDesc.writeSize / sz: mDesc.writeSize;
+            if (mDesc.wType == String)
+                sz = sizeof(_String);
             QList<QVariant> vec;
             for (int i=0; i<N; i++)
                 vec << QVariant(mDesc.wType, reinterpret_cast<const char*>(mWritePtr) + sz*i);
@@ -546,20 +567,28 @@ bool ObjectInfo::fromVariant(QVariant &v)
         }
       
         int sz = sizeofType((Type)mDesc.rType);
-        int N = mDesc.readSize / sz;
+        int N = sz? mDesc.readSize / sz: mDesc.readSize;
         for (int j=0; j<N && j<list.size(); j++)
         {
             QVariant v = list[j];
             if (mDesc.rType != v.type())
                 return false;
-            for (int i=0; i<mDesc.readSize; i++)
+
+            if (mDesc.rType == String)
+            {
+                _String *str = const_cast<_String *>(reinterpret_cast<const _String *>(mReadPtr));
+                str[j] = v.toString();
+            }
+            else for (int i=0; i<sz; i++)
                 const_cast<unsigned char*>(reinterpret_cast<const unsigned char*>(mReadPtr))[i+j*sz] = reinterpret_cast<unsigned char*>(v.data())[i];
         }
         return true;
     }
     else if (mDesc.rType == v.type())
     {
-        for (int i=0; i<mDesc.readSize; i++)
+        if (mDesc.rType == String)
+            *const_cast<_String *>(reinterpret_cast<const _String *>(mReadPtr)) = v.toString();
+        else for (int i=0; i<mDesc.readSize; i++)
             const_cast<unsigned char*>(reinterpret_cast<const unsigned char*>(mReadPtr))[i] = reinterpret_cast<unsigned char*>(v.data())[i];
         return true;
     }

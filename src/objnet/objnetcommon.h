@@ -9,6 +9,7 @@
 #else
 #include <QtCore>
 #include "core/closure.h"
+typedef Closure<void(void)> NotifyEvent;
 #define ByteArray QByteArray
 #endif
 #include "objnetclasses.h"

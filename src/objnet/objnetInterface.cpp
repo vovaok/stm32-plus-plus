@@ -70,6 +70,8 @@ bool ObjnetInterface::receive(const CommonMessage &msg)
     if (mRxQueue.size() < mRxQueue.maxsize() - 1)
     {
         mRxQueue.push_back(msg);
+        if (onReceive)
+            onReceive();
         return true;
     }
     return false;

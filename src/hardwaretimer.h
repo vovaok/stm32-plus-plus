@@ -156,6 +156,7 @@ public:
     void setSlaveMode(SlaveMode sms);
     void selectOutputTrigger(TrgSource source);
     void setFrequency(int frequency_Hz);
+    int frequency() const; // current programmed frequency
     
     void start();
     void stop();

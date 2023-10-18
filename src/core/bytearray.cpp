@@ -163,19 +163,72 @@ ByteArray &ByteArray::append(char byte)
     mData[mSize] = '\0';
     return *this;
 }
+
+ByteArray &ByteArray::prepend(const char *data, unsigned int size)
+{
+    if (size <= 0)
+        return *this;
+    
+    if (size + mSize >= mAllocSize) // need reallocate, so just create new bytearray
+    {
+        ByteArray ba;
+        ba.allocMore(size + mSize);
+        char *dst = ba.mData;
+        char *src = mData;
+        while (size--)
+            *dst++ = *data++;
+        while (mSize--)
+            *dst++ = *src++;
+        *dst = '\0';
+        *this = std::move(ba);
+    }
+    else
+    {
+        int cnt = mSize;
+        char *src = mData + mSize + 1;
+        mSize += size;
+        char *dst = mData + mSize + 1;
+        while (cnt--)
+            *dst-- = *src--;
+        dst = mData;
+        while (size--)
+            *dst++ = *data++;
+    }
+    return *this;
+}
+
+ByteArray &ByteArray::prepend(const char *str)
+{
+    return prepend(str, strlen(str));
+}
+
+ByteArray &ByteArray::prepend(const ByteArray &ba)
+{
+    return prepend(ba.data(), ba.size());
+}
+
+ByteArray &ByteArray::prepend(char byte)
+{
+    allocMore(1);
+    mSize++;
+    for (int i=mSize; i>0; --i)
+        mData[i] = mData[i-1];
+    mData[0] = byte;
+    return *this;
+}
 //---------------------------------------------------------------------------
 
 void ByteArray::resize(int size)
 {
-    int addsize = size - mSize;
+//    int addsize = size - mSize;
     if (size > mSize)
     {
         allocMore(size - mSize);
     }
-    int oldSize = mSize;
+//    int oldSize = mSize; // used for debug purposes
     mSize = size;
-    size = oldSize;
-    oldSize = addsize;
+//    size = oldSize;
+//    oldSize = addsize;
 }
 //---------------------------------------------------------------------------
 

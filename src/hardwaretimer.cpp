@@ -235,6 +235,13 @@ void HardwareTimer::setFrequency(int frequency_Hz)
         mTim->CNT = 0;
     mTim->PSC = psc;
 }
+
+int HardwareTimer::frequency() const
+{
+    int psc = mTim->PSC;
+    int arr = mTim->ARR;
+    return mInputClk / ((arr + 1) * (psc + 1));
+}
 //---------------------------------------------------------------------------
 
 bool HardwareTimer::isReady() const

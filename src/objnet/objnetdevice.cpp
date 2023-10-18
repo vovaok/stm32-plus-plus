@@ -43,7 +43,7 @@ void ObjnetDevice::parseObjectInfo(const ByteArray &ba)
         obj = mObjects[ba[1]];
         idba.append(obj->id());
         ByteArray baba = ba.mid(2);
-        while (obj && baba[0] == 0xFF)
+        while (obj && baba[0] == (char)0xFF)
         {
             obj = &obj->subobject(baba[1]);
             idba.append(obj->id());
@@ -93,23 +93,35 @@ void ObjnetDevice::parseObjectInfo(const ByteArray &ba)
         }
     }
     
-    if (obj && obj->isCompound())
+    if (isReady())
     {
-        idba.append(obj->id());
-        int subsz = obj->mDesc.rType - (uint8_t)ObjectInfo::Compound;
-        int idx = idba.size();
-        idba.append((char)0);
-        for (int i=0; i<subsz; i++)
-        {
-            idba[idx] = i;
-            #ifdef QT_CORE_LIB
-            emit serviceRequest(mNetAddress, svcObjectInfo, idba);
-            #else
-            masterServiceRequest(mNetAddress, svcObjectInfo, idba);
-            #endif
-        }
+        readyEvent();
+#ifdef QT_CORE_LIB
+        emit ready();
+#else 
+        if (onReady)
+            onReady(this);
+#endif
     }
-    return;
+    
+    // don't request subobjects! node should send it by own means
+    
+//    if (obj && obj->isCompound())
+//    {
+//        idba.append(obj->id());
+//        int subsz = obj->mDesc.rType - (uint8_t)ObjectInfo::Compound;
+//        int idx = idba.size();
+//        idba.append((char)0);
+//        for (int i=0; i<subsz; i++)
+//        {
+//            idba[idx] = i;
+//            #ifdef QT_CORE_LIB
+//            emit serviceRequest(mNetAddress, svcObjectInfo, idba);
+//            #else
+//            masterServiceRequest(mNetAddress, svcObjectInfo, idba);
+//            #endif
+//        }
+//    }
 }
 
 ObjectInfo *ObjnetDevice::prepareObject(const ObjectInfo::Description &desc)
@@ -175,11 +187,13 @@ ObjectInfo *ObjnetDevice::prepareObject(const ObjectInfo::Description &desc)
 //            mObjects[i] = 0L;
 //    }
     
+    bool isArray = desc.flags & ObjectInfo::Array;
+    
     bool wIsCommonType = (desc.wType == ObjectInfo::Common || obj->isCompound());
     bool rIsCommonType = (desc.rType == ObjectInfo::Common || obj->isCompound());
     
-    bool wIsBuffer = (!desc.writeSize && (desc.flags & ObjectInfo::Array));
-    bool rIsBuffer = (!desc.readSize && (desc.flags & ObjectInfo::Array));
+    bool wIsBuffer = (!desc.writeSize && isArray);
+    bool rIsBuffer = (!desc.readSize && isArray);
     
     if (desc.rType >= ObjectInfo::Compound)
     {
@@ -193,12 +207,20 @@ ObjectInfo *ObjnetDevice::prepareObject(const ObjectInfo::Description &desc)
     {
         if (desc.wType == ObjectInfo::String)
         {
-            mObjBuffers[id].resize(sizeof(_String));
+            int N = 1;
+            if (isArray)
+                N = obj->mDesc.writeSize;
+            mObjBuffers[id].resize(sizeof(_String) * N);
             obj->mWritePtr = mObjBuffers[id].data();
-            obj->mDesc.writeSize = sizeof(_String);
-            _String x3;
-            for (size_t i=0; i<sizeof(_String); i++)
-                reinterpret_cast<unsigned char*>(obj->mWritePtr)[i] = reinterpret_cast<unsigned char*>(&x3)[i];
+            obj->mDesc.writeSize = N;//sizeof(_String);
+            if (N > 1)
+                new (obj->mWritePtr) _String[N];
+            else
+                new (obj->mWritePtr) _String;
+//                _String x3;
+//                for (size_t i=0; i<sizeof(_String); i++)
+//                    reinterpret_cast<unsigned char*>(obj->mWritePtr)[i] = reinterpret_cast<unsigned char*>(&x3)[i];
+            
         }
         else if (wIsCommonType && desc.writeSize == 0)
         {
@@ -227,8 +249,15 @@ ObjectInfo *ObjnetDevice::prepareObject(const ObjectInfo::Description &desc)
     
     if (!obj->mReadPtr && (desc.readSize || rIsCommonType || rIsBuffer))
     {
-        int sz = (desc.rType == ObjectInfo::String)? sizeof(_String): desc.readSize;
-        if ((rIsCommonType && desc.readSize == 0))
+        int sz = desc.readSize;
+        if (desc.rType == ObjectInfo::String)
+        {
+            if (isArray)
+                sz = sizeof(_String) * desc.readSize;
+            else 
+                sz = sizeof(_String);
+        }
+        else if ((rIsCommonType && desc.readSize == 0))
             sz = sizeof(ByteArray);
         else if (rIsBuffer)
             sz = sizeof(RingBuffer<float>);
@@ -252,9 +281,13 @@ ObjectInfo *ObjnetDevice::prepareObject(const ObjectInfo::Description &desc)
       
         if (desc.rType == ObjectInfo::String)
         {
-            _String x3;
-            for (size_t i=0; i<sizeof(_String); i++)
-                const_cast<unsigned char*>(reinterpret_cast<const unsigned char*>(obj->mReadPtr))[i] = reinterpret_cast<unsigned char*>(&x3)[i];
+            if (isArray)
+                new ((void*)obj->mReadPtr) _String[desc.readSize];
+            else
+                new ((void*)obj->mReadPtr) _String;
+//            _String x3;
+//            for (size_t i=0; i<sizeof(_String); i++)
+//                const_cast<unsigned char*>(reinterpret_cast<const unsigned char*>(obj->mReadPtr))[i] = reinterpret_cast<unsigned char*>(&x3)[i];
         }
         else if (rIsCommonType && desc.readSize == 0)
         {
@@ -273,17 +306,6 @@ ObjectInfo *ObjnetDevice::prepareObject(const ObjectInfo::Description &desc)
     }
 
     obj->mValid = true;
-    
-    if (isReady())
-    {
-        readyEvent();
-#ifdef QT_CORE_LIB
-        emit ready();
-#else 
-        if (onReady)
-            onReady(this);
-#endif
-    }
     
     return obj;
 }
@@ -400,7 +422,7 @@ void ObjnetDevice::receiveObject(unsigned char oid, const ByteArray &ba)
         ObjectInfo *obj = mObjects[oid];
         if (obj)
         {
-            bool res = obj->write(ba);
+            /*bool res =*/ obj->write(ba);
 //            if (!res)
 //                qDebug() << "failed to write obj" << obj->name();
             #ifndef QT_CORE_LIB
@@ -667,7 +689,7 @@ void ObjnetDevice::sendObject(QString name, QVariant value)
         ObjectInfo *obj = mObjects[oid];
         if (obj)
         {
-            if (obj->rType() == ObjectInfo::Common)
+            if (obj->rType() == ObjectInfo::Common && obj->readSize())
                 value = QByteArray::fromHex(value.toByteArray());
             else
                 value.convert(obj->rType());

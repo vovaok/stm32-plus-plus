@@ -5,6 +5,7 @@ unsigned short Buzzer::mNoteFreqs[12] = {8372, 8870, 9397, 9956, 10548, 11175, 1
 Buzzer::Buzzer(Gpio::Config pin) :
     mTime(0),
     mEndFlag(false),
+    m_isPlaying(false),
     mPlayBuf(0L),
     mPlaySize(0),
     mPlayCnt(0)
@@ -38,7 +39,10 @@ void Buzzer::task()
         if (mPlayCnt < mPlaySize)
             beep(mPlayBuf[mPlayCnt++]);
         else if (mPlayCnt && onPlayDone)
+        {
+            m_isPlaying = false;
             onPlayDone();
+        }
     }
 }
 
@@ -106,7 +110,10 @@ void Buzzer::play(Note *buffer, int count)
     mPlaySize = count;
     mPlayCnt = 0;
     if (mPlaySize)
+    {
+        m_isPlaying = true;
         beep(mPlayBuf[mPlayCnt++]);
+    }
 }
 
 void Buzzer::stop()
@@ -114,5 +121,6 @@ void Buzzer::stop()
     mPlayBuf = 0L;
     mPlaySize = 0;
     mPlayCnt = 0;
+    m_isPlaying = false;
 }
 //---------------------------------------------------------------------------

@@ -20,6 +20,7 @@ private:
     HardwareTimer::ChannelNumber mChan;
     int mTime;
     bool mEndFlag;
+    bool m_isPlaying;
     
     Note *mPlayBuf;
     int mPlaySize;
@@ -44,6 +45,9 @@ public:
     void beep(int duration_ms);
     void beep(unsigned char note, int duration_ms);
     void beep(Note note);
+    
+    int currentFrequency() {return mPwm->frequency();}
+    bool isPlaying() const {return m_isPlaying;}
     
     void play(Note *buffer, int count);
     void stop();

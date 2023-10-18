@@ -216,6 +216,8 @@ public:
     Type rType() const {return static_cast<Type>(mDesc.rType);}
     Type wType() const {return static_cast<Type>(mDesc.wType);}
     Flags flags() const {return static_cast<Flags>(mDesc.flags);}
+    int readSize() const {return mDesc.readSize;}
+    int writeSize() const {return mDesc.writeSize;}
 
     bool isValid() const;
     
@@ -230,8 +232,20 @@ public:
     inline bool isCompound() const {return mDesc.rType >= Compound;}
     inline bool isBuffer() const {return !mDesc.writeSize && !mDesc.readSize && (mDesc.flags & Array);}
 
-    inline int wCount() const {int sz = sizeofType((Type)mDesc.wType); return (isArray() && sz)? mDesc.writeSize / sz: 1;}
-    inline int rCount() const {int sz = sizeofType((Type)mDesc.rType); return (isArray() && sz)? mDesc.readSize / sz: 1;}
+    inline int wCount() const
+    {
+        int sz = sizeofType((Type)mDesc.wType);
+        if (isArray() && mDesc.wType == String)
+            return mDesc.writeSize;
+        return (isArray() && sz)? mDesc.writeSize / sz: 1;
+    }
+    inline int rCount() const
+    {
+        int sz = sizeofType((Type)mDesc.rType);
+        if (isArray() && mDesc.rType == String)
+            return mDesc.readSize;
+        return (isArray() && sz)? mDesc.readSize / sz: 1;
+    }
 
     inline const Description &description() {return mDesc;}
     inline uint8_t id() const {return mDesc.id;}
@@ -366,8 +380,10 @@ ObjectInfo::ObjectInfo(string name, T (&var)[N], Flags flags) :
     mValid(true),
     m_parentObject(0L)
 {
-    size_t sz = sizeof(T) * N;
     Type t = typeOfVar(var[0]);
+    size_t sz = sizeof(T) * N;
+    if (t == String)
+        sz = N;
     if (flags & Read)
     {
         mReadPtr = &var;
@@ -424,6 +440,8 @@ ObjectInfo &ObjectInfo::field(string name)
     ObjectInfo info;
     m_subobjects.push_back(info);
     ObjectInfo &obj = m_subobjects.back();
+    /// @todo Fix the bug with m_parentObject! it is invalidated in the future :c
+    /// This bug can lead to Hard Fault
     obj.m_parentObject = this;
     size_t sz = sizeof(T);
     T var;

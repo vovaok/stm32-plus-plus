@@ -11899,6 +11899,12 @@
             <name>$PROJ_DIR$\src\core\qdebug.h</name>
         </file>
         <file>
+            <name>$PROJ_DIR$\src\core\qquaternion.h</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\core\qvector3d.h</name>
+        </file>
+        <file>
             <name>$PROJ_DIR$\src\core\ringbuffer.h</name>
         </file>
         <file>
@@ -12187,6 +12193,18 @@
         </file>
         <file>
             <name>$PROJ_DIR$\src\objnet\uartonbinterface.h</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\objnet\udponbinterface.cpp</name>
+            <excluded>
+                <configuration>stm32f407vg</configuration>
+            </excluded>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\objnet\udponbinterface.h</name>
+            <excluded>
+                <configuration>stm32f407vg</configuration>
+            </excluded>
         </file>
         <file>
             <name>$PROJ_DIR$\src\objnet\usbhidonbinterface.cpp</name>

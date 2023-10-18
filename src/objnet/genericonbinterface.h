@@ -11,6 +11,9 @@ class GenericOnbInterface : public ObjnetInterface
 {
 public:
     GenericOnbInterface(Device *dev);
+    virtual ~GenericOnbInterface() {}
+    
+    virtual bool isBusPresent() const {return m_device->isOpen();}
     
 //    void flush();
     
@@ -19,12 +22,17 @@ public:
     int addFilter(uint32_t id, uint32_t mask=0xFFFFFFFF);
     void removeFilter(int number);
     
+    const Device *device() {return m_device;}
+    
 protected:
+    const uint32_t *prefix = nullptr;
+    
     virtual bool send(const CommonMessage &msg);
+    void receiveHandler();
   
 private:
     Device *m_device;
-  
+        
     typedef struct
     {
         unsigned long id;
@@ -33,8 +41,7 @@ private:
     std::vector<Filter> mFilters;
     
     bool testFilter(unsigned long id);
-    
-    void receiveHandler();
+    void onDeviceRead();
 };
 
 }

@@ -171,6 +171,10 @@ public:
     const T *data() {return m_data;}
     const T &front() {return *m_tail;}
     const T &back() {return *m_head;}
+    const T &operator[](int index)
+    {
+        return m_data[(m_tail - m_data + index) % m_size];
+    }
     
     T take_front()
     {

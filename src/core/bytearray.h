@@ -34,6 +34,11 @@ public:
     ByteArray &append(const ByteArray &ba);
     ByteArray &append(char byte);
     
+    ByteArray &prepend(const char *data, unsigned int size);
+    ByteArray &prepend(const char *str);
+    ByteArray &prepend(const ByteArray &ba);
+    ByteArray &prepend(char byte);
+    
     void resize(int size);
     
     void clear();

@@ -153,6 +153,7 @@ void ObjnetNode::task()
             }
             while (mObjInfoSendCount >= 0 && mObjInfoSendCount < (int)mObjects.size())
             {
+                /// @todo todo todotodotodo tododododooooooooo
                 ByteArray ba;
                 mObjects[mObjInfoSendCount].mDesc.read(ba);
                 bool success = sendServiceMessage(mCurrentRemoteAddress, svcObjectInfo, ba);
@@ -338,23 +339,22 @@ void ObjnetNode::parseServiceMessage(CommonMessage &msg)
 
       case svcObjectInfo:
       {
-        ByteArray ba;
+//        ByteArray ba;
         uint8_t _oid = msg.data()[0];
         ObjectInfo *obj = 0L;
         if (_oid < mObjects.size())
             obj = &mObjects[_oid];
         for (uint8_t i=1; i<msg.data().size(); i++)
         {
-            ba.append(0xFF);
-            ba.append(_oid);
+//            ba.append(0xFF);
+//            ba.append(_oid);
             _oid = msg.data()[i];
             if (obj && _oid < obj->subobjectCount())
                 obj = &obj->subobject(_oid);
         }
         if (obj)
         {
-            obj->mDesc.read(ba);
-            sendServiceMessage(remoteAddr, svcObjectInfo, ba);
+            sendObjectInfo(remoteAddr, obj, msg.data());
         }
         else
         {
@@ -401,12 +401,13 @@ void ObjnetNode::parseServiceMessage(CommonMessage &msg)
         }
         else if (mBusType == BusRadio)
         {
-            // TODO: add support of subobjects in the Radio bus
+            /// @todo Add support of subobjects in the Radio bus
             for (int i=0; i<mObjects.size(); i++)
             {
-                ByteArray ba;
-                mObjects[i].mDesc.read(ba);
-                /*bool success =*/ sendServiceMessage(remoteAddr, svcObjectInfo, ba);
+                sendObjectInfo(remoteAddr, &mObjects[i]);
+//                ByteArray ba;
+//                mObjects[i].mDesc.read(ba);
+//                /*bool success =*/ sendServiceMessage(remoteAddr, svcObjectInfo, ba);
             }
         }
         else if (isConnected())
@@ -558,9 +559,10 @@ void ObjnetNode::parseMessage(CommonMessage &msg)
 
 void ObjnetNode::onTimeoutTimer()
 {
+    mNetTimeout += mTimer.interval();
+    
     if (mBusType == BusSwonb || mBusType == BusRadio)
     {
-        mNetTimeout += mTimer.interval();
         return;
     }
   
@@ -568,11 +570,11 @@ void ObjnetNode::onTimeoutTimer()
     {
         mNetState = netnDisconnecting;
     }
-
-    mNetTimeout += mTimer.interval();
     
     if (mNetTimeout >= 1000)
     {
+        mInterface->reconnect(); //! @todo maybe there is better solution
+
         mNetState = netnStart;
         
         for (unsigned int oid=0; oid<mObjects.size(); oid++)
@@ -623,6 +625,30 @@ void ObjnetNode::sendForced(unsigned char oid)
 {
     sendMessage(0x00, oid, mObjects[oid].read());
 }
+
+bool ObjnetNode::sendObjectInfo(uint8_t remoteAddr, ObjectInfo *obj, const ByteArray &loc)
+{
+    ByteArray ba;
+    for (int i=0; i<loc.size()-1; i++)
+    {
+        ba.append(0xFF);
+        ba.append(loc[i]);
+    }
+    obj->mDesc.read(ba);
+    bool result = sendServiceMessage(remoteAddr, svcObjectInfo, ba);
+    if (!result)
+        return false;
+    
+    for (uint8_t idx = 0; idx < obj->subobjectCount(); idx++)
+    {
+        ByteArray ba = loc;
+        ba.append(idx);
+        sendObjectInfo(remoteAddr, &obj->subobject(idx), ba);
+    }
+    
+    return true;
+}
+
 //---------------------------------------------------------
 
 void ObjnetNode::objectValueChanged(unsigned char oid)

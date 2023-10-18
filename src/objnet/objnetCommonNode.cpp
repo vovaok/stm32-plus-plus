@@ -13,6 +13,8 @@ ObjnetCommonNode::ObjnetCommonNode(ObjnetInterface *iface) :
     mNetAddress(0xFF),
     mConnected(false)
 {
+//    mInterface->onReceive = EVENT(&ObjnetCommonNode::onNewMessage);
+    
     #ifndef QT_CORE_LIB
     stmApp()->registerTaskEvent(EVENT(&ObjnetCommonNode::task));
     #else
@@ -53,16 +55,32 @@ void ObjnetCommonNode::task()
 //            mSheduledMsg.setId(0);
 //    }
 
-    CommonMessage inMsg;
-    while (mInterface->read(inMsg))
+    CommonMessage msg;
+    while (mInterface->read(msg))
     {
-        if (inMsg.isGlobal())
+        handleMessage(msg);
+    }
+}
+
+//void ObjnetCommonNode::onNewMessage()
+//{
+//    CommonMessage msg;
+//    if (mInterface->read(msg))
+//    {
+//        if (mBusAddress != 0xFF)
+//            handleMessage(msg);
+//    }
+//}
+
+void ObjnetCommonNode::handleMessage(CommonMessage &msg)
+{
+    if (msg.isGlobal())
         {
-            GlobalMsgId id = inMsg.globalId();
+            GlobalMsgId id = msg.globalId();
             if (id.aid & (aidPropagationDown | aidPropagationUp))
             {
 //                if (mRetranslateEvent)
-//                    mRetranslateEvent(inMsg);
+//                    mRetranslateEvent(msg);
                 if (mAdjacentNode)
                 {
                     GlobalMsgId newId = id;
@@ -73,15 +91,15 @@ void ObjnetCommonNode::task()
                         newId.addr = mAdjacentNode->natRoute(id.addr);
                         newId.mac = mAdjacentNode->route(id.addr);
                     }
-                    inMsg.setId(newId);
-                    mAdjacentNode->mInterface->write(inMsg);
-                    inMsg.setId(id); // restore id
+                    msg.setId(newId);
+                    mAdjacentNode->mInterface->write(msg);
+                    msg.setId(id); // restore id
                 }
             }
 
             if (id.svc)
             {
-                parseServiceMessage(inMsg);
+                parseServiceMessage(msg);
             }
             else
             {
@@ -90,23 +108,23 @@ void ObjnetCommonNode::task()
 //                #endif
                 #ifndef QT_CORE_LIB
                 if (mGlobalMessageEvent)
-                    mGlobalMessageEvent(inMsg);
+                    mGlobalMessageEvent(msg);
                 #endif
-                parseMessage(inMsg);
+                parseMessage(msg);
             }
         }
         else
         {
-            LocalMsgId id = inMsg.localId();
+            LocalMsgId id = msg.localId();
             if (id.addr == mNetAddress || id.addr == 0x7F || mNetAddress == 0xFF) // logical address match OR universal address OR address is not assigned yet
             {
                 if (id.frag) // if message is fragmented
                 {
                     LocalMsgId key = id;
-                    key.addr = inMsg.data()[0] & 0x70; // field "addr" of LocalId stores sequence number
+                    key.addr = msg.data()[0] & 0x70; // field "addr" of LocalId stores sequence number
                     CommonMessageBuffer &buf = mFragmentBuffer[key];
                     buf.setLocalId(id);
-                    buf.addPart(inMsg.data(), mInterface->maxFrameSize());
+                    buf.addPart(msg.data(), mInterface->maxFrameSize());
                     if (buf.isReady())
                     {
                         if (id.svc)
@@ -119,9 +137,9 @@ void ObjnetCommonNode::task()
                 else
                 {
                     if (id.svc)
-                        parseServiceMessage(inMsg);
+                        parseServiceMessage(msg);
                     else
-                        parseMessage(inMsg);
+                        parseMessage(msg);
                 }
             }
             else if (mAdjacentNode) // retranslate
@@ -142,10 +160,10 @@ void ObjnetCommonNode::task()
                 {
                     id.frag = 0;
                     LocalMsgId key = id;
-                    key.addr = inMsg.data()[0] & 0x70; // field "addr" of LocalId stores sequence number
+                    key.addr = msg.data()[0] & 0x70; // field "addr" of LocalId stores sequence number
                     CommonMessageBuffer &buf = mFragmentBuffer[key];
                     buf.setLocalId(id);
-                    buf.addPart(inMsg.data(), mInterface->maxFrameSize());
+                    buf.addPart(msg.data(), mInterface->maxFrameSize());
                     if (buf.isReady())
                     {
                         mAdjacentNode->sendCommonMessage(buf);
@@ -154,9 +172,9 @@ void ObjnetCommonNode::task()
                 }
                 else
                 {
-                    inMsg.setLocalId(id);
-                    //mAdjacentNode->mInterface->write(inMsg);
-                    mAdjacentNode->sendCommonMessage(inMsg);
+                    msg.setLocalId(id);
+                    //mAdjacentNode->mInterface->write(msg);
+                    mAdjacentNode->sendCommonMessage(msg);
                 }
             }
 
@@ -170,7 +188,6 @@ void ObjnetCommonNode::task()
                 mFragmentBuffer.erase(*it);
             toRemove.clear();
         }
-    }
 }
 //---------------------------------------------------------------------------
 
@@ -504,11 +521,6 @@ void ObjnetCommonNode::removeNatPair(unsigned char supernetAddr, unsigned char s
         }
     }
 }
-//---------------------------------------------------------------------------
-
-//void ObjnetCommonNode::parseMessage(CommonMessage &msg)
-//{
-//}
 //---------------------------------------------------------------------------
 
 void ObjnetCommonNode::connect(ObjnetCommonNode *node)
