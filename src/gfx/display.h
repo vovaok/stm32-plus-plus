@@ -3,6 +3,7 @@
 
 #include "font.h"
 #include "color.h"
+#include "rect.h"
 
 class Image;
 
@@ -40,15 +41,21 @@ public:
     
 	void drawString(int x, int y, const char *s);
     void drawString(int x, int y, int w, int h, int flags, const char *s);
+    void drawString(const Rect &rect, int flags, const char *s);
     void drawLine(int x0, int y0, int x1, int y1);
     void drawRect(int x, int y, int w, int h);
+    void drawRect(const Rect &rect);
     void drawFillRect(int x, int y, int w, int h);
+    void drawFillRect(const Rect &rect);
     void drawCircle(int16_t x0, int16_t y0, int16_t r);
     void drawFillCircle(int16_t x0, int16_t y0, int16_t r);
     void drawRoundRect(int16_t x, int16_t y, int16_t w, int16_t h, int16_t r);
+    void drawRoundRect(const Rect &rect, int r);
     void drawFillRoundRect(int16_t x, int16_t y, int16_t w, int16_t h, int16_t r);
+    void drawFillRoundRect(const Rect &rect, int r);
     void drawImage(int x, int y, const Image &img);
     void fillRect(int x, int y, int w, int h);
+    void fillRect(const Rect &rect);
     
 protected:
     int m_width;

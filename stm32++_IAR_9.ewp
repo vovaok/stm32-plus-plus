@@ -12091,6 +12091,9 @@
             <name>$PROJ_DIR$\src\gfx\image.h</name>
         </file>
         <file>
+            <name>$PROJ_DIR$\src\gfx\rect.h</name>
+        </file>
+        <file>
             <name>$PROJ_DIR$\src\gfx\touchscreen.cpp</name>
         </file>
         <file>

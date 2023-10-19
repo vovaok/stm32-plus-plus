@@ -49,6 +49,8 @@ public:
 
     void setVisible(bool visible);
     bool visible() const {return m_visible;}
+    void show() {setVisible(true);}
+    void hide() {setVisible(false);}
 
     bool hasFocus() const;
     void setFocus();

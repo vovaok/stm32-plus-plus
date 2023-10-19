@@ -19,6 +19,9 @@ public:
 
     void stepUp();
     void stepDown();
+    const ByteArray &text() {return m_edit->text();}
+    
+    void setBackgroundColor(Color c) {m_edit->setBackgroundColor(c);}
     
 protected:
     virtual void stepBy(int steps) = 0;

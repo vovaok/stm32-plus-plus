@@ -42,6 +42,8 @@ void Display::drawString(int x, int y, int w, int h, int flags, const char *s)
             const char *nextword = nullptr;
             if (flags & TextWordWrap)
                 nextword = strpbrk(word, " \t\n");
+            else
+                nextword = strchr(word, '\n');
             if (!nextword)
                 nextword = line + strlen(line);
             
@@ -107,6 +109,11 @@ void Display::drawString(int x, int y, int w, int h, int flags, const char *s)
             break;
     }
     
+}
+
+void Display::drawString(const Rect &rect, int flags, const char *s)
+{
+    drawString(rect.x(), rect.y(), rect.width(), rect.height(), flags, s);
 }
 
 void Display::renderChar(char c, int &x, int &y)
@@ -215,15 +222,30 @@ void Display::drawRect(int x, int y, int w, int h)
     Draw_FastVLine(x+w-1, y, h);
 }
 
+void Display::drawRect(const Rect &rect)
+{
+    drawRect(rect.x(), rect.y(), rect.width(), rect.height());
+}
+
 void Display::fillRect(int x, int y, int w, int h)
 {
     fillRect(m_x+x, m_y+y, w, h, m_bgColor.rgb565());
+}
+
+void Display::fillRect(const Rect &rect)
+{
+    fillRect(m_x+rect.x(), m_y+rect.y(), rect.width(), rect.height(), m_bgColor.rgb565());
 }
 
 void Display::drawFillRect(int x, int y, int w, int h)
 {
     drawRect(x, y, w, h);
     fillRect(x+1, y+1, w-2, h-2);
+}
+
+void Display::drawFillRect(const Rect &rect)
+{
+    drawFillRect(rect.x(), rect.y(), rect.width(), rect.height());
 }
 
 void Display::drawFillCircle(int16_t x0, int16_t y0, int16_t r)
@@ -284,6 +306,11 @@ void Display::drawRoundRect(int16_t x, int16_t y, int16_t w, int16_t h, int16_t 
     DrawCircle_Helper(x+r    , y+h-r-1, r, 8);
 }
 
+void Display::drawRoundRect(const Rect &rect, int r)
+{
+    drawRoundRect(rect.x(), rect.y(), rect.width(), rect.height(), r);
+}
+
 void Display::drawFillRoundRect(int16_t x, int16_t y, int16_t w, int16_t h, int16_t r)
 {
     if (r > w/2)
@@ -297,6 +324,11 @@ void Display::drawFillRoundRect(int16_t x, int16_t y, int16_t w, int16_t h, int1
     FillCircle_Helper(x+r, y+r, r, 2, h-2*r-1);
     m_color = temp;
     drawRoundRect(x, y, w, h, r);
+}
+
+void Display::drawFillRoundRect(const Rect &rect, int r)
+{
+    drawFillRoundRect(rect.x(), rect.y(), rect.width(), rect.height(), r);
 }
 
 void Display::Draw_Pixel(int x, int y)
