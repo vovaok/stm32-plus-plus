@@ -6,7 +6,7 @@ void Display::drawString(int x, int y, const char *s)
     const FontInfo *fi = m_font.m_fi;
     if (!fi)
         return;
-    
+
 	while (*s)
 		renderChar(*s++, x, y);
 }
@@ -16,7 +16,7 @@ void Display::drawString(int x, int y, int w, int h, int flags, const char *s)
     const FontInfo *fi = m_font.m_fi;
     if (!fi)
         return;
-    
+
     struct Line
     {
         const char *s;
@@ -24,11 +24,11 @@ void Display::drawString(int x, int y, int w, int h, int flags, const char *s)
         int len;
         int wcnt; // word count
     };
-    
+
     std::vector<Line> lines;
-    
+
     const char *line = s;
-    
+
     do
     {
         int linew = 0;
@@ -46,9 +46,9 @@ void Display::drawString(int x, int y, int w, int h, int flags, const char *s)
                 nextword = strchr(word, '\n');
             if (!nextword)
                 nextword = line + strlen(line);
-            
+
             flag = *nextword && *nextword != '\n';
-            
+
 //            len = nextword - line;
             int lw = fi->width(line, nextword - line);
             if (lw <= w || !wcnt)
@@ -61,26 +61,26 @@ void Display::drawString(int x, int y, int w, int h, int flags, const char *s)
                 else
                     word = nullptr;
             }
-            
+
             if (lw > w)
                 break;
-            
+
             if (!flag)
                 wcnt = 0;
         }
         while (flag);
-    
+
         lines.push_back({line, linew, len, wcnt});
         line = word;
     } while (line);
-    
+
     int th = lines.size() * fi->height();
     int ypos = y + fi->ascent();
     if (flags & AlignBottom)
         ypos += h - th;
     else if (flags & AlignVCenter)
         ypos += (h - th) / 2;
-    
+
     for (Line &ln: lines)
     {
         int xpos = x;
@@ -88,10 +88,10 @@ void Display::drawString(int x, int y, int w, int h, int flags, const char *s)
             xpos += w - ln.w;
         else if (flags & AlignHCenter)
             xpos += (w - ln.w) / 2;
-        
+
         int space = ((flags & AlignJustify) && ln.wcnt > 1)? (w - ln.w): 0;
         int wcnt = (ln.wcnt);// - 1);
-        
+
         const char *s = ln.s;
         for (int i=0; i<ln.len; i++)
         {
@@ -103,12 +103,12 @@ void Display::drawString(int x, int y, int w, int h, int flags, const char *s)
             }
             renderChar(*s++, xpos, ypos);
         }
-        
+
         ypos += fi->height();
         if (ypos >= y + h)
             break;
     }
-    
+
 }
 
 void Display::drawString(const Rect &rect, int flags, const char *s)
@@ -121,7 +121,7 @@ void Display::renderChar(char c, int &x, int &y)
 	const FontInfo *fi = m_font.m_fi;
     if (!fi)
         return;
-    
+
 	const FontInfo::LetterInfo &li = fi->letterInfo(c);
 	const uint8_t *src = fi->bitmap(c);
 	int x0 = m_x + x + li.lb;
@@ -174,7 +174,7 @@ void Display::drawLine(int x0, int y0, int x1, int y1)
     else
     {
         int16_t steep = abs(y1 - y0) > abs(x1 - x0);
-    
+
         if (steep)
         {
             std::swap(x0, y0);
@@ -313,6 +313,17 @@ void Display::drawRoundRect(const Rect &rect, int r)
 
 void Display::drawFillRoundRect(int16_t x, int16_t y, int16_t w, int16_t h, int16_t r)
 {
+    fillRoundRect(x+1, y+1, w-2, h-2, r-1);
+    drawRoundRect(x, y, w, h, r);
+}
+
+void Display::drawFillRoundRect(const Rect &rect, int r)
+{
+    drawFillRoundRect(rect.x(), rect.y(), rect.width(), rect.height(), r);
+}
+
+void Display::fillRoundRect(int16_t x, int16_t y, int16_t w, int16_t h, int16_t r)
+{
     if (r > w/2)
         r = w/2;
     if (r > h/2)
@@ -323,12 +334,11 @@ void Display::drawFillRoundRect(int16_t x, int16_t y, int16_t w, int16_t h, int1
     FillCircle_Helper(x+w-r-1, y+r, r, 1, h-2*r-1);
     FillCircle_Helper(x+r, y+r, r, 2, h-2*r-1);
     m_color = temp;
-    drawRoundRect(x, y, w, h, r);
 }
 
-void Display::drawFillRoundRect(const Rect &rect, int r)
+void Display::fillRoundRect(const Rect &rect, int r)
 {
-    drawFillRoundRect(rect.x(), rect.y(), rect.width(), rect.height(), r);
+    fillRoundRect(rect.x(), rect.y(), rect.width(), rect.height(), r);
 }
 
 void Display::Draw_Pixel(int x, int y)

@@ -20,8 +20,11 @@ void Label::setAlignment(Alignment value)
 
 void Label::setText(const ByteArray &text)
 {
-    m_text = text;
-    update();
+    if (m_text != text)
+    {
+        m_text = text;
+        update();
+    }
 }
 
 void Label::setNum(int n)
@@ -50,8 +53,9 @@ void Label::paintEvent(Display *d)
         int w = textWidth();
         int h = textHeight();
         Image img(w, h);
-        img.fill(m_backgroundColor.rgb565());
-        img.setColor(m_color);
+        Color bgcol = m_enabled? m_backgroundColor: palette()->disabled();
+        img.fill(bgcol.rgb565());
+        img.setColor(m_enabled? m_color: palette()->disabledText());
         img.setFont(m_font);
         img.drawString(2, 2+m_font.info().ascent(), m_text.data());
         int xpos=0, ypos=0;

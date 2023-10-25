@@ -6,20 +6,20 @@
 #pragma pack(push,1)
 class TouchEvent
 {
-public:      
+public:
     enum Type : uint8_t
     {
         Press,
         Release,
         Move
     };
-    
-    TouchEvent() : m_x(0), m_y(0), m_pressure(0) {} 
+
+    TouchEvent() : m_x(0), m_y(0), m_pressure(0) {}
     int x() const {return m_x;}
     int y() const {return m_y;}
     int pressure() const {return m_pressure;}
     Type type() const {return m_type;}
-    
+
 private:
     int16_t m_x;
     int16_t m_y;
@@ -35,20 +35,22 @@ class TouchScreen
 public:
     TouchScreen();
     void setCalibration(int xOffset, int yOffset, int xFactor, int yFactor);
-    
+//    void setOrientation(ScreenOrientation ori) {m_orientation = ori;}
+
     bool isTouched() const {return m_pressure > 0;}
     int x() const {return m_x;}
     int y() const {return m_y;}
     int pressure() const {return m_pressure;}
-    
+
     Closure<void(TouchEvent *)> onTouch;
-    
+
 protected:
     int m_x, m_y;
     int m_pressure;
     int m_xOffset, m_yOffset;
     int m_xFactor, m_yFactor;
-    
+//    ScreenOrientation m_orientation;
+
     void touchEvent(TouchEvent::Type type);
 };
 

@@ -5,6 +5,7 @@
 #include "pushbutton.h"
 #include "spinbox.h"
 #include "floatspinbox.h"
+#include "progressbar.h"
 #include "ledwidget.h"
 
 #include "flexlayout.h"

@@ -2,6 +2,7 @@
 
 #include "../display.h"
 #include "../touchscreen.h"
+#include "palette.h"
 //#include "layout.h"
 
 class Layout;
@@ -26,6 +27,7 @@ public:
     int y() const {return m_y;}
     int width() const {return m_width;}
     int height() const {return m_height;}
+    Rect rect() const {return Rect(0, 0, m_width, m_height);}
 
     void move(int x, int y);
     void resize(int width, int height);
@@ -52,6 +54,9 @@ public:
     void show() {setVisible(true);}
     void hide() {setVisible(false);}
 
+    void setEnabled(bool enabled);
+    bool isEnabled() const {return m_enabled;}
+
     bool hasFocus() const;
     void setFocus();
     void clearFocus();
@@ -59,6 +64,7 @@ public:
     void update();
     void updateGeometry();
 
+    const Palette *palette() const;
     void setBackgroundColor(Color color);
     Color backgroundColor() const {return m_backgroundColor;}
     void setColor(Color color);
@@ -74,13 +80,14 @@ protected:
     int m_minWidth = 0, m_minHeight = 0;
     int m_maxWidth = 9999, m_maxHeight = 9999;
     bool m_visible = true;
+    bool m_enabled = true;
     bool m_acceptTouchEvents = false;
 
     // style
-    Color m_backgroundColor = Color(224, 224, 224);
-    Color m_color;
+    Color m_backgroundColor = palette()->window();
+    Color m_color = palette()->windowText();
     Font m_font;
-    Color m_borderColor = Gray;
+    Color m_borderColor = palette()->dark();
     int m_borderRadius = 0;
 
     Widget *m_parent = nullptr;

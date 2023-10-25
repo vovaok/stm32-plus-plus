@@ -122,6 +122,17 @@ void Widget::setVisible(bool visible)
     }
 }
 
+void Widget::setEnabled(bool enabled)
+{
+    if (m_enabled != enabled)
+    {
+        m_enabled = enabled;
+        for (Widget *w: m_children)
+            w->setEnabled(enabled);
+        update();
+    }
+}
+
 bool Widget::hasFocus() const
 {
     return this == GuiApplication::focusWidget();
@@ -162,22 +173,36 @@ void Widget::updateGeometry()
     }
 }
 
+const Palette *Widget::palette() const
+{
+    return GuiApplication::palette();
+}
+
 void Widget::setBackgroundColor(Color color)
 {
-    m_backgroundColor = color;
-    update();
+    if (m_backgroundColor != color)
+    {
+        m_backgroundColor = color;
+        update();
+    }
 }
 
 void Widget::setColor(Color color)
 {
-    m_color = color;
-    update();
+    if (m_color != color)
+    {
+        m_color = color;
+        update();
+    }
 }
 
 void Widget::setFont(Font font)
 {
-    m_font = font;
-    update();
+//    if (m_font != font)
+    {
+        m_font = font;
+        update();
+    }
 }
 
 Widget *Widget::widgetAt(int x, int y)
@@ -231,10 +256,15 @@ void Widget::paint(Display *d)
 
     if (hasFocus())
     {
-//        Color tmp = d->color();
-        d->setColor(Black);
-        d->drawRoundRect(0, 0, m_width, m_height, 3);
-//        d->setColor(tmp);
+        Color c2 = palette()->accent();
+        Color c1 = Color::blend(c2, m_backgroundColor, 128);
+        Color c0 = Color::blend(c2, m_backgroundColor, 64);
+        d->setColor(c0);
+        d->drawRoundRect(0, 0, m_width, m_height, 5);
+        d->setColor(c1);
+        d->drawRoundRect(1, 1, m_width-2, m_height-2, 4);
+        d->setColor(c2);
+        d->drawRoundRect(2, 2, m_width-4, m_height-4, 3);
     }
 
     d->moveTo(oldx, oldy);

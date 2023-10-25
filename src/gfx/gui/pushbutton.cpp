@@ -5,21 +5,24 @@ PushButton::PushButton(const ByteArray &text, Widget *parent) :
 {
     m_acceptTouchEvents = true;
     m_borderRadius = 4;
-    m_upColor = Color(192, 192, 192);
-    m_downColor = Color(128, 128, 128);
+    m_upColor = palette()->button();
+    m_downColor = palette()->dark();
     setBackgroundColor(m_upColor);
     setText(text);
 }
 
 void PushButton::setText(const ByteArray &text)
 {
-    m_text = text;
-    update();
+    if (m_text != text)
+    {
+        m_text = text;
+        update();
+    }
 }
 
 void PushButton::click()
 {
-    if (onClick)
+    if (onClick && m_enabled)
         onClick();
 }
 
@@ -30,6 +33,14 @@ void PushButton::setDown(bool value)
         setBackgroundColor(m_downColor);
     else
         setBackgroundColor(m_upColor);
+}
+
+void PushButton::setColor(Color c, uint8_t saturation)
+{
+    m_upColor = Color::blend(c, palette()->button(), saturation);
+    m_downColor = Color::blend(c, palette()->dark(), saturation);
+    setBackgroundColor(m_upColor);
+    update();
 }
 
 //void PushButton::update()
@@ -51,11 +62,11 @@ void PushButton::paintEvent(Display *d)
         int off = 0;
         if (m_down)
             off = 1;
-        img.setBackgroundColor(m_backgroundColor);
+        img.setBackgroundColor(m_enabled? m_backgroundColor: palette()->disabled());
         img.setFont(m_font);
-        img.setColor(m_borderColor);
+        img.setColor(m_enabled? m_borderColor: palette()->disabledText());
         img.drawFillRoundRect(off, off, w-off, h-off, m_borderRadius);
-        img.setColor(m_color);
+        img.setColor(m_enabled? m_color: palette()->disabledText());
         img.drawString(off, off, w-off*2, h-off*2, (int)AlignCenter | (int)TextWordWrap, m_text.data());
 //        Widget::paintEvent(d); // fill background
         d->drawImage(0, 0, img);

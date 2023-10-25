@@ -4,6 +4,8 @@ GuiApplication::GuiApplication() : Application()
 {
     FontDatabase::addApplicationFontFromData(font_Tahoma_13);
 
+    m_palette = new Palette();
+
     m_widget = new Widget(nullptr);
     m_widget->setBackgroundColor(Color(192, 192, 192));
     m_paintTimer = new Timer;
@@ -12,19 +14,29 @@ GuiApplication::GuiApplication() : Application()
 //        registerTaskEvent(EVENT(&GuiApplication::paintTask));
 }
 
+GuiApplication *GuiApplication::instance()
+{
+  return static_cast<GuiApplication*>(Application::instance());
+}
+
 Widget *GuiApplication::widget()
 {
-    return static_cast<GuiApplication*>(instance())->rootWidget();
+    return instance()->rootWidget();
 }
 
 Widget *GuiApplication::focusWidget()
 {
-    return static_cast<GuiApplication*>(instance())->m_focusWidget;
+    return instance()->m_focusWidget;
+}
+
+Palette* GuiApplication::palette()
+{
+    return instance()->m_palette;
 }
 
 void GuiApplication::setFocusWidget(Widget *w)
 {
-    GuiApplication *a = static_cast<GuiApplication*>(instance());
+    GuiApplication *a = instance();
     if (a->m_focusWidget)
         a->m_focusWidget->update();
     a->m_focusWidget = w;
@@ -32,7 +44,7 @@ void GuiApplication::setFocusWidget(Widget *w)
 
 Display *GuiApplication::display()
 {
-    return static_cast<GuiApplication*>(instance())->m_display;
+    return instance()->m_display;
 }
 
 void GuiApplication::setDisplay(Display *d)
@@ -62,6 +74,12 @@ void GuiApplication::touchEvent(TouchEvent *event)
             }
         }
 
+        if (!m_touchedWidget->m_enabled)
+        {
+            m_touchedWidget = nullptr;
+            return;
+        }
+
         switch (event->type())
         {
         case TouchEvent::Press:
@@ -82,7 +100,7 @@ void GuiApplication::touchEvent(TouchEvent *event)
 
 void GuiApplication::paintTask()
 {
-    if (m_display)
+    if (m_display && m_autoRepaint)
     {
         m_widget->paint(m_display);
         m_paintDone = true;

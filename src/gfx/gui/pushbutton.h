@@ -18,6 +18,8 @@ public:
     bool isDown() const {return m_down;}
     void setDown(bool value);
 
+    void setColor(Color c, uint8_t saturation=64);
+
 //    void update();
 
 protected:
