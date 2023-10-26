@@ -7,7 +7,7 @@ GuiApplication::GuiApplication() : Application()
     m_palette = new Palette();
 
     m_widget = new Widget(nullptr);
-    m_widget->setBackgroundColor(Color(192, 192, 192));
+    m_widget->setBackgroundColor(m_palette->window());
     m_paintTimer = new Timer;
     m_paintTimer->onTimeout = EVENT(&GuiApplication::paintTask);
     m_paintTimer->setInterval(16);
@@ -16,7 +16,7 @@ GuiApplication::GuiApplication() : Application()
 
 GuiApplication *GuiApplication::instance()
 {
-  return static_cast<GuiApplication*>(Application::instance());
+    return static_cast<GuiApplication*>(Application::instance());
 }
 
 Widget *GuiApplication::widget()
@@ -45,6 +45,11 @@ void GuiApplication::setFocusWidget(Widget *w)
 Display *GuiApplication::display()
 {
     return instance()->m_display;
+}
+
+void GuiApplication::setFont(const Font &font)
+{
+    instance()->m_widget->setFont(font);
 }
 
 void GuiApplication::setDisplay(Display *d)

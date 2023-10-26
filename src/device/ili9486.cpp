@@ -33,7 +33,7 @@ void ILI9486::setBacklightPin(Gpio::Config pin)
 void ILI9486::setBacklight(int percent)
 {
     percent = BOUND(0, percent, 100);
-    int pwm = 256*powf(1.057018f, percent) - 1;
+    int pwm = lrintf(256*powf(1.057018f, percent)) - 1;
     if (m_backlightPwm)
         m_backlightPwm->setDutyCycle(m_pwmPin, pwm);
 }

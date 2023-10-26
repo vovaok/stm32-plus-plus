@@ -101,6 +101,7 @@ public:
     int lastIndexOf(char c, int from = -1) const;
 
     ByteArray &replace(const ByteArray &from, const ByteArray &to);
+    ByteArray &replace(char from, char to);
 
     int toInt() const;
     float toFloat() const;

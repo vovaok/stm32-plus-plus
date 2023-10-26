@@ -5,7 +5,7 @@
 
 AbstractSpinBox::AbstractSpinBox(Widget *parent) : Widget(parent)
 {
-    const FontInfo &fi = m_font.info();
+    const FontInfo &fi = font().info();
     setFixedHeight(fi.height() + 4);
     int bw = fi.width('<') * 2;
     PushButton *btnDown = new PushButton("<");

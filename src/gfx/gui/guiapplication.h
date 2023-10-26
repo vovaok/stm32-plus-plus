@@ -18,6 +18,8 @@ public:
     static Widget *focusWidget();
     static Palette* palette();
     static Display *display();
+    static Font font() {return instance()->m_widget->font();}
+    static void setFont(const Font &font);
 
 protected:
     void setDisplay(Display *d);
@@ -38,6 +40,7 @@ private:
     Timer *m_paintTimer;
     bool m_paintDone = false;
     bool m_autoRepaint = true;
+    char m_decimalPoint = '.';
 
     void paintTask();
     void touchEvent(TouchEvent *event);

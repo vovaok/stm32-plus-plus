@@ -73,7 +73,7 @@ void ProgressBar::setDecimals(int value)
 
 void ProgressBar::update()
 {
-    setFixedHeight(m_font.info().height() + 4);
+    setFixedHeight(font().info().height() + 4);
     updateGeometry();
     Widget::update();
 }
@@ -103,6 +103,7 @@ void ProgressBar::paintEvent(Display *d)
         s.replace("%p", ByteArray::number(percent, m_decimals));
         s.replace("%v", ByteArray::number(m_value, m_decimals));
         img.setColor(m_enabled? palette()->text(): palette()->disabledText());
+        img.setFont(font());
         img.drawString(0, 0, w, h, AlignCenter, s.data());
     }
 

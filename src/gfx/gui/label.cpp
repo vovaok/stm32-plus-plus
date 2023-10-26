@@ -56,8 +56,8 @@ void Label::paintEvent(Display *d)
         Color bgcol = m_enabled? m_backgroundColor: palette()->disabled();
         img.fill(bgcol.rgb565());
         img.setColor(m_enabled? m_color: palette()->disabledText());
-        img.setFont(m_font);
-        img.drawString(2, 2+m_font.info().ascent(), m_text.data());
+        img.setFont(font());
+        img.drawString(2, 2+font().info().ascent(), m_text.data());
         int xpos=0, ypos=0;
         if (m_align & AlignRight)
             xpos = m_width - w;
@@ -74,10 +74,10 @@ void Label::paintEvent(Display *d)
 
 int Label::textWidth() const
 {
-    return m_font.info().width(m_text.data()) + 4;
+    return font().info().width(m_text.data()) + 4;
 }
 
 int Label::textHeight() const
 {
-    return m_font.info().height() + 4;
+    return font().info().height() + 4;
 }

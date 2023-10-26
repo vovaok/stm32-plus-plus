@@ -230,7 +230,7 @@ ByteArray &ByteArray::insert(unsigned int idx, const char *data, unsigned int si
     if (size + mSize >= mAllocSize) // need reallocate, so just create new bytearray
     {
         ByteArray ba;
-        ba.allocMore(size + mSize);
+        ba.resize(size + mSize);
         char *dst = ba.mData;
         char *src = mData;
         mSize -= idx;
@@ -542,14 +542,26 @@ int ByteArray::lastIndexOf(char c, int from) const
 
 ByteArray &ByteArray::replace(const ByteArray &from, const ByteArray &to)
 {
-    for (int i=0; i<mSize; )
+    for (int i=0; i<mSize; i+=to.size())
     {
         i = indexOf(from, i);
         if (i < 0)
             break;
         remove(i, from.size());
         insert(i, to);
-        i += to.size();
+    }
+    return *this;
+}
+
+ByteArray &ByteArray::replace(char from, char to)
+{
+    allocMore(0); // copy data if nececcary before change it
+    for (int i=0; i<mSize; i++)
+    {
+        i = indexOf(from, i);
+        if (i < 0)
+            break;
+        mData[i] = to;
     }
     return *this;
 }

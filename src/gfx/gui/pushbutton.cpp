@@ -63,7 +63,7 @@ void PushButton::paintEvent(Display *d)
         if (m_down)
             off = 1;
         img.setBackgroundColor(m_enabled? m_backgroundColor: palette()->disabled());
-        img.setFont(m_font);
+        img.setFont(font());
         img.setColor(m_enabled? m_borderColor: palette()->disabledText());
         img.drawFillRoundRect(off, off, w-off, h-off, m_borderRadius);
         img.setColor(m_enabled? m_color: palette()->disabledText());
@@ -92,10 +92,10 @@ void PushButton::releaseEvent(int x, int y)
 
 int PushButton::textWidth() const
 {
-    return m_font.info().width(m_text.data()) + 4;
+    return font().info().width(m_text.data()) + 4;
 }
 
 int PushButton::textHeight() const
 {
-    return m_font.info().height() + 4;
+    return font().info().height() + 4;
 }

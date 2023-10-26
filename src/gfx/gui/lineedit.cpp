@@ -55,8 +55,8 @@ void LineEdit::paintEvent(Display *d)
         img.fill(bgcol.rgb565());
         img.setColor(col);
         img.setBackgroundColor(bgcol);
-        img.setFont(m_font);
-        img.drawString(0, m_font.info().ascent(), m_text.data());
+        img.setFont(font());
+        img.drawString(0, font().info().ascent(), m_text.data());
         int xpos=2, ypos=2;
         if (m_align & AlignRight)
             xpos = m_width - w;
@@ -68,10 +68,10 @@ void LineEdit::paintEvent(Display *d)
 
 int LineEdit::textWidth() const
 {
-    return m_font.info().width(m_text.data());
+    return font().info().width(m_text.data());
 }
 
 int LineEdit::textHeight() const
 {
-    return m_font.info().height();
+    return font().info().height();
 }

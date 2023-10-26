@@ -39,13 +39,13 @@ Spi::Spi(Gpio::Config sck, Gpio::Config miso, Gpio::Config mosi) :
         THROW(Exception::InvalidPin);
     if (mosi != Gpio::NoConfig && no != GpioConfigGetPeriphNumber(mosi))
         THROW(Exception::InvalidPin);
-  
+
     mSpies[no-1] = this;
-    
+
     Gpio::config(sck);
     Gpio::config(miso);
     Gpio::config(mosi);
-    
+
     switch (no)
     {
       case 1:
@@ -55,7 +55,7 @@ Spi::Spi(Gpio::Config sck, Gpio::Config miso, Gpio::Config mosi) :
         mDmaChannelRx = SPI1_DMA_CHANNEL_RX;
         mDmaChannelTx = SPI1_DMA_CHANNEL_TX;
         break;
-        
+
       case 2:
         mDev = SPI2;
         RCC->APB1ENR |= RCC_APB1ENR_SPI2EN;
@@ -63,7 +63,7 @@ Spi::Spi(Gpio::Config sck, Gpio::Config miso, Gpio::Config mosi) :
         mDmaChannelRx = SPI2_DMA_CHANNEL_RX;
         mDmaChannelTx = SPI2_DMA_CHANNEL_TX;
         break;
-        
+
       case 3:
         mDev = SPI3;
         RCC->APB1ENR |= RCC_APB1ENR_SPI3EN;
@@ -71,8 +71,8 @@ Spi::Spi(Gpio::Config sck, Gpio::Config miso, Gpio::Config mosi) :
         mDmaChannelRx = SPI3_DMA_CHANNEL_RX;
         mDmaChannelTx = SPI3_DMA_CHANNEL_TX;
         break;
-        
-#if defined(STM32F429XX) 
+
+#if defined(STM32F429XX)
       case 4:
         mDev = SPI4;
         RCC->APB2ENR |= RCC_APB2ENR_SPI4EN;
@@ -80,7 +80,7 @@ Spi::Spi(Gpio::Config sck, Gpio::Config miso, Gpio::Config mosi) :
         mDmaChannelRx = SPI4_DMA_CHANNEL_RX;
         mDmaChannelTx = SPI4_DMA_CHANNEL_TX;
         break;
-        
+
       case 5:
         mDev = SPI5;
         RCC->APB2ENR |= RCC_APB2ENR_SPI5EN;
@@ -88,7 +88,7 @@ Spi::Spi(Gpio::Config sck, Gpio::Config miso, Gpio::Config mosi) :
         mDmaChannelRx = SPI5_DMA_CHANNEL_RX;
         mDmaChannelTx = SPI5_DMA_CHANNEL_TX;
         break;
-        
+
       case 6:
         mDev = SPI6;
         RCC->APB2ENR |= RCC_APB2ENR_SPI6EN;
@@ -98,10 +98,10 @@ Spi::Spi(Gpio::Config sck, Gpio::Config miso, Gpio::Config mosi) :
         break;
 #endif
     }
-    
+
     if (!mDev)
         THROW(Exception::InvalidPeriph);
-    
+
     mConfig.SSI = 1;
     mConfig.SSM = 1;
     setDataSize(8); // by default
@@ -137,7 +137,7 @@ void Spi::setMasterMode()
 }
 
 void Spi::setDataSize(int size)
-{ 
+{
 #if defined(SPI_FIFO_IMPL) && SPI_FIFO_IMPL == 1
     size = BOUND(4, size, 16);
     mConfig.FRXTH = size <= 8? 1: 0;
@@ -167,7 +167,7 @@ void Spi::open()
 {
     if (isOpen())
         return;// false;
-    
+
 //    if (mUseDmaRx)
 //    {
 //        if (!mDmaRx)
@@ -175,7 +175,7 @@ void Spi::open()
 //        mDmaRx->setSource((void*)&mDev->DR, 1);
 //        mDev->CR2 |= SPI_CR2_RXDMAEN;
 //    }
-    
+
     if (mUseDmaTx)
     {
         if (!mDmaTx)
@@ -187,10 +187,10 @@ void Spi::open()
             mDmaTx->setSink((void*)&mDev->DR, 2);
         mConfig.TXDMAEN = 1;
         updateConfig();
-    }   
-    
+    }
+
     mConfig.enable = 1;
-    mDev->CR1 = mConfig.cr1;    
+    mDev->CR1 = mConfig.cr1;
 }
 
 void Spi::close()
@@ -210,7 +210,7 @@ void Spi::close()
         delete mDmaTx;
         mDmaTx = 0L;
     }
-    
+
     mConfig.enable = 0;
     mDev->CR1 = mConfig.cr1;
 }
@@ -276,8 +276,8 @@ uint8_t Spi::read()
 uint8_t Spi::write(uint8_t word)
 {
     *((__IO uint8_t *)(&mDev->DR)) = word;
-    while (!(mDev->SR & SPI_SR_RXNE)); // wait for RX Not Empty  
-    return *((__IO uint8_t *)(&mDev->DR)); 
+    while (!(mDev->SR & SPI_SR_RXNE)); // wait for RX Not Empty
+    return *((__IO uint8_t *)(&mDev->DR));
 }
 
 uint16_t Spi::read16()
@@ -364,6 +364,32 @@ bool Spi::writeFill16(uint16_t *value, int count)
     return true;
 }
 
+bool Spi::writeFill16(uint16_t *pattern, int patternSize, int count)
+{
+    if (mDmaTx)
+    {
+        if (mDmaTx->isEnabled() && !mDmaTx->isComplete())
+            return false;
+        mDmaTx->setCircularBuffer(pattern, patternSize);
+        mDmaTx->start(count);
+    }
+    else
+    {
+        const uint16_t *begin = reinterpret_cast<const uint16_t *>(pattern);
+        const uint16_t *end = reinterpret_cast<const uint16_t *>(pattern) + patternSize;
+        const uint16_t *src = begin;
+        while (count--)
+        {
+            *((__IO uint16_t *)(&mDev->DR)) = *src++;
+            if (src >= end)
+                src = begin;
+            while (!(mDev->SR & SPI_SR_RXNE)); // wait for RX Not Empty
+            (void)mDev->DR;
+        }
+    }
+    return true;
+}
+
 void Spi::waitForBytesWritten()
 {
     while (mDmaTx && mDmaTx->isEnabled() && !mDmaTx->isComplete());
@@ -400,7 +426,7 @@ void Spi::enableInterrupt()
 //    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 2;
 //    NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
 //    NVIC_Init(&NVIC_InitStructure);
-    
+
     // compute priority
 //    uint8_t tmppriority = 0x00, tmppre = 0x00, tmpsub = 0x0F;
 //    tmppriority = (0x700 - ((SCB->AIRCR) & (uint32_t)0x700)) >> 0x08;
@@ -409,9 +435,9 @@ void Spi::enableInterrupt()
 //    tmppriority = (3 << tmppre) | (2 & tmpsub);
 //    NVIC->IP[mIrq] = tmppriority << 4;
 //    NVIC->ISER[mIrq >> 5] = 1 << (mIrq & 0x1F);
-  
+
     NVIC_EnableIRQ(mIrq);
-    
+
     // enable RXNE interrupt
     mDev->CR2 |= SPI_CR2_RXNEIE;
 }
@@ -440,14 +466,14 @@ void Spi::handleDmaInterrupt()
 
 #ifdef __cplusplus
 extern "C" {
-#endif 
+#endif
 
 void SPI1_IRQHandler(void)
 {
     if (Spi::mSpies[0])
         Spi::mSpies[0]->handleInterrupt();
 }
-   
+
 void SPI2_IRQHandler(void)
 {
     if (Spi::mSpies[1])

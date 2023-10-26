@@ -4,6 +4,7 @@
 
 Widget::Widget(Widget *parent)
 {
+    m_font = GuiApplication::font();
 //    if (!parent)
 //        parent = GuiApplication::widget();
     setParent(parent);
@@ -198,11 +199,19 @@ void Widget::setColor(Color color)
 
 void Widget::setFont(Font font)
 {
-//    if (m_font != font)
+    if (m_font != font)
     {
         m_font = font;
+        m_fontChanged = true;
         update();
     }
+}
+
+Font Widget::font() const
+{
+    if (m_fontChanged || !m_parent)
+        return m_font;
+    return m_parent->font();
 }
 
 Widget *Widget::widgetAt(int x, int y)
@@ -252,7 +261,12 @@ void Widget::paint(Display *d)
 
     // recursive repaint child widgets
     for (Widget *w: m_children)
+    {
+        // restore painting device state
+//        d->setFont(m_font);
+        // do paint
         w->paint(d);
+    }
 
     if (hasFocus())
     {

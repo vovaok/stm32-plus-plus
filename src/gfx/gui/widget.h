@@ -70,7 +70,7 @@ public:
     void setColor(Color color);
     Color color() const {return m_color;}
     void setFont(Font font);
-    Font font() const {return m_font;}
+    Font font() const;
 
     Widget *widgetAt(int x, int y);
 
@@ -86,7 +86,6 @@ protected:
     // style
     Color m_backgroundColor = palette()->window();
     Color m_color = palette()->windowText();
-    Font m_font;
     Color m_borderColor = palette()->dark();
     int m_borderRadius = 0;
 
@@ -103,6 +102,8 @@ protected:
 
 private:
     bool m_needRepaint = true;
+    Font m_font;
+    bool m_fontChanged = false;
 
     friend class GuiApplication;
     void paint(Display *d);
