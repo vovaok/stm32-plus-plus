@@ -24,14 +24,14 @@ Dma::Dma(Channel channelName)
         mDma = DMA1;
         mChannel = DMA1_Channel1 + mChannelNum;
         RCC->AHB1ENR |= RCC_AHB1ENR_DMA1EN;
-        DMA1_CSELR->CSELR = mChannelSel << (mChannelNum*4);
+        DMA1_CSELR->CSELR |= mChannelSel << (mChannelNum*4);
     }
     if (dma_num == 2)
     {
         mDma = DMA2;
         mChannel = DMA2_Channel1 + mChannelNum;
         RCC->AHB1ENR |= RCC_AHB1ENR_DMA2EN;
-        DMA2_CSELR->CSELR = mChannelSel << (mChannelNum*4);
+        DMA2_CSELR->CSELR |= mChannelSel << (mChannelNum*4);
     }
     
     const IRQn_Type irq[14] = {FOR_EACH_DMA(DMA_IRQn)};
