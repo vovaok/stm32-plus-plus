@@ -223,6 +223,23 @@ ByteArray ObjectInfo::read()
         }
         return ba;
     }
+    else if ((!mDesc.readSize || isArray()) && isCompound()) // need to serialize compound object
+    {
+        ByteArray ba;
+        int N = 1;
+        if (isArray())
+            N = mDesc.readSize;
+        for (int i=0; i<N; i++)
+        {
+            for (ObjectInfo &o: m_subobjects)
+            {
+                ba.append(o.read());
+                if (o.mDesc.rType == String)
+                    ba.append('\0');
+            }
+        }
+        return ba;
+    }
     else
     {
         return ByteArray(reinterpret_cast<const char*>(mReadPtr), mDesc.readSize);
@@ -280,6 +297,40 @@ bool ObjectInfo::write(const ByteArray &ba)
         else if (mDesc.wType == Int)
         {
             /// @todo Implement other types in the ObjectInfo with RingBuffer
+        }
+    }
+    else if ((!mDesc.writeSize || isArray()) && isCompound()) // need to deserialize compound object
+    {
+        int N = 1;
+        if (isArray())
+            N = mDesc.writeSize;
+        const char *src = ba.data();
+        const char *end = src + ba.size();
+        for (int i=0; i<N; i++)
+        {
+            for (ObjectInfo &o: m_subobjects)
+            {
+                if (src >= end)
+                    return false;
+                
+                int sz = o.mDesc.writeSize;
+                if (o.mDesc.wType == String)
+                {
+                    /// @todo add support of string arrays OR REWRITE ALL OF THIS SHIT COMPLETELY!!
+                    sz = strlen(src) + 1;
+//                    if (src + sz < end)
+//                        sz++; // terminating '\0'
+                }
+                
+                if (sz)
+                {
+                    ByteArray bb = ByteArray::fromRawData(src, sz);
+                    o.write(bb);
+                    src += sz;
+                }
+                else
+                    return false;                    
+            }
         }
     }
     else if ((size_t)ba.size() == mDesc.writeSize)
@@ -602,4 +653,28 @@ ObjectInfo &ObjectInfo::subobject(uint8_t idx)
     if (idx < m_subobjects.size())
         return m_subobjects[idx];
     return *this;
+}
+              
+uint8_t *ObjectInfo::nextReadPtr() const
+{
+    int sz = mDesc.readSize;
+    if (mDesc.rType == String)
+    {
+        sz = sizeof(_String);
+        if (isArray())
+            sz *= mDesc.readSize;
+    }
+    return (uint8_t *)mReadPtr + sz;
+}
+              
+uint8_t *ObjectInfo::nextWritePtr() const
+{
+    int sz = mDesc.writeSize;
+    if (mDesc.wType == String)
+    {
+        sz = sizeof(_String);
+        if (isArray())
+            sz *= mDesc.writeSize;
+    }
+    return (uint8_t *)mWritePtr + sz;
 }

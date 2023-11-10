@@ -65,20 +65,70 @@ local nodes =
 	[127] = {["name"] = "(universal)", ["objects"] = {}}
 }
 
+local ObjectInfoTypes = 
+{
+	[43] = "Void",
+	[1] = "Bool",
+	[2] = "Int",
+	[3] = "UInt",
+	[4] = "LongLong",
+	[5] = "UlongLong",
+	[6] = "Double",
+	[32] = "Long",
+	[33] = "Short",
+	[34] = "Char",
+	[35] = "ULong",
+	[36] = "UShort",
+	[37] = "UChar",
+	[38] = "Float",
+	[40] = "SChar",
+	[80] = "QTransform",
+	[81] = "QMatrix4x4",
+	[82] = "QVector2D",
+	[83] = "QVector3D",
+	[84] = "QVector4D",
+	[85] = "QQuaternion",
+	[10] = "String",
+	[12] = "Common",
+	[0x80] = "Compound_base"
+}
+
 local header = 
 {
-	id		= ProtoField.new("ID", "onb.id", ftypes.UINT32, nil, base.HEX),
-	mac = ProtoField.new("BusAddress", "onb.mac", ftypes.UINT8, nil, base.DEC),
-	--isLocal = ProtoField.new("Area", "onb.local", ftypes.BOOLEAN, {[2]="Global", [1]="Local"}, base.HEX, 0x10000000)
-	isLocal = ProtoField.bool("onb.local", "Area", base.DEC, {[2]="Global", [1]="Local"}, 0x10000000),
-	svc = ProtoField.new("Service", "onb.svc", ftypes.BOOLEAN, nil, base.DEC, 0x00800000),
-	frag = ProtoField.new("Fragmented", "onb.frag", ftypes.BOOLEAN, nil, base.DEC, 0x00008000),
-	sender = ProtoField.new("Sender", "onb.sender", ftypes.UINT8, nil, base.DEC),
-	receiver = ProtoField.new("Receiver", "onb.receiver", ftypes.UINT8, nil, base.DEC),
+	prefix = ProtoField.new("Prefix", "onb.prefix", ftypes.STRING, nil),
+	
+	id = ProtoField.new("ID", "onb.id", ftypes.UINT32, nil, base.HEX),
+	mac = ProtoField.new("BusAddress", "onb.mac", ftypes.UINT8, nil, base.DEC, 0x0F),
+	-- isLocal = ProtoField.bool("onb.local", "Area", base.DEC, {[2]="Global", [1]="Local"}, 0x10),
+	isLocal = ProtoField.new("Area", "onb.local", ftypes.UINT8, {[2]="Global", [1]="Local"}, base.DEC, 0x10),
+	svc = ProtoField.new("Service", "onb.svc", ftypes.UINT8, nil, base.DEC, 0x80),
+	frag = ProtoField.new("Fragmented", "onb.frag", ftypes.UINT8, nil, base.DEC, 0x80),
+	sender = ProtoField.new("Sender", "onb.sender", ftypes.UINT8, nil, base.DEC, 0x7F),
+	receiver = ProtoField.new("Receiver", "onb.receiver", ftypes.UINT8, nil, base.DEC, 0x7F),
 	oid = ProtoField.new("ObjectID", "onb.oid", ftypes.UINT8, SvcOID, base.DEC),
 	aid = ProtoField.new("ActionID", "onb.aid", ftypes.UINT8, ActionID, base.DEC),
-	payload = ProtoField.new("Payload", "onb.payload", ftypes.UINT8, nil, base.DEC)
+	payload = ProtoField.new("Payload", "onb.payload", ftypes.UINT8, nil, base.DEC),
+	
+	-- ObjectInfo fields --
+	_oid = ProtoField.new("ObjectID", "onb.ObjectInfo.oid", ftypes.UINT8, nil, base.DEC),
+	flags = ProtoField.new("Flags", "onb.ObjectInfo.flags", ftypes.UINT8, nil, base.HEX),
+	rType = ProtoField.new("ReadType", "onb.ObjectInfo.rType", ftypes.UINT8, ObjectInfoTypes, base.DEC),
+	wType = ProtoField.new("WriteType", "onb.ObjectInfo.wType", ftypes.UINT8, ObjectInfoTypes, base.DEC),
+	readSize = ProtoField.new("ReadSize", "onb.ObjectInfo.readSize", ftypes.UINT8, nil, base.DEC),
+	writeSize = ProtoField.new("WriteSize", "onb.ObjectInfo.writeSize", ftypes.UINT8, nil, base.DEC),
+	name = ProtoField.new("Name", "onb.ObjectInfo.name", ftypes.STRING, nil)
 }
+
+-- local ObjectInfo = 
+-- {
+	-- oid = ProtoField.new("ObjectID", "onb.ObjectInfo.oid", ftypes.UINT8, nil, base.DEC),
+	-- flags = ProtoField.new("Flags", "onb.ObjectInfo.flags", ftypes.UINT8, nil, base.HEX),
+	-- rType = ProtoField.new("ReadType", "onb.ObjectInfo.rType", ftypes.UINT8, ObjectInfoTypes, base.DEC),
+	-- wType = ProtoField.new("WriteType", "onb.ObjectInfo.wType", ftypes.UINT8, ObjectInfoTypes, base.DEC),
+	-- readSize = ProtoField.new("ReadSize", "onb.ObjectInfo.readSize", ftypes.UINT8, nil, base.DEC),
+	-- writeSize = ProtoField.new("WriteSize", "onb.ObjectInfo.writeSize", ftypes.UINT8, nil, base.DEC),
+	-- name = ProtoField.new("Name", "onb.ObjectInfo.name", ftypes.STRING, nil)
+-- }
 
 onb_proto.fields = header
 
@@ -98,27 +148,65 @@ function objName(netaddr, oid)
 	return nodes[netaddr].objects[oid] or "Object #"..oid
 end
 
+function parseObjectInfo(tree, sender, data)
+	local _oid = data:range(0, 1):uint()
+	local name = data:range(6):string()
+	node(sender).objects[_oid] = name
+	tree:add(header._oid, data:range(0, 1))
+	tree:add(header.flags, data:range(1, 1))
+	tree:add(header.rType, data:range(2, 1))
+	tree:add(header.wType, data:range(3, 1))
+	tree:add(header.readSize, data:range(4, 1))
+	tree:add(header.writeSize, data:range(5, 1))
+	tree:add(header.name, data:range(6))
+	local datastr = string.format("(%d) -> %s", _oid, name)
+	return datastr
+end
+
 function onb_proto.dissector(tvbuf, pktinfo, root)
 	
+	local prefix_len = 4
 	local header_len = 4
-	local data_len = tvbuf:len() - header_len
-	local msg_len = header_len + data_len
+	local data_len = tvbuf:len() - header_len - prefix_len
+	local msg_len = prefix_len + header_len + data_len
 	
-	local data = tvbuf:range(4, data_len)
-	local msgdata = ""
+	local prefix = tvbuf:range(0, 4):string()
+	if prefix ~= "ONB1" then
+		return 0
+	end
 	
 	pktinfo.cols.protocol:set("ONB")
+	local tree = root:add(onb_proto, tvbuf:range(0, msg_len))
+	-- local prefix = ProtoField.new("Prefix", "onb.prefix", ftypes.STRING, nil)
+	tree:add(header.prefix, tvbuf:range(0, 4))
 	
-	local msgId = tvbuf:range(0, 4):le_uint()
-	local mac = bit.band(tvbuf:range(3, 1):uint(), 0x0F)
+	if msg_len == prefix_len then
+		tree:add(onb_proto, "[node advertising]")
+		pktinfo.cols.info:set("[node advertising]")
+		return msg_len
+	end
+	
+	if data_len < 0 then
+		pktinfo.cols.info:set("[MALFORMED PACKET]")
+		return msg_len
+	end
+	
+	-- tvbuf = tvbuf.range(prefix_len, msg_len - prefix_len)
+	
+	local id = tvbuf:range(prefix_len, 4)
+	local data = tvbuf:range(prefix_len + 4, data_len)
+	local value = ""
+	local msgdata = ""
+	
+	local msgId = id:le_uint()
+	local mac = bit.band(id:range(3, 1):uint(), 0x0F)
 	local isLocal = bit.band(msgId, 0x10000000)
 	local svc = bit.band(msgId, 0x00800000)
 	
-	local tree = root:add(onb_proto, tvbuf:range(0,msg_len))
-	local header_tree = tree:add(header.id, msgId)
-	tree:add(header.mac, mac)
-	tree:add(header.isLocal, msgId)
-	tree:add(header.svc, svc)
+	local header_tree = tree:add_le(header.id, id)
+	header_tree:add(header.isLocal, id:range(3, 1))
+	header_tree:add(header.mac, id:range(3, 1))
+	header_tree:add(header.svc, id:range(2, 1))
 	
 	local msginfo = (isLocal~=0) and "Local" or "Global"
 	--local msgsvc = svc and "Service"
@@ -127,20 +215,22 @@ function onb_proto.dissector(tvbuf, pktinfo, root)
 	if isLocal == 0x10000000 then
 	
 		local frag = bit.band(msgId, 0x00008000)
-		local oid = tvbuf:range(0, 1):uint()
-		local sender = bit.band(tvbuf:range(1, 1):uint(), 0x7F)
-		local receiver = bit.band(tvbuf:range(2, 1):uint(), 0x7F)
+		local oid = id:range(0, 1):uint()
+		local sender = bit.band(id:range(1, 1):uint(), 0x7F)
+		local receiver = bit.band(id:range(2, 1):uint(), 0x7F)
 		local netaddr = sender~=0 and sender or receiver
 		
-		tree:add(header.frag, frag)
-		tree:add(header.sender, sender)
-		tree:add(header.receiver, receiver)
-		tree:add(header.oid, oid)
+		header_tree:add(header.frag, id:range(1, 1))
+		header_tree:add(header.sender, id:range(1, 1))
+		header_tree:add(header.receiver, id:range(2, 1))
+		header_tree:add(header.oid, id:range(0, 1))
 		
 		local senderName = node(sender).name
 		local receiverName = node(receiver).name
 		
 		msginfo = senderName.." > "..receiverName
+		tree:add("[Path: "..msginfo.."]")
+		msginfo = msginfo..": "
 		
 		local msgoid = "Object["..oid.."]"
 		
@@ -150,20 +240,20 @@ function onb_proto.dissector(tvbuf, pktinfo, root)
 			if sender == 0 and msgoid == "svcWelcome" then
 				nodes[receiver] = {["name"] = "(node"..receiver..")", ["objects"]={}}
 			elseif msgoid == "svcName" then
-				msgdata = "\""..data:string().."\""
+				value = "\""..data:string().."\""
 				if data:range(0, 1):uint() ~= 0 then
 					node(sender).name = data:string()
 				end
 			elseif msgoid == "svcFullName" or msgoid == "svcBuildDate" or msgoid == "svcCpuInfo" then
-				msgdata = "\""..data:string().."\""
+				value = "\""..data:string().."\""
 			elseif msgoid == "svcClass" or msgoid == "svcSerial" then
-				msgdata = string.format("0x%08X", data:le_uint())
+				value = string.format("0x%08X", data:le_uint())
 			elseif msgoid == "svcVersion" then
-				msgdata = string.format("%d.%d", data:range(1, 1):uint(), data:range(0, 1):uint())
+				value = string.format("%d.%d", data:range(1, 1):uint(), data:range(0, 1):uint())
 			elseif msgoid == "svcBurnCount" or msgoid == "svcObjectCount" then
-				msgdata = data:uint()
+				value = data:uint()
 			elseif msgoid == "svcBusType" then
-				msgdata = string.format("[%s]", bustypes[data:uint()] or "INVALID")
+				value = string.format("[%s]", bustypes[data:uint()] or "INVALID")
 			elseif msgoid == "svcObjectInfo" then
 				if sender ~= 0 then
 					local offset = 0
@@ -172,11 +262,9 @@ function onb_proto.dissector(tvbuf, pktinfo, root)
 						msgdata = string.format("%s%s.", msgdata, objName(sender, _oid))
 						offset = offset + 2;
 					end
-					local _oid = data:range(offset, 1):uint()
-					offset = offset + 6
-					local datastr = data:range(offset, data_len-offset):string()
-					node(sender).objects[_oid] = datastr
-					msgdata = "\""..msgdata..datastr.."\""
+					data = data:range(offset)
+					-- datastr = parseObjectInfo(tree:add("ObjectInfo"), sender, data:range(offset, data_len-offset))
+					-- msgdata = "\""..msgdata..datastr.."\""
 				else
 					local _oid = data:range(0, 1):uint()
 					msgdata = string.format("\"%s\"", objName(receiver, _oid))
@@ -196,6 +284,11 @@ function onb_proto.dissector(tvbuf, pktinfo, root)
 				else
 					msgdata = string.format("\"%s\", %d ms", objName(netaddr, _oid), ms)
 				end
+			
+			elseif msgoid == "svcTimedObject" then
+				local _oid = data:range(0, 1):uint()
+				local ms = data:range(2, 4):le_uint()
+				msgdata = string.format("timestamp=%d %s=(data)", ms, objName(netaddr, _oid))
 			end
 			
 		else
@@ -206,20 +299,32 @@ function onb_proto.dissector(tvbuf, pktinfo, root)
 		
 		msginfo = msginfo.." "..msgoid
 		if msgdata ~= "" then
-			msginfo = msginfo.." = "..msgdata
+			msginfo = msginfo.." "..msgdata
+		end
+		
+		if msgoid ~= "" then
+			tree:add(string.format("[Object: %s]", msgoid))
+		end
+		
+		if msgoid == "svcObjectInfo" then
+			local info = parseObjectInfo(tree:add("ObjectInfo: "), sender, data)
+			msginfo = msginfo.." "..info
+		elseif value ~= "" then
+			msginfo = msginfo.." = "..value
+			tree:add("Value:", value)
 		end
 	
 	else -- this is global message --
 		
-		local aid = tvbuf:range(0, 1):uint()
-		local payload = tvbuf:range(1, 1):uint()
-		local sender = bit.band(tvbuf:range(2, 1):uint(), 0x7F)
+		local aid = id:range(0, 1):uint()
+		local payload = id:range(1, 1):uint()
+		local sender = bit.band(id:range(2, 1):uint(), 0x7F)
 		
 		local senderName = node(sender).name
 		
-		tree:add(header.sender, sender)
-		tree:add(header.payload, payload)
-		tree:add(header.aid, aid)
+		header_tree:add(header.sender, id:range(2, 1))
+		header_tree:add(header.payload, id:range(1, 1))
+		header_tree:add(header.aid, id:range(0, 1))
 		
 		if (svc) then
 			local msgaid = ActionID[aid]
@@ -228,9 +333,9 @@ function onb_proto.dissector(tvbuf, pktinfo, root)
 		
 	end
 	
-	if data_len > 0 then
-		tree:add(onb_proto, data:bytes():tohex())
-	end
+	-- if data_len > 0 then
+		-- tree:add(onb_proto, data:bytes():tohex())
+	-- end
 	
 	pktinfo.cols.info:set(msginfo)
 	

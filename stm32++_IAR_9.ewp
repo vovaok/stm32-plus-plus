@@ -4577,7 +4577,7 @@
                 <option>
                     <name>CCAllowList</name>
                     <version>1</version>
-                    <state>00000000</state>
+                    <state>11111110</state>
                 </option>
                 <option>
                     <name>CCDebugInfo</name>
@@ -4655,7 +4655,7 @@
                 </option>
                 <option>
                     <name>CCOptLevel</name>
-                    <state>0</state>
+                    <state>3</state>
                 </option>
                 <option>
                     <name>CCOptStrategy</name>
@@ -4664,7 +4664,7 @@
                 </option>
                 <option>
                     <name>CCOptLevelSlave</name>
-                    <state>0</state>
+                    <state>3</state>
                 </option>
                 <option>
                     <name>CCPosIndRopi</name>
@@ -11854,6 +11854,12 @@
     <group>
         <name>core</name>
         <file>
+            <name>$PROJ_DIR$\src\core\advmath.cpp</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\core\advmath.h</name>
+        </file>
+        <file>
             <name>$PROJ_DIR$\src\core\application.cpp</name>
         </file>
         <file>
@@ -11899,7 +11905,10 @@
             <name>$PROJ_DIR$\src\core\qdebug.h</name>
         </file>
         <file>
-            <name>$PROJ_DIR$\src\core\qquaternion.h</name>
+            <name>$PROJ_DIR$\src\core\quaternion.cpp</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\core\quaternion.h</name>
         </file>
         <file>
             <name>$PROJ_DIR$\src\core\qvector3d.h</name>
@@ -12198,6 +12207,7 @@
             <name>$PROJ_DIR$\src\objnet\udponbinterface.cpp</name>
             <excluded>
                 <configuration>stm32f407vg</configuration>
+                <configuration>stm32f446</configuration>
             </excluded>
         </file>
         <file>

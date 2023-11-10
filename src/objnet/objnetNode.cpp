@@ -214,6 +214,7 @@ void ObjnetNode::parseServiceMessage(CommonMessage &msg)
             else if (mBusType != BusSwonb && mBusType != BusRadio)
             {
                 mNetState = netnConnecting;
+                mNetTimeout = 0;
             }
             #ifndef QT_CORE_LIB
             if (onPolling)

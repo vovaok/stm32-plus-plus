@@ -192,10 +192,7 @@ void Dma::stop(bool wait)
         // disable the stream
         mStream->CR &= ~DMA_SxCR_EN;
         // wait for transfer complete
-        if (wait && mStream->NDTR)
-        {
-            while (!testFlag(TCIF));
-        }
+        while (wait && mStream->NDTR && !testFlag(TCIF));
     }
 //    if (mStream == DMA1_Stream5) // WUT??
 //        DMA_ClearFlag(mStream, DMA_FLAG_FEIF5); // ???

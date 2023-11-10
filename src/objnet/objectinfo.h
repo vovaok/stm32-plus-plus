@@ -9,6 +9,8 @@
 #include "core/ringbuffer.h"
 
 #ifndef QT_CORE_LIB
+#include "core/quaternion.h"
+#define QQuaternion Quaternion
 #define _String string
 #define _toString(x) (x)
 #define _fromString(x) (x)
@@ -150,6 +152,7 @@ private:
     bool mIsDevice;
     bool mValid;
     static int mAssignId;
+    uint8_t mArrayItemCount = 1;
     
     ObjectInfo *m_parentObject;
     std::vector<ObjectInfo> m_subobjects;
@@ -160,6 +163,9 @@ private:
     friend class ObjnetStorage;
 
     int sizeofType(Type type) const;
+    
+    uint8_t *nextReadPtr() const;
+    uint8_t *nextWritePtr() const;
 
 public:
     ObjectInfo();
@@ -380,6 +386,9 @@ ObjectInfo::ObjectInfo(string name, T (&var)[N], Flags flags) :
 {
     Type t = typeOfVar(var[0]);
     size_t sz = sizeof(T) * N;
+    mArrayItemCount = N;
+//    if (sz > 255)
+//        sz = 0; // can't :c
     if (t == String)
         sz = N;
     if (flags & Read)
@@ -432,27 +441,43 @@ template<typename T>
 ObjectInfo &ObjectInfo::field(string name)
 {
     // if this is the first field, clear size
-    if (!subobjectCount())
-        mDesc.readSize = mDesc.writeSize = 0;
-  
+//    if (!subobjectCount())
+//        mDesc.readSize = mDesc.writeSize = 0;
+    
+    if (isArray())
+        mDesc.readSize = mDesc.writeSize = mArrayItemCount;
+    
     ObjectInfo info;
     m_subobjects.push_back(info);
     ObjectInfo &obj = m_subobjects.back();
-    /// @todo Fix the bug with m_parentObject! it is invalidated in the future :c
-    /// This bug can lead to Hard Fault
-    obj.m_parentObject = this;
+    ObjectInfo *prev = nullptr;
+    if (m_subobjects.size() > 1)
+        prev = &m_subobjects[m_subobjects.size() - 2];
+    // bugfix:
+    for (ObjectInfo &o: m_subobjects)
+        o.m_parentObject = this;
+    /// @todo Test the fix of the bug with m_parentObject!
+//    obj.m_parentObject = this;
     size_t sz = sizeof(T);
     T var;
     Type t = typeOfVar(var);
+    if (t == String)
+        sz = 0;
     if (mDesc.flags & Read)
     {
-        obj.mReadPtr = (uint8_t*)mReadPtr + mDesc.readSize;
+        uint8_t *ptr = (uint8_t *)mReadPtr;
+        if (prev)
+            ptr = prev->nextReadPtr();
+        obj.mReadPtr = ptr;
         obj.mDesc.readSize = sz;
         obj.mDesc.rType = t;
     }
     if (mDesc.flags & Write)
     {
-        obj.mWritePtr = (uint8_t*)mWritePtr + mDesc.writeSize;
+        uint8_t *ptr = (uint8_t *)mWritePtr;
+        if (prev)
+            ptr = prev->nextWritePtr();
+        obj.mWritePtr = ptr;
         obj.mDesc.writeSize = sz;
         obj.mDesc.wType = t;
     }
@@ -460,15 +485,62 @@ ObjectInfo &ObjectInfo::field(string name)
     obj.mDesc.name = name;
     obj.mDesc.id = m_subobjects.size() - 1;
     
-    for (ObjectInfo *o = this; o; o = o->m_parentObject)
+    if (!sz)
     {
-        o->mDesc.readSize += obj.mDesc.readSize;
-        o->mDesc.writeSize += obj.mDesc.writeSize;
+        for (ObjectInfo *o = this; o; o = o->m_parentObject)
+        {
+            o->mDesc.readSize = 0;// += obj.mDesc.readSize;
+            o->mDesc.writeSize = 0;//+= obj.mDesc.writeSize;
+        }
     }
+    
     mDesc.rType = (uint8_t)Compound + m_subobjects.size();
     mDesc.wType = (uint8_t)Compound + m_subobjects.size();
     return *this;
 }
+
+//template<typename T, int N>
+//ObjectInfo &ObjectInfo::array(string name)
+//{  
+//    ObjectInfo info;
+//    m_subobjects.push_back(info);
+//    ObjectInfo &obj = m_subobjects.back();
+//    // bugfix:
+//    for (ObjectInfo &o: m_subobjects)
+//        o->m_parentObject = this;
+//    /// @todo Test the fix of the bug with m_parentObject!
+////    obj.m_parentObject = this;
+//    size_t sz = sizeof(T);
+//    T var;
+//    Type t = typeOfVar(var);
+//    if (t == String)
+//        sz = 0;
+//    if (mDesc.flags & Read)
+//    {
+//        obj.mReadPtr = (uint8_t*)mReadPtr + mDesc.readSize;
+//        obj.mDesc.readSize = sz? sz * N: N;
+//        obj.mDesc.rType = t;
+//    }
+//    if (mDesc.flags & Write)
+//    {
+//        obj.mWritePtr = (uint8_t*)mWritePtr + mDesc.writeSize;
+//        obj.mDesc.writeSize = sz? sz * N: N;
+//        obj.mDesc.wType = t;
+//    }
+//    obj.mDesc.flags = mDesc.flags | Array;
+//    obj.mDesc.name = name;
+//    obj.mDesc.id = m_subobjects.size() - 1;
+//
+//    for (ObjectInfo *o = this; o; o = o->m_parentObject)
+//    {
+//        o->mDesc.readSize = 0;// += obj.mDesc.readSize;
+//        o->mDesc.writeSize = 0;//+= obj.mDesc.writeSize;
+//    }
+//    
+//    mDesc.rType = (uint8_t)Compound + m_subobjects.size();
+//    mDesc.wType = (uint8_t)Compound + m_subobjects.size();
+//    return *this;
+//}
 
 template<class R>
 ObjectInfo::ObjectInfo(string name, Closure<R(void)> event, ObjectInfo::Flags flags) :

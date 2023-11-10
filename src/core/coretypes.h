@@ -1,7 +1,6 @@
 #include "core/closure.h"
 #include "core/bytearray.h"
 #include "core/qvector3d.h"
-#include "core/qquaternion.h"
 
 typedef Closure<void(void)> TaskEvent;
 typedef Closure<void(int)> TickEvent;

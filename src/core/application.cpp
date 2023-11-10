@@ -18,14 +18,20 @@ void Application::sysTickHandler()
         return;
     
     Application *app = instance();
-    app->mTimestamp += app->mSysClkPeriod;
+    int dt = app->mSysClkPeriod;
+    app->mTimestamp += dt;
     app->m_tickFlag = true;
     
+#if __cplusplus > 199711L
+    for (TickEvent &e: app->mTickEvents)
+        e(dt);
+#else
     std::list<TickEvent> &elist = app->mTickEvents;
     for (TickIterator it=elist.begin(); it!=elist.end(); it++)
     {
         (*it)(app->mSysClkPeriod);
     }
+#endif
 }
 
 void Application::delay(int ms)
@@ -49,12 +55,21 @@ void Application::exec()
     // main loop
     while(1)
     {
+#if __cplusplus > 199711L
+        for (TaskEvent &e: mTaskEvents)
+        {
+            if (m_tasksModified)
+                break;
+            e();
+        }
+#else        
         for (TaskIterator it=mTaskEvents.begin(); it!=mTaskEvents.end(); it++)
         {
             if (m_tasksModified)
                 break;
             (*it)();
         }
+#endif
         m_tasksModified = false;
         
         if (m_sleeping)

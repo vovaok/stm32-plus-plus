@@ -65,9 +65,8 @@ void GenericOnbInterface::receiveHandler()
     sz -= 4;
     if (testFilter(id))
     {
-        CommonMessage msg;
-        msg.setId(id);
-        msg.setData(ByteArray(data, sz));
+        ByteArray ba = ByteArray::fromRawData(reinterpret_cast<const char *>(data), sz);
+        CommonMessage msg(id, ba);
         receive(msg);
     }
 }

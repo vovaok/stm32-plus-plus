@@ -234,10 +234,11 @@ ObjectInfo *ObjnetDevice::prepareObject(const ObjectInfo::Description &desc)
         {
             if (desc.wType == ObjectInfo::Float)
             {
-                RingBuffer<float> ring(20);
+//                RingBuffer<float> ring(20);
                 mObjBuffers[id].resize(sizeof(RingBuffer<float>));
                 obj->mWritePtr = mObjBuffers[id].data();
-                *reinterpret_cast<RingBuffer<float>*>(obj->mWritePtr) = ring;
+                new (obj->mWritePtr) RingBuffer<float>(20);
+//                *reinterpret_cast<RingBuffer<float>*>(obj->mWritePtr) = ring;
             }
         }
         else

@@ -50,10 +50,15 @@ public:
         return *this;
     }
 
-    CommonMessage(const ByteArray &ba) :
-        mId(0)
+//    CommonMessage(const ByteArray &ba) :
+//        mId(0)
+//    {
+//        mBa.append(ba);
+//    }
+    
+    CommonMessage(uint32_t id, const ByteArray &ba) :
+        mId(id), mBa(ba)
     {
-        mBa.append(ba);
     }
 
 //    virtual ~CommonMessage()
