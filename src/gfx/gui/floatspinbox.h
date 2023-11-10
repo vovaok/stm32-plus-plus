@@ -24,6 +24,8 @@ public:
     const ByteArray &suffix() const {return m_suffix;}
     void setPrecision(int digits);
     int precision() const {return m_precision;}
+    
+    Closure<void(float)> onValueChanged;
 
 protected:    
     virtual void updateText();

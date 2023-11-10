@@ -25,7 +25,7 @@ public:
         AlignItems_Mask     = 0x0070
     };
   
-    FlexLayout(Direction direction = Horizontal, int flags=Justify_SpaceEvenly | Align_Center) :
+    FlexLayout(Direction direction = Horizontal, int flags=(int)Justify_SpaceEvenly | (int)Align_Center) :
         m_direction(direction),
         m_flags(flags)
     {

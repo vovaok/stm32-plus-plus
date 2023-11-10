@@ -10,7 +10,7 @@ void FontDatabase::addApplicationFontFromData(const uint32_t *fontdata)
         if (fontdata == fi->fontData()) // already contains this font
             return;
     }
-    
+
     m_fonts.push_back(FontInfo::fromFontData(fontdata));
 }
 
@@ -29,9 +29,9 @@ Font FontDatabase::font(const char *family, int pixelSize, bool bold, bool itali
     bool i_match = false;
     for (const FontInfo *fi: m_fonts)
     {
-        if (strcmp(family, fi->ff))
+        if (!strstr(fi->ff, family))
             continue;
-        
+
         int ds = abs(fi->ps - pixelSize);
         if (ds < delta_size)
         {
@@ -49,10 +49,10 @@ Font FontDatabase::font(const char *family, int pixelSize, bool bold, bool itali
             i_match = true;
             font.m_fi = fi;
         }
-        
+
         if (!delta_size && b_match && i_match) // exact match
             break;
-        
+
     }
     return font;
 }

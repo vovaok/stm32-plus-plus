@@ -5,7 +5,7 @@
 
 AbstractSpinBox::AbstractSpinBox(Widget *parent) : Widget(parent)
 {
-    const FontInfo &fi = m_font.info();
+    const FontInfo &fi = font().info();
     setFixedHeight(fi.height() + 4);
     int bw = fi.width('<') * 2;
     PushButton *btnDown = new PushButton("<");
@@ -26,7 +26,7 @@ void AbstractSpinBox::setButtonSymbols(ButtonSymbols bs)
 {
     PushButton *btnDown = static_cast<PushButton*>(m_children[0]);
     PushButton *btnUp = static_cast<PushButton*>(m_children[2]);
-      
+
     if (bs == Arrows)
     {
         btnDown->setText("<");
@@ -37,17 +37,19 @@ void AbstractSpinBox::setButtonSymbols(ButtonSymbols bs)
         btnDown->setText("-");
         btnUp->setText("+");
     }
-  
+
     btnDown->setVisible(bs != NoButtons);
     btnUp->setVisible(bs != NoButtons);
 }
 
 void AbstractSpinBox::stepUp()
 {
-    stepBy(1);
+    if (m_enabled)
+        stepBy(1);
 }
 
 void AbstractSpinBox::stepDown()
 {
-    stepBy(-1);
+    if (m_enabled)
+        stepBy(-1);
 }

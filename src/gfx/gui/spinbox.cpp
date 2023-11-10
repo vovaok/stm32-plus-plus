@@ -15,6 +15,8 @@ void SpinBox::setValue(int value)
     {
         m_value = newvalue;
         updateText();
+        if (onValueChanged)
+            onValueChanged(newvalue);
     }
 }
 

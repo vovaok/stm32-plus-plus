@@ -11087,7 +11087,7 @@
                 </option>
                 <option>
                     <name>CCOptLevel</name>
-                    <state>0</state>
+                    <state>1</state>
                 </option>
                 <option>
                     <name>CCOptStrategy</name>
@@ -11096,7 +11096,7 @@
                 </option>
                 <option>
                     <name>CCOptLevelSlave</name>
-                    <state>0</state>
+                    <state>1</state>
                 </option>
                 <option>
                     <name>CCPosIndRopi</name>
@@ -12048,6 +12048,15 @@
                 <name>$PROJ_DIR$\src\gfx\gui\pagelayout.h</name>
             </file>
             <file>
+                <name>$PROJ_DIR$\src\gfx\gui\palette.h</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\src\gfx\gui\progressbar.cpp</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\src\gfx\gui\progressbar.h</name>
+            </file>
+            <file>
                 <name>$PROJ_DIR$\src\gfx\gui\pushbutton.cpp</name>
             </file>
             <file>
@@ -12098,6 +12107,9 @@
         </file>
         <file>
             <name>$PROJ_DIR$\src\gfx\image.h</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\gfx\rect.h</name>
         </file>
         <file>
             <name>$PROJ_DIR$\src\gfx\touchscreen.cpp</name>

@@ -222,6 +222,8 @@ public:
     Type rType() const {return static_cast<Type>(mDesc.rType);}
     Type wType() const {return static_cast<Type>(mDesc.wType);}
     Flags flags() const {return static_cast<Flags>(mDesc.flags);}
+    int readSize() const {return mDesc.readSize;}
+    int writeSize() const {return mDesc.writeSize;}
 
     bool isValid() const;
     

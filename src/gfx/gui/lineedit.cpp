@@ -38,37 +38,40 @@ void LineEdit::update()
 
 void LineEdit::paintEvent(Display *d)
 {
-    d->setColor(m_color);
-    d->setBackgroundColor(m_backgroundColor);
-    d->setColor(m_borderColor);
+//    d->setColor(m_color);
+    Color bgcol = m_enabled? m_backgroundColor: palette()->disabled();
+    Color col = m_enabled? m_color: palette()->disabledText();
+
+    d->setBackgroundColor(bgcol);
+    d->setColor(col);
     d->drawFillRoundRect(0, 0, m_width, m_height, m_borderRadius);
-  
+
     //Widget::paintEvent(d); // fill background
     if (m_text.size())
     {
         int w = textWidth();
         int h = textHeight();
         Image img(w, h);
-        img.fill(m_backgroundColor.rgb565());
-        img.setColor(m_color);
-        img.setBackgroundColor(m_backgroundColor);
-        img.setFont(m_font);
-        img.drawString(0, m_font.info().ascent(), m_text.data());
+        img.fill(bgcol.rgb565());
+        img.setColor(col);
+        img.setBackgroundColor(bgcol);
+        img.setFont(font());
+        img.drawString(0, font().info().ascent(), m_text.data());
         int xpos=2, ypos=2;
         if (m_align & AlignRight)
             xpos = m_width - w;
         else if (m_align & AlignHCenter)
-            xpos = (m_width - w) / 2;        
+            xpos = (m_width - w) / 2;
         d->drawImage(xpos, ypos, img);
     }
 }
 
 int LineEdit::textWidth() const
 {
-    return m_font.info().width(m_text.data());
+    return font().info().width(m_text.data());
 }
 
 int LineEdit::textHeight() const
 {
-    return m_font.info().height();
+    return font().info().height();
 }

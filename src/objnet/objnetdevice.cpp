@@ -690,7 +690,7 @@ void ObjnetDevice::sendObject(QString name, QVariant value)
         ObjectInfo *obj = mObjects[oid];
         if (obj)
         {
-            if (obj->rType() == ObjectInfo::Common)
+            if (obj->rType() == ObjectInfo::Common && obj->readSize())
                 value = QByteArray::fromHex(value.toByteArray());
             else
                 value.convert(obj->rType());

@@ -15,6 +15,8 @@ void FloatSpinBox::setValue(float value)
     {
         m_value = newvalue;
         updateText();
+        if (onValueChanged)
+            onValueChanged(newvalue);
     }
 }
 

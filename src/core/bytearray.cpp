@@ -59,6 +59,8 @@ ByteArray &ByteArray::operator=(const ByteArray &other)
 {
     if (mAllocSize)
         clear();
+    else
+        mSize = 0;
     append(other);
     return (*this);
 }
@@ -98,15 +100,15 @@ char ByteArray::readHex(char *ptr)
 //---------------------------------------------------------------------------
 
 void ByteArray::allocMore(int size)
-{ 
+{
     unsigned int desiredSize = mSize + size + 1; // compute desired buffer size // +1 FOR '\0'-terminating string
     if (desiredSize <= mAllocSize)
         return;
     int allocSize = mAllocSize;
-    
+
     __istate_t interrupt_state = __get_interrupt_state();
     __disable_interrupt();
-    
+
     if (desiredSize <= 16)
         allocSize = 16;
     if (desiredSize <= 512)
@@ -124,7 +126,7 @@ void ByteArray::allocMore(int size)
     }
     mData = temp;
     mAllocSize = allocSize;
-    
+
     __set_interrupt_state(interrupt_state);
 }
 //---------------------------------------------------------------------------
@@ -139,7 +141,7 @@ ByteArray &ByteArray::append(const void *data, unsigned int size)
         mSize += size;
         while (size--)
             *mdataptr++ = *dataptr++;
-//        memcpy(mData + mSize, data, size); // copy new data    
+//        memcpy(mData + mSize, data, size); // copy new data
 //        mSize += size;
         mData[mSize] = '\0';
     }
@@ -166,35 +168,36 @@ ByteArray &ByteArray::append(char byte)
 
 ByteArray &ByteArray::prepend(const char *data, unsigned int size)
 {
-    if (size <= 0)
-        return *this;
-    
-    if (size + mSize >= mAllocSize) // need reallocate, so just create new bytearray
-    {
-        ByteArray ba;
-        ba.allocMore(size + mSize);
-        char *dst = ba.mData;
-        char *src = mData;
-        while (size--)
-            *dst++ = *data++;
-        while (mSize--)
-            *dst++ = *src++;
-        *dst = '\0';
-        *this = std::move(ba);
-    }
-    else
-    {
-        int cnt = mSize;
-        char *src = mData + mSize + 1;
-        mSize += size;
-        char *dst = mData + mSize + 1;
-        while (cnt--)
-            *dst-- = *src--;
-        dst = mData;
-        while (size--)
-            *dst++ = *data++;
-    }
-    return *this;
+    return insert(0, data, size);
+//    if (size <= 0)
+//        return *this;
+//
+//    if (size + mSize >= mAllocSize) // need reallocate, so just create new bytearray
+//    {
+//        ByteArray ba;
+//        ba.allocMore(size + mSize);
+//        char *dst = ba.mData;
+//        char *src = mData;
+//        while (size--)
+//            *dst++ = *data++;
+//        while (mSize--)
+//            *dst++ = *src++;
+//        *dst = '\0';
+//        *this = std::move(ba);
+//    }
+//    else
+//    {
+//        int cnt = mSize;
+//        char *src = mData + mSize + 1;
+//        mSize += size;
+//        char *dst = mData + mSize + 1;
+//        while (cnt--)
+//            *dst-- = *src--;
+//        dst = mData;
+//        while (size--)
+//            *dst++ = *data++;
+//    }
+//    return *this;
 }
 
 ByteArray &ByteArray::prepend(const char *str)
@@ -214,6 +217,67 @@ ByteArray &ByteArray::prepend(char byte)
     for (int i=mSize; i>0; --i)
         mData[i] = mData[i-1];
     mData[0] = byte;
+    return *this;
+}
+
+ByteArray &ByteArray::insert(unsigned int idx, const char *data, unsigned int size)
+{
+    if (size <= 0)
+        return *this;
+    if (idx > mSize)
+        return *this;
+
+    if (size + mSize >= mAllocSize) // need reallocate, so just create new bytearray
+    {
+        ByteArray ba;
+        ba.resize(size + mSize);
+        char *dst = ba.mData;
+        char *src = mData;
+        mSize -= idx;
+        while (idx--)
+            *dst++ = *src++;
+        while (size--)
+            *dst++ = *data++;
+        while (mSize--)
+            *dst++ = *src++;
+        *dst = '\0';
+        *this = std::move(ba);
+    }
+    else
+    {
+        int cnt = mSize - idx + 1;
+        char *src = mData + mSize + 1;
+        mSize += size;
+        char *dst = mData + mSize + 1;
+        while (cnt--)
+            *--dst = *--src;
+        dst -= size;
+        while (size--)
+            *dst++ = *data++;
+    }
+    return *this;
+}
+
+ByteArray &ByteArray::insert(unsigned int idx, const char *str)
+{
+    return insert(idx, str, strlen(str));
+}
+
+ByteArray &ByteArray::insert(unsigned int idx, const ByteArray &ba)
+{
+    return insert(idx, ba.data(), ba.size());
+}
+
+ByteArray &ByteArray::insert(unsigned int idx, char byte)
+{
+    if (idx > mSize)
+        return *this;
+
+    allocMore(1);
+    mSize++;
+    for (int i=mSize; i>idx; --i)
+        mData[i] = mData[i-1];
+    mData[idx] = byte;
     return *this;
 }
 //---------------------------------------------------------------------------
@@ -236,13 +300,13 @@ void ByteArray::clear()
 {
     __istate_t interrupt_state = __get_interrupt_state();
     __disable_interrupt();
-    
+
     if (mData && mAllocSize)
         delete [] mData;
     mData = 0L;
     mSize = 0;
     mAllocSize = 0;
-    
+
     __set_interrupt_state(interrupt_state);
 }
 //---------------------------------------------------------------------------
@@ -265,6 +329,7 @@ ByteArray &ByteArray::remove(int index, int count)
             while (count--)
                 *destptr++ = *srcptr++;
         }
+        mData[mSize] = '\0';
     }
     return *this;
 }
@@ -382,17 +447,19 @@ void ByteArray::chop(int n)
 {
     if (n <= 0)
         return;
-    
+
     if (n < mSize)
         mSize -= n;
     else
         mSize = 0;
+    mData[mSize] = '\0';
 }
 
 void ByteArray::truncate(int pos)
 {
     if (pos >= 0 && pos < mSize)
         mSize = pos;
+    mData[mSize] = '\0';
 }
 //---------------------------------------------------------------------------
 
@@ -428,7 +495,7 @@ int ByteArray::indexOf(const char *str, int from) const
     const int ol = strlen(str);
     if (ol == 1)
         return indexOf(*str, from);
-    
+
     const int l = mSize;
     if (from > l || ol + from > l)
         return -1;
@@ -470,6 +537,33 @@ int ByteArray::lastIndexOf(char c, int from) const
             return n - mData;
     }
     return -1;
+}
+//---------------------------------------------------------------------------
+
+ByteArray &ByteArray::replace(const ByteArray &from, const ByteArray &to)
+{
+    for (int i=0; i<mSize; i+=to.size())
+    {
+        i = indexOf(from, i);
+        if (i < 0)
+            break;
+        remove(i, from.size());
+        insert(i, to);
+    }
+    return *this;
+}
+
+ByteArray &ByteArray::replace(char from, char to)
+{
+    allocMore(0); // copy data if nececcary before change it
+    for (int i=0; i<mSize; i++)
+    {
+        i = indexOf(from, i);
+        if (i < 0)
+            break;
+        mData[i] = to;
+    }
+    return *this;
 }
 //---------------------------------------------------------------------------
 

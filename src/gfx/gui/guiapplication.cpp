@@ -3,23 +3,53 @@
 GuiApplication::GuiApplication() : Application()
 {
     FontDatabase::addApplicationFontFromData(font_Tahoma_13);
-    
+
+    m_palette = new Palette();
+
     m_widget = new Widget(nullptr);
-    m_widget->setBackgroundColor(Color(192, 192, 192));
+    m_widget->setBackgroundColor(m_palette->window());
     m_paintTimer = new Timer;
     m_paintTimer->onTimeout = EVENT(&GuiApplication::paintTask);
     m_paintTimer->setInterval(16);
 //        registerTaskEvent(EVENT(&GuiApplication::paintTask));
 }
 
+GuiApplication *GuiApplication::instance()
+{
+    return static_cast<GuiApplication*>(Application::instance());
+}
+
 Widget *GuiApplication::widget()
 {
-    return static_cast<GuiApplication*>(instance())->rootWidget();
+    return instance()->rootWidget();
+}
+
+Widget *GuiApplication::focusWidget()
+{
+    return instance()->m_focusWidget;
+}
+
+Palette* GuiApplication::palette()
+{
+    return instance()->m_palette;
+}
+
+void GuiApplication::setFocusWidget(Widget *w)
+{
+    GuiApplication *a = instance();
+    if (a->m_focusWidget)
+        a->m_focusWidget->update();
+    a->m_focusWidget = w;
 }
 
 Display *GuiApplication::display()
 {
-    return static_cast<GuiApplication*>(instance())->m_display;
+    return instance()->m_display;
+}
+
+void GuiApplication::setFont(const Font &font)
+{
+    instance()->m_widget->setFont(font);
 }
 
 void GuiApplication::setDisplay(Display *d)
@@ -48,17 +78,23 @@ void GuiApplication::touchEvent(TouchEvent *event)
                     return;
             }
         }
-        
+
+        if (!m_touchedWidget->m_enabled)
+        {
+            m_touchedWidget = nullptr;
+            return;
+        }
+
         switch (event->type())
         {
         case TouchEvent::Press:
             m_touchedWidget->pressEvent(event->x(), event->y());
             break;
-            
+
         case TouchEvent::Move:
             m_touchedWidget->moveEvent(event->x(), event->y());
             break;
-            
+
         case TouchEvent::Release:
             m_touchedWidget->releaseEvent(event->x(), event->y());
             m_touchedWidget = nullptr;
@@ -66,10 +102,10 @@ void GuiApplication::touchEvent(TouchEvent *event)
         };
     }
 }
-    
+
 void GuiApplication::paintTask()
 {
-    if (m_display)
+    if (m_display && m_autoRepaint)
     {
         m_widget->paint(m_display);
         m_paintDone = true;

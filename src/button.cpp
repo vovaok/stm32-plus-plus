@@ -5,6 +5,7 @@ Button::Button(PinName pin, bool pullUp, bool inverted) :
     mFilter(false),
     mState(false),
     mInverted(inverted),
+    mAutoRepeatTime(0),
     mDebounceTime(50),
     mHoldTime(0),
     mTime(mDebounceTime)
@@ -28,7 +29,7 @@ void Button::task()
     if (s != mFilter)
         mTime = mDebounceTime;
     mFilter = s;
-        
+
     if (!mTime)
     {
         if (mFilter && !mState)
@@ -41,9 +42,17 @@ void Button::task()
         {
             if (onRelease)
                 onRelease();
-            if (onClick && mHoldTime < 300)
+            if (onClick && mHoldTime < 500)
                 onClick();
         }
+
+        if (mAutoRepeatTime && isHolding())
+        {
+            if (onClick)
+                onClick();
+            mTime = mAutoRepeatTime - mDebounceTime;
+        }
+
         mState = mFilter;
     }
 }
@@ -54,7 +63,7 @@ void Button::tick(int period)
         mTime -= period;
     else
         mTime = 0;
-    
+
     if (mState)
         mHoldTime += period;
     else
@@ -66,14 +75,14 @@ bool Button::state() const
 {
     return mState;
 }
-    
-int Button::holdTime() const 
+
+int Button::holdTime() const
 {
     return mHoldTime;
 }
-    
+
 bool Button::isHolding() const
 {
-    return mState && mHoldTime >= 300;
+    return mState && mHoldTime >= 500;
 }
 //---------------------------------------------------------------------------

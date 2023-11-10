@@ -4,13 +4,13 @@ ILI9486::ILI9486(Spi *spi, Gpio::PinName cs, Gpio::PinName dc, Gpio::PinName rst
     Display(),
     m_spi(spi),
     m_backlightPwm(nullptr)
-{    
+{
     m_cs = new Gpio(cs, Gpio::Output);
     m_cs->set();
     m_dc = new Gpio(dc, Gpio::Output);
     m_rst = new Gpio(rst, Gpio::Output);
     m_rst->set();
-    
+
     m_spi->setMasterMode();
     m_spi->setCPOL_CPHA(0, 0);
     m_spi->setBaudratePrescaler(1);
@@ -33,7 +33,7 @@ void ILI9486::setBacklightPin(Gpio::Config pin)
 void ILI9486::setBacklight(int percent)
 {
     percent = BOUND(0, percent, 100);
-    int pwm = 256*powf(1.057018f, percent) - 1;
+    int pwm = lrintf(256*powf(1.057018f, percent)) - 1;
     if (m_backlightPwm)
         m_backlightPwm->setDutyCycle(m_pwmPin, pwm);
 }
@@ -42,14 +42,14 @@ void ILI9486::init(Orientation ori)
 {
     hardwareReset();
     initReg();
-    
+
     setOrientation(ori);
 //    delay(200);
-    
+
     //sleep out
     LCD_WriteReg(0x11);
     delay(120);
-    
+
     //Turn on the LCD display
     LCD_WriteReg(0x29);
 }
@@ -58,15 +58,15 @@ void ILI9486::setOrientation(Orientation ori)
 {
     if (static_cast<int>(ori) > 7)
         ori = Landscape;
-    
+
     m_orientation = ori;
-    
-    static uint16_t orireg[8] = 
+
+    static uint16_t orireg[8] =
         {0x2862, 0x2822, 0x2842, 0x2802, 0x0822, 0x0802, 0x0862, 0x0842};
     uint16_t reg = orireg[ori];
     uint8_t MemoryAccessReg_Data = reg >> 8; //addr:0x36
     uint8_t DisFunReg_Data = reg & 0xFF; //addr:0xB6
-   
+
     if (reg & 0x2000)
     {
         m_width = LCD_WIDTH;
@@ -77,7 +77,7 @@ void ILI9486::setOrientation(Orientation ori)
         m_width = LCD_HEIGHT;
         m_height = LCD_WIDTH;
     }
-    
+
     // Set the read / write scan direction of the frame memory
     LCD_WriteReg(0xB6);
     LCD_WriteData(0X00);
@@ -236,13 +236,25 @@ void ILI9486::setArea(int xStart, int yStart, int xEnd, int yEnd)
 
 void ILI9486::fillRect(int x, int y, int width, int height, uint16_t color)
 {
+    if (width == 0 || height == 0)
+        return;
+    if (width < 0)
+    {
+        x += width;
+        width = -width;
+    }
+    if (height < 0)
+    {
+        y += height;
+        height = -height;
+    }
     setArea(x, y, x+width-1, y+height-1);
     // Memory write start
     LCD_WriteReg(0x2C);
     m_dc->set();
     m_cs->reset();
     int size = width * height;
-    
+
 //    while (size--)
 //        LCD_WriteData(color);
 
@@ -267,7 +279,7 @@ void ILI9486::copyRect(int x, int y, int width, int height, const uint16_t *buff
     m_dc->set();
     m_cs->reset();
     int size = width * height;
-    
+
     while (size)
     {
         int sz = size;

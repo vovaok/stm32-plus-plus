@@ -23,6 +23,8 @@ public:
     void setSuffix(const ByteArray &s);
     const ByteArray &suffix() const {return m_suffix;}
     
+    Closure<void(int)> onValueChanged;
+    
 protected:    
     virtual void updateText();
     virtual void stepBy(int steps);
