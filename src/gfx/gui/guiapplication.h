@@ -24,6 +24,7 @@ public:
 protected:
     void setDisplay(Display *d);
     void addTouchScreen(TouchScreen *ts);
+
     Widget *rootWidget() {return m_widget;}
     bool paintDone() const {return m_paintDone;} // first time painted
     void setGuiAutoRepaint(bool enable) {m_autoRepaint = enable;}

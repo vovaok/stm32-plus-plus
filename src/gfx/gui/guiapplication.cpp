@@ -66,11 +66,23 @@ void GuiApplication::addTouchScreen(TouchScreen *ts)
 
 void GuiApplication::touchEvent(TouchEvent *event)
 {
+    int x = event->x();
+    int y = event->y();
+
+    int ori = m_display->orientation();
+
+    if (ori & 4)
+        std::swap(x, y);
+    if (ori & 1)
+        x = m_display->width() - x - 1;
+    if (ori & 2)
+        y = m_display->height() - y - 1;
+
     if (m_widget)
     {
         if (!m_touchedWidget)
         {
-            m_touchedWidget = m_widget->widgetAt(event->x(), event->y());
+            m_touchedWidget = m_widget->widgetAt(x, y);
             while (!m_touchedWidget->m_acceptTouchEvents)
             {
                 m_touchedWidget = m_touchedWidget->parent();
@@ -88,15 +100,15 @@ void GuiApplication::touchEvent(TouchEvent *event)
         switch (event->type())
         {
         case TouchEvent::Press:
-            m_touchedWidget->pressEvent(event->x(), event->y());
+            m_touchedWidget->pressEvent(x, y);
             break;
 
         case TouchEvent::Move:
-            m_touchedWidget->moveEvent(event->x(), event->y());
+            m_touchedWidget->moveEvent(x, y);
             break;
 
         case TouchEvent::Release:
-            m_touchedWidget->releaseEvent(event->x(), event->y());
+            m_touchedWidget->releaseEvent(x, y);
             m_touchedWidget = nullptr;
             break;
         };

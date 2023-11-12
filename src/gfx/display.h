@@ -23,6 +23,7 @@ public:
     };
 
     virtual void setOrientation(Orientation ori) {m_orientation = ori;}
+    Orientation orientation() const {return m_orientation;}
     inline int width() const {return m_width;}
     inline int height() const {return m_height;}
 
