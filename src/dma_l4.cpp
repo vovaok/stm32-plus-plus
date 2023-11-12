@@ -14,7 +14,7 @@ Dma::Dma(Channel channelName)
     mChannelNum  = ((channelName >> 4) & 7) - 1; // 0...6
     mChannelSel = channelName & 7;
       
-    int idx = mChannelNum + 8*(dma_num - 1);
+    int idx = mChannelNum + 7*(dma_num - 1);
     if (mChannels[idx])
         THROW(Exception::ResourceBusy);
     mChannels[idx] = this;
