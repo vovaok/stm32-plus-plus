@@ -10,15 +10,15 @@
 class PreciseTimer
 {
 public:
-    PreciseTimer();
-    
+    PreciseTimer(HardwareTimer::TimerNumber tim = HardwareTimer::PRECISE_TIMER);
+
     void reset();
     float delta();
 //    bool isValid() const {return m_valid;}
-  
+
 private:
     static HardwareTimer *s_tim;
-    uint16_t m_value;
+    uint32_t m_value;
 //    bool m_valid;
 };
 

@@ -4,13 +4,14 @@
 
 HardwareTimer *PreciseTimer::s_tim = 0L;
 
-PreciseTimer::PreciseTimer()
+PreciseTimer::PreciseTimer(HardwareTimer::TimerNumber tim)
 {
     if (!s_tim)
     {
-        s_tim = new HardwareTimer(HardwareTimer::PRECISE_TIMER);
+        s_tim = new HardwareTimer(tim);
         s_tim->setPrescaler(rcc().pClk1() / PRECISE_TIMER_FREQ);
-        s_tim->setAutoReloadRegister(0xFFFF);
+        s_tim->setAutoReloadRegister(0xFFFFFFFF);
+        s_tim->generateUpdateEvent();
         s_tim->start();
     }
     reset();
@@ -23,8 +24,10 @@ void PreciseTimer::reset()
 
 float PreciseTimer::delta()
 {
-    uint16_t value = s_tim->counter();
-    uint16_t dt = value - m_value;
+    uint32_t value = s_tim->counter();
+    uint32_t dt = value - m_value;
+    if (s_tim->tim() != TIM2 && s_tim->tim() != TIM5)
+        dt = (uint16_t)dt;
     m_value = value;
     return (float)dt / PRECISE_TIMER_FREQ;
 }

@@ -1,6 +1,8 @@
 #ifndef _RINGBUFFER_H
 #define _RINGBUFFER_H
 
+#include <utility>
+
 template<typename T>
 class RingBuffer
 {
