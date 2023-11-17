@@ -1,7 +1,7 @@
 #ifndef _TOUCHSCREEN_H
 #define _TOUCHSCREEN_H
 
-#include "core/core.h"
+#include "core/coretypes.h"
 
 #pragma pack(push,1)
 class TouchEvent

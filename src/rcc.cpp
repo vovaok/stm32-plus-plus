@@ -76,6 +76,8 @@ bool Rcc::setEnabled(ClockSource src, bool enabled)
         RCC->CR |= mask;
         uint32_t timeout = 50000;
         while (!isReady(src) && timeout--);
+        if (!timeout)
+            RCC->CR &= ~mask;
         return timeout;
     }
     
@@ -100,6 +102,14 @@ bool Rcc::isReady(ClockSource src)
 bool Rcc::configPll(uint32_t hseValue, uint32_t sysClk)
 {
     mHseValue = hseValue;
+    
+    if (!isReady(HSE))
+    {
+        bool hseEnabled = setEnabled(HSE, true);
+        if (!hseEnabled)
+            return false;
+    }
+    
     return configPll(sysClk);
 }
 
@@ -374,6 +384,61 @@ bool Rcc::configPll(uint32_t sysClk)
 
 bool Rcc::measureHseFreq()
 {
+    return false;
+}
+
+#elif defined(STM32G4)
+
+bool Rcc::configPll(uint32_t sysClk)
+{
+    //! @todo Dopilit RCC config for STM32G4
+
+    uint32_t inputClk = mHseValue;
+    if (!inputClk)
+        inputClk = hsiValue();
+    
+    if (systemClockSource() == PLL)
+    {
+        if (!setSystemClockSource(HSI))
+            return false;
+        setEnabled(PLL, false);
+    }
+    
+    uint32_t pllR = 2;
+    uint32_t pllvco = sysClk * pllR;
+    
+    mPllM = 1;
+    mPllN = pllvco / (inputClk / mPllM);
+    if (mPllN > 0x7F)
+        THROW(Exception::BadSoBad);
+    mPllQ = pllvco / 48000000;
+//    mPllP = 7;
+
+    mSysClk = inputClk / mPllM * mPllN / pllR;
+    mAHBClk = mSysClk;
+    mAPB1Clk = mSysClk;
+    mAPB2Clk = mSysClk;
+    
+    FLASH->ACR = FLASH_ACR_PRFTEN | FLASH_ACR_ICEN | FLASH_ACR_DCEN | FLASH_ACR_LATENCY_2WS;
+    
+    if (mHseValue) // if HSE is present make it the clock source of PLL
+        RCC->PLLCFGR |= RCC_PLLCFGR_PLLSRC_HSE;
+    
+    RCC->PLLCFGR = ((mPllM - 1) << 4) | ((mPllN & 0x7F) << 8) | (((mPllQ>>1)-1) << 21) | (((pllR>>1)-1) << 25) | (RCC_PLLCFGR_PLLREN);
+    RCC->CR |= RCC_CR_PLLON;
+    
+    while (!(RCC->CR & RCC_CR_PLLRDY));
+    
+    RCC->CFGR = RCC->CFGR & ~RCC_CFGR_SW | RCC_CFGR_SW_PLL;
+    
+    while ((RCC->CFGR & RCC_CFGR_SWS) != RCC_CFGR_SWS_PLL);
+    
+    return true;
+}
+
+bool Rcc::measureHseFreq()
+{
+    /// @todo implement HSE measurement on TIM16 or TIM17
     return false;
 }
 

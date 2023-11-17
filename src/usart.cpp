@@ -13,8 +13,6 @@
 #define UART5_TX_DMA    Dma::UART5_TX_Stream7;
 #define USART6_RX_DMA   Dma::USART6_RX_Stream1; //Dma::USART6_RX_Stream2
 #define USART6_TX_DMA   Dma::USART6_TX_Stream6; //Dma::USART6_TX_Stream7
-#define RDR             DR
-#define TDR             DR
 
 #elif defined(STM32L4)
 #define USART1_RX_DMA   Dma::USART1_RX_Channel5; // USART1_RX_Channel7
@@ -27,18 +25,28 @@
 #define UART4_TX_DMA    Dma::UART4_TX_Channel3;
 #define UART5_RX_DMA    Dma::UART5_RX_Channel2;
 #define UART5_TX_DMA    Dma::UART5_TX_Channel1;
-#define RCC_APB1ENR_USART2EN    RCC_APB1ENR1_USART2EN
-#define RCC_APB1ENR_USART3EN    RCC_APB1ENR1_USART3EN
-#define RCC_APB1ENR_UART4EN     RCC_APB1ENR1_UART4EN
-#define RCC_APB1ENR_UART5EN     RCC_APB1ENR1_UART5EN
-#define SR                      ISR
-#define USART_SR_TC             USART_ISR_TC
-#define USART_SR_RXNE           USART_ISR_RXNE
 
-#elif defined(STM32F37X) 
-#define SR                      ISR
-#define USART_SR_TC             USART_ISR_TC
-#define USART_SR_RXNE           USART_ISR_RXNE
+#elif defined (STM32G4)
+#define USART1_RX_DMA   Dma::USART1_RX;
+#define USART1_TX_DMA   Dma::USART1_TX;
+#define USART2_RX_DMA   Dma::USART2_RX;
+#define USART2_TX_DMA   Dma::USART2_TX;
+#define USART3_RX_DMA   Dma::USART3_RX;
+#define USART3_TX_DMA   Dma::USART3_TX;
+#define UART4_RX_DMA    Dma::UART4_RX;
+#define UART4_TX_DMA    Dma::UART4_TX;
+#define UART5_RX_DMA    Dma::UART5_RX;
+#define UART5_TX_DMA    Dma::UART5_TX;
+
+#endif
+
+#if defined(STM32F4)
+    #define RDR             DR
+    #define TDR             DR
+#else
+    #define SR                      ISR
+    #define USART_SR_TC             USART_ISR_TC
+    #define USART_SR_RXNE           USART_ISR_RXNE
 #endif
 
 Usart *Usart::mUsarts[6] = {0L, 0L, 0L, 0L, 0L, 0L};
@@ -108,7 +116,7 @@ void Usart::commonConstructor(int number)
         mIrq = USART3_IRQn;
         break;
         
-#if defined(STM32F4) || defined(STM32L4)       
+#if defined(STM32F4) || defined(STM32L4) || defined(STM32G4)  
       case 4:  
         mDev = UART4;
         RCC->APB1ENR |= RCC_APB1ENR_UART4EN;
@@ -435,7 +443,7 @@ void Usart::setBaudrate(int baudrate)
     int apbclock = (mDev == USART1)? rcc().pClk2(): rcc().pClk1();
     #elif defined(STM32F4)
     int apbclock = ((mDev == USART1) || (mDev == USART6))? rcc().pClk2(): rcc().pClk1();
-    #elif defined(STM32L4)
+    #elif defined(STM32L4) || defined(STM32G4)
     int apbclock = (mDev == USART1)? rcc().pClk2(): rcc().pClk1();
     #endif
 

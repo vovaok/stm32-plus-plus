@@ -6,17 +6,35 @@
 #define DMA_CHANNEL(x,y) DMA##x##_Channel##y
 #define DMA_IRQn(x,y) DMA##x##_Channel##y##_IRQn,
 
-Dma *Dma::mChannels[14] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+#define CH_PER_DMA  (DMA_CHANNEL_COUNT / 2)
+
+Dma *Dma::mChannels[DMA_CHANNEL_COUNT] {0};
 
 Dma::Dma(Channel channelName)
 {
+#if defined(STM32L4)
     int dma_num = channelName >> 8;
     mChannelNum  = ((channelName >> 4) & 7) - 1; // 0...6
     mChannelSel = channelName & 7;
       
-    int idx = mChannelNum + 8*(dma_num - 1);
+    int idx = mChannelNum + CH_PER_DMA * (dma_num - 1);
     if (mChannels[idx])
         THROW(Exception::ResourceBusy);
+    
+#elif defined(STM32G4)
+    int idx;
+    for (idx=0; idx<DMA_CHANNEL_COUNT; idx++)
+        if (!mChannels[idx])
+            break;
+    
+    if (idx >= DMA_CHANNEL_COUNT)
+        THROW(Exception::OutOfRange);
+    
+    int dma_num = idx / CH_PER_DMA;
+    mChannelNum = idx % CH_PER_DMA;
+    mChannelSel = channelName;
+#endif
+    
     mChannels[idx] = this;
     
     if (dma_num == 1)
@@ -24,17 +42,26 @@ Dma::Dma(Channel channelName)
         mDma = DMA1;
         mChannel = DMA1_Channel1 + mChannelNum;
         RCC->AHB1ENR |= RCC_AHB1ENR_DMA1EN;
+#if defined(STM32L4)
         DMA1_CSELR->CSELR |= mChannelSel << (mChannelNum*4);
+#endif
     }
     if (dma_num == 2)
     {
         mDma = DMA2;
         mChannel = DMA2_Channel1 + mChannelNum;
         RCC->AHB1ENR |= RCC_AHB1ENR_DMA2EN;
+#if defined(STM32L4)
         DMA2_CSELR->CSELR |= mChannelSel << (mChannelNum*4);
+#endif
     }
     
-    const IRQn_Type irq[14] = {FOR_EACH_DMA(DMA_IRQn)};
+#if defined(STM32G4)
+    RCC->AHB1ENR |= RCC_AHB1ENR_DMAMUX1EN;
+    DMAMUX1[idx].CCR = mChannelSel;
+#endif
+    
+    static const IRQn_Type irq[DMA_CHANNEL_COUNT] = {FOR_EACH_DMA(DMA_IRQn)};
     mIrq = irq[idx];
     
     mConfig.all = 0;
@@ -227,7 +254,7 @@ void Dma::handleInterrupt()
 #endif 
    
 #define DEFINE_DMA_IRQ_HANDLER(x,y) \
-    void DMA##x##_Channel##y##_IRQHandler() {Dma::mChannels[7*(x-1)+(y-1)]->handleInterrupt();}
+    void DMA##x##_Channel##y##_IRQHandler() {Dma::mChannels[CH_PER_DMA*(x-1)+(y-1)]->handleInterrupt();}
     
 FOR_EACH_DMA(DEFINE_DMA_IRQ_HANDLER)    
   

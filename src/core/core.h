@@ -4,7 +4,9 @@
 #include "coreexception.h"
 #include "macros.h"
 
+#if defined(__ICCARM__)
 #include <intrinsics.h>
+#endif
 // NDEBUG is IAR predefined symbol in Release configuration
 #ifndef NDEBUG
 #include "qdebug.h"

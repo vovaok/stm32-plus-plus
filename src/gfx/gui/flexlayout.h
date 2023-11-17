@@ -1,6 +1,7 @@
 #pragma once
 
 #include "layout.h"
+#include "core/macros.h"
 
 class FlexLayout : public Layout
 {

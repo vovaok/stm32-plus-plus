@@ -19,7 +19,7 @@ extern "C" void SPI6_IRQHandler(void);
 #if defined(STM32F4)
     #define SPI_CR1_DFF_BIT     DFF     // data frame format (8/16 bit)
     #define SPI_CR2_NSSP_BIT
-#elif defined(STM32L4)
+#elif defined(STM32L4) || defined(STM32G4)
     #define SPI_FIFO_IMPL   1
     #define SPI_CR1_DFF_BIT     CRCL    // CRC length
     #define SPI_CR2_NSSP_BIT    NSSP

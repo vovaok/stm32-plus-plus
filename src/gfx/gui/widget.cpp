@@ -1,6 +1,7 @@
 #include "widget.h"
 #include "layout.h"
 #include "guiapplication.h"
+#include <algorithm>
 
 Widget::Widget(Widget *parent)
 {

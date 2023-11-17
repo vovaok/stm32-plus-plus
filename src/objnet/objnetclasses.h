@@ -33,6 +33,7 @@ typedef enum
     // device subtypes:   0x0000XX00
     // Controller group:
     cidGeneric          = 0x00000000,
+    cidLeggedRobot      = 0x00000400,
     cidRoboticArm       = 0x00000600,
     cidExoskeleton      = 0x00001300,
     cidWheelchair       = 0x00001400,

@@ -166,10 +166,13 @@ GPIO_TypeDef *Gpio::getPortByNumber(int port)
         case 0x3: return GPIOD;
         case 0x4: return GPIOE;
         case 0x5: return GPIOF;
-#if !defined(STM32F37X)
+#if defined(GPIOG)
         case 0x6: return GPIOG;
+#endif
+#if defined(GPIOH)
         case 0x7: return GPIOH;
-#elif !defined(STM32F37X) && !defined(STM32F446xx)
+#endif
+#if defined(GPIOI)
         case 0x8: return GPIOI;
 #endif
         default: return 0L;

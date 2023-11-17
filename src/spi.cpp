@@ -22,6 +22,14 @@
 #define SPI3_DMA_CHANNEL_RX     Dma::SPI3_RX_Channel1;
 #define SPI3_DMA_CHANNEL_TX     Dma::SPI3_TX_Channel2;
 
+#elif defined(STM32G4)
+#define SPI1_DMA_CHANNEL_RX     Dma::SPI1_RX;
+#define SPI1_DMA_CHANNEL_TX     Dma::SPI1_TX;
+#define SPI2_DMA_CHANNEL_RX     Dma::SPI2_RX;
+#define SPI2_DMA_CHANNEL_TX     Dma::SPI2_TX;
+#define SPI3_DMA_CHANNEL_RX     Dma::SPI3_RX;
+#define SPI3_DMA_CHANNEL_TX     Dma::SPI3_TX;
+
 #endif
 
 Spi *Spi::mSpies[6] = {0L, 0L, 0L, 0L, 0L, 0L};

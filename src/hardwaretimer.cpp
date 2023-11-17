@@ -230,8 +230,9 @@ void HardwareTimer::setFrequency(int frequency_Hz)
         period = mInputClk / frequency_Hz;  
         psc = period >> 16;
     }
-    mTim->ARR = (period / (psc + 1)) - 1;
-    if (mTim->CNT >= mTim->ARR)
+    period = (period / (psc + 1)) - 1;
+    mTim->ARR = period;
+    if (mTim->CNT >= period)
         mTim->CNT = 0;
     mTim->PSC = psc;
 }
@@ -457,16 +458,8 @@ void HardwareTimer::enableInterrupt(InterruptSource source)
         }
     }
     
-//    NVIC_InitTypeDef NVIC_InitStructure;
-//    NVIC_InitStructure.NVIC_IRQChannel = mIrq;
-//    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 2;
-//    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;
-//    NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
-//    NVIC_Init(&NVIC_InitStructure);
-    
     NVIC_SetPriority(mIrq, 2);
     NVIC_EnableIRQ(mIrq);
-    
     
     mTim->DIER |= (1 << source);
 }
@@ -478,6 +471,7 @@ void HardwareTimer::handleInterrupt()
         if (mEnabledIrq[i])
         {
             uint16_t flag = (1 << i);
+#pragma diag_suppress=Pa082
             if (mTim->DIER & mTim->SR & flag)
             {
                 mTim->SR = ~flag;
@@ -491,152 +485,44 @@ void HardwareTimer::handleInterrupt()
 #ifdef __cplusplus
  extern "C" {
 #endif 
-
+        
+#define TIM_SIMPLEX_IRQ_HANDLER(x) \
+    void TIM_IRQHandler(x)() \
+    { \
+    if (HardwareTimer::mTimers[x-1]) \
+        HardwareTimer::mTimers[x-1]->handleInterrupt(); \
+    }
+    
+#define TIM_COMPLEX_IRQ_HANDLER(tim, t1, t2) \
+    void TIM_IRQHandler(tim)() \
+    { \
+    if (HardwareTimer::mTimers[t1-1]) \
+        HardwareTimer::mTimers[t1-1]->handleInterrupt(); \
+    if (t2 && HardwareTimer::mTimers[t2-1]) \
+        HardwareTimer::mTimers[t2-1]->handleInterrupt(); \
+    }    
+    
 #if defined(STM32F4)
-void TIM1_BRK_TIM9_IRQHandler()
-{
-    if (HardwareTimer::mTimers[9-1])
-        HardwareTimer::mTimers[9-1]->handleInterrupt();
-    if (HardwareTimer::mTimers[1-1])
-        HardwareTimer::mTimers[1-1]->handleInterrupt();
-}
-
-void TIM1_UP_TIM10_IRQHandler()
-{
-    if (HardwareTimer::mTimers[10-1])
-        HardwareTimer::mTimers[10-1]->handleInterrupt();
-    if (HardwareTimer::mTimers[1-1])
-        HardwareTimer::mTimers[1-1]->handleInterrupt();
-}
-
-void TIM1_TRG_COM_TIM11_IRQHandler()
-{
-    if (HardwareTimer::mTimers[11-1])
-        HardwareTimer::mTimers[11-1]->handleInterrupt();
-    if (HardwareTimer::mTimers[1-1])
-        HardwareTimer::mTimers[1-1]->handleInterrupt();
-}
+#define FOREACH_SIMPLEX_TIM_IRQ(f) \
+    f(2) f(3) f(4) f(5) f(6) f(7)    
+#define FOREACH_COMPLEX_TIM_IRQ(f) \
+    f(1_BRK, 1, 9)  f(1_UP, 1, 10) f(1_TRG_COM, 1, 11) f(1_CC, 1, 0) \
+    f(8_BRK, 8, 12) f(8_UP, 8, 13) f(8_TRG_COM, 8, 14) f(8_CC, 8, 0)   
+    
+#elif defined(STM32L4) || defined(STM32G4)
+#define FOREACH_SIMPLEX_TIM_IRQ(f) \
+    f(2) f(3) f(4) f(5) f(6) f(7) f(9) f(10) f(11) f(12) f(13) f(14)
+#define FOREACH_COMPLEX_TIM_IRQ(f) \
+    f(1_BRK, 1, 15) f(1_UP, 1, 16) f(1_TRG_COM, 1, 17) f(1_CC, 1, 0) \
+    f(8_BRK, 8, 0)  f(8_UP, 8, 0)  f(8_TRG_COM, 8, 0)  f(8_CC, 8, 0)       
+    
 #endif
 
-#if defined(STM32L4)
-void TIM1_BRK_TIM15_IRQHandler()
-{
-    if (HardwareTimer::mTimers[15-1])
-        HardwareTimer::mTimers[15-1]->handleInterrupt();
-    if (HardwareTimer::mTimers[1-1])
-        HardwareTimer::mTimers[1-1]->handleInterrupt();
-}
-
-void TIM1_UP_TIM16_IRQHandler()
-{
-    if (HardwareTimer::mTimers[16-1])
-        HardwareTimer::mTimers[16-1]->handleInterrupt();
-    if (HardwareTimer::mTimers[1-1])
-        HardwareTimer::mTimers[1-1]->handleInterrupt();
-}
-
-void TIM1_TRG_COM_TIM17_IRQHandler()
-{
-    if (HardwareTimer::mTimers[17-1])
-        HardwareTimer::mTimers[17-1]->handleInterrupt();
-    if (HardwareTimer::mTimers[1-1])
-        HardwareTimer::mTimers[1-1]->handleInterrupt();
-}
-#endif
-
-void TIM1_CC_IRQHandler()
-{
-    if (HardwareTimer::mTimers[1-1])
-        HardwareTimer::mTimers[1-1]->handleInterrupt();
-}
-   
-void TIM2_IRQHandler()
-{
-    if (HardwareTimer::mTimers[2-1])
-        HardwareTimer::mTimers[2-1]->handleInterrupt();
-}
-
-void TIM3_IRQHandler()
-{
-    if (HardwareTimer::mTimers[3-1])
-        HardwareTimer::mTimers[3-1]->handleInterrupt();
-}
-
-void TIM4_IRQHandler()
-{
-    if (HardwareTimer::mTimers[4-1])
-        HardwareTimer::mTimers[4-1]->handleInterrupt();
-}
-
-void TIM5_IRQHandler()
-{
-    if (HardwareTimer::mTimers[5-1])
-        HardwareTimer::mTimers[5-1]->handleInterrupt();
-}
-
-void TIM6_DAC_IRQHandler()
-{
-    if (HardwareTimer::mTimers[6-1])
-        HardwareTimer::mTimers[6-1]->handleInterrupt();
-}
-
-void TIM7_IRQHandler()
-{
-    if (HardwareTimer::mTimers[7-1])
-        HardwareTimer::mTimers[7-1]->handleInterrupt();
-}
-
-#if defined(STM32F4)
-void TIM8_BRK_TIM12_IRQHandler()
-{
-    if (HardwareTimer::mTimers[12-1])
-        HardwareTimer::mTimers[12-1]->handleInterrupt();
-    if (HardwareTimer::mTimers[8-1])
-        HardwareTimer::mTimers[8-1]->handleInterrupt();
-}
-
-void TIM8_UP_TIM13_IRQHandler()
-{
-    if (HardwareTimer::mTimers[13-1])
-        HardwareTimer::mTimers[13-1]->handleInterrupt();
-    if (HardwareTimer::mTimers[8-1])
-        HardwareTimer::mTimers[8-1]->handleInterrupt();
-}
-
-void TIM8_TRG_COM_TIM14_IRQHandler()
-{
-    if (HardwareTimer::mTimers[14-1])
-        HardwareTimer::mTimers[14-1]->handleInterrupt();
-    if (HardwareTimer::mTimers[8-1])
-        HardwareTimer::mTimers[8-1]->handleInterrupt();
-}
-#endif
-
-#if defined(STM32L4)
-void TIM8_BRK_IRQHandler()
-{
-    if (HardwareTimer::mTimers[8-1])
-        HardwareTimer::mTimers[8-1]->handleInterrupt();
-}
-
-void TIM8_UP_IRQHandler()
-{
-    if (HardwareTimer::mTimers[8-1])
-        HardwareTimer::mTimers[8-1]->handleInterrupt();
-}
-
-void TIM8_TRG_COM_IRQHandler()
-{
-    if (HardwareTimer::mTimers[8-1])
-        HardwareTimer::mTimers[8-1]->handleInterrupt();
-}
-#endif
-
-void TIM8_CC_IRQHandler()
-{
-    if (HardwareTimer::mTimers[8-1])
-        HardwareTimer::mTimers[8-1]->handleInterrupt();
-}
+// definition of simplex timer handlers (one irq handler per timer)
+FOREACH_SIMPLEX_TIM_IRQ(TIM_SIMPLEX_IRQ_HANDLER);
+// definition of complex timer handlers (one irq handler for two timers)
+#pragma diag_suppress=Pe175
+FOREACH_COMPLEX_TIM_IRQ(TIM_COMPLEX_IRQ_HANDLER);
 
 #ifdef __cplusplus
 }

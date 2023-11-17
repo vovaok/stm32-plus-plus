@@ -3,24 +3,21 @@
 
 #include <stdarg.h>
 #include "stm32.h"
-//#include "stm32_conf.h"
 #include "core/core.h"
 
 /*! Pin configuration macro.
     Intended for internal use.
 */
 
-//#if defined (STM32F37X)
 #define PINCONFIG(pin, flags, af, periph) ((pin) | ((flags)<<8) | ((af)<<16) | ((periph)<<24))
 #define GpioConfigGetPeriph(cfg) (cfg >> 24)
 #define GpioConfigGetPeriphNumber(cfg) (((unsigned long)cfg) >> 28)
 #define GpioConfigGetPeriphChannel(cfg) ((cfg >> 24) & 0xF)
-//#else
-//#define PINCONFIG(pin, flags, af) ((pin) | ((flags)<<8) | ((af)<<16))
-//#endif
 #define GpioConfigGetAF(cfg) ((cfg >> 16) & 0xFF)
 #define GpioConfigGetFlags(cfg) ((cfg >> 8) & 0xFF)
 #define GpioConfigGetName(cfg) (cfg & 0xFF)
+
+//#define GPIO_HAS_PORT(x)    defined(GPIO##x)
 
 /*! GPIO pin class.
     Provides easy interface for pin configuration, including alternate functions.
@@ -63,14 +60,12 @@ public:
         PE8  = 0x48, PE9  = 0x49, PE10 = 0x4A, PE11 = 0x4B, PE12 = 0x4C, PE13 = 0x4D, PE14 = 0x4E, PE15 = 0x4F,
         PF0  = 0x50, PF1  = 0x51, PF2  = 0x52, PF3  = 0x53, PF4  = 0x54, PF5  = 0x55, PF6  = 0x56, PF7  = 0x57,
         PF8  = 0x58, PF9  = 0x59, PF10 = 0x5A, PF11 = 0x5B, PF12 = 0x5C, PF13 = 0x5D, PF14 = 0x5E, PF15 = 0x5F,
-#if !defined(STM32F37X)
         PG0  = 0x60, PG1  = 0x61, PG2  = 0x62, PG3  = 0x63, PG4  = 0x64, PG5  = 0x65, PG6  = 0x66, PG7  = 0x67,
         PG8  = 0x68, PG9  = 0x69, PG10 = 0x6A, PG11 = 0x6B, PG12 = 0x6C, PG13 = 0x6D, PG14 = 0x6E, PG15 = 0x6F,
         PH0  = 0x70, PH1  = 0x71, PH2  = 0x72, PH3  = 0x73, PH4  = 0x74, PH5  = 0x75, PH6  = 0x76, PH7  = 0x77,
         PH8  = 0x78, PH9  = 0x79, PH10 = 0x7A, PH11 = 0x7B, PH12 = 0x7C, PH13 = 0x7D, PH14 = 0x7E, PH15 = 0x7F,
         PI0  = 0x80, PI1  = 0x81, PI2  = 0x82, PI3  = 0x83, PI4  = 0x84, PI5  = 0x85, PI6  = 0x86, PI7  = 0x87,
         PI8  = 0x88, PI9  = 0x89, PI10 = 0x8A, PI11 = 0x8B,
-#endif
         noPin = 0xFF  //!< no pin choosed
     } PinName;
     
@@ -84,12 +79,10 @@ public:
         portC = 0x20,
         portD = 0x30,
         portE = 0x40,
-        portF = 0x50,
-#if !defined(STM32F37X)        
+        portF = 0x50,   
         portG = 0x60,
-        portH = 0x70,
+        portH = 0x70,     
         portI = 0x80,
-#endif
         noPort = 0xFF
     } PortName;
     

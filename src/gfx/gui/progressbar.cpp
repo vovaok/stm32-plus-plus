@@ -1,5 +1,7 @@
 #include "progressbar.h"
 #include "../image.h"
+#include <math.h>
+#include "core/macros.h"
 
 ProgressBar::ProgressBar(Widget *parent) :
     Widget(parent)
@@ -100,8 +102,8 @@ void ProgressBar::paintEvent(Display *d)
     if (m_textVisible)
     {
         ByteArray s = m_format;
-        s.replace("%p", ByteArray::number(percent, m_decimals));
-        s.replace("%v", ByteArray::number(m_value, m_decimals));
+        s.replace("%p", ByteArray::number(percent, 'f', m_decimals));
+        s.replace("%v", ByteArray::number(m_value, 'f', m_decimals));
         img.setColor(m_enabled? palette()->text(): palette()->disabledText());
         img.setFont(font());
         img.drawString(0, 0, w, h, AlignCenter, s.data());

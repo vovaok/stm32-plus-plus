@@ -1,7 +1,7 @@
 #pragma once
 
 #include <stdint.h>
-#include "GUI/guitypes.h"
+#include "gui/guitypes.h"
 	
 class Color
 {

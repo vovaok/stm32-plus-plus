@@ -633,37 +633,39 @@ ByteArray ByteArray::number(int n)
     return ba;
 }
 
-ByteArray ByteArray::number(float n, int prec)
+ByteArray ByteArray::number(float n, char f, int prec)
 {
     ByteArray ba;
     ba.resize(16);
+    char fmt[8];
     if (prec >= 0)
     {
-        char fmt[8];
-        sprintf(fmt, "%%.%df", prec);
+        sprintf(fmt, "%%.%d%c", prec, f);
         sprintf(ba.data(), fmt, n);
     }
     else
     {
-        sprintf(ba.data(), "%f", n);
+        sprintf(fmt, "%%%c", f);
+        sprintf(ba.data(), fmt, n);
     }
     ba.resize(strlen(ba.data()));
     return ba;
 }
 
-ByteArray ByteArray::number(double n, int prec)
+ByteArray ByteArray::number(double n, char f, int prec)
 {
     ByteArray ba;
     ba.resize(16);
+    char fmt[8];
     if (prec >= 0)
     {
-        char fmt[8];
-        sprintf(fmt, "%%.%df", prec);
+        sprintf(fmt, "%%.%d%c", prec, f);
         sprintf(ba.data(), fmt, n);
     }
     else
     {
-        sprintf(ba.data(), "%f", n);
+        sprintf(fmt, "%%%c", f);
+        sprintf(ba.data(), fmt, n);
     }
     ba.resize(strlen(ba.data()));
     return ba;

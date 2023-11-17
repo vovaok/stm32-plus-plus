@@ -7,6 +7,8 @@
     #include "dma4xx.h"
 #elif defined(STM32L4)
     #include "dma_l4.h"
+#elif defined(STM32G4)
+    #include "dma_l4.h"
 #endif
 
 

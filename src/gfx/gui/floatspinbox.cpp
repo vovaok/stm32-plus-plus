@@ -69,5 +69,5 @@ void FloatSpinBox::stepBy(int steps)
 
 void FloatSpinBox::updateText()
 {
-    lineEdit()->setText(m_prefix + ByteArray::number(m_value, m_precision) + m_suffix);
+    lineEdit()->setText(m_prefix + ByteArray::number(m_value, 'f', m_precision) + m_suffix);
 }

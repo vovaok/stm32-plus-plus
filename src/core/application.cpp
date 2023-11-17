@@ -140,10 +140,13 @@ bool Application::startOnbBootloader()
     __DISABLE_GPIO(D);
     __DISABLE_GPIO(E);
     __DISABLE_GPIO(F);
-#if !defined(STM32F37X)
+#if defined(GPIOG)
     __DISABLE_GPIO(G);
+#endif
+#if defined(GPIOH)
     __DISABLE_GPIO(H);
-#elif !defined(STM32F37X) && !defined(STM32F446xx)
+#endif
+#if defined(GPIOI)
     __DISABLE_GPIO(I);
 #endif
     __set_MSP(*ptr);

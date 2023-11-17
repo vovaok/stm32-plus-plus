@@ -1,5 +1,7 @@
 #include "fontdatabase.h"
 #include "font.h"
+#include <string.h>
+#include <stdlib.h>
 
 std::vector<const FontInfo *> FontDatabase::m_fonts;
 

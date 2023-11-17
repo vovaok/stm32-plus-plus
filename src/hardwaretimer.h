@@ -27,15 +27,11 @@
 #define TIM13_IRQ           TIM8_UP_TIM13_IRQ
 #define TIM14_IRQ           TIM8_TRG_COM_TIM14_IRQ
 
-#elif defined(STM32L4)
-#define RCC_APB1ENR_TIM2EN  RCC_APB1ENR1_TIM2EN
-#define RCC_APB1ENR_TIM3EN  RCC_APB1ENR1_TIM3EN
-#define RCC_APB1ENR_TIM4EN  RCC_APB1ENR1_TIM4EN
-#define RCC_APB1ENR_TIM5EN  RCC_APB1ENR1_TIM5EN
-#define RCC_APB1ENR_TIM6EN  RCC_APB1ENR1_TIM2EN
-#define RCC_APB1ENR_TIM7EN  RCC_APB1ENR1_TIM7EN
+#elif defined(STM32L4) || defined(STM32G4)
 #define TIM1_UP_IRQ         TIM1_UP_TIM16_IRQ
-//#define TIM1_TRG_COM_IRQ    TIM1_TRG_COM_TIM17_IRQ // already defined
+    #ifndef TIM1_TRG_COM_IRQ // if not already defined
+    #define TIM1_TRG_COM_IRQ    TIM1_TRG_COM_TIM17_IRQ
+    #endif
 #define TIM1_BRK_IRQ        TIM1_BRK_TIM15_IRQ
 #define TIM8_UP_IRQ         TIM8_UP_IRQ
 #define TIM8_TRG_COM_IRQ    TIM8_TRG_COM_IRQ
@@ -43,6 +39,11 @@
 #define TIM15_IRQ           TIM1_BRK_TIM15_IRQ
 #define TIM16_IRQ           TIM1_UP_TIM16_IRQ
 #define TIM17_IRQ           TIM1_TRG_COM_TIM17_IRQ
+
+    #if defined(STM32G4)
+    #define TIM7_IRQ            TIM7_DAC_IRQ
+    #endif
+
 #endif
 
 #define TIM6_IRQ            TIM6_DAC_IRQ

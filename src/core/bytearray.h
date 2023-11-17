@@ -1,6 +1,11 @@
 #ifndef _BYTEARRAY_H
 #define _BYTEARRAY_H
 
+#ifdef QT_CORE_LIB
+#include <QByteArray>
+#define ByteArray QByteArray
+#else
+
 #include <string>
 #include <string.h>
 #include <stdio.h>
@@ -111,11 +116,12 @@ public:
     static ByteArray fromRawData(const char *data, int size);
     static ByteArray fromPercentEncoding(const ByteArray &ba);
     static ByteArray number(int n);
-    static ByteArray number(float n, int prec=-1);
-    static ByteArray number(double n, int prec=-1);
+    static ByteArray number(float n, char f='g', int prec=-1);
+    static ByteArray number(double n, char f='g', int prec=-1);
 };
 
 ByteArray operator +(const ByteArray &ba1, const ByteArray ba2);
 bool operator<(const ByteArray &ba1, const ByteArray &ba2);
 
+#endif
 #endif

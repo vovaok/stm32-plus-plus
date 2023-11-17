@@ -11,7 +11,12 @@ GuiApplication::GuiApplication() : Application()
     m_paintTimer = new Timer;
     m_paintTimer->onTimeout = EVENT(&GuiApplication::paintTask);
     m_paintTimer->setInterval(16);
-//        registerTaskEvent(EVENT(&GuiApplication::paintTask));
+}
+
+GuiApplication::~GuiApplication()
+{
+    m_paintTimer->stop();
+    delete m_paintTimer;
 }
 
 GuiApplication *GuiApplication::instance()

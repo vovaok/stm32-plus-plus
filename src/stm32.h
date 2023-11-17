@@ -20,6 +20,12 @@
 
 #include "../lib/CMSIS/Device/ST/STM32L4xx/Include/stm32l4xx.h"
 
+#elif defined (STM32G431xx) || defined (STM32G441xx) || defined (STM32G471xx) || \
+    defined (STM32G473xx) || defined (STM32G474xx) || defined (STM32G484xx) || \
+    defined (STM32GBK1CB) || defined (STM32G491xx) || defined (STM32G4A1xx)
+
+#include "../lib/CMSIS/Device/ST/STM32G4xx/Include/stm32g4xx.h"        
+        
 #endif
 
 #endif

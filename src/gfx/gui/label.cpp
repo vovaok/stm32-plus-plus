@@ -34,7 +34,7 @@ void Label::setNum(int n)
 
 void Label::setNum(float n, int prec)
 {
-    setText(ByteArray::number(n, prec));
+    setText(ByteArray::number(n, 'f', prec));
 }
 
 void Label::update()
