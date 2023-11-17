@@ -15,6 +15,7 @@ XPT2046::XPT2046(Spi *spi, Gpio::PinName cs, Gpio::PinName penirq) :
 //    m_spi->setDataSize(16);
 
     setCalibration(340, 510, -360, -530);
+//    setCalibration(510, 340, -530, -360);
 
     stmApp()->registerTaskEvent(EVENT(&XPT2046::task));
 }
@@ -74,8 +75,8 @@ void XPT2046::task()
 
             //! @todo Orientation fix here
 
-            m_x = tx;
-            m_y = ty;
+            m_x = ty;//x;
+            m_y = tx;//y;
 
             touchEvent(type);
         }

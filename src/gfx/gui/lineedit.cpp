@@ -18,14 +18,20 @@ LineEdit::LineEdit(const ByteArray &text, Widget *parent) :
 
 void LineEdit::setAlignment(Alignment value)
 {
-    m_align = value;
-    update();
+    if (value != m_align)
+    {
+        m_align = value;
+        update();
+    }
 }
 
 void LineEdit::setText(const ByteArray &text)
 {
-    m_text = text;
-    update();
+    if (text != m_text)
+    {
+        m_text = text;
+        update();
+    }
 }
 
 void LineEdit::update()
