@@ -37,19 +37,19 @@ bool Rcc::setSystemClockSource(ClockSource src)
 {
     if (src > PLL)
         return false;
-    
+
     uint32_t sws = src << RCC_CFGR_SWS_Pos;
-    
+
     // if the clock is already in use
     if ((RCC->CFGR & RCC_CFGR_SWS) == sws)
         return true; // do nothing
- 
+
     RCC->CFGR &= ~(RCC_CFGR_SW);
     RCC->CFGR |= src;
 
     uint32_t timeout = 50000;
     while (((RCC->CFGR & RCC_CFGR_SWS) != sws) && timeout--);
-    
+
     return timeout;
 }
 
@@ -70,7 +70,7 @@ bool Rcc::setEnabled(ClockSource src, bool enabled)
     case HSE: mask = RCC_CR_HSEON; break;
     case PLL: mask = RCC_CR_PLLON; break;
     };
-    
+
     if (enabled)
     {
         RCC->CR |= mask;
@@ -80,7 +80,7 @@ bool Rcc::setEnabled(ClockSource src, bool enabled)
             RCC->CR &= ~mask;
         return timeout;
     }
-    
+
     RCC->CR &= ~mask;
     return true;
 }
@@ -102,33 +102,33 @@ bool Rcc::isReady(ClockSource src)
 bool Rcc::configPll(uint32_t hseValue, uint32_t sysClk)
 {
     mHseValue = hseValue;
-    
+
     if (!isReady(HSE))
     {
         bool hseEnabled = setEnabled(HSE, true);
         if (!hseEnabled)
             return false;
     }
-    
+
     return configPll(sysClk);
 }
 
-#if defined(STM32F4)    
+#if defined(STM32F4)
 bool Rcc::configPll(uint32_t sysClk)
 {
     uint32_t inputClk = mHseValue;
     if (!inputClk)
         inputClk = hsiValue();
-    
+
     if (systemClockSource() == PLL)
     {
         if (!setSystemClockSource(HSI))
             return false;
         setEnabled(PLL, false);
     }
-    
+
 #if defined(STM32F37X)
-        // calc pllM, pllN, etc...        
+        // calc pllM, pllN, etc...
         int mul = sysClk / inputClk;
         if (mul * inputClk == sysClk)
         {
@@ -142,7 +142,7 @@ bool Rcc::configPll(uint32_t sysClk)
             // с USB ваще борода, там только 1/1 (sysClk=48 ћ√ц) или 1/1.5 (sysClk=72 ћгц)
             THROW(Exception::BadSoBad);
         }
-        
+
         if (mPllN > 16)
             THROW(Exception::BadSoBad);
 
@@ -163,11 +163,11 @@ bool Rcc::configPll(uint32_t sysClk)
         mSysClk = inputClk / mPllM * mPllN / mPllP;
         //end of calc
 #endif
-        
-      
+
+
         /* Select regulator voltage output Scale 1 mode */
         RCC->APB1ENR |= RCC_APB1ENR_PWREN;
-#if !defined(STM32F37X)        
+#if !defined(STM32F37X)
         PWR->CR |= PWR_CR_VOS;
 #endif
 
@@ -179,7 +179,7 @@ bool Rcc::configPll(uint32_t sysClk)
         /* PCLK2 = HCLK / 2*/
         RCC->CFGR |= RCC_CFGR_PPRE2_DIV1;
         mAPB2Clk = mAHBClk;
-        
+
         /* PCLK1 = HCLK / 4*/
         RCC->CFGR |= RCC_CFGR_PPRE1_DIV2;
         mAPB1Clk = mAHBClk >> 1;
@@ -187,28 +187,28 @@ bool Rcc::configPll(uint32_t sysClk)
         /* PCLK2 = HCLK / 2*/
         RCC->CFGR |= RCC_CFGR_PPRE2_DIV2;
         mAPB2Clk = mAHBClk >> 1;
-        
+
         /* PCLK1 = HCLK / 4*/
         RCC->CFGR |= RCC_CFGR_PPRE1_DIV4;
         mAPB1Clk = mAHBClk >> 2;
     #endif /* STM32F401xx */
-        
+
     #if defined(STM32F37X)
         RCC->CFGR2 = mPllM - 1;
         RCC->CFGR &= ~(RCC_CFGR_PLLMULL);
-        RCC->CFGR |= RCC_CFGR_PLLSRC; // 
+        RCC->CFGR |= RCC_CFGR_PLLSRC; //
         RCC->CFGR |= (mPllN - 2) << 18;
     #else
         /* Configure the main PLL */
         RCC->PLLCFGR = mPllM | (mPllN << 6) | (((mPllP >> 1) -1) << 16) | (mPllQ << 24);
-        
+
         if (mHseValue) // if HSE is present make it the clock source of PLL
             RCC->PLLCFGR |= RCC_PLLCFGR_PLLSRC_HSE;
     #endif
 
-        
+
         setEnabled(PLL, true);
-       
+
     #if defined (STM32F427_437xx) || defined (STM32F429xx)
         /* Enable the Over-drive to extend the clock frequency to 180 Mhz */
         PWR->CR |= PWR_CR_ODEN;
@@ -218,7 +218,7 @@ bool Rcc::configPll(uint32_t sysClk)
         PWR->CR |= PWR_CR_ODSWEN;
         while((PWR->CSR & PWR_CSR_ODSWRDY) == 0)
         {
-        }      
+        }
         /* Configure Flash prefetch, Instruction cache, Data cache and wait state */
         FLASH->ACR = FLASH_ACR_PRFTEN | FLASH_ACR_ICEN |FLASH_ACR_DCEN |FLASH_ACR_LATENCY_5WS;
     #elif defined (STM32F401xx)
@@ -226,7 +226,7 @@ bool Rcc::configPll(uint32_t sysClk)
     #else
         FLASH->ACR = FLASH_ACR_PRFTEN | FLASH_ACR_ICEN |FLASH_ACR_DCEN |FLASH_ACR_LATENCY_5WS;
     #endif /* STM32F401xx */
-        
+
     #if defined (STM32F37X)
         // set SDADC clock prescaler
         unsigned long clkSDADC = mAHBClk / 6000000;
@@ -235,47 +235,47 @@ bool Rcc::configPll(uint32_t sysClk)
         /* Enable Prefetch Buffer and set Flash Latency */
         FLASH->ACR = FLASH_ACR_PRFTBE | (uint32_t)FLASH_ACR_LATENCY_1;
     #endif
-        
+
         return setSystemClockSource(PLL);
-      
+
         /*     The original configuration procedure     *\
         |  Use it for reference if something goes wrong  |
         \*                                              */
-        
+
 //        RCC->CFGR |= RCC_CFGR_HPRE_DIV1;  // HCLK = SYSCLK / 1
 //        mAHBClk = mSysClk >> 0;
 //        RCC->CFGR |= RCC_CFGR_PPRE2_DIV2; // PCLK2 = HCLK / 2
 //        mAPB2Clk = mAHBClk >> 1;
 //        RCC->CFGR |= RCC_CFGR_PPRE1_DIV4; // PCLK1 = HCLK / 4
 //        mAPB1Clk = mAHBClk >> 2;
-//        
+//
 //        // Configure the main PLL
 //        RCC->PLLCFGR = mPllM | (mPllN << 6) | (((mPllP >> 1) -1) << 16) |
 //                       (RCC_PLLCFGR_PLLSRC_HSE) | (mPllQ << 24);
 //
-//        // Enable the main PLL 
+//        // Enable the main PLL
 //        RCC->CR |= RCC_CR_PLLON;
-//        // Wait till the main PLL is ready 
+//        // Wait till the main PLL is ready
 //        while((RCC->CR & RCC_CR_PLLRDY) == 0);
 //
-//        // Configure Flash prefetch, Instruction cache, Data cache and wait state 
+//        // Configure Flash prefetch, Instruction cache, Data cache and wait state
 //        FLASH->ACR = FLASH_ACR_PRFTEN | FLASH_ACR_ICEN | FLASH_ACR_DCEN | FLASH_ACR_LATENCY_5WS;
 //
-//        // Select the main PLL as system clock source 
+//        // Select the main PLL as system clock source
 //        RCC->CFGR &= (uint32_t)((uint32_t)~(RCC_CFGR_SW));
 //        RCC->CFGR |= RCC_CFGR_SW_PLL;
 //
-//        // Wait till the main PLL is used as system clock source 
+//        // Wait till the main PLL is used as system clock source
 //        while ((RCC->CFGR & (uint32_t)RCC_CFGR_SWS ) != RCC_CFGR_SWS_PLL);
 }
 
 bool Rcc::measureHseFreq()
-{    
+{
     mHseValue = 0;
-    
+
     // Enable HSE
     RCC->CR |= RCC_CR_HSEON;
- 
+
     // Wait till HSE is ready and if Time out is reached exit;
     uint32_t timeout = 20000;
     while (!(RCC->CR & RCC_CR_HSERDY) && timeout--);
@@ -286,7 +286,7 @@ bool Rcc::measureHseFreq()
         RCC->CR &= ~RCC_CR_HSEON;
         return false;
     }
-      
+
     // measure HSE frequency
     RCC->APB2ENR |= RCC_APB2ENR_TIM11EN; // enable peripheral clock for TIM11
     unsigned long rccCfgr = RCC->CFGR;
@@ -294,7 +294,7 @@ bool Rcc::measureHseFreq()
     temp &= ~(0x1F << 16);
     temp |= (30 << 16); // RTC = HSE / 30
     RCC->CFGR = temp;
-    
+
     int loopCount = 10;
     int fr0, fr1;
     TIM_TypeDef *tim11 = TIM11;
@@ -327,17 +327,17 @@ bool Rcc::measureHseFreq()
         "STRH R0, [R1]\n"               // TIM11->SR = 0;
         : [f0]"=r"(fr0), [f1]"=r"(fr1)
         : [tim]"r"(tim11), [cnt]"r"(loopCount)
-        : "cc", "R0", "R1", "R2", "R3");     
-    
+        : "cc", "R0", "R1", "R2", "R3");
+
     RCC->CFGR = rccCfgr;
     RCC->APB2ENR &= ~RCC_APB2ENR_TIM11EN; // disable peripheral clock to TIM11
     // end of measure
-    
+
     // calculate hseValue
     int hseValue;
     fr1 -= fr0;
     hseValue = ((16 * 30) * loopCount + fr1 / 2) / fr1;
-    hseValue *= 1000000;   
+    hseValue *= 1000000;
 
     if (hseValue > 26000000)
         hseValue = 16000000;
@@ -350,7 +350,7 @@ bool Rcc::measureHseFreq()
 bool Rcc::configPll(uint32_t sysClk)
 {
     //! @todo Dopilit RCC config for STM32L4
-    
+
     uint32_t pllR = 2;
     uint32_t pllvco = sysClk * pllR;
     uint32_t clkin = 4000000; // MSI clock
@@ -361,24 +361,24 @@ bool Rcc::configPll(uint32_t sysClk)
         THROW(Exception::BadSoBad);
     mPllQ = pllvco / 48000000;
 //    mPllP = 7;
-    
+
 
     mSysClk = clkin / mPllM * mPllN / pllR;
     mAHBClk = mSysClk;
     mAPB1Clk = mSysClk;
     mAPB2Clk = mSysClk;
-    
+
     FLASH->ACR = FLASH_ACR_PRFTEN | FLASH_ACR_ICEN |FLASH_ACR_DCEN |FLASH_ACR_LATENCY_2WS;
-    
+
     RCC->PLLCFGR = ((mPllM - 1) << 4) | ((mPllN & 0x7F) << 8) | (((mPllQ>>1)-1) << 21) | (((pllR>>1)-1) << 25) | (RCC_PLLCFGR_PLLSRC_MSI) | (RCC_PLLCFGR_PLLREN);
     RCC->CR |= RCC_CR_PLLON;
-    
+
     while (!(RCC->CR & RCC_CR_PLLRDY));
-    
+
     RCC->CFGR = RCC->CFGR & ~RCC_CFGR_SW | RCC_CFGR_SW_PLL;
-    
+
     while ((RCC->CFGR & RCC_CFGR_SWS) != RCC_CFGR_SWS_PLL);
-    
+
     return true;
 }
 
@@ -396,43 +396,67 @@ bool Rcc::configPll(uint32_t sysClk)
     uint32_t inputClk = mHseValue;
     if (!inputClk)
         inputClk = hsiValue();
-    
+
     if (systemClockSource() == PLL)
     {
         if (!setSystemClockSource(HSI))
             return false;
+        FLASH->ACR = (FLASH->ACR & ~FLASH_ACR_LATENCY_Msk) | FLASH_ACR_LATENCY_0WS;
         setEnabled(PLL, false);
     }
-    
+
     uint32_t pllR = 2;
     uint32_t pllvco = sysClk * pllR;
-    
-    mPllM = 1;
-    mPllN = pllvco / (inputClk / mPllM);
-    if (mPllN > 0x7F)
-        THROW(Exception::BadSoBad);
-    mPllQ = pllvco / 48000000;
-//    mPllP = 7;
 
-    mSysClk = inputClk / mPllM * mPllN / pllR;
+    mPllM = inputClk / 4000000;
+    if (!mPllM)
+        mPllM = 1;
+    if (mPllM > 16)
+        THROW(Exception::BadSoBad);
+    mPllN = pllvco / (inputClk / mPllM);
+    if (mPllN < 8 || mPllN > 127)
+        THROW(Exception::BadSoBad);
+    mPllP = 2;
+    mPllQ = pllvco / 48000000;
+
+    //! @todo USB clock poorly matches 48 MHz
+
+    mSysClk = inputClk;
     mAHBClk = mSysClk;
     mAPB1Clk = mSysClk;
     mAPB2Clk = mSysClk;
-    
-    FLASH->ACR = FLASH_ACR_PRFTEN | FLASH_ACR_ICEN | FLASH_ACR_DCEN | FLASH_ACR_LATENCY_2WS;
-    
+
+    if (sysClk >= 150000000)
+        PWR->CR5 &= ~PWR_CR5_R1MODE;
+    else
+        PWR->CR5 |= PWR_CR5_R1MODE;
+
+    RCC->PLLCFGR = ((mPllM - 1) << 4) | ((mPllN & 0x7F) << 8) /*| (((mPllQ>>1)-1) << 21) */| (((pllR>>1)-1) << 25) | (RCC_PLLCFGR_PLLREN); // | (RCC_PLLCFGR_PLLQEN);
+
     if (mHseValue) // if HSE is present make it the clock source of PLL
         RCC->PLLCFGR |= RCC_PLLCFGR_PLLSRC_HSE;
-    
-    RCC->PLLCFGR = ((mPllM - 1) << 4) | ((mPllN & 0x7F) << 8) | (((mPllQ>>1)-1) << 21) | (((pllR>>1)-1) << 25) | (RCC_PLLCFGR_PLLREN);
-    RCC->CR |= RCC_CR_PLLON;
-    
-    while (!(RCC->CR & RCC_CR_PLLRDY));
-    
-    RCC->CFGR = RCC->CFGR & ~RCC_CFGR_SW | RCC_CFGR_SW_PLL;
-    
-    while ((RCC->CFGR & RCC_CFGR_SWS) != RCC_CFGR_SWS_PLL);
-    
+
+    if (setEnabled(PLL, true))
+    {
+        uint32_t acr = FLASH->ACR;
+        acr |= FLASH_ACR_PRFTEN | FLASH_ACR_ICEN | FLASH_ACR_DCEN;
+        acr = (acr & ~FLASH_ACR_LATENCY_Msk) | FLASH_ACR_LATENCY_4WS;
+        FLASH->ACR = acr;
+
+        if (setSystemClockSource(PLL))
+        {
+            mSysClk = inputClk / mPllM * mPllN / pllR;
+            mAHBClk = mSysClk;
+            mAPB1Clk = mSysClk;
+            mAPB2Clk = mSysClk;
+        }
+        else
+            THROW(Exception::BadSoBad);
+    }
+//    else if (mHseValue && setEnabled(HSE, true)) {}
+    else
+        THROW(Exception::BadSoBad);
+
     return true;
 }
 

@@ -43,7 +43,7 @@ Gpio::~Gpio()
 //---------------------------------------------------------------------------
 
 void Gpio::config(PinName pin, Flags flags, PinAF altFunction)
-{  
+{
     ConfigStruct c;
     c.pin = pin;
     c.flags = flags;
@@ -56,35 +56,35 @@ void Gpio::config(const Config &conf)
     const ConfigStruct &c = reinterpret_cast<const ConfigStruct&>(conf);
     if (c.pin == noPin)
         return;
-    
+
     GPIO_TypeDef *port = getPortByNumber(c.portNumber);
     if (!port)
         return;
-    
+
 #if defined(STM32F4)
     RCC->AHB1ENR |= (1 << c.portNumber); // enable port clocks
-#elif defined(STM32L4)
+#elif defined(STM32L4) || defined(STM32G4)
     RCC->AHB2ENR |= (1 << c.portNumber); // enable port clocks
 #endif
-     
-    unsigned short mask;  
+
+    unsigned short mask;
     if (c.manyPins)
         mask = c.mask;
     else // only one pin initialization
         mask = 1 << c.pinNumber;
-    
+
     for (int pin=0; pin<16; pin++)
     {
         if (!(mask & (1<<pin)))
             continue;
-        
+
         ConfigStruct cc = c;
         cc.pinNumber = pin;
         usePin(cc);
-    
+
         if (c.outType)               // if output type is open drain
             port->ODR |= (1 << pin); // initialize in Hi-Z state
-        
+
         int pin_x2 = pin * 2;
         port->MODER = port->MODER & ~(0x3 << pin_x2) | (c.mode << pin_x2);
         if (c.mode == modeOut || c.mode == modeAF)
@@ -93,7 +93,7 @@ void Gpio::config(const Config &conf)
             port->OTYPER = port->OTYPER & ~(0x1 << pin) | (c.outType << pin);
         }
         port->PUPDR = port->PUPDR & ~(0x3 << pin_x2) | (c.pull << pin_x2);
-        
+
         if (c.afNumber != afNone)
         {
             __IO uint32_t &AFR = port->AFR[pin >> 3];
@@ -107,12 +107,12 @@ void Gpio::updateConfig()
 {
     if (mConfig.pin == noPin)
         return;
-    
+
     for (int pin=0; pin<16; pin++)
     {
         if (!(mPin & (1<<pin)))
             continue;
-        
+
         int pin_x2 = pin * 2;
         mPort->MODER = mPort->MODER & ~(0x3 << pin_x2) | (mConfig.mode << pin_x2);
         if (mConfig.mode == modeOut || mConfig.mode == modeAF)
@@ -121,7 +121,7 @@ void Gpio::updateConfig()
             mPort->OTYPER = mPort->OTYPER & ~(0x1 << pin) | (mConfig.outType << pin);
         }
         mPort->PUPDR = mPort->PUPDR & ~(0x3 << pin_x2) | (mConfig.pull << pin_x2);
-        
+
         if (mConfig.afNumber != afNone)
         {
             __IO uint32_t &AFR = mPort->AFR[pin >> 3];
@@ -247,7 +247,7 @@ void Gpio::writePort(unsigned short value)
 {
     mPort->ODR = (mPort->ODR & (~mPin)) | (value & mPin);
 }
- 
+
 unsigned short Gpio::readPort()
 {
     if (mConfig.mode == modeOut)

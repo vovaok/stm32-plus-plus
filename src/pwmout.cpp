@@ -16,7 +16,7 @@ PwmOutput *PwmOutput::instance(TimerNumber timerNo)
 PwmOutput::PwmOutput(TimerNumber timerNo, unsigned long pwmFreq) :
     HardwareTimer(timerNo, pwmFreq*2), // *2 for center-aligned mode
     m_chMask(0)
-{  
+{
     mInstances[timerNo] = this;
     init();
 }
@@ -27,7 +27,7 @@ PwmOutput::PwmOutput(Gpio::Config pin1, Gpio::Config pin2, Gpio::Config pin3,
     m_chMask(0)
 {
     mInstances[(TimerNumber)GpioConfigGetPeriphNumber(pin1)] = this;
-    
+
     if (pin2 != Gpio::NoConfig && GpioConfigGetPeriphNumber(pin2) != GpioConfigGetPeriphNumber(pin1))
         THROW(Exception::InvalidPin);
     if (pin3 != Gpio::NoConfig && GpioConfigGetPeriphNumber(pin3) != GpioConfigGetPeriphNumber(pin1))
@@ -38,7 +38,7 @@ PwmOutput::PwmOutput(Gpio::Config pin1, Gpio::Config pin2, Gpio::Config pin3,
         THROW(Exception::InvalidPin);
     if (pin6 != Gpio::NoConfig && GpioConfigGetPeriphNumber(pin6) != GpioConfigGetPeriphNumber(pin1))
         THROW(Exception::InvalidPin);
-  
+
     init();
     configChannel(pin1);
     configChannel(pin2);
@@ -49,13 +49,13 @@ PwmOutput::PwmOutput(Gpio::Config pin1, Gpio::Config pin2, Gpio::Config pin3,
 }
 
 void PwmOutput::init()
-{  
+{
     tim()->CR2 |= TIM_CR2_CCPC; // enable preload control
     mPeriod = autoReloadRegister() + 1;
 //    setEnabled(true);
     tim()->CR1 |= TIM_CR1_CMS_0; // center aligned mode 1
 //    tim()->RCR = 0x01; // update event freq / 2;
-    
+
     if (tim() == TIM1 || tim() == TIM8)
     {
         tim()->BDTR &= 0xFF; //! @todo check this
@@ -66,7 +66,7 @@ void PwmOutput::init()
 
 void PwmOutput::setDeadtime(float deadtime_us)
 {
-    int dt = lrintf(deadtime_us * inputClk() * 1e-6f);
+    int dt = static_cast<int>(deadtime_us * inputClk() * 1e-6f);
     int dtg = dt;
     if (dtg > 127)
         dtg = 64 + dt / 2;
@@ -89,15 +89,15 @@ void PwmOutput::configChannel(Gpio::Config pin, Gpio::Config complementaryPin, b
     int chn = GpioConfigGetPeriphChannel(complementaryPin);
     if ((chn & 7) != ch)
         THROW(Exception::InvalidPin);
-    
+
     ch = (ch & 7) - 1;
     ChannelNumber channel = (ChannelNumber)(1 << (ch * 4));
-    
+
     Gpio::config(pin);
     Gpio::config(complementaryPin);
-  
+
     configPwm(channel, PwmMode_PWM2, invert);
-    
+
     if (chEnabled)
         m_chMask |= channel;
     if (chnEnabled)
@@ -108,16 +108,16 @@ void PwmOutput::configChannel(Gpio::Config pin, bool invert)
 {
     if (pin == Gpio::NoConfig)
         return;
-    
+
     int ch = GpioConfigGetPeriphChannel(pin);
     bool comp = ch & 8;
     ch = (ch & 7) - 1;
     ChannelNumber channel = (ChannelNumber)(1 << (ch * 4));
-    
+
     Gpio::config(pin);
-    
+
     configPwm(channel, PwmMode_PWM2, invert);
-    
+
     if (comp)
         m_chMask |= ((unsigned long)channel) << 16;
     else
@@ -194,13 +194,13 @@ void PwmOutput::setDutyCyclePercent(ChannelNumber channel, float value)
 
 void PwmOutput::setDutyCycle(int dutyCycle1, int dutyCycle2, int dutyCycle3, int dutyCycle4)
 {
-    if (m_chMask & (Ch1 | (Ch1 << 16))) 
+    if (m_chMask & (Ch1 | (Ch1 << 16)))
         setCompare1(dutyCycle1 * mPeriod >> 16);
-    if (m_chMask & (Ch2 | (Ch2 << 16))) 
+    if (m_chMask & (Ch2 | (Ch2 << 16)))
         setCompare2(dutyCycle2 * mPeriod >> 16);
-    if (m_chMask & (Ch3 | (Ch3 << 16))) 
+    if (m_chMask & (Ch3 | (Ch3 << 16)))
         setCompare3(dutyCycle3 * mPeriod >> 16);
-    if (m_chMask & (Ch4 | (Ch4 << 16))) 
+    if (m_chMask & (Ch4 | (Ch4 << 16)))
         setCompare4(dutyCycle4 * mPeriod >> 16);
     generateComEvent();
 }

@@ -1,4 +1,5 @@
 #include "ili9486.h"
+#include <math.h>
 
 ILI9486::ILI9486(Spi *spi, Gpio::PinName cs, Gpio::PinName dc, Gpio::PinName rst) :
     Display(),
