@@ -1,0 +1,4 @@
+[submodule "lib/CMSIS/Device/ST/cmsis_device_f3"]
+	path = lib/CMSIS/Device/ST/cmsis_device_f3
+	url = https://github.com/STMicroelectronics/cmsis_device_f3.git
+	branch = master
