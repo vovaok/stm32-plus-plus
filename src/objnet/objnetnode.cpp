@@ -608,7 +608,10 @@ void ObjnetNode::onSendTimer()
                         ba.append(reinterpret_cast<const char*>(&oid), sizeof(unsigned char));
                         ba.append('\0'); // reserved byte
                         ba.append(reinterpret_cast<const char*>(&mTimestamp), sizeof(uint32_t));
+//                        __istate_t interrupt_state = __get_interrupt_state();
+//                        __disable_interrupt();
                         ba.append(obj.read());
+//                        __set_interrupt_state(interrupt_state);
                         sendServiceMessage(obj.mAutoReceiverAddr, svcTimedObject, ba);
                     }
                     else // usual request

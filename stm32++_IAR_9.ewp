@@ -4955,7 +4955,7 @@
             <data>
                 <extensions></extensions>
                 <cmdline></cmdline>
-                <hasPrio>1</hasPrio>
+                <hasPrio>208</hasPrio>
                 <buildSequence>inputOutputBased</buildSequence>
             </data>
         </settings>
@@ -12457,7 +12457,7 @@
             <data>
                 <extensions></extensions>
                 <cmdline></cmdline>
-                <hasPrio>224</hasPrio>
+                <hasPrio>1</hasPrio>
                 <buildSequence>inputOutputBased</buildSequence>
             </data>
         </settings>
@@ -13292,6 +13292,8 @@
             <name>$PROJ_DIR$\src\objnet\udponbinterface.cpp</name>
             <excluded>
                 <configuration>stm32f407vg</configuration>
+                <configuration>stm32f405rg</configuration>
+                <configuration>stm32f405rg_no-exceptions_no-rtti</configuration>
                 <configuration>stm32f446</configuration>
             </excluded>
         </file>
@@ -13752,6 +13754,7 @@
         <excluded>
             <configuration>stm32f407vg</configuration>
             <configuration>stm32f405rg</configuration>
+            <configuration>stm32f405rg_no-exceptions_no-rtti</configuration>
             <configuration>stm32f429zi</configuration>
             <configuration>stm32f446</configuration>
         </excluded>
@@ -13760,6 +13763,7 @@
         <name>$PROJ_DIR$\src\dma_l4.h</name>
         <excluded>
             <configuration>stm32f405rg</configuration>
+            <configuration>stm32f405rg_no-exceptions_no-rtti</configuration>
             <configuration>stm32f429zi</configuration>
             <configuration>stm32f446</configuration>
         </excluded>
@@ -13868,6 +13872,12 @@
             <configuration>stm32f373xB</configuration>
             <configuration>stm32f373xB_no-exceptions_no-rtti</configuration>
         </excluded>
+    </file>
+    <file>
+        <name>$PROJ_DIR$\src\imu.cpp</name>
+    </file>
+    <file>
+        <name>$PROJ_DIR$\src\imu.h</name>
     </file>
     <file>
         <name>$PROJ_DIR$\src\led.cpp</name>

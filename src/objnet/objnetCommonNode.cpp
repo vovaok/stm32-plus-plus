@@ -39,6 +39,8 @@ ObjnetCommonNode::~ObjnetCommonNode()
 }
 //---------------------------------------------------------------------------
 
+//__root int onbFragmentBuffers = 0;
+
 void ObjnetCommonNode::task()
 {
 #if defined(QT_CORE_LIB)
@@ -60,6 +62,8 @@ void ObjnetCommonNode::task()
     {
         handleMessage(msg);
     }
+    
+//    onbFragmentBuffers = mFragmentBuffer.count();
 }
 
 //void ObjnetCommonNode::onNewMessage()
@@ -177,16 +181,18 @@ void ObjnetCommonNode::handleMessage(CommonMessage &msg)
                     mAdjacentNode->sendCommonMessage(msg);
                 }
             }
+            
+            mFragmentBuffer.damage(25);
 
-            std::list<uint32_t> toRemove;
-            std::map<uint32_t, CommonMessageBuffer>::iterator it;
-            for (it=mFragmentBuffer.begin(); it!=mFragmentBuffer.end(); it++)
-                if (it->second.damage() == 0)
-                    toRemove.push_back(it->first);
-
-            for (std::list<uint32_t>::iterator it=toRemove.begin(); it!=toRemove.end(); it++)
-                mFragmentBuffer.erase(*it);
-            toRemove.clear();
+//            std::list<uint32_t> toRemove;
+//            std::map<uint32_t, CommonMessageBuffer>::iterator it;
+//            for (it=mFragmentBuffer.begin(); it!=mFragmentBuffer.end(); it++)
+//                if (it->second.damage() == 0)
+//                    toRemove.push_back(it->first);
+//
+//            for (std::list<uint32_t>::iterator it=toRemove.begin(); it!=toRemove.end(); it++)
+//                mFragmentBuffer.erase(*it);
+//            toRemove.clear();
         }
 }
 //---------------------------------------------------------------------------

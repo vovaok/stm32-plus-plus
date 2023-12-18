@@ -103,9 +103,22 @@ public:
     CommonMessageBuffer();
 
     void addPart(ByteArray &ba, int maxsize);
-    unsigned char damage(unsigned char points=1);
+    unsigned char damage(int points=1);
 
     inline bool isReady() const {return (mParts & mPartsMask) == mPartsMask;}
+};
+
+class CommonMessageBufferList : public CommonMessageBuffer
+{
+public:
+    CommonMessageBuffer &operator[](uint32_t key);
+    void erase(uint32_t key);
+    void damage(int pts=1);
+    int count() const;
+    
+private:
+    uint32_t m_key = 0;
+    CommonMessageBufferList *m_next = nullptr;
 };
 //---------------------------------------------------------------------------
 

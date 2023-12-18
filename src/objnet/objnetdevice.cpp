@@ -32,6 +32,8 @@ ObjnetDevice::ObjnetDevice(unsigned char netaddr) :
 
 void ObjnetDevice::parseObjectInfo(const ByteArray &ba)
 {
+//    return;
+    
     ObjectInfo *obj = 0L;
     ByteArray idba;
     if ((uint8_t)ba[0] != 0xFF)
