@@ -62,6 +62,8 @@ const char *CpuId::name()
         default:    return "STM32L4 family";
 #elif defined(STM32G4)
         default:    return "STM32G4 family";
+#elif defined(STM32F3)
+        default:    return "STM32F3 family";        
 #endif
     }
 }
@@ -98,6 +100,8 @@ unsigned long CpuId::maxSysClk()
         default:    return 80000000;
 #elif defined(STM32G4)
         default:    return 170000000;
+#elif defined(STM32F3)
+        default:    return 72000000;        
 #endif
     }
 }

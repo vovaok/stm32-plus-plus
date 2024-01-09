@@ -466,4 +466,82 @@ bool Rcc::measureHseFreq()
     return false;
 }
 
+#elif defined(STM32F3)
+
+bool Rcc::configPll(uint32_t sysClk)
+{
+    uint32_t inputClk = mHseValue;
+    if (!inputClk)
+        inputClk = hsiValue();
+
+    if (systemClockSource() == PLL)
+    {
+        if (!setSystemClockSource(HSI))
+            return false;
+        FLASH->ACR = (FLASH->ACR & ~FLASH_ACR_LATENCY_Msk);// | FLASH_ACR_LATENCY_0WS;
+        setEnabled(PLL, false);
+    }
+
+    uint32_t pllR = 2;
+    uint32_t pllvco = sysClk * pllR;
+
+    mPllM = inputClk / 4000000;
+    if (!mPllM)
+        mPllM = 1;
+    if (mPllM > 16)
+        THROW(Exception::BadSoBad);
+    mPllN = pllvco / (inputClk / mPllM);
+    if (mPllN < 8 || mPllN > 127)
+        THROW(Exception::BadSoBad);
+    mPllP = 2;
+    mPllQ = pllvco / 48000000;
+
+    //! @todo USB clock poorly matches 48 MHz
+
+    mSysClk = inputClk;
+    mAHBClk = mSysClk;
+    mAPB1Clk = mSysClk;
+    mAPB2Clk = mSysClk;
+
+    if (sysClk >= 150000000)
+        PWR->CR5 &= ~PWR_CR5_R1MODE;
+    else
+        PWR->CR5 |= PWR_CR5_R1MODE;
+
+    RCC->PLLCFGR = ((mPllM - 1) << 4) | ((mPllN & 0x7F) << 8) /*| (((mPllQ>>1)-1) << 21) */| (((pllR>>1)-1) << 25) | (RCC_PLLCFGR_PLLREN); // | (RCC_PLLCFGR_PLLQEN);
+
+    if (mHseValue) // if HSE is present make it the clock source of PLL
+        RCC->PLLCFGR |= RCC_PLLCFGR_PLLSRC_HSE;
+
+    if (setEnabled(PLL, true))
+    {
+        uint32_t acr = FLASH->ACR;
+        acr |= FLASH_ACR_PRFTEN | FLASH_ACR_ICEN | FLASH_ACR_DCEN;
+        acr = (acr & ~FLASH_ACR_LATENCY_Msk) | FLASH_ACR_LATENCY_4WS;
+        FLASH->ACR = acr;
+
+        if (setSystemClockSource(PLL))
+        {
+            mSysClk = inputClk / mPllM * mPllN / pllR;
+            mAHBClk = mSysClk;
+            mAPB1Clk = mSysClk;
+            mAPB2Clk = mSysClk;
+        }
+        else
+            THROW(Exception::BadSoBad);
+    }
+//    else if (mHseValue && setEnabled(HSE, true)) {}
+    else
+        THROW(Exception::BadSoBad);
+
+    return true;
+}
+
+bool Rcc::measureHseFreq()
+{
+    /// @todo implement HSE measurement on TIM16 or TIM17
+    return false;
+}
+
+
 #endif

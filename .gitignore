@@ -21,3 +21,5 @@ BrowseInfo/
 .ninja*
 stm32l476rg/
 stm32g474/
+
+stm32f303xC/

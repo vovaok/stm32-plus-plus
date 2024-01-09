@@ -8,7 +8,7 @@ class Rcc
 public:    
     static Rcc *instance();
     
-#if defined(STM32F4) || defined(STM32G4)
+#if defined(STM32F4) || defined(STM32G4) || defined(STM32F3)
     enum ClockSource
     {
         HSI = 0x0,
@@ -25,9 +25,14 @@ public:
     };
 #endif
     
+#if defined(STM32F4) || defined(STM32G4) || defined(STM32L4)
+    constexpr uint32_t hsiValue() const {return 16000000;}
+#elif defined(STM32F3)
+    constexpr uint32_t hsiValue() const {return 8000000;}
+#endif
+    
     bool configPll(uint32_t hseValue, uint32_t sysClk);
     bool configPll(uint32_t sysClk);
-    constexpr uint32_t hsiValue() const {return 16000000;}
     uint32_t hseValue() const {return mHseValue;}
     uint32_t sysClk() const {return mSysClk;}
     uint32_t hClk() const {return mAHBClk;}

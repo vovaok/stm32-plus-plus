@@ -243,6 +243,12 @@ int HardwareTimer::frequency() const
     int arr = mTim->ARR;
     return mInputClk / ((arr + 1) * (psc + 1));
 }
+
+int HardwareTimer::clockFrequency() const
+{
+    int psc = mTim->PSC;
+    return mInputClk / (psc + 1);
+}
 //---------------------------------------------------------------------------
 
 bool HardwareTimer::isReady() const
