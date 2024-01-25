@@ -26,7 +26,7 @@ OnbUpgrader::~OnbUpgrader()
 {
     stop();
     delete mTimer;
-    mMaster->onServiceMessage = Closure<void(CommonMessage&)>();
+    mMaster->onServiceMessage = Closure<void(const CommonMessage&)>();
 }
 
 void OnbUpgrader::load(const void *firmware, int size)
@@ -255,7 +255,7 @@ void OnbUpgrader::onTimer()
     }
 }
 
-void OnbUpgrader::onMessage(CommonMessage &msg)
+void OnbUpgrader::onMessage(const CommonMessage &msg)
 {
     if (msg.isGlobal())
     {

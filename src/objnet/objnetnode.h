@@ -65,9 +65,9 @@ protected slots:
 
 protected:
     void acceptServiceMessage(unsigned char sender, SvcOID oid, ByteArray *ba=0L){}
-    void parseServiceMessage(CommonMessage &msg);
+    void parseServiceMessage(const CommonMessage &msg);
 
-    void parseMessage(CommonMessage &msg);
+    void parseMessage(const CommonMessage &msg);
 
     unsigned char route(unsigned char netAddress) {(void)netAddress; return 0;}
 

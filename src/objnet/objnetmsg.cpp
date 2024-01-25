@@ -10,7 +10,7 @@ CommonMessageBuffer::CommonMessageBuffer() :
 {
 }
 
-void CommonMessageBuffer::addPart(ByteArray &ba, int maxsize)
+void CommonMessageBuffer::addPart(const ByteArray &ba, int maxsize)
 {
     if (!ba.size())
         return;

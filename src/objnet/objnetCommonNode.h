@@ -22,7 +22,7 @@ namespace Objnet
 
 #ifndef QT_CORE_LIB
 //! Событие, содержащее сообщение Objnet.
-typedef Closure<void(CommonMessage&)> ObjnetMessageEvent;
+typedef Closure<void(const CommonMessage&)> ObjnetMessageEvent;
 #endif
 
 /*! Узел сети Objnet.
@@ -46,6 +46,8 @@ private:
     ObjnetMessageEvent mMessageEvent;
 #endif
 
+    bool m_receiveBusy = false;
+    CommonMessage m_currentMsg;
 //    CommonMessage mSheduledMsg; // to be sent later
     
     // fragmented receive buffers
@@ -56,7 +58,7 @@ private:
     std::map<unsigned char, unsigned char> mNatTable;
 
     void onNewMessage();
-    void handleMessage(CommonMessage &msg);
+    void handleMessage(const CommonMessage &msg);
     bool sendCommonMessage(CommonMessage &msg);
 
 protected:
@@ -70,9 +72,10 @@ protected:
     typedef enum {macAuto=0xFF} eBusAddress;
 
 //    void sendGlobalMessage(StdAID aid);
-    virtual void parseMessage(CommonMessage &msg) = 0;
+    virtual void parseMessage(const CommonMessage &msg) = 0;
 
-    bool sendServiceMessage(unsigned char receiver, SvcOID oid, const ByteArray &ba = ByteArray());
+//    bool sendServiceMessage(unsigned char receiver, SvcOID oid, const ByteArray &ba = ByteArray());
+    bool sendServiceMessage(unsigned char receiver, SvcOID oid, ByteArray &&ba = ByteArray());
     bool sendServiceMessage(unsigned char receiver, SvcOID oid, unsigned char data);
 //    void sendServiceMessageSheduled(unsigned char receiver, SvcOID oid, const ByteArray &ba = ByteArray());
     bool sendServiceMessage(SvcOID oid, const ByteArray &ba = ByteArray());
@@ -80,7 +83,7 @@ protected:
     bool sendServiceMessageToMac(unsigned char mac, SvcOID oid, const ByteArray &ba = ByteArray());
     bool sendGlobalServiceMessage(StdAID aid, unsigned char payload=0);
     bool sendGlobalServiceMessage(StdAID aid, const ByteArray &ba);
-    virtual void parseServiceMessage(CommonMessage &msg) = 0;
+    virtual void parseServiceMessage(const CommonMessage &msg) = 0;
 
     virtual unsigned char route(unsigned char netAddress) = 0;
     virtual unsigned char natRoute(unsigned char addr) {return mNatTable.count(addr)? mNatTable[addr]: 0x7F;}

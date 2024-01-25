@@ -8,25 +8,42 @@ UartOnbInterface::UartOnbInterface(Device *serialInterface) :
     m_device(serialInterface),
 //    mWriteTimer(30),
     mCurTxMac(0),
-    cs(0), esc(0), cmd_acc(0), noSOF(0),
+//    cs(0), esc(0), cmd_acc(0), noSOF(0),
     mHdBusyTimeout(0)
 { 
     mMaxFrameSize = 64;
+    mBuffer.resize(mMaxFrameSize + 4 - 1);
+    m_sendBuffer = new char[mMaxFrameSize + 4];
     mBusType = BusWifi;
     if (serialInterface->isHalfDuplex())
         mBusType = BusSwonb;
     stmApp()->registerTaskEvent(EVENT(&UartOnbInterface::task));
     stmApp()->registerTickEvent(EVENT(&UartOnbInterface::tick));
+    m_device->onReadyRead = EVENT(&UartOnbInterface::task);
     m_device->open(Device::ReadWrite);
 }
 //---------------------------------------------------------------------------
 
+UartOnbInterface::~UartOnbInterface()
+{
+    delete m_sendBuffer;
+}
+
 void UartOnbInterface::task()
 {
-    char buferok[16];
-    int sz = m_device->read(buferok, 16);
-    if (sz)
-        decode(buferok, sz);
+    if (m_busy)
+        return;
+    
+    m_busy = true;
+    
+    int sz = m_device->read(mBuffer.data(), mBuffer.capacity());
+    if (sz > 0)
+    {
+        mBuffer.resize(sz);
+        msgReceived(mBuffer);
+    }
+    
+    m_busy = false;
     
     if (mCurTxMac && !mHdBusyTimeout)
     {
@@ -90,91 +107,13 @@ void UartOnbInterface::task()
 void UartOnbInterface::tick(int dt)
 {
 //    mWriteTimer += dt;
-    if (mHdBusyTimeout)
+    if (isMaster && mHdBusyTimeout)
         --mHdBusyTimeout;
 }
 //---------------------------------------------------------------------------
 
-void UartOnbInterface::decode(const char *data, int size)
-{
-    for (int i=0; i<size; i++)
-    {
-        char byte = data[i];
-        switch (byte)
-        {
-          case '\\':
-            esc = 1;
-            break;
-
-          case '{':
-            mBuffer.clear();
-            cs = 0;
-            esc = 0;
-            noSOF = 0;
-            cmd_acc = 1;
-            break;
-
-          case '}':
-            if (cmd_acc)
-            {
-                if (!cs)
-                {
-                    if (mBuffer.size())
-                    {
-                        mBuffer.resize(mBuffer.size()-1); // remove checksum
-                        msgReceived(mBuffer);
-                    }
-                }
-                else if (errorEvent)
-                {
-                    errorEvent(mCurTxMac, ErrorChecksum);
-                }
-                cmd_acc = 0;
-            }
-            break;
-
-          default:
-            if (!cmd_acc)
-            {
-                if (!noSOF && errorEvent)
-                {
-                    noSOF = 1;
-                    errorEvent(mCurTxMac, ErrorNoSOF);
-                }
-                break;
-            }
-            if (esc)
-                byte ^= 0x20;
-            esc = 0;
-            mBuffer.append(byte);
-            cs += byte;
-        }
-    }
-}
-
-ByteArray UartOnbInterface::encode(const ByteArray &ba)
-{
-    ByteArray out;
-    char cs = 0;
-    out.append('{');
-    int sz = ba.size();
-    for (char i=0; i<=sz; i++)
-    {
-        char b = i<sz? ba[i]: cs;
-        cs -= b;
-        switch (b)
-        {
-            case '{':
-            case '}':
-            case '\\':
-                out.append('\\');
-                b ^= 0x20;
-        }
-        out.append(b);
-    }
-    out.append('}');
-    return out;
-}
+__root static uint32_t ids[256];
+static uint8_t ids_idx = 0;
 
 void UartOnbInterface::msgReceived(const ByteArray &ba)
 {
@@ -182,12 +121,11 @@ void UartOnbInterface::msgReceived(const ByteArray &ba)
   
     mHdBusyTimeout = 0;
     
-    unsigned long id = *reinterpret_cast<const unsigned long*>(ba.data());  
+    uint32_t id = *reinterpret_cast<const uint32_t*>(ba.data());  
     bool accept = false;
-    if (!mFilters.size())
+    if (!m_filterCount)
         accept = true;
-    int fcnt = mFilters.size();
-    for (int i=0; i<fcnt; i++)
+    for (int i=0; i<m_filterCount; i++)
     {
         Filter &f = mFilters[i];
         if ((f.id & f.mask) == (id & f.mask))
@@ -199,11 +137,10 @@ void UartOnbInterface::msgReceived(const ByteArray &ba)
     
     if (accept)
     {    
-        CommonMessage msg;
-        msg.setId(*reinterpret_cast<const unsigned long*>(ba.data()));
-        msg.setData(ba);
-        msg.data().remove(0, 4);
-        receive(msg);
+        ids[ids_idx++] = *reinterpret_cast<uint32_t *>(mBuffer.data());
+        
+        CommonMessage msg(ba);
+        receive(std::move(msg));
     }
 }
 
@@ -212,19 +149,27 @@ bool UartOnbInterface::send(const CommonMessage &msg)
     if (mHdBusyTimeout)
         return false;
 
-    ByteArray ba;
     uint32_t id = msg.rawId();
     if (id & 0x10000000) // if msg is local
         mCurTxMac = (id >> 24) & 0xF;
     else
         mCurTxMac = 0;
-    ba.append(reinterpret_cast<const char*>(&id), 4);
-    ba.append(msg.data());
-    ba = encode(ba);
-        
-    if (m_device->write(ba.data(), ba.size()) > 0)
+    
+    ids[ids_idx++] = id | 0x80000000;
+    
+    uint32_t *dst = reinterpret_cast<uint32_t*>(m_sendBuffer);
+    *dst++ = id;
+    int size = msg.data().size();
+    int cnt = (size + 3) >> 2;
+    const uint32_t *src = reinterpret_cast<const uint32_t*>(msg.data().data());
+    while (cnt--)
+        *dst++ = *src++;
+    
+    if (m_device->write(m_sendBuffer, size + 4) > 0)
     {
-        if (m_device->isHalfDuplex() && (id & 0x10000000)) // in half-duplex mode: if message is local => wait response
+        if (!isMaster)
+            mHdBusyTimeout = SWONB_BUSY_TIMEOUT;
+        else if (m_device->isHalfDuplex() && (id & 0x10000000)) // in half-duplex mode: if message is local => wait response
             mHdBusyTimeout = SWONB_BUSY_TIMEOUT;
         return true;
     }
@@ -235,13 +180,18 @@ bool UartOnbInterface::send(const CommonMessage &msg)
 int UartOnbInterface::addFilter(uint32_t id, uint32_t mask)
 {
     Filter f = {id & 0x1FFFFFFF, mask & 0x1FFFFFFF};
-    mFilters.push_back(f);
-    return mFilters.size();
+    if (m_filterCount < 8)
+        mFilters[m_filterCount++] = f;
+    return m_filterCount;
 }
 
 void UartOnbInterface::removeFilter(int number)
 {
-    if (number >= 0 && number < mFilters.size())
-        mFilters.erase(mFilters.begin() + number);
+    if (number >= 0 && number < m_filterCount)
+    {
+        for (int i=number; i<7; i++)
+            mFilters[i] = mFilters[i+1];
+        --m_filterCount;
+    }
 }
 //---------------------------------------------------------------------------

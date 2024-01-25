@@ -156,7 +156,7 @@ void ObjnetNode::task()
                 /// @todo todo todotodotodo tododododooooooooo
                 ByteArray ba;
                 mObjects[mObjInfoSendCount].mDesc.read(ba);
-                bool success = sendServiceMessage(mCurrentRemoteAddress, svcObjectInfo, ba);
+                bool success = sendServiceMessage(mCurrentRemoteAddress, svcObjectInfo, std::move(ba));
                 if (success)
                     mObjInfoSendCount++;
                 else
@@ -194,7 +194,7 @@ void ObjnetNode::task()
 //    }
 //}
 
-void ObjnetNode::parseServiceMessage(CommonMessage &msg)
+void ObjnetNode::parseServiceMessage(const CommonMessage &msg)
 {
     if (msg.isGlobal())
     {
@@ -237,7 +237,7 @@ void ObjnetNode::parseServiceMessage(CommonMessage &msg)
             
           case aidUpgradeStart:
           {
-            uint32_t classId = *reinterpret_cast<uint32_t*>(msg.data().data());
+            uint32_t classId = *reinterpret_cast<const uint32_t*>(msg.data().data());
             #ifndef QT_CORE_LIB
             if (classId == mClass)
             {
@@ -365,6 +365,9 @@ void ObjnetNode::parseServiceMessage(CommonMessage &msg)
       
       case svcGetTimedObject:
       {
+          #ifndef QT_CORE_LIB
+                    GPIOA->BSRR = 1<<16;
+                    #endif
         uint8_t _oid = msg.data()[0];
         if (_oid < mObjects.size())
         {
@@ -374,7 +377,10 @@ void ObjnetNode::parseServiceMessage(CommonMessage &msg)
             ba.append('\0'); // reserved byte
             ba.append(reinterpret_cast<const char*>(&mTimestamp), sizeof(uint32_t));
             ba.append(obj.read());
-            sendServiceMessage(remoteAddr, svcTimedObject, ba);
+            #ifndef QT_CORE_LIB
+                    GPIOA->BSRR = 1;
+                    #endif
+            sendServiceMessage(remoteAddr, svcTimedObject, std::move(ba));
         }
         else
         {
@@ -431,7 +437,7 @@ void ObjnetNode::parseServiceMessage(CommonMessage &msg)
                 unsigned char _oid = msg.data()[4];
                 if (_oid < mObjects.size())
                 {
-                    int period = *reinterpret_cast<int*>(msg.data().data());
+                    int period = *reinterpret_cast<const int*>(msg.data().data());
                     if (period >= 0)
                     {
                         mObjects[_oid].mAutoPeriod = period;
@@ -439,10 +445,11 @@ void ObjnetNode::parseServiceMessage(CommonMessage &msg)
                         if (oid == svcTimedRequest)
                             mObjects[_oid].mTimedRequest = true;
                     }
+                    ByteArray ba = msg.data();
 //                    else
 //                    {
-                        *reinterpret_cast<int*>(msg.data().data()) = mObjects[_oid].mAutoPeriod;
-                        sendServiceMessage(remoteAddr, oid, msg.data());
+                        *reinterpret_cast<int*>(ba.data()) = mObjects[_oid].mAutoPeriod;
+                        sendServiceMessage(remoteAddr, oid, std::move(ba));
 //                    }
                 }
             }
@@ -466,13 +473,13 @@ void ObjnetNode::parseServiceMessage(CommonMessage &msg)
             ba.append(local_oid);
             ba.append(obj.read());
         }
-        sendServiceMessage(remoteAddr, svcGroupedObject, ba);
+        sendServiceMessage(remoteAddr, svcGroupedObject, std::move(ba));
         break;
       }
         
       case svcUpgradeRequest:
       {
-        uint32_t classId = *reinterpret_cast<uint32_t*>(msg.data().data());
+        uint32_t classId = *reinterpret_cast<const uint32_t*>(msg.data().data());
         #ifndef QT_CORE_LIB
         if (classId == mClass)
         {
@@ -511,7 +518,7 @@ void ObjnetNode::parseServiceMessage(CommonMessage &msg)
 }
 //---------------------------------------------------------------------------
 
-void ObjnetNode::parseMessage(CommonMessage &msg)
+void ObjnetNode::parseMessage(const CommonMessage &msg)
 {
     if (msg.isGlobal())
     {
@@ -612,7 +619,7 @@ void ObjnetNode::onSendTimer()
 //                        __disable_interrupt();
                         ba.append(obj.read());
 //                        __set_interrupt_state(interrupt_state);
-                        sendServiceMessage(obj.mAutoReceiverAddr, svcTimedObject, ba);
+                        sendServiceMessage(obj.mAutoReceiverAddr, svcTimedObject, std::move(ba));
                     }
                     else // usual request
                     {
@@ -639,7 +646,7 @@ bool ObjnetNode::sendObjectInfo(uint8_t remoteAddr, ObjectInfo *obj, const ByteA
         ba.append(loc[i]);
     }
     obj->mDesc.read(ba);
-    bool result = sendServiceMessage(remoteAddr, svcObjectInfo, ba);
+    bool result = sendServiceMessage(remoteAddr, svcObjectInfo, std::move(ba));
     if (!result)
         return false;
     

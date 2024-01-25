@@ -181,6 +181,7 @@ bool Usart::open(OpenMode mode)
     if (isOpen())
         return false;
     
+    bool enableIrq = false;
     uint32_t cr1 = 0;
     if (mode & ReadOnly)
     {
@@ -193,18 +194,10 @@ bool Usart::open(OpenMode mode)
             mDmaRx->setCircularBuffer(mRxBuffer.data(), mRxBuffer.size());
             mDmaRx->setSource((void*)&mDev->RDR, 1);
         }
-        if (!mUseDmaRx || onReadyRead)
-        {
-//            NVIC_InitTypeDef NVIC_InitStructure;
-//            NVIC_InitStructure.NVIC_IRQChannel = mIrq;
-//            NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
-//            NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
-//            NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
-//            NVIC_Init(&NVIC_InitStructure);
-          
-            NVIC_SetPriority(mIrq, 1);
-            NVIC_EnableIRQ(mIrq);
-            mDev->CR1 |= USART_CR1_RXNEIE;
+        if (!mUseDmaRx || onReadyRead || m_characterMatch)
+        {         
+            cr1 |= USART_CR1_RXNEIE;
+            enableIrq = true;
         }
     }
     if (mode & WriteOnly)
@@ -217,7 +210,15 @@ bool Usart::open(OpenMode mode)
                 mDmaTx = new Dma(mDmaChannelTx);
             mDmaTx->setSink((void*)&mDev->TDR, 1);
             mDmaTx->setTransferCompleteEvent(EVENT(&Usart::dmaTxComplete));
+            enableIrq = true; // TCIE interrupt will be enabled later on transfer complete event
         }
+    }
+    
+    // enable interrupt if necessary
+    if (enableIrq)
+    {
+        NVIC_SetPriority(mIrq, 1);
+        NVIC_EnableIRQ(mIrq);
     }
     
     // enable receiver and transmitter if necessary
@@ -268,6 +269,55 @@ void Usart::close()
 }
 //---------------------------------------------------------------------------
 
+//bool Usart::fillBuffer(const char *data, int size)
+//{
+//    char *dst = mTxBuffer.data() + mTxPos;
+//    char *end = mTxBuffer.data() + mTxBuffer.size();
+//    while (size--)
+//    {
+//        *dst++ = *data++;
+//        if (dst >= end)
+//            dst = mTxBuffer.data();
+//    }
+//    mTxPos = dst - mTxBuffer.data();
+//    return true;
+//}
+
+int Usart::writeBuffer(const char *data, int size)
+{
+    if (size <= 0)
+        return 0;
+    
+    int mask = mTxBuffer.size() - 1;
+//    int curPos = (mTxReadPos - mDmaTx->dataCounter()) & mask;
+//    int maxsize = (curPos - mTxPos - 1) & mask;
+    int maxsize = (mTxReadPos - mDmaTx->dataCounter() - mTxPos - 1) & mask;
+    if (size > maxsize) /// @todo: maybe write a bit of something...
+    {
+        return -1;
+//        sz = maxsize;
+    }
+    
+    char *begin = mTxBuffer.data();
+    char *dst = begin + mTxPos;  
+    char *end = begin + mTxBuffer.size();
+    int sz = size;
+    while (sz--)
+    {
+        *dst++ = *data++;
+        if (dst >= end)
+            dst = begin;
+    }
+    mTxPos = dst - begin;
+    return size;
+}
+
+int Usart::availableWriteCount() const
+{
+    int mask = mTxBuffer.size() - 1;
+    return (mTxReadPos - mDmaTx->dataCounter() - mTxPos - 1) & mask;
+}
+
 int Usart::bytesAvailable() const
 {
     int mask = mRxBuffer.size() - 1;
@@ -278,7 +328,7 @@ int Usart::bytesAvailable() const
 }
 
 int Usart::writeData(const char *data, int size)
-{  
+{      
     if (!mDmaTx)
     {
         if (m_halfDuplex)
@@ -305,24 +355,18 @@ int Usart::writeData(const char *data, int size)
         return size;
     }
     
-    //  write through DMA
-    int mask = mTxBuffer.size() - 1;
-    int curPos = (mTxReadPos - mDmaTx->dataCounter()) & mask;
-    int maxsize = (curPos - mTxPos - 1) & mask;
-    int sz = size;
-    if (sz > maxsize)
-    {
+    int sz = writeBuffer(data, size);
+    if (sz < 0)
         return -1;
-//        sz = maxsize;
-    }
-    for (int i=0; i<sz; i++)
-        mTxBuffer[(mTxPos + i) & mask] = data[i];
-    mTxPos = (mTxPos + sz) & mask;
     
-    if (mDmaTx->dataCounter() > 0) // if transmission in progress...
+//    sz = (mTxPos - curPos) & mask;
+    
+//    if (mDmaTx->dataCounter() > 0) // if transmission in progress...
+    if (mDmaTx->isEnabled() || !(mDev->SR & USART_SR_TC))
         return sz; // dma restarts in irq handler
     
     // otherwise start new dma transfer
+    int mask = mTxBuffer.size() - 1;
     mDmaTx->stop(true);
     if (sz > mTxBufferSize - mTxReadPos)
         sz = mTxBufferSize - mTxReadPos;
@@ -346,7 +390,7 @@ int Usart::writeData(const char *data, int size)
 //    }
     
     mDmaTx->start();
-    return size;
+    return sz;
 }
 
 int Usart::readData(char *data, int size)
@@ -416,17 +460,20 @@ void Usart::dmaTxComplete()
     if (!sz)
     {
         mDmaTx->stop();
-        if (m_halfDuplex)
-        {
-            while (!(mDev->SR & USART_SR_TC)); // wait for last byte is being written
+        // wait for last byte is being written in the TX complete interrupt
+        mDev->CR1 |= USART_CR1_TCIE;
             
-            if (m_pinDE)
-                m_pinDE->reset();
-            mDev->CR1 |= USART_CR1_RE;
-            
-            if (onBytesWritten)
-                onBytesWritten();
-        }
+//        if (m_halfDuplex)
+//        {
+//            while (!(mDev->SR & USART_SR_TC)); // wait for last byte is being written
+//            
+//            if (m_pinDE)
+//                m_pinDE->reset();
+//            mDev->CR1 |= USART_CR1_RE;
+//            
+//            if (onBytesWritten)
+//                onBytesWritten();
+//        }
         return;
     }
     mDmaTx->setSingleBuffer(mTxBuffer.data() + mTxReadPos, sz);
@@ -436,9 +483,7 @@ void Usart::dmaTxComplete()
 //---------------------------------------------------------------------------
 
 void Usart::setBaudrate(int baudrate)
-{
-//    mBaudrate = baudrate;
-    
+{    
     #if defined(STM32F37X)
     int apbclock = (mDev == USART1)? rcc().pClk2(): rcc().pClk1();
     #elif defined(STM32F4)
@@ -508,6 +553,12 @@ void Usart::setUseDmaTx(bool useDma)
         THROW(Exception::ResourceBusy);
     mUseDmaTx = useDma;
 }
+
+void Usart::setCharacterMatchEvent(char c, NotifyEvent e)
+{
+    m_characterMatch = c;
+    m_characterMatchEvent = e;
+}
 //---------------------------------------------------------------------------
 
 //unsigned char Usart::getErrorCode() const
@@ -530,19 +581,45 @@ void Usart::handleInterrupt()
         mDev->ICR = USART_ICR_ORECF;
     }
 #endif
-  
-    if (!mUseDmaRx)
+    
+    uint32_t sr = mDev->SR;
+    
+    if (sr & USART_SR_TC)
     {
-        // read from USART_SR register followed by a read from USART_DR
-        if (mDev->SR & USART_SR_RXNE)
-        {
-            mRxBuffer[mRxIrqDataCounter++] = mDev->RDR & (uint16_t)0x01FF;
-            if (mRxIrqDataCounter >= mRxBuffer.size())
-                mRxIrqDataCounter = 0;
+        if (mDmaTx && m_halfDuplex)
+        {            
+            mDev->CR1 &= ~USART_CR1_TCIE;
+            if (m_pinDE)
+                m_pinDE->reset();
+            mDev->CR1 |= USART_CR1_RE;
+            
+            if (onBytesWritten)
+                onBytesWritten();
         }
     }
     
-    if (onReadyRead)
+    // read from USART_SR register followed by a read from USART_DR.
+    // if DMA is used for RX, the flag is not set
+    if (sr & USART_SR_RXNE)
+    {
+        mRxBuffer[mRxIrqDataCounter++] = mDev->RDR & (uint16_t)0x01FF;
+        if (mRxIrqDataCounter >= mRxBuffer.size())
+            mRxIrqDataCounter = 0;
+    }
+    
+    if (m_characterMatch && (mDev->CR1 & USART_CR1_RE))
+    {
+        if (mDev->RDR == m_characterMatch)
+        {
+            GPIOA->BSRR = 1;
+            if (m_characterMatchEvent)
+                m_characterMatchEvent();
+            else if (onReadyRead)
+                onReadyRead();
+            GPIOA->BSRR = 1 << 16;
+        }
+    }
+    else if (onReadyRead)
         onReadyRead();
 }
 //---------------------------------------------------------------------------

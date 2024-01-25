@@ -464,7 +464,8 @@ void HardwareTimer::enableInterrupt(InterruptSource source)
         }
     }
     
-    NVIC_SetPriority(mIrq, 2);
+//#warning priority for PWM generation must be 0!!!
+    NVIC_SetPriority(mIrq, 0);
     NVIC_EnableIRQ(mIrq);
     
     mTim->DIER |= (1 << source);

@@ -28,11 +28,13 @@ PwmInput::PwmInput(Gpio::Config inputPin) :
     setCounter(0);
     setCompare1(0);
     setCompare2(0);
+    setAutoReloadRegister(-1);
     
     selectInputTrigger(ch==2? TsTI2FP2: TsTI1FP1);
     setSlaveMode(SmReset);
     
     TIM_TypeDef *t = tim();
+    t->CR1 |= TIM_CR1_URS; // set update flag on the overflow only
     /// @todo add filter if needed
     if (ch == 2)
     {
@@ -59,7 +61,12 @@ int PwmInput::read()
 #endif
 {
     TIM_TypeDef *t = tim();
-    if (t->CCMR1 & TIM_CCMR1_CC1S_1) // channel 2
+    if (t->SR & TIM_SR_UIF) // overflow
+    {
+        m_period = 0;
+        // tut budet 4ot tipa: if (noga == 1) duty = 100%;
+    }
+    else if (t->CCMR1 & TIM_CCMR1_CC1S_1) // channel 2
     {
         m_dutyCycle = t->CCR1;
         m_period = t->CCR2;
@@ -69,6 +76,7 @@ int PwmInput::read()
         m_dutyCycle = t->CCR2;
         m_period = t->CCR1;
     }
+    t->SR &= ~TIM_SR_UIF; // clear overflow flag
     return dutyCycle();
 }
 

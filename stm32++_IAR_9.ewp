@@ -4639,6 +4639,8 @@
                     <name>CCIncludePath2</name>
                     <state>$PROJ_DIR$\lib\CMSIS\Device\ST\STM32F4xx\Include</state>
                     <state>$PROJ_DIR$\lib\STM32F407_StdPeriph_Driver\inc</state>
+                    <state>$PROJ_DIR$\lib\STM32F4x7_ETH_Driver\inc</state>
+                    <state>$PROJ_DIR$\lib\stm32_mw_lwip\src\include</state>
                     <state>$PROJ_DIR$\src</state>
                 </option>
                 <option>
@@ -5649,7 +5651,7 @@
                 <option>
                     <name>CCAllowList</name>
                     <version>1</version>
-                    <state>00000000</state>
+                    <state>11111110</state>
                 </option>
                 <option>
                     <name>CCDebugInfo</name>
@@ -5727,7 +5729,7 @@
                 </option>
                 <option>
                     <name>CCOptLevel</name>
-                    <state>0</state>
+                    <state>3</state>
                 </option>
                 <option>
                     <name>CCOptStrategy</name>
@@ -5736,7 +5738,7 @@
                 </option>
                 <option>
                     <name>CCOptLevelSlave</name>
-                    <state>0</state>
+                    <state>3</state>
                 </option>
                 <option>
                     <name>CCPosIndRopi</name>
@@ -6027,7 +6029,7 @@
             <data>
                 <extensions></extensions>
                 <cmdline></cmdline>
-                <hasPrio>0</hasPrio>
+                <hasPrio>224</hasPrio>
                 <buildSequence>inputOutputBased</buildSequence>
             </data>
         </settings>
@@ -6036,7 +6038,7 @@
             <archiveVersion>1</archiveVersion>
             <data>
                 <prebuild></prebuild>
-                <postbuild>cmd /C start /D "$PROJ_DIR$\doxygen" doxygen Doxyfile</postbuild>
+                <postbuild>cmd /C REM start /D "$PROJ_DIR$\doxygen" doxygen Doxyfile</postbuild>
             </data>
         </settings>
         <settings>
@@ -8929,7 +8931,11 @@
                     <name>CCIncludePath2</name>
                     <state>$PROJ_DIR$\lib\CMSIS\Device\ST\STM32F4xx\Include</state>
                     <state>$PROJ_DIR$\lib\STM32F407_StdPeriph_Driver\inc</state>
+                    <state>$PROJ_DIR$\lib\STM32F4x7_ETH_Driver\inc</state>
+                    <state>$PROJ_DIR$\lib\stm32_mw_lwip\src\include</state>
+                    <state>$PROJ_DIR$\lib\stm32_mw_lwip\system</state>
                     <state>$PROJ_DIR$\src</state>
+                    <state>$PROJ_DIR$\src\ethernet</state>
                 </option>
                 <option>
                     <name>CCStdIncCheck</name>
@@ -9254,7 +9260,7 @@
             <archiveVersion>1</archiveVersion>
             <data>
                 <prebuild></prebuild>
-                <postbuild>cmd /C start /D "$PROJ_DIR$\doxygen" doxygen Doxyfile</postbuild>
+                <postbuild>cmd /C REM start /D "$PROJ_DIR$\doxygen" doxygen Doxyfile</postbuild>
             </data>
         </settings>
         <settings>
@@ -13937,6 +13943,108 @@
         </settings>
     </configuration>
     <group>
+        <name>3rd_party</name>
+        <group>
+            <name>lwip</name>
+            <group>
+                <name>ipv4</name>
+                <file>
+                    <name>$PROJ_DIR$\lib\stm32_mw_lwip\src\core\ipv4\autoip.c</name>
+                </file>
+                <file>
+                    <name>$PROJ_DIR$\lib\stm32_mw_lwip\src\core\ipv4\dhcp.c</name>
+                </file>
+                <file>
+                    <name>$PROJ_DIR$\lib\stm32_mw_lwip\src\core\ipv4\etharp.c</name>
+                </file>
+                <file>
+                    <name>$PROJ_DIR$\lib\stm32_mw_lwip\src\core\ipv4\icmp.c</name>
+                </file>
+                <file>
+                    <name>$PROJ_DIR$\lib\stm32_mw_lwip\src\core\ipv4\igmp.c</name>
+                </file>
+                <file>
+                    <name>$PROJ_DIR$\lib\stm32_mw_lwip\src\core\ipv4\ip4.c</name>
+                </file>
+                <file>
+                    <name>$PROJ_DIR$\lib\stm32_mw_lwip\src\core\ipv4\ip4_addr.c</name>
+                </file>
+                <file>
+                    <name>$PROJ_DIR$\lib\stm32_mw_lwip\src\core\ipv4\ip4_frag.c</name>
+                </file>
+            </group>
+            <group>
+                <name>netif</name>
+                <file>
+                    <name>$PROJ_DIR$\lib\stm32_mw_lwip\src\netif\ethernet.c</name>
+                </file>
+            </group>
+            <file>
+                <name>$PROJ_DIR$\lib\stm32_mw_lwip\src\core\altcp.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\lib\stm32_mw_lwip\src\core\altcp_alloc.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\lib\stm32_mw_lwip\src\core\altcp_tcp.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\lib\stm32_mw_lwip\src\core\def.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\lib\stm32_mw_lwip\src\core\dns.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\lib\stm32_mw_lwip\src\core\inet_chksum.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\lib\stm32_mw_lwip\src\core\init.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\lib\stm32_mw_lwip\src\core\ip.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\lib\stm32_mw_lwip\src\core\mem.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\lib\stm32_mw_lwip\src\core\memp.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\lib\stm32_mw_lwip\src\core\netif.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\lib\stm32_mw_lwip\src\core\pbuf.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\lib\stm32_mw_lwip\src\core\raw.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\lib\stm32_mw_lwip\src\core\stats.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\lib\stm32_mw_lwip\src\core\sys.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\lib\stm32_mw_lwip\src\core\tcp.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\lib\stm32_mw_lwip\src\core\tcp_in.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\lib\stm32_mw_lwip\src\core\tcp_out.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\lib\stm32_mw_lwip\src\core\timeouts.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\lib\stm32_mw_lwip\src\core\udp.c</name>
+            </file>
+        </group>
+        <file>
+            <name>$PROJ_DIR$\lib\STM32F4x7_ETH_Driver\src\stm32f4x7_eth.c</name>
+        </file>
+    </group>
+    <group>
         <name>_doxygen</name>
         <file>
             <name>$PROJ_DIR$\doxygen\Doxyfile</name>
@@ -14129,6 +14237,66 @@
         </file>
         <file>
             <name>$PROJ_DIR$\src\device\xpt2046.h</name>
+        </file>
+    </group>
+    <group>
+        <name>ethernet</name>
+        <group>
+            <name>settings</name>
+            <file>
+                <name>$PROJ_DIR$\src\ethernet\ethernetif.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\src\ethernet\ethernetif.h</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\src\ethernet\lwipopts.h</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\src\ethernet\stm32f4x7_eth_bsp.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\src\ethernet\stm32f4x7_eth_bsp.h</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\src\ethernet\stm32f4x7_eth_conf.h</name>
+            </file>
+        </group>
+        <file>
+            <name>$PROJ_DIR$\src\ethernet\ethernet.cpp</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\ethernet\ethernet.h</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\ethernet\httpserver.cpp</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\ethernet\httpserver.h</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\ethernet\sfs.cpp</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\ethernet\sfs.h</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\ethernet\tcpserver.cpp</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\ethernet\tcpserver.h</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\ethernet\tcpsocket.cpp</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\ethernet\tcpsocket.h</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\ethernet\udpsocket.cpp</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\ethernet\udpsocket.h</name>
         </file>
     </group>
     <group>
@@ -14334,6 +14502,9 @@
         </file>
         <file>
             <name>$PROJ_DIR$\src\objnet\onbvirtualinterface.cpp</name>
+            <excluded>
+                <configuration>stm32f405rg</configuration>
+            </excluded>
         </file>
         <file>
             <name>$PROJ_DIR$\src\objnet\onbvirtualinterface.h</name>
@@ -14467,6 +14638,12 @@
         </file>
         <file>
             <name>$PROJ_DIR$\src\serial\seriallink.h</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\serial\usartframed.cpp</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\serial\usartframed.h</name>
         </file>
         <file>
             <name>$PROJ_DIR$\src\serial\usbvcp.cpp</name>
@@ -14909,10 +15086,19 @@
         <name>$PROJ_DIR$\src\flashdrive.h</name>
     </file>
     <file>
+        <name>$PROJ_DIR$\src\fmc.h</name>
+    </file>
+    <file>
         <name>$PROJ_DIR$\src\gpio.cpp</name>
     </file>
     <file>
         <name>$PROJ_DIR$\src\gpio.h</name>
+    </file>
+    <file>
+        <name>$PROJ_DIR$\src\gpioconfig3.h</name>
+    </file>
+    <file>
+        <name>$PROJ_DIR$\src\gpioconfig4.h</name>
     </file>
     <file>
         <name>$PROJ_DIR$\src\hardwaretimer.cpp</name>
@@ -15017,12 +15203,10 @@
     <file>
         <name>$PROJ_DIR$\src\pwminput.cpp</name>
         <excluded>
-            <configuration>stm32f405rg</configuration>
             <configuration>stm32f405rg_no-exceptions_no-rtti</configuration>
             <configuration>stm32f446</configuration>
             <configuration>stm32l476rg</configuration>
             <configuration>stm32g474</configuration>
-            <configuration>stm32f303xC</configuration>
         </excluded>
     </file>
     <file>

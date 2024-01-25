@@ -66,8 +66,8 @@ void GenericOnbInterface::receiveHandler()
     if (testFilter(id))
     {
         ByteArray ba = ByteArray::fromRawData(reinterpret_cast<const char *>(data), sz);
-        CommonMessage msg(id, ba);
-        receive(msg);
+        CommonMessage msg(id, std::move(ba));
+        receive(std::move(msg));
     }
 }
 

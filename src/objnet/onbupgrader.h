@@ -60,7 +60,7 @@ private:
 private slots:
 #endif
     void onTimer();
-    void onMessage(CommonMessage &msg);
+    void onMessage(const CommonMessage &msg);
   
 public:
     OnbUpgrader(ObjnetMaster *master);

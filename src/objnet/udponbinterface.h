@@ -2,8 +2,8 @@
 #define _UDPONBINTERFACE_H
 
 #include "genericonbinterface.h"
-#include "ethernet.h"
-#include "udpsocket.h"
+#include "ethernet/ethernet.h"
+#include "ethernet/udpsocket.h"
 #include "core/timer.h"
 
 namespace Objnet

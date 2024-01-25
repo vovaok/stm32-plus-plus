@@ -3,6 +3,7 @@
 
 #include "objnetInterface.h"
 #include "core/device.h"
+#include <array>
 
 namespace Objnet
 {
@@ -11,6 +12,7 @@ class UartOnbInterface : public ObjnetInterface
 {  
 public:
     UartOnbInterface(Device *serialInterface);
+    virtual ~UartOnbInterface();
     
     int addFilter(uint32_t id, uint32_t mask=0xFFFFFFFF);
     void removeFilter(int number);
@@ -25,22 +27,25 @@ private:
 //    int mWriteTimer;
 //    ByteArray mUnsendBuffer;
 //    UartOnbMessage mCurMsg, mCurTxMsg;
-    unsigned char mCurTxMac;
+    uint8_t mCurTxMac;
+    bool m_busy = false;
     
-    typedef struct
+    struct Filter
     {
-        unsigned long id;
-        unsigned long mask;
-    } Filter;
-    std::vector<Filter> mFilters;
+        uint32_t id;
+        uint32_t mask;
+    } mFilters[8];
+    int m_filterCount = 0;
     
     void task();
     void tick(int dt);
     
     ByteArray mBuffer;
-    unsigned char cs, esc, cmd_acc, noSOF;
-    void decode(const char *data, int size);
-    ByteArray encode(const ByteArray &ba);
+    char *m_sendBuffer = nullptr;
+//    char *m_bufPtr;
+//    uint8_t cs, esc, cmd_acc, noSOF;
+//    void decode(const char *data, int size);
+//    ByteArray encode(const ByteArray &ba);
     
     void msgReceived(const ByteArray &ba);
     

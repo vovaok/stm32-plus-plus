@@ -56,8 +56,20 @@ public:
 //        mBa.append(ba);
 //    }
     
-    CommonMessage(uint32_t id, const ByteArray &ba) :
-        mId(id), mBa(ba)
+//    CommonMessage(uint32_t id, const ByteArray &ba) :
+//        mId(id), mBa(ba)
+//    {
+//    }
+    
+    CommonMessage(uint32_t id, ByteArray &&ba) :
+        mId(id), mBa(std::move(ba))
+    {
+    }
+    
+    CommonMessage(const ByteArray &ba) :
+        mId(*reinterpret_cast<const uint32_t*>(ba.data())),
+//        mBa(ByteArray::fromRawData(ba.data() + 4, ba.size() - 4))
+        mBa(ByteArray(ba.data() + 4, ba.size() - 4))
     {
     }
 
@@ -75,7 +87,9 @@ public:
     bool isGlobal() const {return !((LocalMsgId&)mId).local;}
     ByteArray &data() {return mBa;}
     const ByteArray &data() const {return mBa;}
-    void setData(const ByteArray &ba) {mBa = ba;}
+//    void setData(const ByteArray &ba) {mBa = ba;}
+    void copyData(const ByteArray &ba) {mBa = ba;}
+    void setData(ByteArray &&ba) {mBa = std::move(ba);}
     int size() const {return mBa.size();}
 };
 //---------------------------------------------------------------------------
@@ -102,7 +116,7 @@ private:
 public:
     CommonMessageBuffer();
 
-    void addPart(ByteArray &ba, int maxsize);
+    void addPart(const ByteArray &ba, int maxsize);
     unsigned char damage(int points=1);
 
     inline bool isReady() const {return (mParts & mPartsMask) == mPartsMask;}

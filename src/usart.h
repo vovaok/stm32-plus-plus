@@ -40,52 +40,9 @@ public:
         Mode8E1     = WordLength9 | ParityEven | StopBits1,
         Mode7E1     = WordLength8 | ParityEven | StopBits1,
     } Config;
-  
-private:
-    static Usart *mUsarts[6];
-    USART_TypeDef *mDev;
-    int mBaudrate;
     
-    Gpio *m_pinDE;
-    
-    IRQn_Type mIrq;
-    
-    bool mUseDmaRx, mUseDmaTx;
-    ByteArray mRxBuffer;
-    ByteArray mTxBuffer;
-    Dma::Channel mDmaChannelRx;
-    Dma::Channel mDmaChannelTx;
-    Dma *mDmaRx;
-    Dma *mDmaTx;
-    
-    int mRxPos;
-    int mRxIrqDataCounter;
-    int mRxBufferSize;
-    int mTxPos;
-    int mTxReadPos;
-    int mTxBufferSize;
-    
-    bool m7bits;
-    
-    void commonConstructor(int number);
-    void init();
-       
-    void dmaTxComplete();
-    
-    friend void USART1_IRQHandler();
-    friend void USART2_IRQHandler();
-    friend void USART3_IRQHandler();
-    #if !defined(STM32F37X)
-    friend void UART4_IRQHandler();
-    friend void UART5_IRQHandler();
-    friend void USART6_IRQHandler();
-    #endif
-    
-    void handleInterrupt();
-    
-public:
     Usart(Gpio::Config pinTx, Gpio::Config pinRx);
-    ~Usart();
+    virtual ~Usart();
     
     void configPinDE(Gpio::PinName pin);
     
@@ -100,8 +57,6 @@ public:
     
     virtual bool canReadLine() const; // override
     
-//    int readLine(ByteArray &ba);
-    
     void setBaudrate(int baudrate);
     int baudrate() const {return mBaudrate;}
     void setConfig(Config config);
@@ -110,9 +65,59 @@ public:
     
     void setClockPin(Gpio::Config pinCk, bool inverted = false);
     
+    void setCharacterMatchEvent(char c, NotifyEvent e = NotifyEvent()); // must be called before open()
+  
 protected:
     virtual int writeData(const char *data, int size); // override;
     virtual int readData(char *data, int size); // override;
+    
+    ByteArray mRxBuffer;
+    int mRxPos;
+    int mRxIrqDataCounter;
+    int mRxBufferSize;
+    
+    ByteArray mTxBuffer;
+    int mTxPos;
+    int mTxReadPos;
+    int mTxBufferSize;
+    
+//    virtual bool fillBuffer(const char *data, int size);
+    
+    int writeBuffer(const char *data, int size); // fill TX buffer without transmission
+    int availableWriteCount() const;
+    
+private:
+    static Usart *mUsarts[6];
+    USART_TypeDef *mDev;
+    IRQn_Type mIrq;
+    int mBaudrate;
+    char m_characterMatch = 0;
+    NotifyEvent m_characterMatchEvent;    
+    
+    Gpio *m_pinDE;
+    
+    bool mUseDmaRx, mUseDmaTx;
+    Dma::Channel mDmaChannelRx;
+    Dma::Channel mDmaChannelTx;
+    Dma *mDmaRx;
+    Dma *mDmaTx;
+    
+    bool m7bits;
+    
+    void commonConstructor(int number);
+    void init();
+       
+    void dmaTxComplete();
+    void handleInterrupt();
+    
+    friend void USART1_IRQHandler();
+    friend void USART2_IRQHandler();
+    friend void USART3_IRQHandler();
+    #if !defined(STM32F37X)
+    friend void UART4_IRQHandler();
+    friend void UART5_IRQHandler();
+    friend void USART6_IRQHandler();
+    #endif
 };
 
 #endif

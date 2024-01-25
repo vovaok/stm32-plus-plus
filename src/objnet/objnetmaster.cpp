@@ -332,7 +332,7 @@ void ObjnetMaster::removeDevice(unsigned char netaddr)
 }
 //---------------------------------------------------------------------------
 
-void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
+void ObjnetMaster::parseServiceMessage(const CommonMessage &msg)
 {
     if (msg.isGlobal())
     {
@@ -436,12 +436,12 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
         response.append(dev->netAddress());
         if (isLocalNet)
         {
-            sendServiceMessage(dev->netAddress(), welcomeCmd, response);
+            sendServiceMessage(dev->netAddress(), welcomeCmd, std::move(response));
         }
         else
         {
             response.append(subnetaddr);
-            sendServiceMessage(netaddr, welcomeCmd, response);
+            sendServiceMessage(netaddr, welcomeCmd, std::move(response));
         }
       } break;
       
@@ -586,7 +586,7 @@ void ObjnetMaster::parseServiceMessage(CommonMessage &msg)
 }
 //---------------------------------------------------------------------------
 
-void ObjnetMaster::parseMessage(CommonMessage &msg)
+void ObjnetMaster::parseMessage(const CommonMessage &msg)
 {
     if (msg.isGlobal())
     {

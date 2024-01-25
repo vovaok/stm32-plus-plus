@@ -85,11 +85,13 @@ void CanInterface::receiveHandler(int fifoNumber, CanRxMsg &canmsg)
     if (fifoNumber != mCurFilterFifo)
         return;
     
-    CommonMessage msg;
-    msg.setId(canmsg.ExtId);
-    ByteArray ba(canmsg.Data, canmsg.DLC);
-    msg.setData(ba);
-    receive(msg);
+//    CommonMessage msg;
+//    msg.setId(canmsg.ExtId);
+//    ByteArray ba(canmsg.Data, canmsg.DLC);
+//    msg.setData(std::move(ba));
+//    receive(std::move(msg));
+    
+    receive(CommonMessage(canmsg.ExtId, ByteArray(canmsg.Data, canmsg.DLC)));
 }
 
 void CanInterface::setReceiveEnabled(bool enabled)

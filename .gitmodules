@@ -2,3 +2,7 @@
 	path = lib/CMSIS/Device/ST/cmsis_device_f3
 	url = https://github.com/STMicroelectronics/cmsis_device_f3.git
 	branch = master
+[submodule "lib/stm32_mw_lwip"]
+	path = lib/stm32_mw_lwip
+	url = https://github.com/STMicroelectronics/stm32_mw_lwip
+	branch = master

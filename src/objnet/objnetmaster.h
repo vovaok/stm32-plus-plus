@@ -40,8 +40,8 @@ private:
 protected:
     void task();
     
-    void parseServiceMessage(CommonMessage &msg);
-    void parseMessage(CommonMessage &msg);
+    void parseServiceMessage(const CommonMessage &msg);
+    void parseMessage(const CommonMessage &msg);
 
     unsigned char route(unsigned char netAddress) {return netAddress<0x7F? mRouteTable[netAddress]: 0;}
     unsigned char createNetAddress(unsigned char mac);
@@ -49,7 +49,7 @@ protected:
     void adjacentConnected();
 
 public:
-    Closure<void(CommonMessage&)> onServiceMessage;
+    Closure<void(const CommonMessage&)> onServiceMessage;
     
     ObjnetDevice *createStaticDevice(unsigned char busAddress);
     void registerDevice(ObjnetDevice *dev, unsigned char busAddress);
@@ -104,7 +104,8 @@ public slots:
     void sendObject(unsigned char netAddress, unsigned char oid, const ByteArray &ba);
     void sendServiceRequest(unsigned char netAddress, SvcOID oid, const ByteArray &ba)
     {
-        sendServiceMessage(netAddress, (SvcOID)oid, ba);
+        #warning There is copying of the data!
+        sendServiceMessage(netAddress, (SvcOID)oid, ByteArray(ba));
     }
     void sendGlobalRequest(StdAID aid, bool propagation, const ByteArray &ba=ByteArray())
     {
@@ -125,7 +126,8 @@ public slots:
         id.payload = seq;
         id.aid = aidUpgradeData | aidPropagationDown;
         msg.setGlobalId(id);
-        msg.setData(ba);
+//        msg.setData(ba);
+        msg.copyData(ba);
         mInterface->write(msg);
     }
 

@@ -13,7 +13,7 @@ ObjnetCommonNode::ObjnetCommonNode(ObjnetInterface *iface) :
     mNetAddress(0xFF),
     mConnected(false)
 {
-//    mInterface->onReceive = EVENT(&ObjnetCommonNode::onNewMessage);
+    mInterface->onReceive = EVENT(&ObjnetCommonNode::onNewMessage);
     
     #ifndef QT_CORE_LIB
     stmApp()->registerTaskEvent(EVENT(&ObjnetCommonNode::task));
@@ -57,26 +57,37 @@ void ObjnetCommonNode::task()
 //            mSheduledMsg.setId(0);
 //    }
 
-    CommonMessage msg;
-    while (mInterface->read(msg))
-    {
-        handleMessage(msg);
-    }
+//    CommonMessage msg;
+    
+//    m_receiveBusy = true;
+//    while (mInterface->read(m_currentMsg))
+//    {
+//        handleMessage(m_currentMsg);
+//    }
+//    m_receiveBusy = false;
     
 //    onbFragmentBuffers = mFragmentBuffer.count();
 }
 
-//void ObjnetCommonNode::onNewMessage()
-//{
-//    CommonMessage msg;
-//    if (mInterface->read(msg))
-//    {
-//        if (mBusAddress != 0xFF)
-//            handleMessage(msg);
-//    }
-//}
+void ObjnetCommonNode::onNewMessage()
+{    
+    if (m_receiveBusy)
+        return; // already processing
+    
+    const CommonMessage *msg = mInterface->peekNext();
+    
+//    if (mInterface->read(m_currentMsg))
+    if (msg)
+    {
+        if (mBusAddress != 0xFF)
+        {
+            handleMessage(*msg);
+            mInterface->discardNext();
+        }
+    }
+}
 
-void ObjnetCommonNode::handleMessage(CommonMessage &msg)
+void ObjnetCommonNode::handleMessage(const CommonMessage &msg)
 {
     if (msg.isGlobal())
         {
@@ -95,9 +106,9 @@ void ObjnetCommonNode::handleMessage(CommonMessage &msg)
                         newId.addr = mAdjacentNode->natRoute(id.addr);
                         newId.mac = mAdjacentNode->route(id.addr);
                     }
-                    msg.setId(newId);
-                    mAdjacentNode->mInterface->write(msg);
-                    msg.setId(id); // restore id
+                    CommonMessage newMsg = msg;
+                    newMsg.setId(newId);
+                    mAdjacentNode->mInterface->write(newMsg);
                 }
             }
 
@@ -176,9 +187,10 @@ void ObjnetCommonNode::handleMessage(CommonMessage &msg)
                 }
                 else
                 {
-                    msg.setLocalId(id);
-                    //mAdjacentNode->mInterface->write(msg);
-                    mAdjacentNode->sendCommonMessage(msg);
+                    CommonMessage newMsg = msg;
+                    newMsg.setLocalId(id);
+                    //mAdjacentNode->mInterface->write(newMsg);
+                    mAdjacentNode->sendCommonMessage(newMsg);
                 }
             }
             
@@ -294,18 +306,12 @@ void ObjnetCommonNode::setBusAddress(unsigned char startAddress, Gpio::PinName a
 
 bool ObjnetCommonNode::sendCommonMessage(CommonMessage &msg)
 {  
-//    if (mBusAddress)
-//    {
-//        char hexbuf[64];
-//        sprintf(hexbuf, "0x%08X", msg.rawId());
-//        qDebug() << hexbuf;
-//    }
     int maxsize = mInterface->maxFrameSize();
     if (msg.data().size() <= maxsize)
     {
         bool result = mInterface->write(msg);
 //        if (!result)
-//            qDebug() << "pizda";
+//            qDebug() << "FAIL";
         return result;
     }
     else
@@ -330,10 +336,10 @@ bool ObjnetCommonNode::sendCommonMessage(CommonMessage &msg)
             if (remainsize > maxsize)
                 remainsize = maxsize;
             ba.append(msg.data().data() + i*maxsize, remainsize);
-            outMsg.setData(ba);
+            outMsg.setData(std::move(ba));
             if (!mInterface->write(outMsg))
             {
-//                qDebug() << "big fat pizda";
+//                qDebug() << "EPIC FAIL";
                 return false;
             }
         }
@@ -365,21 +371,23 @@ bool ObjnetCommonNode::sendMessage(unsigned char receiver, unsigned char oid, co
     id.sender = mNetAddress;
     id.oid = oid;
     msg.setLocalId(id);
-    msg.setData(ba);
+//    msg.setData(ba);
+    msg.copyData(ba);
     return sendCommonMessage(msg);
 }
 
-bool ObjnetCommonNode::sendServiceMessage(unsigned char receiver, SvcOID oid, const ByteArray &ba)
+bool ObjnetCommonNode::sendServiceMessage(unsigned char receiver, SvcOID oid, ByteArray &&ba)
 {
-    CommonMessage msg;
+//    CommonMessage msg;
     LocalMsgId id;
     id.mac = route(receiver);
     id.addr = receiver;
     id.svc = 1;
     id.sender = mNetAddress;
     id.oid = oid;
-    msg.setLocalId(id);
-    msg.setData(ba);
+//    msg.setLocalId(id);
+//    msg.setData(std::move(ba));
+    CommonMessage msg(id, std::move(ba));
     return sendCommonMessage(msg);
 }
 
@@ -387,7 +395,7 @@ bool ObjnetCommonNode::sendServiceMessage(unsigned char receiver, SvcOID oid, un
 {
     ByteArray ba;
     ba.append(data);
-    return sendServiceMessage(receiver, oid, ba);
+    return sendServiceMessage(receiver, oid, std::move(ba));
 }
 
 //void ObjnetCommonNode::sendServiceMessageSheduled(unsigned char receiver, SvcOID oid, const ByteArray &ba)
@@ -424,7 +432,8 @@ bool ObjnetCommonNode::sendServiceMessage(SvcOID oid, const ByteArray &ba)
     id.sender = mNetAddress;
     id.oid = oid;
     msg.setLocalId(id);
-    msg.setData(ba);
+//    msg.setData(ba);
+    msg.copyData(ba);
     return sendCommonMessage(msg);
 }
 
@@ -445,7 +454,8 @@ bool ObjnetCommonNode::sendServiceMessageToMac(unsigned char mac, SvcOID oid, co
     id.sender = mNetAddress;
     id.oid = oid;
     msg.setLocalId(id);
-    msg.setData(ba);
+//    msg.setData(ba);
+    msg.copyData(ba);
     return sendCommonMessage(msg);
 }
 
@@ -468,7 +478,8 @@ bool ObjnetCommonNode::sendGlobalMessage(unsigned char aid, const ByteArray &ba)
     id.addr = mNetAddress;
     id.aid = aid;
     msg.setGlobalId(id);
-    msg.setData(ba);
+//    msg.setData(ba);
+    msg.copyData(ba);
     return mInterface->write(msg);
 }
 
@@ -495,7 +506,8 @@ bool ObjnetCommonNode::sendGlobalServiceMessage(StdAID aid, const ByteArray &ba)
     id.addr = mNetAddress;
     id.aid = aid;
     msg.setGlobalId(id);
-    msg.setData(ba);
+//    msg.setData(ba);
+    msg.copyData(ba);
     return mInterface->write(msg);
 }
 //---------------------------------------------------------------------------

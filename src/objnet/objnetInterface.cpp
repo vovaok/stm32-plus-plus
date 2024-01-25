@@ -16,6 +16,9 @@ ObjnetInterface::ObjnetInterface() :
 
 void ObjnetInterface::task()
 {
+    if (!isBusPresent())
+        return;
+
     while (!mTxQueue.isEmpty())
     {
         const CommonMessage &msg = mTxQueue.front();
@@ -65,11 +68,35 @@ bool ObjnetInterface::read(CommonMessage &msg)
     return false;
 }
 
-bool ObjnetInterface::receive(const CommonMessage &msg)
+const CommonMessage *ObjnetInterface::peekNext()
+{
+    if (!mRxQueue.isEmpty())
+        return &mRxQueue.front();
+    return nullptr;
+}
+
+void ObjnetInterface::discardNext()
+{
+    mRxQueue.pop_front();
+}
+
+//bool ObjnetInterface::receive(const CommonMessage &msg)
+//{
+//    if (mRxQueue.size() < mRxQueue.maxsize() - 1)
+//    {
+//        mRxQueue.push_back(msg);
+//        if (onReceive)
+//            onReceive();
+//        return true;
+//    }
+//    return false;
+//}
+
+bool ObjnetInterface::receive(CommonMessage &&msg)
 {
     if (mRxQueue.size() < mRxQueue.maxsize() - 1)
     {
-        mRxQueue.push_back(msg);
+        mRxQueue.push_back(std::move(msg));
         if (onReceive)
             onReceive();
         return true;

@@ -61,6 +61,9 @@ public:
         \return true if message is valid
     */
     virtual bool read(CommonMessage &msg);
+    
+    virtual const CommonMessage *peekNext();
+    virtual void discardNext();
 
 //    /*! Retrieve next global message msg from receive queue.
 //        This function differs from receive(), it retrieves only global messages
@@ -132,7 +135,9 @@ protected:
         \param [out] msg Received message
         \return true if message is valid
     */
-    bool receive(const CommonMessage &msg);
+//    bool receive(const CommonMessage &msg);
+    
+    bool receive(CommonMessage &&msg);
     
     virtual void setReceiveEnabled(bool enabled) {(void)enabled;}
     
