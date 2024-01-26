@@ -19,17 +19,6 @@
 
 //#define GPIO_HAS_PORT(x)    defined(GPIO##x)
 
-#define _GPIO_FOR_EACH_PORT(f) \
-    f(A) f(B) f(C) f(D) f(E) f(F) f(G) f(H) f(I) f(J) f(K)
-#define _GPIO_FOR_EACH_PIN(f) \
-    f(0)  f(1)  f(2)  f(3)  f(4)  f(5)  f(6)  f(7) \
-    f(8)  f(9)  f(10) f(11) f(12) f(13) f(14) f(15)
-#define _GPIO_FOR_EACH_PORT_PIN(f) \
-    _GPIO_FOR_EACH_PORT(_GPIO_FOR_EACH_PIN(f))
-        
-//#define PNAME(x) GLUE(P, x)
-//_GPIO_FOR_EACH_PORT(PNAME);
-
 /*! GPIO pin class.
     Provides easy interface for pin configuration, including alternate functions.
     One instance of this class controls only \b one pin.
@@ -129,7 +118,6 @@ public:
         Gpio alternate function numbers.
         AF numbers are aliased by peripheral names for convenience.
     */
-#if !defined(STM32F37X)
     typedef enum
     {
         afNone = 0xFF, //!< no alternate function
@@ -166,7 +154,6 @@ public:
         af14 = 14,
         af15 = 15,
     } PinAF;
-#endif
     
     /*! Predefined pin configurations.
         You can construct a pin with one of these configurations.
@@ -195,7 +182,7 @@ public:
         You should use it if there is not necessary configuration available.
         But other constructor is more convenient.
     */
-    Gpio(PortName port, unsigned short mask = 0xFFFF, Flags flags = flagsDefault);
+    Gpio(PortName port, uint16_t mask = 0xFFFF, Flags flags = flagsDefault);
     
     ~Gpio();
     
@@ -229,7 +216,7 @@ public:
         Gpio thePin(Gpio::TIM2_CH1_PA0);
         int timerNumber = thePin.periphNumber(); // timerNumber will be 2
     */
-    inline unsigned char periphNumber() const {return mConfig.periphNumber;}
+    inline uint8_t periphNumber() const {return mConfig.periphNumber;}
     
     /*! Получение номера канала периферии.
         Канал периферии определяется по конфигурации, переданной в конструктор.
@@ -239,7 +226,7 @@ public:
         Gpio thePin(Gpio::TIM2_CH1_PA0);
         int channelNumber = thePin.channelNumber(); // channelNumber will be 1
     */
-    inline unsigned char channelNumber() const {return mConfig.channel;}
+    inline uint8_t channelNumber() const {return mConfig.channel;}
     
     /*! Изменение конфигурации как вход без подтяжки.
         По идее, можно вызывать в любое время.
@@ -292,10 +279,10 @@ public:
     inline void toggle() {mPort->ODR ^= mPin;}
     
     /*! запись порта*/
-    void writePort(unsigned short value);
+    void writePort(uint16_t value);
 
     /*! чтение порта*/
-    unsigned short readPort();
+    uint16_t readPort();
     
     /*! что за нога? */
     PinName pin() const {return static_cast<Gpio::PinName>(mConfig.pin);}
@@ -309,36 +296,37 @@ private:
         Config config;
         struct
         {
-            unsigned char pin;
-            unsigned char flags;
-            unsigned char af;
-            unsigned char periph; // peripheral index
+            uint8_t pin;
+            uint8_t flags;
+            uint8_t af;
+            uint8_t periph; // peripheral index
         };
         struct
         {
-            unsigned char pinNumber: 4;
-            unsigned char portNumber: 4;
-            unsigned char mode: 2;
-            unsigned char outType: 1;
-            unsigned char pull: 2;
-            unsigned char speed: 2;
-            unsigned char manyPins: 1; // several pins of port used, 'mPin' variable contains mask
-            unsigned char afNumber;
-            unsigned char channel: 4;
-            unsigned char periphNumber: 4;
+            uint8_t pinNumber: 4;
+            uint8_t portNumber: 4;
+            uint8_t mode: 2;
+            uint8_t outType: 1;
+            uint8_t pull: 2;
+            uint8_t speed: 2;
+            uint8_t manyPins: 1; // several pins of port used, 'mPin' variable contains mask
+            uint8_t afNumber;
+            uint8_t channel: 4;
+            uint8_t periphNumber: 4;
         };
         struct
         {
-            unsigned short _dummy;
-            unsigned short mask;
+            uint16_t _dummy;
+            uint16_t mask;
         };
     } ConfigStruct;
   
-    static unsigned char mPinsUsed[140];
+    static uint8_t mPinsUsed[140];
     static void usePin(const ConfigStruct &cfg);
+    
     ConfigStruct mConfig;
     GPIO_TypeDef *mPort;
-    unsigned short mPin;
+    uint16_t mPin;
     
     void init();
     static GPIO_TypeDef *getPortByNumber(int port);

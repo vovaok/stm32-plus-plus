@@ -6029,7 +6029,7 @@
             <data>
                 <extensions></extensions>
                 <cmdline></cmdline>
-                <hasPrio>224</hasPrio>
+                <hasPrio>1</hasPrio>
                 <buildSequence>inputOutputBased</buildSequence>
             </data>
         </settings>
@@ -15084,6 +15084,9 @@
     </file>
     <file>
         <name>$PROJ_DIR$\src\flashdrive.h</name>
+    </file>
+    <file>
+        <name>$PROJ_DIR$\src\fmc.cpp</name>
     </file>
     <file>
         <name>$PROJ_DIR$\src\fmc.h</name>

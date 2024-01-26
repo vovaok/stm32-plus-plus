@@ -5,7 +5,7 @@
 #define BSRRH   BRR
 #endif
 
-unsigned char Gpio::mPinsUsed[140]; // assuming all items = 0 at startup
+uint8_t Gpio::mPinsUsed[140]; // assuming all items = 0 at startup
 
 Gpio::Gpio(PinName pin, Flags flags/*, PinAF altFunction*/)
 {
@@ -25,7 +25,7 @@ Gpio::Gpio(Config conf)
     config(mConfig.config);
 }
 
-Gpio::Gpio(PortName port, unsigned short mask, Flags flags)
+Gpio::Gpio(PortName port, uint16_t mask, Flags flags)
 {
     mConfig.pin = port;
     mConfig.flags = flags;
@@ -67,7 +67,7 @@ void Gpio::config(const Config &conf)
     RCC->AHB2ENR |= (1 << c.portNumber); // enable port clocks
 #endif
 
-    unsigned short mask;
+    uint16_t mask;
     if (c.manyPins)
         mask = c.mask;
     else // only one pin initialization
@@ -146,7 +146,7 @@ void Gpio::config(int count, Config conf1, ...)
 
 void Gpio::usePin(const ConfigStruct &cfg)
 {
-    unsigned char pinId = static_cast<unsigned char>(cfg.pin);
+    uint8_t pinId = static_cast<uint8_t>(cfg.pin);
     if (cfg.config == NoConfig)
         mPinsUsed[pinId] = 0x00;
     else if (mPinsUsed[pinId])
@@ -175,6 +175,12 @@ GPIO_TypeDef *Gpio::getPortByNumber(int port)
 #if defined(GPIOI)
         case 0x8: return GPIOI;
 #endif
+#if defined(GPIOJ)
+        case 0x9: return GPIOJ;
+#endif
+#if defined(GPIOK)
+        case 0xA: return GPIOK;
+#endif        
         default: return 0L;
     }
 }
@@ -243,12 +249,12 @@ void Gpio::write(bool value)
 }
 //---------------------------------------------------------------------------
 
-void Gpio::writePort(unsigned short value)
+void Gpio::writePort(uint16_t value)
 {
     mPort->ODR = (mPort->ODR & (~mPin)) | (value & mPin);
 }
 
-unsigned short Gpio::readPort()
+uint16_t Gpio::readPort()
 {
     if (mConfig.mode == modeOut)
         return mPort->ODR & mPin;
