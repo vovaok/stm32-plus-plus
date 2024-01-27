@@ -4,5 +4,5 @@
 	branch = master
 [submodule "lib/stm32_mw_lwip"]
 	path = lib/stm32_mw_lwip
-	url = https://github.com/STMicroelectronics/stm32_mw_lwip
+	url = https://github.com/STMicroelectronics/stm32_mw_lwip.git
 	branch = master
