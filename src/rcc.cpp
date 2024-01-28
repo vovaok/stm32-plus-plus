@@ -69,6 +69,12 @@ bool Rcc::setEnabled(ClockSource src, bool enabled)
     case HSI: mask = RCC_CR_HSION; break;
     case HSE: mask = RCC_CR_HSEON; break;
     case PLL: mask = RCC_CR_PLLON; break;
+#if defined(RCC_CR_PLLI2SON)
+    case PLLI2S: mask = RCC_CR_PLLI2SON; break;
+#endif
+#if defined(RCC_CR_PLLSAION)
+    case PLLSAI: mask = RCC_CR_PLLSAION; break;
+#endif
     };
 
     if (enabled)
@@ -95,6 +101,12 @@ bool Rcc::isReady(ClockSource src)
     case HSI: return RCC->CR & RCC_CR_HSIRDY;
     case HSE: return RCC->CR & RCC_CR_HSERDY;
     case PLL: return RCC->CR & RCC_CR_PLLRDY;
+#if defined(RCC_CR_PLLI2SON)
+    case PLLI2S: return RCC->CR & RCC_CR_PLLI2SRDY;
+#endif
+#if defined(RCC_CR_PLLSAION)
+    case PLLSAI: return RCC->CR & RCC_CR_PLLSAIRDY;
+#endif
     };
     return false;
 }
@@ -345,6 +357,36 @@ bool Rcc::measureHseFreq()
     return true;
 }
 
+#if defined(LTDC)
+void Rcc::configLtdcClock(int frequency)
+{
+    if (isReady(PLLSAI))
+        setEnabled(PLLSAI, false);
+
+    int pllN = 192; // magic number by default
+    int div = pllN * 1000000 / frequency;
+    int plldiv = upper_power_of_two((div + 6) / 7);
+    if (plldiv < 2)
+        plldiv = 2;
+    int pllR = div / plldiv;
+    uint32_t pllsai = RCC->PLLSAICFGR & (RCC_PLLSAICFGR_PLLSAIQ_Msk);
+    RCC->PLLSAICFGR = pllsai | (pllN << RCC_PLLSAICFGR_PLLSAIN_Pos)
+                             | (pllR << RCC_PLLSAICFGR_PLLSAIR_Pos);
+    switch (plldiv)
+    {
+    case 2:  plldiv = 0; break;
+    case 4:  plldiv = 1; break;
+    case 8:  plldiv = 2; break;
+    case 16: plldiv = 3; break;
+    default: THROW(Exception::OutOfRange);
+    }
+    RCC->DCKCFGR = (RCC->DCKCFGR & ~RCC_DCKCFGR_PLLSAIDIVR_Msk) |
+                   (plldiv << RCC_DCKCFGR_PLLSAIDIVR_Pos);
+
+    setEnabled(PLLSAI, true);
+}
+#endif
+
 #elif defined(STM32L4)
 
 bool Rcc::configPll(uint32_t sysClk)
@@ -545,3 +587,23 @@ bool Rcc::measureHseFreq()
 
 
 #endif
+
+void Rcc::setPeriphEnabled(void *periphBase, bool enabled)
+{
+    switch (reinterpret_cast<uint32_t>(periphBase))
+    {
+    case LTDC_BASE:     RCC->APB2ENR |= RCC_APB2ENR_LTDCEN; break;
+    case DMA2D_BASE:    RCC->AHB1ENR |= RCC_AHB1ENR_DMA2DEN; break;
+    //! @todo Fill other cases
+    }
+}
+
+void Rcc::resetPeriph(void *periphBase)
+{
+    switch (reinterpret_cast<uint32_t>(periphBase))
+    {
+    case LTDC_BASE:     RCC->APB2RSTR |= RCC_APB2RSTR_LTDCRST; break;
+    case DMA2D_BASE:    RCC->AHB1RSTR |= RCC_AHB1RSTR_DMA2DRST; break;
+    //! @todo Fill other cases
+    }
+}

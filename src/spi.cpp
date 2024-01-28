@@ -80,7 +80,7 @@ Spi::Spi(Gpio::Config sck, Gpio::Config miso, Gpio::Config mosi) :
         mDmaChannelTx = SPI3_DMA_CHANNEL_TX;
         break;
 
-#if defined(STM32F429XX)
+#if defined(SPI4)
       case 4:
         mDev = SPI4;
         RCC->APB2ENR |= RCC_APB2ENR_SPI4EN;
@@ -88,7 +88,8 @@ Spi::Spi(Gpio::Config sck, Gpio::Config miso, Gpio::Config mosi) :
         mDmaChannelRx = SPI4_DMA_CHANNEL_RX;
         mDmaChannelTx = SPI4_DMA_CHANNEL_TX;
         break;
-
+#endif
+#if defined(SPI5)
       case 5:
         mDev = SPI5;
         RCC->APB2ENR |= RCC_APB2ENR_SPI5EN;
@@ -96,7 +97,8 @@ Spi::Spi(Gpio::Config sck, Gpio::Config miso, Gpio::Config mosi) :
         mDmaChannelRx = SPI5_DMA_CHANNEL_RX;
         mDmaChannelTx = SPI5_DMA_CHANNEL_TX;
         break;
-
+#endif
+#if defined(SPI6)
       case 6:
         mDev = SPI6;
         RCC->APB2ENR |= RCC_APB2ENR_SPI6EN;
