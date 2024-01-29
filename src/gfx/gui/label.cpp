@@ -12,6 +12,14 @@ Label::Label(const ByteArray &text, Widget *parent) :
     update();
 }
 
+Label::Label(const ByteArray &text, Alignment align, Widget *parent) :
+    Widget(parent),
+    m_text(text),
+    m_align(align)
+{
+    update();
+}
+
 void Label::setAlignment(Alignment value)
 {
     m_align = value;

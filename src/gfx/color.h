@@ -26,7 +26,7 @@ public:
 //        return col;
 //    }
     
-//    uint8_t alpha() const {return m_alpha;}
+    uint8_t alpha() const {return 255;}//{return m_alpha;}
     uint8_t r() const {return m_value >> 11;} // 5-bit value
     uint8_t g() const {return (m_value >> 5) & 0x3F;} // 6-bit value
     uint8_t b() const {return m_value & 0x1F;} // 5-bit value

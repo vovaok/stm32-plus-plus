@@ -14209,6 +14209,12 @@
             <name>$PROJ_DIR$\src\device\eeprom24c.h</name>
         </file>
         <file>
+            <name>$PROJ_DIR$\src\device\ili9341.cpp</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\device\ili9341.h</name>
+        </file>
+        <file>
             <name>$PROJ_DIR$\src\device\ili9486.cpp</name>
         </file>
         <file>
@@ -14398,6 +14404,12 @@
             <name>$PROJ_DIR$\src\gfx\display.h</name>
         </file>
         <file>
+            <name>$PROJ_DIR$\src\gfx\dma2d.cpp</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\gfx\dma2d.h</name>
+        </file>
+        <file>
             <name>$PROJ_DIR$\src\gfx\font.cpp</name>
         </file>
         <file>
@@ -14413,10 +14425,22 @@
             <name>$PROJ_DIR$\src\gfx\fontinfo.h</name>
         </file>
         <file>
+            <name>$PROJ_DIR$\src\gfx\framebuffer.cpp</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\gfx\framebuffer.h</name>
+        </file>
+        <file>
             <name>$PROJ_DIR$\src\gfx\image.cpp</name>
         </file>
         <file>
             <name>$PROJ_DIR$\src\gfx\image.h</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\gfx\lcddisplay.cpp</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\gfx\lcddisplay.h</name>
         </file>
         <file>
             <name>$PROJ_DIR$\src\gfx\rect.h</name>

@@ -61,6 +61,7 @@ void GuiApplication::setDisplay(Display *d)
 {
     m_display = d;
     m_widget->resize(d->width(), d->height());
+    m_widget->update();
     m_paintTimer->start();
 }
 

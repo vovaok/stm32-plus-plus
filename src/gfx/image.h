@@ -7,6 +7,8 @@
 #include "display.h"
 #include "core/bytearray.h"
 
+//! @todo Maybe inherit Image from FrameBuffer?
+
 class Image: public Display
 {
 public:
@@ -14,6 +16,9 @@ public:
     Image(int width, int height);
     
     bool isNull() const {return m_data.isEmpty();}
+    
+    const uint8_t *bits() const {return reinterpret_cast<const uint8_t *>(m_data.data());}
+    uint8_t *bits() {return reinterpret_cast<uint8_t *>(m_data.data());}
     
     const uint16_t *pixels() const {return reinterpret_cast<const uint16_t *>(m_data.data());}
     uint16_t *pixels() {return reinterpret_cast<uint16_t *>(m_data.data());}

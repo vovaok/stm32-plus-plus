@@ -21,7 +21,16 @@ enum StdColor: uint16_t
 	White	= RGB(255, 255, 255),
 	Gray	= RGB(128, 128, 128),
     Orange  = RGB(255, 128, 0),
-    Pink    = RGBHEX(0xFC0FC0)
+    Pink    = RGBHEX(0xFC0FC0),
+    DarkRed     = RGB(128, 0, 0),
+    DarkYellow  = RGB(128, 128, 0),
+    DarkGreen   = RGB(0, 128, 0),
+    DarkCyan    = RGB(0, 128, 128),
+    DarkBlue    = RGB(0, 0, 128),
+    DarkMagenta = RGB(128, 0, 128),
+    DarkGray    = RGB(64, 64, 64),
+    LightGray   = RGB(192, 192, 192),
+    DarkOrange  = RGB(128, 64, 0),
 };
 
 enum Alignment
