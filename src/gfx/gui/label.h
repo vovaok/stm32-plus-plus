@@ -8,6 +8,7 @@ class Label : public Widget
 public:
     Label(Widget *parent = nullptr);
     Label(const ByteArray &text, Widget *parent = nullptr);
+    Label(const ByteArray &text, Alignment align, Widget *parent = nullptr);
     
     void setAlignment(Alignment value);
     Alignment alignment() const {return m_align;}
