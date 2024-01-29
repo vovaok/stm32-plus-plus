@@ -14233,6 +14233,12 @@
             <name>$PROJ_DIR$\src\device\mt6835.h</name>
         </file>
         <file>
+            <name>$PROJ_DIR$\src\device\stmpe811.cpp</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\device\stmpe811.h</name>
+        </file>
+        <file>
             <name>$PROJ_DIR$\src\device\xpt2046.cpp</name>
         </file>
         <file>
