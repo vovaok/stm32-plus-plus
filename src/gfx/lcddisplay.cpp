@@ -12,33 +12,33 @@ void LcdDisplay::configLayer(int number, FrameBuffer *frameBuffer)
 {
     if (number < 1 || number > 2)
         return;
-    
+
     // choose appropriate register set
     LTDC_Layer_TypeDef *LTDC_Layer = ltdcLayer(number);
-    
+
     // store framebuffer for later use
     m_layerFB[number - 1] = frameBuffer;
-    
+
     // program window position
     setLayerPos(number, 0, 0);
-    
+
     // program pixel format
     LTDC_Layer->PFCR = frameBuffer->pixelFormat();
-    
+
     // program address of pixel data
     LTDC_Layer->CFBAR = reinterpret_cast<uint32_t>(frameBuffer->m_data);
-    
+
     // program pitch and line length
     // according to the datasheet: line length = pitch + 3
     int bpl = frameBuffer->m_bpl;
     LTDC_Layer->CFBLR = (bpl << 16) | (bpl + 3);
-    
+
     // program number of lines
     LTDC_Layer->CFBLNR = frameBuffer->height();
-    
+
     // update registers from shadow ones
     reloadConfig();
-    
+
     // enable layer
     LTDC_Layer->CR |= LTDC_LxCR_LEN;
 }
@@ -49,17 +49,17 @@ void LcdDisplay::setLayerPos(int number, int x, int y)
     FrameBuffer *fb = m_layerFB[number - 1];
     if (!fb)
         return;
-    
+
     // program window horizontal position
     int hst = m_timings.HS + m_timings.HBP + x;
     int hsp = hst + fb->width() - 1;
     LTDC_Layer->WHPCR = (hsp << 16) | hst;
-    
+
     // program window vertical position
     int vst = m_timings.VS + m_timings.VBP + y;
     int vsp = vst + fb->height() - 1;
     LTDC_Layer->WVPCR = (vsp << 16) | vst;
-    
+
     reloadConfig();
 }
 
@@ -136,7 +136,7 @@ void LcdDisplay::copyRect(int x, int y, int width, int height, const uint16_t *b
 void LcdDisplay::init(const Timings &timings)
 {
     m_timings = timings;
-    rcc().configLtdcClock(m_timings.pixelClock);
+    m_timings.pixelClock = rcc().configLtdcClock(m_timings.pixelClock);
 
     //! @todo configure polarity
 //    LTDC->GCR &= (uint32_t)GCR_MASK;
@@ -181,6 +181,22 @@ void LcdDisplay::init(const Timings &timings)
     LTDC->BCCR = (bkr << 16) | (bkg << 8) | bkb;
 }
 
+void LcdDisplay::setFps(int fps)
+{
+    int tw = m_timings.HS + m_timings.HBP + m_width + m_timings.HFP;
+    int th = m_timings.VS + m_timings.VBP + m_height + m_timings.VFP;
+    m_timings.pixelClock = tw * th * fps;
+    m_timings.pixelClock = rcc().configLtdcClock(m_timings.pixelClock);
+}
+
+int LcdDisplay::getFps()
+{
+    int tw = m_timings.HS + m_timings.HBP + m_width + m_timings.HFP;
+    int th = m_timings.VS + m_timings.VBP + m_height + m_timings.VFP;
+    int twh = tw * th;
+    return (m_timings.pixelClock + twh/2) / twh;
+}
+
 void LcdDisplay::reloadConfig(bool immediately)
 {
     if (immediately)
@@ -197,5 +213,5 @@ LTDC_Layer_TypeDef *LcdDisplay::ltdcLayer(int number)
     case 2: return LTDC_Layer2;
     default: return nullptr;
     }
-    
+
 }

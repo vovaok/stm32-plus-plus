@@ -7,7 +7,7 @@ FrameBuffer::FrameBuffer(uint8_t *data, int width, int height, PixelFormat pixel
 {
     m_width = width;
     m_height = height;
-    
+
     switch (pixelFormat)
     {
     case Format_ARGB8888:   m_bpp = 4; break;
@@ -19,9 +19,9 @@ FrameBuffer::FrameBuffer(uint8_t *data, int width, int height, PixelFormat pixel
     case Format_AL44:       m_bpp = 1; break;
     case Format_AL88:       m_bpp = 2; break;
     }
-    
+
     m_bpl = m_bpp * m_width;
-    
+
 //    memset(m_data, 0, m_bpl * m_height);
 }
 
@@ -85,9 +85,9 @@ uint16_t FrameBuffer::pixel(int x, int y)
     }
     return c32;
 }
-    
+
 void FrameBuffer::fillRect(int x, int y, int width, int height, uint16_t color)
-{   
+{
 #if defined(DMA2D)
     Dma2D dma2d(this, x, y);
     dma2d.setSource(color, width, height);
@@ -105,7 +105,7 @@ void FrameBuffer::fillRect(int x, int y, int width, int height, uint16_t color)
         width = m_width - x;
     if (y + height > m_height)
         height = m_height - y;
-        
+
     int ey = y + height;
     for (int i=y; i<ey; i++)
     {
@@ -136,7 +136,7 @@ void FrameBuffer::copyRect(int x, int y, int width, int height, const uint16_t *
         width = m_width - x;
     if (y + height > m_height)
         height = m_height - y;
-        
+
     int ey = y + height;
     for (int i=y; i<ey; i++)
     {

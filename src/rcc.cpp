@@ -358,32 +358,44 @@ bool Rcc::measureHseFreq()
 }
 
 #if defined(LTDC)
-void Rcc::configLtdcClock(int frequency)
+int Rcc::configLtdcClock(int frequency)
 {
     if (isReady(PLLSAI))
         setEnabled(PLLSAI, false);
 
+    //! @todo test these calculations, it's sometimes wrong :c
+
     int pllN = 192; // magic number by default
     int div = pllN * 1000000 / frequency;
+    div = (div + 1) & ~1; // make even
+    pllN = div * frequency / 1000000;
     int plldiv = upper_power_of_two((div + 6) / 7);
     if (plldiv < 2)
         plldiv = 2;
+    while (plldiv > 16)
+    {
+        plldiv >>= 1;
+        pllN >>= 1;
+    }
     int pllR = div / plldiv;
     uint32_t pllsai = RCC->PLLSAICFGR & (RCC_PLLSAICFGR_PLLSAIQ_Msk);
     RCC->PLLSAICFGR = pllsai | (pllN << RCC_PLLSAICFGR_PLLSAIN_Pos)
                              | (pllR << RCC_PLLSAICFGR_PLLSAIR_Pos);
+    int plldivr = 0;
     switch (plldiv)
     {
-    case 2:  plldiv = 0; break;
-    case 4:  plldiv = 1; break;
-    case 8:  plldiv = 2; break;
-    case 16: plldiv = 3; break;
+    case 2:  plldivr = 0; break;
+    case 4:  plldivr = 1; break;
+    case 8:  plldivr = 2; break;
+    case 16: plldivr = 3; break;
     default: THROW(Exception::OutOfRange);
     }
     RCC->DCKCFGR = (RCC->DCKCFGR & ~RCC_DCKCFGR_PLLSAIDIVR_Msk) |
-                   (plldiv << RCC_DCKCFGR_PLLSAIDIVR_Pos);
+                   (plldivr << RCC_DCKCFGR_PLLSAIDIVR_Pos);
 
     setEnabled(PLLSAI, true);
+
+    return pllN * 1000000 / (pllR * plldiv);
 }
 #endif
 

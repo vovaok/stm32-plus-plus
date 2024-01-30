@@ -54,7 +54,7 @@ public:
     void resetPeriph(void *periphBase);
 
 #if defined(LTDC)
-    void configLtdcClock(int frequency);
+    int configLtdcClock(int frequency); //!< return real programmed frequency
 #endif
 
 private:

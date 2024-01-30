@@ -8,7 +8,7 @@ class LcdDisplay : public Display
 {
 public:
     LcdDisplay(int width, int height);
-    
+
     struct Timings
     {
         int pixelClock; //!< Pixel clock, Hz
@@ -19,15 +19,17 @@ public:
         int VBP; //!< Vertical back porch
         int VFP; //!< Vertical front porch
     };
-    
+
     void init(const Timings &timings);
-    
+    void setFps(int fps);
+    int getFps();
+
     void configLayer(int number, FrameBuffer *frameBuffer);
     void setLayerPos(int number, int x, int y);
     void setLayerOpacity(int number, uint8_t alpha);
     void setLayerDefaultColor(int number, Color color);
     void setLayerColorKeying(int number, Color color);
-    
+
     void setEnabled(bool enabled);
 
     virtual void setPixel(int x, int y, uint16_t color) override;
@@ -39,7 +41,7 @@ protected:
 
     // LCD panel timings (should be filled in child class):
     Timings m_timings {0};
-    
+
 private:
     FrameBuffer *m_layerFB[2] = {nullptr, nullptr};
     void reloadConfig(bool immediately = true);
