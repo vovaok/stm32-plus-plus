@@ -3,8 +3,9 @@
 
 #include "i2c.h"
 #include "core/timer.h"
+#include "gfx/touchscreen.h"
 
-class STMPE811
+class STMPE811 : public TouchScreen
 {
 public:
     STMPE811(I2c *i2c, uint8_t address);

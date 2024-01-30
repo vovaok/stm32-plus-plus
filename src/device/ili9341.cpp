@@ -1,7 +1,7 @@
 #include "ili9341.h"
 
 ILI9341::ILI9341(Spi *spi, Gpio::PinName cs, Gpio::PinName dc) :
-    LcdDisplay(),
+    LcdDisplay(240, 320),
     m_spi(spi)
 {
     m_cs = new Gpio(cs, Gpio::Output);
@@ -13,23 +13,26 @@ ILI9341::ILI9341(Spi *spi, Gpio::PinName cs, Gpio::PinName dc) :
     m_spi->setBaudratePrescaler(3); // 10Mhz max
     m_spi->setDataSize(8);
     m_spi->open();
-
-    m_pixelClock = 6000000;
-    m_HS = 10;
-    m_HBP = 20;
-    m_width = 240;
-    m_HFP = 10;
-    m_VS = 2;
-    m_VBP = 2;
-    m_height = 320;
-    m_VFP = 4;
-}
-
-void ILI9341::init()
-{
+    
     initReg();
-    LcdDisplay::init();
+
+    Timings t;
+    t.pixelClock = 6000000;
+    t.HS = 10;
+    t.HBP = 20;
+    t.HFP = 10;
+    t.VS = 2;
+    t.VBP = 2;
+    t.VFP = 4;
+    
+    init(t);
 }
+
+//void ILI9341::init()
+//{
+//    initReg();
+//    LcdDisplay::init();
+//}
 
 void ILI9341::initReg()
 {

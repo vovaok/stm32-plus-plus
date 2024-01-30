@@ -1,7 +1,9 @@
 #include "lcddisplay.h"
 
-LcdDisplay::LcdDisplay()
+LcdDisplay::LcdDisplay(int width, int height)
 {
+    m_width = width;
+    m_height = height;
     rcc().setPeriphEnabled(LTDC);
     rcc().setPeriphEnabled(DMA2D);
 }
@@ -49,12 +51,12 @@ void LcdDisplay::setLayerPos(int number, int x, int y)
         return;
     
     // program window horizontal position
-    int hst = m_HS + m_HBP + x;
+    int hst = m_timings.HS + m_timings.HBP + x;
     int hsp = hst + fb->width() - 1;
     LTDC_Layer->WHPCR = (hsp << 16) | hst;
     
     // program window vertical position
-    int vst = m_VS + m_VBP + y;
+    int vst = m_timings.VS + m_timings.VBP + y;
     int vsp = vst + fb->height() - 1;
     LTDC_Layer->WVPCR = (vsp << 16) | vst;
     
@@ -131,9 +133,10 @@ void LcdDisplay::copyRect(int x, int y, int width, int height, const uint16_t *b
         m_layerFB[0]->copyRect(x, y, width, height, buffer);
 }
 
-void LcdDisplay::init()
+void LcdDisplay::init(const Timings &timings)
 {
-    rcc().configLtdcClock(m_pixelClock);
+    m_timings = timings;
+    rcc().configLtdcClock(m_timings.pixelClock);
 
     //! @todo configure polarity
 //    LTDC->GCR &= (uint32_t)GCR_MASK;
@@ -153,13 +156,13 @@ void LcdDisplay::init()
     #pragma pack(pop)
 
     // program HSYNC and VSYNC width
-    h = m_HS - 1;
-    v = m_VS - 1;
+    h = m_timings.HS - 1;
+    v = m_timings.VS - 1;
     LTDC->SSCR = reg;
 
     // program accumulated back porch
-    h += m_HBP;
-    v += m_VBP;
+    h += m_timings.HBP;
+    v += m_timings.VBP;
     LTDC->BPCR = reg;
 
     // program accumulated active width and height
@@ -168,8 +171,8 @@ void LcdDisplay::init()
     LTDC->AWCR = reg;
 
     // program total width and height
-    h += m_HFP;
-    v += m_VFP;
+    h += m_timings.HFP;
+    v += m_timings.VFP;
     LTDC->TWCR = reg;
 
     int bkr = backgroundColor().r();
