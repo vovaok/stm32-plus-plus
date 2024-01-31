@@ -649,6 +649,7 @@ void Rcc::setPeriphEnabled(void *periphBase, bool enabled)
     {
     case LTDC_BASE:     RCC->APB2ENR |= RCC_APB2ENR_LTDCEN; break;
     case DMA2D_BASE:    RCC->AHB1ENR |= RCC_AHB1ENR_DMA2DEN; break;
+    case SYSCFG_BASE:   RCC->APB2ENR |= RCC_APB2ENR_SYSCFGEN; break;
     //! @todo Fill other cases
     }
 }
@@ -659,6 +660,7 @@ void Rcc::resetPeriph(void *periphBase)
     {
     case LTDC_BASE:     RCC->APB2RSTR |= RCC_APB2RSTR_LTDCRST; break;
     case DMA2D_BASE:    RCC->AHB1RSTR |= RCC_AHB1RSTR_DMA2DRST; break;
+    case SYSCFG_BASE:   RCC->APB2RSTR |= RCC_APB2RSTR_SYSCFGRST; break;
     //! @todo Fill other cases
     }
 }

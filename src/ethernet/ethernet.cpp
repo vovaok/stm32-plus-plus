@@ -24,6 +24,9 @@ Ethernet::Ethernet(const RMII &rmii)
 {    
     if (!s_llInitCompleted)
     {
+        rcc().setPeriphEnabled(SYSCFG);
+        SYSCFG->PMC |= SYSCFG_PMC_MII_RMII_SEL;
+        
         Gpio::config(rmii.pinMDC);
         Gpio::config(rmii.pinMDIO);
         Gpio::config(rmii.pinREF_CLK);
