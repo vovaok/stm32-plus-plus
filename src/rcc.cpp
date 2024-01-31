@@ -75,6 +75,7 @@ bool Rcc::setEnabled(ClockSource src, bool enabled)
 #if defined(RCC_CR_PLLSAION)
     case PLLSAI: mask = RCC_CR_PLLSAION; break;
 #endif
+    default: return false;
     };
 
     if (enabled)
@@ -107,8 +108,8 @@ bool Rcc::isReady(ClockSource src)
 #if defined(RCC_CR_PLLSAION)
     case PLLSAI: return RCC->CR & RCC_CR_PLLSAIRDY;
 #endif
+    default: return false;
     };
-    return false;
 }
 
 bool Rcc::configPll(uint32_t hseValue, uint32_t sysClk)
@@ -398,6 +399,48 @@ int Rcc::configLtdcClock(int frequency)
     return pllN * 1000000 / (pllR * plldiv);
 }
 #endif
+
+void Rcc::configClockOutput(Gpio::Config mco, ClockSource clk, int prescaler)
+{
+    if (prescaler <= 1)
+        prescaler = 0;
+    else if (prescaler > 1 && prescaler <= 5)
+        prescaler += 2;
+    else
+        return; // wrong configuration
+    
+    uint32_t cfgr = RCC->CFGR;
+    
+    if (mco == Gpio::MCO1_PA8)
+    {
+        cfgr &= ~(RCC_CFGR_MCO1_Msk | RCC_CFGR_MCO1PRE_Msk);
+        cfgr |= prescaler << RCC_CFGR_MCO1PRE_Pos;
+        switch (clk)
+        {
+        case HSI: cfgr |= 0 << RCC_CFGR_MCO1_Pos; break;
+        case LSE: cfgr |= 1UL << RCC_CFGR_MCO1_Pos; break;
+        case HSE: cfgr |= 2UL << RCC_CFGR_MCO1_Pos; break;
+        case PLL: cfgr |= 3UL << RCC_CFGR_MCO1_Pos; break;
+        default: return; // wrong configuration
+        }
+    }
+    else if (mco == Gpio::MCO2_PC9)
+    {
+        cfgr &= ~(RCC_CFGR_MCO2_Msk | RCC_CFGR_MCO2PRE_Msk);
+        cfgr |= prescaler << RCC_CFGR_MCO2PRE_Pos;
+        switch (clk)
+        {
+        case SYSCLK: cfgr |= 0 << RCC_CFGR_MCO2_Pos; break;
+        case PLLI2S: cfgr |= 1UL << RCC_CFGR_MCO2_Pos; break;
+        case HSE:    cfgr |= 2UL << RCC_CFGR_MCO2_Pos; break;
+        case PLL:    cfgr |= 3UL << RCC_CFGR_MCO2_Pos; break;
+        default: return; // wrong configuration
+        }
+    }
+    
+    RCC->CFGR = cfgr;
+    Gpio::config(mco);
+}
 
 #elif defined(STM32L4)
 

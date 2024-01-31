@@ -339,9 +339,51 @@ enum Config
     OTG_HS_ULPI_NXT_PH4=PINCONFIG(PH4,  modeAF | speed100MHz, afOtgHs, 0x21), //!<.
     OTG_HS_ULPI_DIR_PI11=PINCONFIG(PI11,modeAF | speed100MHz, afOtgHs, 0x21), //!<.\n to be continued....
 
-    MCO1            =   PINCONFIG(PA8,  modeAF | speed100MHz, afMco, 0x10),
-    MCO2            =   PINCONFIG(PC9,  modeAF | speed100MHz, afMco, 0x20),
+    MCO1_PA8        =   PINCONFIG(PA8,  modeAF | speed100MHz, afMco, 0x10),
+    MCO2_PC9        =   PINCONFIG(PC9,  modeAF | speed100MHz, afMco, 0x20),
 
+    // ETH common
+    ETH_MDC_PC1     =   PINCONFIG(PC1,  modeAF | speed100MHz, afEth, 0x10),
+    ETH_MDIO_PA2    =   PINCONFIG(PA2,  modeAF | speed100MHz, afEth, 0x10),
+    // ETH MII
+    ETH_MII_CRS_PA0 =   PINCONFIG(PA0,  modeAF | speed100MHz, afEth, 0x11),
+    ETH_MII_CRS_PH2 =   PINCONFIG(PH2,  modeAF | speed100MHz, afEth, 0x11),
+    ETH_MII_COL_PA3 =   PINCONFIG(PA3,  modeAF | speed100MHz, afEth, 0x11),
+    ETH_MII_COL_PH3 =   PINCONFIG(PH3,  modeAF | speed100MHz, afEth, 0x11),
+    ETH_MII_RX_DV_PA7 = PINCONFIG(PA7,  modeAF | speed100MHz, afEth, 0x11),
+    ETH_MII_RX_CLK_PA1 =PINCONFIG(PA1,  modeAF | speed100MHz, afEth, 0x11),
+    ETH_MII_RXD0_PC4 =  PINCONFIG(PC4,  modeAF | speed100MHz, afEth, 0x11),
+    ETH_MII_RXD1_PC5 =  PINCONFIG(PC5,  modeAF | speed100MHz, afEth, 0x11),
+    ETH_MII_RXD2_PB0 =  PINCONFIG(PB0,  modeAF | speed100MHz, afEth, 0x11),
+    ETH_MII_RXD3_PB1 =  PINCONFIG(PB1,  modeAF | speed100MHz, afEth, 0x11),
+    ETH_MII_RXD3_PH7 =  PINCONFIG(PH7,  modeAF | speed100MHz, afEth, 0x11),
+    ETH_MII_RX_ER_PB10 =PINCONFIG(PB10, modeAF | speed100MHz, afEth, 0x11),
+    ETH_MII_RX_ER_PI10 =PINCONFIG(PI10, modeAF | speed100MHz, afEth, 0x11),
+    ETH_MII_TX_EN_PB11 =PINCONFIG(PB11, modeAF | speed100MHz, afEth, 0x11),
+    ETH_MII_TX_EN_PG11 =PINCONFIG(PG11, modeAF | speed100MHz, afEth, 0x11),
+    ETH_MII_TX_CLK_PC3 =PINCONFIG(PC3,  modeAF | speed100MHz, afEth, 0x11),
+    ETH_MII_TXD0_PB12 = PINCONFIG(PB12, modeAF | speed100MHz, afEth, 0x11),
+    ETH_MII_TXD0_PG13 = PINCONFIG(PG13, modeAF | speed100MHz, afEth, 0x11),
+    ETH_MII_TXD1_PB13 = PINCONFIG(PB13, modeAF | speed100MHz, afEth, 0x11),  
+    ETH_MII_TXD1_PG14 = PINCONFIG(PG14, modeAF | speed100MHz, afEth, 0x11),
+    ETH_MII_TXD2_PC2 =  PINCONFIG(PC2,  modeAF | speed100MHz, afEth, 0x11),
+    ETH_MII_TXD3_PE2 =  PINCONFIG(PE2,  modeAF | speed100MHz, afEth, 0x11),
+    ETH_MII_TXD3_PB8 =  PINCONFIG(PB8,  modeAF | speed100MHz, afEth, 0x11),
+    ETH_PPS_OUT_PB5  =  PINCONFIG(PB5,  modeAF | speed100MHz, afEth, 0x11),
+    ETH_PPS_OUT_PG8 =   PINCONFIG(PG8,  modeAF | speed100MHz, afEth, 0x11),
+    // ETH RMII
+    ETH_RMII_REF_CLK_PA1 = PINCONFIG(PA1,  modeAF | speed100MHz, afEth, 0x12),
+    ETH_RMII_CRS_DV_PA7 =  PINCONFIG(PA7,  modeAF | speed100MHz, afEth, 0x12),
+    ETH_RMII_RXD0_PC4 =    PINCONFIG(PC4,  modeAF | speed100MHz, afEth, 0x12),
+    ETH_RMII_RXD1_PC5 =    PINCONFIG(PC5,  modeAF | speed100MHz, afEth, 0x12),
+    ETH_RMII_TX_EN_PB11 =  PINCONFIG(PB11, modeAF | speed100MHz, afEth, 0x12),
+    ETH_RMII_TXD0_PB12 =   PINCONFIG(PB12, modeAF | speed100MHz, afEth, 0x12),
+    ETH_RMII_TXD1_PB13 =   PINCONFIG(PB13, modeAF | speed100MHz, afEth, 0x12),
+    ETH_RMII_TX_EN_PG11 =  PINCONFIG(PG11, modeAF | speed100MHz, afEth, 0x12),
+    ETH_RMII_TXD0_PG13 =   PINCONFIG(PG13, modeAF | speed100MHz, afEth, 0x12),
+    ETH_RMII_TXD1_PG14 =   PINCONFIG(PG14, modeAF | speed100MHz, afEth, 0x12),
+    
+    // FMC - Flexible Memory Controller
     FMC_A0          =   PINCONFIG(PF0,  modeAF | speed50MHz, afFmc, 0x10),
     FMC_A1          =   PINCONFIG(PF1,  modeAF | speed50MHz, afFmc, 0x10),
     FMC_A2          =   PINCONFIG(PF2,  modeAF | speed50MHz, afFmc, 0x10),
@@ -442,6 +484,7 @@ enum Config
     FMC_NAND16_CLE  =   FMC_A16,
     FMC_NAND16_ALE  =   FMC_A17,
 
+    // LCD (LTDC)
     LCD_B5_PA3      =   PINCONFIG(PA3,  modeAF | speed50MHz, afLcd, 0x10),
     LCD_VSYNC_PA4   =   PINCONFIG(PA4,  modeAF | speed50MHz, afLcd, 0x10),
     LCD_G2_PA6      =   PINCONFIG(PA6,  modeAF | speed50MHz, afLcd, 0x10),

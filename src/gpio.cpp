@@ -1,4 +1,5 @@
 #include "gpio.h"
+#include "core/core.h"
 
 #if defined(STM32F37X)
 #define BSRRL   BSRR

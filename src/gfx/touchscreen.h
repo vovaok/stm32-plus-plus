@@ -50,6 +50,7 @@ protected:
     int m_xOffset, m_yOffset;
     int m_xFactor, m_yFactor;
 //    ScreenOrientation m_orientation;
+    int m_rawX = 0, m_rawY = 0;
 
     void touchEvent(TouchEvent::Type type);
 };

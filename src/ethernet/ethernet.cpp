@@ -9,17 +9,39 @@ extern "C" void tcp_tmr();
 Ethernet *Ethernet::instance()
 {
     if (!m_self)
-        m_self = new Ethernet();
+        m_self = new Ethernet(RMII());
     return m_self;
 }
 
-Ethernet::Ethernet()
+Ethernet *Ethernet::instance(const RMII &rmii)
+{
+    if (!m_self)
+        m_self = new Ethernet(rmii);
+    return m_self;
+}
+
+Ethernet::Ethernet(const RMII &rmii)
 {    
     if (!s_llInitCompleted)
     {
-        /* configure ethernet */ 
-        if (ETH_BSP_Config() == ETH_ERROR)
-            THROW(Exception::BadSoBad);
+        Gpio::config(rmii.pinMDC);
+        Gpio::config(rmii.pinMDIO);
+        Gpio::config(rmii.pinREF_CLK);
+        Gpio::config(rmii.pinCRS_DV);
+        Gpio::config(rmii.pinRXD0);
+        Gpio::config(rmii.pinRXD1);
+        Gpio::config(rmii.pinTX_EN);
+        Gpio::config(rmii.pinTXD0);
+        Gpio::config(rmii.pinTXD1);
+        Gpio *pinReset = new Gpio(rmii.pinReset, Gpio::Output);
+        pinReset->write(0);
+        for (int w=20000; --w;);
+        pinReset->write(1);
+        for (int w=20000; --w;);
+        
+        bool result = ethConfig(rmii.phyAddress);
+        if (!result)
+            return;
 
         /* Initializes the dynamic memory heap defined by MEM_SIZE.*/
         mem_init();
@@ -39,6 +61,8 @@ Ethernet::Ethernet()
         m_igmpTmr.start(IGMP_TMR_INTERVAL);
         
         stmApp()->registerTaskEvent(EVENT(&Ethernet::task));
+        
+        s_llInitCompleted = true;
     }
 }
 
@@ -113,4 +137,74 @@ void Ethernet::task()
         /* Read a received packet from the Ethernet buffers and send it to the lwIP for handling */
         ethernetif_input(&m_netif);
     }
+}
+
+bool Ethernet::ethConfig(uint16_t phyAddress)
+{
+    ETH_InitTypeDef ETH_InitStructure;
+
+    /* Enable ETHERNET clock  */
+    RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_ETH_MAC | RCC_AHB1Periph_ETH_MAC_Tx |
+                        RCC_AHB1Periph_ETH_MAC_Rx, ENABLE);
+                        
+    /* Reset ETHERNET on AHB Bus */
+    ETH_DeInit();
+
+    /* Software reset */
+    ETH_SoftwareReset();
+
+    uint32_t timeout = 1000;
+    /* Wait for software reset */
+    while (ETH_GetSoftwareResetStatus() == SET)
+    {
+        --timeout;
+        if (!timeout)
+        {
+            return false;
+        }
+    }
+
+    /* ETHERNET Configuration --------------------------------------------------*/
+    /* Call ETH_StructInit if you don't like to configure all ETH_InitStructure parameter */
+    ETH_StructInit(&ETH_InitStructure);
+
+    /* Fill ETH_InitStructure parametrs */
+    /*------------------------   MAC   -----------------------------------*/
+    ETH_InitStructure.ETH_AutoNegotiation = ETH_AutoNegotiation_Enable;
+    //ETH_InitStructure.ETH_AutoNegotiation = ETH_AutoNegotiation_Disable; 
+    //  ETH_InitStructure.ETH_Speed = ETH_Speed_10M;
+    //  ETH_InitStructure.ETH_Mode = ETH_Mode_FullDuplex;   
+
+    ETH_InitStructure.ETH_LoopbackMode = ETH_LoopbackMode_Disable;
+    ETH_InitStructure.ETH_RetryTransmission = ETH_RetryTransmission_Disable;
+    ETH_InitStructure.ETH_AutomaticPadCRCStrip = ETH_AutomaticPadCRCStrip_Disable;
+    ETH_InitStructure.ETH_ReceiveAll = ETH_ReceiveAll_Disable;
+    ETH_InitStructure.ETH_BroadcastFramesReception = ETH_BroadcastFramesReception_Enable;
+    ETH_InitStructure.ETH_PromiscuousMode = ETH_PromiscuousMode_Disable;
+    ETH_InitStructure.ETH_MulticastFramesFilter = ETH_MulticastFramesFilter_Perfect;
+    ETH_InitStructure.ETH_UnicastFramesFilter = ETH_UnicastFramesFilter_Perfect;
+    #ifdef CHECKSUM_BY_HARDWARE
+    ETH_InitStructure.ETH_ChecksumOffload = ETH_ChecksumOffload_Enable;
+    #endif
+
+    /*------------------------   DMA   -----------------------------------*/  
+
+    /* When we use the Checksum offload feature, we need to enable the Store and Forward mode: 
+    the store and forward guarantee that a whole frame is stored in the FIFO, so the MAC can insert/verify the checksum, 
+    if the checksum is OK the DMA can handle the frame otherwise the frame is dropped */
+    ETH_InitStructure.ETH_DropTCPIPChecksumErrorFrame = ETH_DropTCPIPChecksumErrorFrame_Enable; 
+    ETH_InitStructure.ETH_ReceiveStoreForward = ETH_ReceiveStoreForward_Enable;         
+    ETH_InitStructure.ETH_TransmitStoreForward = ETH_TransmitStoreForward_Enable;     
+
+    ETH_InitStructure.ETH_ForwardErrorFrames = ETH_ForwardErrorFrames_Disable;       
+    ETH_InitStructure.ETH_ForwardUndersizedGoodFrames = ETH_ForwardUndersizedGoodFrames_Disable;   
+    ETH_InitStructure.ETH_SecondFrameOperate = ETH_SecondFrameOperate_Enable;
+    ETH_InitStructure.ETH_AddressAlignedBeats = ETH_AddressAlignedBeats_Enable;      
+    ETH_InitStructure.ETH_FixedBurst = ETH_FixedBurst_Enable;                
+    ETH_InitStructure.ETH_RxDMABurstLength = ETH_RxDMABurstLength_32Beat;          
+    ETH_InitStructure.ETH_TxDMABurstLength = ETH_TxDMABurstLength_32Beat;
+    ETH_InitStructure.ETH_DMAArbitration = ETH_DMAArbitration_RoundRobin_RxTx_2_1;
+
+    /* Configure Ethernet */
+    return ETH_Init(&ETH_InitStructure, phyAddress);
 }

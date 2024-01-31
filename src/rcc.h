@@ -2,6 +2,7 @@
 #define _RCC_H
 
 #include "stm32.h"
+#include "gpio.h"
 
 class Rcc
 {
@@ -14,6 +15,9 @@ public:
         HSI = 0x0,
         HSE = 0x1,
         PLL = 0x2,
+        SYSCLK = 0x80,
+        LSI,
+        LSE,
 #if defined(RCC_CR_PLLI2SON)
         PLLI2S,
 #endif
@@ -56,6 +60,12 @@ public:
 #if defined(LTDC)
     int configLtdcClock(int frequency); //!< return real programmed frequency
 #endif
+    
+    // ''  It is highly recommended to change this
+    //     prescaler only after reset before enabling
+    //     the external oscillators and the PLLs       ''
+    //                                    (c) datasheet
+    void configClockOutput(Gpio::Config mco, ClockSource clk, int prescaler=1);
 
 private:
     Rcc();

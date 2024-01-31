@@ -2,6 +2,7 @@
 
 #include "gpio.h"
 #include "rcc.h"
+#include "core/core.h"
 
 class SDRAM
 {

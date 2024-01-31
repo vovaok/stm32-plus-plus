@@ -3,7 +3,7 @@
 
 #include <stdarg.h>
 #include "stm32.h"
-#include "core/core.h"
+//#include "core/core.h"
 
 /*! Pin configuration macro.
     Intended for internal use.

@@ -14266,6 +14266,9 @@
             </file>
             <file>
                 <name>$PROJ_DIR$\src\ethernet\stm32f4x7_eth_bsp.c</name>
+                <excluded>
+                    <configuration>stm32f429zi</configuration>
+                </excluded>
             </file>
             <file>
                 <name>$PROJ_DIR$\src\ethernet\stm32f4x7_eth_bsp.h</name>
