@@ -8,17 +8,12 @@ class XPT2046 : public TouchScreen
 {
 public:
     XPT2046(Spi *spi, Gpio::PinName cs, Gpio::PinName penirq);
-    
-    void setSensibility(int value); // 0 .. 4
-    
+
 protected:
     Spi *m_spi;
-    Gpio *m_cs, *m_penirq; 
-    
-private:
-    int m_xp, m_yp;
-    int m_sensibility;
-    void task();
+    Gpio *m_cs, *m_penirq;
+
+    virtual bool read() override;
 };
 
 #endif

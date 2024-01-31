@@ -35,7 +35,10 @@ class TouchScreen
 public:
     TouchScreen();
     void setCalibration(int xOffset, int yOffset, int xFactor, int yFactor);
+    void calcCalibration(int width, int height, int left, int top, int right, int bottom);
+    void setSwappedXY(bool swapped);
 //    void setOrientation(ScreenOrientation ori) {m_orientation = ori;}
+    void setSensibility(int value); // 0 .. 4
 
     bool isTouched() const {return m_pressure > 0;}
     int x() const {return m_x;}
@@ -44,14 +47,20 @@ public:
 
     Closure<void(TouchEvent *)> onTouch;
 
-protected:
+//protected:
+    int m_rawX = 0, m_rawY = 0, m_rawZ = 0;
+    bool m_pen;
+    virtual bool read() = 0;
+
+private:
     int m_x, m_y;
     int m_pressure;
     int m_xOffset, m_yOffset;
     int m_xFactor, m_yFactor;
+    int m_sensibility = 2;
+    bool m_xySwap = false;
 //    ScreenOrientation m_orientation;
-    int m_rawX = 0, m_rawY = 0;
-
+    void task();
     void touchEvent(TouchEvent::Type type);
 };
 

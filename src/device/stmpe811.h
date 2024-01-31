@@ -11,27 +11,19 @@ public:
     STMPE811(I2c *i2c, uint8_t address);
 
     bool open();
-    bool read();
-
     bool isOpen() const {return m_isOpen;}
 
-    Closure<void(int, int)> onTouch;
-    Closure<void(int, int)> onRelease;
-
-    bool isTouchDetected() const {return m_touchDetected;}
-    uint16_t x() const {return m_x;}
-    uint16_t y() const {return m_y;}
-    uint16_t z() const {return m_z;}
+protected:
+    virtual bool read() override;
 
 private:
     I2c *m_i2c;
     Timer *m_timer;
     uint8_t m_address;
     bool m_isOpen;
-    bool m_touchDetected, m_oldTouch;
-    uint16_t m_x, m_y, m_z;
+    bool m_timerFlag;
 
-    void task();
+    void onTimer();
 
     enum Register
     {
@@ -117,10 +109,6 @@ private:
     void ioAfConfig(uint8_t ioPin, bool enable);
 
     void tpConfig();
-
-    uint16_t readX();
-    uint16_t readY();
-    uint16_t readZ();
 
     uint8_t readReg(uint8_t addr);
     void writeReg(uint8_t addr, uint8_t value);

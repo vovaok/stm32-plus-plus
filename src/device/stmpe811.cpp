@@ -3,86 +3,70 @@
 STMPE811::STMPE811(I2c *i2c, uint8_t address) :
     m_i2c(i2c),
     m_address(address),
-    m_isOpen(false),
-    m_touchDetected(false),
-    m_oldTouch(false),
-    m_x(0), m_y(0), m_z(0)
+    m_isOpen(false)
 {
     m_timer = new Timer;
     m_timer->setInterval(10);
-    m_timer->setTimeoutEvent(EVENT(&STMPE811::task));
+    m_timer->setTimeoutEvent(EVENT(&STMPE811::onTimer));
+
+    m_i2c->setBusClock(100000);
+    m_i2c->open();
+
+    open();
+
+    calcCalibration(240, 320, 3850, 250, 350, 3880);
 }
 
-void STMPE811::task()
+void STMPE811::onTimer()
 {
-    read();
-    
-    if (!m_oldTouch && m_touchDetected)
-    {
-        if (onTouch)
-            onTouch(m_x, m_y);
-    }
-    else if (m_oldTouch && !m_touchDetected)
-    {
-        if (onRelease)
-            onRelease(m_x, m_y);
-    }
-    
-    m_oldTouch = m_touchDetected;
+    m_timerFlag = true;
 }
 
 bool STMPE811::open()
 {
     if (!checkId())
         return false;
-  
+
     // Generate IO Expander Software reset
-    reset(); 
-  
+    reset();
+
     // IO Expander configuration
     fnctCmd(FctADC, true);
-    
-    // Touch Panel controller and ADC configuration 
+
+    // Touch Panel controller and ADC configuration
     tpConfig();
-    
+
 //    stmApp()->registerTaskEvent(EVENT(&STMPE811::task));
     m_timer->start();
-    
+
     m_isOpen = true;
-    
+
     return true;
 }
 
 bool STMPE811::read()
-{  
+{
     if (!m_isOpen)
         return false;
-  
-    int xDiff, yDiff, x, y;
+
+    if (!m_timerFlag)
+        return false;
+    m_timerFlag = false;
 
     /* Check if the Touch detect event happened */
-    m_touchDetected = ((readReg(IOE_REG_TP_CTRL) & 0x80) != 0);
+    m_pen = ((readReg(IOE_REG_TP_CTRL) & 0x80) != 0);
 
-    if (m_touchDetected) 
+    if (m_pen)
     {
-        x = readX();
-        y = readY();
-        xDiff = x > m_x? (x - m_x): (m_x - x);
-        yDiff = y > m_y? (y - m_y): (m_y - y);       
-        if (xDiff + yDiff > 5)
-        {
-            m_x = x;
-            m_y = y;       
-        }
-    }  
-
-    /* Update the Z Pression index */  
-    m_z = readZ();  
+        m_rawX = readWord(IOE_REG_TP_DATA_X);
+        m_rawY = readWord(IOE_REG_TP_DATA_Y);
+        m_rawZ = readWord(IOE_REG_TP_DATA_Z);
+    }
 
     /* Clear the interrupt pending bit and enable the FIFO again */
     writeReg(IOE_REG_FIFO_STA, 0x01);
     writeReg(IOE_REG_FIFO_STA, 0x00);
-    
+
     return true;
 }
 
@@ -93,10 +77,10 @@ bool STMPE811::checkId()
 
 void STMPE811::reset()
 {
-    // Power Down the IO_Expander 
+    // Power Down the IO_Expander
     writeReg(IOE_REG_SYS_CTRL1, 0x02);
     // wait for a delay to insure registers erasing
-    for (int w=200000; --w;); 
+    for (int w=200000; --w;);
     // Power On the Codec after the power off => all registers are reinitialized
     writeReg(IOE_REG_SYS_CTRL1, 0x00);
 }
@@ -118,7 +102,7 @@ void STMPE811::ioAfConfig(uint8_t ioPin, bool enable)
         tmp |= ioPin;
     else
         tmp &= ~ioPin;
-    writeReg(IOE_REG_GPIO_AF, tmp);  
+    writeReg(IOE_REG_GPIO_AF, tmp);
 }
 
 void STMPE811::tpConfig()
@@ -130,16 +114,16 @@ void STMPE811::tpConfig()
     writeReg(IOE_REG_ADC_CTRL1, 0x49);
 
     /* Wait for ~20 ms */
-    for (int w=200000; --w;);  
+    for (int w=200000; --w;);
 
     /* Select the ADC clock speed: 3.25 MHz */
     writeReg(IOE_REG_ADC_CTRL2, 0x01);
 
-    /* Select TSC pins in non default mode */  
+    /* Select TSC pins in non default mode */
     ioAfConfig((uint8_t)TOUCH_IO_ALL, DISABLE);
 
     /* Select 2 nF filter capacitor */
-    writeReg(IOE_REG_TP_CFG, 0x9A);   
+    writeReg(IOE_REG_TP_CFG, 0x9A);
 
     /* Select single point reading  */
     writeReg(IOE_REG_FIFO_TH, 0x01);
@@ -156,70 +140,12 @@ void STMPE811::tpConfig()
     /* set the driving capability of the device for TSC pins: 50mA */
     writeReg(IOE_REG_TP_I_DRIVE, 0x01);
 
-    /* Use no tracking index, touch-panel controller operation mode (XYZ) and 
+    /* Use no tracking index, touch-panel controller operation mode (XYZ) and
      enable the TSC */
     writeReg(IOE_REG_TP_CTRL, 0x03);
 
     /*  Clear all the status pending bits */
-    writeReg(IOE_REG_INT_STA, 0xFF); 
-}
-
-uint16_t STMPE811::readX()
-{
-    int32_t x, xr;
-
-    /* Read x value from DATA_X register */
-    x = readWord(IOE_REG_TP_DATA_X);
-
-    /* x value first correction */
-    if (x <= 3000)
-        x = 3870 - x;
-    else
-        x = 3800 - x;
-
-    /* x value second correction */  
-    xr = x / 15;
-
-    /* return x position value */
-    if (xr < 0)
-        xr = 0;
-    else if (xr >= 240)
-        xr = 239;
-    return (uint16_t)(xr); 
-}
-
-uint16_t STMPE811::readY()
-{
-    int32_t y, yr;
-
-    /* Read y value from DATA_Y register */
-    y = readWord(IOE_REG_TP_DATA_Y);
-
-    /* y value first correction */
-    y -= 360;  
-
-    /* y value second correction */
-    yr = y / 11;
-
-    /* return y position value */
-    if (yr < 0)
-        yr = 0;
-    else if (yr >= 320)
-        yr = 319;
-    return (uint16_t)(yr); 
-}
-
-uint16_t STMPE811::readZ()
-{
-    int16_t z;
-
-    /* Read z value from DATA_Z register */
-    z = readWord(IOE_REG_TP_DATA_Z);
-
-    /* return z position value */
-    if (z < 0)
-        z = 0;
-    return (uint16_t)(z); 
+    writeReg(IOE_REG_INT_STA, 0xFF);
 }
 
 uint8_t STMPE811::readReg(uint8_t addr)
