@@ -2,9 +2,9 @@
 #define _XPT2046_H
 
 #include "spi.h"
-#include "gfx/touchscreen.h"
+#include "touchpanel.h"
 
-class XPT2046 : public TouchScreen
+class XPT2046 : public TouchPanel
 {
 public:
     XPT2046(Spi *spi, Gpio::PinName cs, Gpio::PinName penirq);
