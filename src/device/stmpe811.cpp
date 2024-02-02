@@ -14,7 +14,7 @@ STMPE811::STMPE811(I2c *i2c, uint8_t address) :
 
     open();
 
-    calcCalibration(240, 320, 3850, 250, 350, 3880);
+    calcCalibration(240, 320, 3850, 350, 300, 3900);
 }
 
 void STMPE811::onTimer()

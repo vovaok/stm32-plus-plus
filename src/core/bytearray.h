@@ -20,6 +20,7 @@ private:
 
     void allocMore(int size);
     static char readHex(char *ptr);
+    static void writeHex(char *&ptr, char value);
 
 public:
     ByteArray();
@@ -111,6 +112,8 @@ public:
     int toInt() const;
     float toFloat() const;
     std::string toStdString() const;
+    ByteArray toHex();
+    ByteArray toHex(char separator);
 
     static ByteArray fromStdString(const std::string &str);
     static ByteArray fromRawData(const char *data, int size);

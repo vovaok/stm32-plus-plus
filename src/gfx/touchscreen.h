@@ -47,7 +47,7 @@ public:
 
     Closure<void(TouchEvent *)> onTouch;
 
-//protected:
+protected:
     int m_rawX = 0, m_rawY = 0, m_rawZ = 0;
     bool m_pen;
     virtual bool read() = 0;

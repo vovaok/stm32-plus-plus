@@ -36,11 +36,11 @@ void LcdDisplay::configLayer(int number, FrameBuffer *frameBuffer)
     // program number of lines
     LTDC_Layer->CFBLNR = frameBuffer->height();
 
-    // update registers from shadow ones
-    reloadConfig();
-
     // enable layer
     LTDC_Layer->CR |= LTDC_LxCR_LEN;
+    
+    // update registers from shadow ones
+    reloadConfig();
 }
 
 void LcdDisplay::setLayerPos(int number, int x, int y)

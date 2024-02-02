@@ -25,6 +25,7 @@ ILI9341::ILI9341(Spi *spi, Gpio::PinName cs, Gpio::PinName dc) :
     t.VBP = 2;
     t.VFP = 4;
     
+    setOrientation(Portrait);
     init(t);
 }
 

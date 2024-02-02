@@ -61,9 +61,9 @@ public:
     void fillRect(const Rect &rect);
 
 protected:
-    int m_width;
-    int m_height;
-    Orientation m_orientation;
+    int m_width = 0;
+    int m_height = 0;
+    Orientation m_orientation = Landscape;
 
     Display() {}
     Display(int width, int height) : m_width(width), m_height(height) {}
