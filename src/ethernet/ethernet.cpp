@@ -147,8 +147,7 @@ bool Ethernet::ethConfig(uint16_t phyAddress)
     ETH_InitTypeDef ETH_InitStructure;
 
     /* Enable ETHERNET clock  */
-    RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_ETH_MAC | RCC_AHB1Periph_ETH_MAC_Tx |
-                        RCC_AHB1Periph_ETH_MAC_Rx, ENABLE);
+    rcc().setPeriphEnabled(ETH);
                         
     /* Reset ETHERNET on AHB Bus */
     ETH_DeInit();

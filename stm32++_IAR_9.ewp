@@ -4641,7 +4641,9 @@
                     <state>$PROJ_DIR$\lib\STM32F407_StdPeriph_Driver\inc</state>
                     <state>$PROJ_DIR$\lib\STM32F4x7_ETH_Driver\inc</state>
                     <state>$PROJ_DIR$\lib\stm32_mw_lwip\src\include</state>
+                    <state>$PROJ_DIR$\lib\stm32_mw_lwip\system</state>
                     <state>$PROJ_DIR$\src</state>
+                    <state>$PROJ_DIR$\src\ethernet</state>
                 </option>
                 <option>
                     <name>CCStdIncCheck</name>
@@ -14210,9 +14212,15 @@
         </file>
         <file>
             <name>$PROJ_DIR$\src\device\ili9341.cpp</name>
+            <excluded>
+                <configuration>stm32f407vg</configuration>
+            </excluded>
         </file>
         <file>
             <name>$PROJ_DIR$\src\device\ili9341.h</name>
+            <excluded>
+                <configuration>stm32f407vg</configuration>
+            </excluded>
         </file>
         <file>
             <name>$PROJ_DIR$\src\device\ili9486.cpp</name>
@@ -14444,9 +14452,15 @@
         </file>
         <file>
             <name>$PROJ_DIR$\src\gfx\lcddisplay.cpp</name>
+            <excluded>
+                <configuration>stm32f407vg</configuration>
+            </excluded>
         </file>
         <file>
             <name>$PROJ_DIR$\src\gfx\lcddisplay.h</name>
+            <excluded>
+                <configuration>stm32f407vg</configuration>
+            </excluded>
         </file>
         <file>
             <name>$PROJ_DIR$\src\gfx\rect.h</name>
@@ -14564,7 +14578,6 @@
         <file>
             <name>$PROJ_DIR$\src\objnet\udponbinterface.cpp</name>
             <excluded>
-                <configuration>stm32f407vg</configuration>
                 <configuration>stm32f405rg</configuration>
                 <configuration>stm32f405rg_no-exceptions_no-rtti</configuration>
                 <configuration>stm32f446</configuration>
@@ -14574,7 +14587,6 @@
         <file>
             <name>$PROJ_DIR$\src\objnet\udponbinterface.h</name>
             <excluded>
-                <configuration>stm32f407vg</configuration>
                 <configuration>stm32f303xC</configuration>
             </excluded>
         </file>

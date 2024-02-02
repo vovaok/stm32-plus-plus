@@ -1,5 +1,7 @@
 #include "dma2d.h"
 
+#if defined(DMA2D)
+
 Dma2D::Dma2D(FrameBuffer *fb, int x, int y) :
     m_fb(fb)
 {
@@ -53,3 +55,5 @@ void Dma2D::wait()
 {
     while (DMA2D->CR & DMA2D_CR_START);
 }
+
+#endif

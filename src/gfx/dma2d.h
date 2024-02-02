@@ -1,5 +1,7 @@
 #pragma once
 
+#if defined(DMA2D)
+
 #include "stm32.h"
 #include "framebuffer.h"
 #include "image.h"
@@ -28,3 +30,5 @@ private:
         Mode_Reg2Mem = 3 << DMA2D_CR_MODE_Pos
     };
 };
+
+#endif

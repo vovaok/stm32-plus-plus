@@ -647,9 +647,20 @@ void Rcc::setPeriphEnabled(void *periphBase, bool enabled)
 {
     switch (reinterpret_cast<uint32_t>(periphBase))
     {
+#ifdef LTDC
     case LTDC_BASE:     RCC->APB2ENR |= RCC_APB2ENR_LTDCEN; break;
+#endif
+#ifdef DMA2D
     case DMA2D_BASE:    RCC->AHB1ENR |= RCC_AHB1ENR_DMA2DEN; break;
+#endif
     case SYSCFG_BASE:   RCC->APB2ENR |= RCC_APB2ENR_SYSCFGEN; break;
+    
+#ifdef ETH
+    case ETH_BASE:      RCC->AHB1ENR |=
+                        RCC_AHB1ENR_ETHMACEN | /*RCC_AHB1ENR_ETHMACPTPEN | */
+                        RCC_AHB1ENR_ETHMACRXEN | RCC_AHB1ENR_ETHMACTXEN;
+                        break;                   
+#endif
     //! @todo Fill other cases
     }
 }
@@ -658,9 +669,24 @@ void Rcc::resetPeriph(void *periphBase)
 {
     switch (reinterpret_cast<uint32_t>(periphBase))
     {
-    case LTDC_BASE:     RCC->APB2RSTR |= RCC_APB2RSTR_LTDCRST; break;
-    case DMA2D_BASE:    RCC->AHB1RSTR |= RCC_AHB1RSTR_DMA2DRST; break;
-    case SYSCFG_BASE:   RCC->APB2RSTR |= RCC_APB2RSTR_SYSCFGRST; break;
+#ifdef LTDC
+    case LTDC_BASE:     RCC->APB2RSTR |= RCC_APB2RSTR_LTDCRST;
+                        RCC->APB2RSTR &= ~RCC_APB2RSTR_LTDCRST;
+                        break;
+#endif
+#ifdef DMA2D
+    case DMA2D_BASE:    RCC->AHB1RSTR |= RCC_AHB1RSTR_DMA2DRST;
+                        RCC->AHB1RSTR &= ~RCC_AHB1RSTR_DMA2DRST;
+                        break;
+#endif
+    case SYSCFG_BASE:   RCC->APB2RSTR |= RCC_APB2RSTR_SYSCFGRST;
+                        RCC->APB2RSTR &= ~RCC_APB2RSTR_SYSCFGRST;
+                        break;
+#ifdef ETH
+    case ETH_BASE:      RCC->AHB1RSTR |= RCC_AHB1RSTR_ETHMACRST;
+                        RCC->AHB1RSTR &= ~RCC_AHB1RSTR_ETHMACRST;
+                        break;
+#endif    
     //! @todo Fill other cases
     }
 }

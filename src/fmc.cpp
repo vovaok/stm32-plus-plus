@@ -34,6 +34,9 @@ int SDRAM::memorySize() const
     return banks * rows * columns * (busWidth / 8);
 }
 
+// SDRAM support
+#if defined(FMC_Bank5_6)
+
 void Fmc::init(SDRAM *sdram, int bank)
 {
     if (bank != 1 && bank != 2)
@@ -132,6 +135,24 @@ void Fmc::init(SDRAM *sdram, int bank)
     FMC_Bank5_6->SDRTR = refreshRate << 1;
 }
 
+void Fmc::sdramCmd(int bank, SdramCmdMode cmd, int value)
+{
+    bank = (bank << 1) | (bank >> 1); // swap bank bits, thank you f***ing STM!
+    uint32_t sdcmr = (cmd & 7) | ((bank & 3) << 3);
+    if (cmd == CmdModeAutoRefresh)
+        sdcmr |= ((value - 1) & 0xF) << 5;
+    if (cmd == CmdModeLoadMode)
+        sdcmr |= (value & 0x1FFF) << 9;
+
+    // issue a command mode request
+    FMC_Bank5_6->SDCMR = sdcmr;
+
+    // wait for request complete
+    while (FMC_Bank5_6->SDSR & FMC_SDSR_BUSY);
+}
+
+#endif
+
 void Fmc::initAddressPins(int width)
 {
     Gpio::config(width,
@@ -148,20 +169,4 @@ void Fmc::initDataPins(int width)
         Gpio::FMC_D8,  Gpio::FMC_D9,  Gpio::FMC_D10, Gpio::FMC_D11, Gpio::FMC_D12, Gpio::FMC_D13, Gpio::FMC_D14, Gpio::FMC_D15,
         Gpio::FMC_D16, Gpio::FMC_D17, Gpio::FMC_D18, Gpio::FMC_D19, Gpio::FMC_D20, Gpio::FMC_D21, Gpio::FMC_D22, Gpio::FMC_D23,
         Gpio::FMC_D24, Gpio::FMC_D25, Gpio::FMC_D26, Gpio::FMC_D27, Gpio::FMC_D28, Gpio::FMC_D29, Gpio::FMC_D30, Gpio::FMC_D31);
-}
-
-void Fmc::sdramCmd(int bank, SdramCmdMode cmd, int value)
-{
-    bank = (bank << 1) | (bank >> 1); // swap bank bits, thank you f***ing STM!
-    uint32_t sdcmr = (cmd & 7) | ((bank & 3) << 3);
-    if (cmd == CmdModeAutoRefresh)
-        sdcmr |= ((value - 1) & 0xF) << 5;
-    if (cmd == CmdModeLoadMode)
-        sdcmr |= (value & 0x1FFF) << 9;
-
-    // issue a command mode request
-    FMC_Bank5_6->SDCMR = sdcmr;
-
-    // wait for request complete
-    while (FMC_Bank5_6->SDSR & FMC_SDSR_BUSY);
 }

@@ -1,5 +1,7 @@
 #include "lcddisplay.h"
 
+#if defined(LTDC)
+
 LcdDisplay::LcdDisplay(int width, int height)
 {
     m_width = width;
@@ -215,3 +217,5 @@ LTDC_Layer_TypeDef *LcdDisplay::ltdcLayer(int number)
     }
 
 }
+
+#endif

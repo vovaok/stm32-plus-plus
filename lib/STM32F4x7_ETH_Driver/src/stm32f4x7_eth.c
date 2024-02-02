@@ -41,8 +41,8 @@
   */
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4x7_eth.h"
-#include "stm32f4xx_rcc.h"
 #include <string.h>
+#include "rcc.h"
 
 /** @addtogroup STM32F4x7_ETH_Driver
   * @brief ETH driver modules
@@ -170,8 +170,9 @@ static void ETH_Delay(__IO uint32_t nCount)
   */
 void ETH_DeInit(void)
 {
-  RCC_AHB1PeriphResetCmd(RCC_AHB1Periph_ETH_MAC, ENABLE);
-  RCC_AHB1PeriphResetCmd(RCC_AHB1Periph_ETH_MAC, DISABLE);
+    rcc().resetPeriph(ETH);
+//  RCC_AHB1PeriphResetCmd(RCC_AHB1Periph_ETH_MAC, ENABLE);
+//  RCC_AHB1PeriphResetCmd(RCC_AHB1Periph_ETH_MAC, DISABLE);
 }
 
 
@@ -291,7 +292,7 @@ uint32_t ETH_Init(ETH_InitTypeDef* ETH_InitStruct, uint16_t PHYAddress)
 {
   uint32_t RegValue = 0, tmpreg = 0;
   __IO uint32_t i = 0;
-  RCC_ClocksTypeDef  rcc_clocks;
+//  RCC_ClocksTypeDef  rcc_clocks;
   uint32_t hclk = 60000000;
   __IO uint32_t timeout = 0;
   /* Check the parameters */
@@ -349,8 +350,9 @@ uint32_t ETH_Init(ETH_InitTypeDef* ETH_InitStruct, uint16_t PHYAddress)
   /* Clear CSR Clock Range CR[2:0] bits */
   tmpreg &= MACMIIAR_CR_MASK;
   /* Get hclk frequency value */
-  RCC_GetClocksFreq(&rcc_clocks);
-  hclk = rcc_clocks.HCLK_Frequency;
+//  RCC_GetClocksFreq(&rcc_clocks);
+//  hclk = rcc_clocks.HCLK_Frequency;
+  hclk = rcc().hClk();
   
   /* Set CR bits depending on hclk value */
   if((hclk >= 20000000)&&(hclk < 35000000))

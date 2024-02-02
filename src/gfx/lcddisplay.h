@@ -4,6 +4,8 @@
 #include "display.h"
 #include "framebuffer.h"
 
+#if defined(LTDC)
+
 class LcdDisplay : public Display
 {
 public:
@@ -48,3 +50,5 @@ private:
     // choose appropriate register set
     static LTDC_Layer_TypeDef *ltdcLayer(int number);
 };
+
+#endif
