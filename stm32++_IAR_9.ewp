@@ -14245,6 +14245,12 @@
             <name>$PROJ_DIR$\src\device\stmpe811.h</name>
         </file>
         <file>
+            <name>$PROJ_DIR$\src\device\touchpanel.cpp</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\device\touchpanel.h</name>
+        </file>
+        <file>
             <name>$PROJ_DIR$\src\device\xpt2046.cpp</name>
         </file>
         <file>
