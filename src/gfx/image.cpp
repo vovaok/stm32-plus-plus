@@ -3,13 +3,64 @@
 Image::Image() :
     Display(0, 0)
 {
-    
+
 }
 
 Image::Image(int width, int height) :
     Display(width, height)
 {
     m_data.resize(width * height * 2);
+}
+
+//! @todo use PixelFormat to calculate size!
+Image::Image(const char *data, int width, int height) :
+    Display(width, height)
+{
+    m_data = ByteArray::fromRawData(data, width * height * 2);
+}
+
+Image Image::fromData(const char *data, int size)
+{
+#pragma pack(push, 1)
+    struct BmpHeader
+    {
+        uint16_t id;
+        uint32_t fileSize;
+        uint16_t _r1;
+        uint16_t _r2;
+        uint32_t offset;
+    };
+    typedef struct
+    {
+        uint32_t biSize;
+        int32_t biWidth;
+        int32_t biHeight;
+        uint16_t biPlanes;
+        uint16_t biBitCount;
+        uint32_t biCompression;
+        uint32_t biSizeImage;
+        int32_t biXPelsPerMeter;
+        int32_t biYPelsPerMeter;
+        uint32_t biClrUsed;
+        uint32_t biClrImportant;
+    } BITMAPINFOHEADER;
+#pragma pack(pop)
+
+    const BmpHeader *bmp = reinterpret_cast<const BmpHeader*>(data);
+    if (bmp->id == 0x4d42) // "BM" is windows BMP file
+    {
+        const BITMAPINFOHEADER *info = reinterpret_cast<const BITMAPINFOHEADER *>(data + 14);
+        Image img;
+        img.m_width = info->biWidth;
+        img.m_height = info->biHeight > 0? info->biHeight: -info->biHeight;
+        img.m_data = ByteArray::fromRawData(data + bmp->offset, info->biSizeImage);
+        // img.bpp = biBitCount >> 3;
+        //! @todo use BPP
+        //! @todo deal with bitmap rows 32-bit alignment
+        return img;
+    }
+
+    return Image();
 }
 
 void Image::setPixel(int x, int y, uint16_t color)
@@ -66,7 +117,7 @@ void Image::fillRect(int x, int y, int width, int height, uint16_t color)
         width = m_width - x;
     if (y + height > m_height)
         height = m_height - y;
-        
+
     int ey = y + height;
     for (int i=y; i<ey; i++)
     {
@@ -91,7 +142,7 @@ void Image::copyRect(int x, int y, int width, int height, const uint16_t *buffer
         width = m_width - x;
     if (y + height > m_height)
         height = m_height - y;
-        
+
     int ey = y + height;
     for (int i=y; i<ey; i++)
     {
@@ -101,4 +152,3 @@ void Image::copyRect(int x, int y, int width, int height, const uint16_t *buffer
             *dst++ = *buffer++;
     }
 }
-    

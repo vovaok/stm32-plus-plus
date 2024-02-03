@@ -22,6 +22,18 @@ public:
         PortraitInverted   = 7
     };
 
+    enum PixelFormat
+    {
+        Format_ARGB8888 = 0,
+        Format_RGB888   = 1,
+        Format_RGB565   = 2,
+        Format_ARGB1555 = 3,
+        Format_ARGB4444 = 4,
+        Format_L8       = 5, // 8-bit luminance
+        Format_AL44     = 6, // 4-bit alpha, 4-bit luminance
+        Format_AL88     = 7, // 8-bit alpha, 8-bit luminance
+    };
+
     virtual void setOrientation(Orientation ori) {m_orientation = ori;}
     Orientation orientation() const {return m_orientation;}
     inline int width() const {return m_width;}

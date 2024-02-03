@@ -8,11 +8,11 @@ Sfs::Sfs()
     m_entry = 0L;
 }
 
-const char *Sfs::open(std::string name)
+const char *Sfs::open(const ByteArray &name)
 {
     for (m_entry = m_head; m_entry; m_entry = m_entry->next())
     {
-        std::string ename = m_entry->name();
+        ByteArray ename = m_entry->name();
         if (name == ename)
             return m_entry->data();
     }

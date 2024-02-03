@@ -1,10 +1,10 @@
 #pragma once
 
-#if defined(DMA2D)
-
 #include "stm32.h"
 #include "framebuffer.h"
 #include "image.h"
+
+#if defined(DMA2D)
 
 class Dma2D
 {
@@ -13,15 +13,16 @@ public:
     void setSource(uint32_t color, int width, int height);
     void setSource(const uint8_t *data, int width, int height);
     void setSource(const Image &img, uint8_t opacity=255);
-    
+
     void start();
     void wait();
-    
+
     void doTransfer() {start(); wait();}
-    
+
 private:
     FrameBuffer *m_fb;
-    
+    int m_maxw, m_maxh;
+
     enum Mode
     {
         Mode_Mem2Mem = 0 << DMA2D_CR_MODE_Pos,
