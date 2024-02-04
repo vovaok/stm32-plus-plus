@@ -30,8 +30,8 @@ public:
     int size() const {return m_entry? m_entry->size(): 0;}
 
 private:
-    const Entry *m_head;
-    const Entry *m_entry;
+    const Entry *m_head = nullptr;
+    const Entry *m_entry = nullptr;
 };
 
 #endif
