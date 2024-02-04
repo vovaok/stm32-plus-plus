@@ -33,6 +33,7 @@ public:
     void setLayerColorKeying(int number, Color color);
 
     void setEnabled(bool enabled);
+    void setCurrentLayer(int number);
 
     virtual void setPixel(int x, int y, uint16_t color) override;
     virtual uint16_t pixel(int x, int y) override;
@@ -46,6 +47,7 @@ protected:
 
 private:
     FrameBuffer *m_layerFB[2] = {nullptr, nullptr};
+    int m_currentLayer = 0;
     void reloadConfig(bool immediately = true);
     // choose appropriate register set
     static LTDC_Layer_TypeDef *ltdcLayer(int number);

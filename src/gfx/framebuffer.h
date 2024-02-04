@@ -8,6 +8,8 @@ public:
     FrameBuffer(uint8_t *data, int width, int height, PixelFormat pixelFormat);
 
     void fill(uint32_t color);
+    
+    uint8_t *data() {return m_data;}
 
     virtual void setPixel(int x, int y, uint16_t color) override;
     virtual uint16_t pixel(int x, int y) override;

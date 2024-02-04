@@ -4,12 +4,16 @@
 #include "lwip/tcp.h"
 #include "core/device.h"
 
+typedef struct tcp_pcb * SocketDescriptor_t;
+
 class TcpSocket : public Device
 {
 public:
     TcpSocket();
-    TcpSocket(struct tcp_pcb *pcb);
+    TcpSocket(SocketDescriptor_t pcb);
     virtual ~TcpSocket();
+    
+    void setSocketDescriptor(SocketDescriptor_t pcb);
     
     bool isSequential() const {return true;}
     int bytesAvailable() const override;

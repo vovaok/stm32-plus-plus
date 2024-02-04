@@ -197,6 +197,12 @@ public:
         Try better using another implementation that accepts predefined config.
     */
     static void config(PinName pin, Flags flags = flagsDefault, PinAF altFunction = afNone);
+    
+    /*! Initialize pin as push-pull output and set its value.
+        This function is useful when you not need to create an instance
+        for manipulating the pin in the future.\n
+    */
+    static void config(PinName pin, bool value);
 
     /*! Initialize pin with predefined configuration.
         This function is useful when you not need to create an instance

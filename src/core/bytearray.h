@@ -1,11 +1,6 @@
 #ifndef _BYTEARRAY_H
 #define _BYTEARRAY_H
 
-#ifdef QT_CORE_LIB
-#include <QByteArray>
-#define ByteArray QByteArray
-#else
-
 #include <string>
 #include <string.h>
 #include <stdio.h>
@@ -126,5 +121,4 @@ public:
 ByteArray operator +(const ByteArray &ba1, const ByteArray ba2);
 bool operator<(const ByteArray &ba1, const ByteArray &ba2);
 
-#endif
 #endif

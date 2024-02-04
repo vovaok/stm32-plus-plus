@@ -8,6 +8,9 @@ LcdDisplay::LcdDisplay(int width, int height)
     m_height = height;
     rcc().setPeriphEnabled(LTDC);
     rcc().setPeriphEnabled(DMA2D);
+    
+    //! @todo make user able to set this parameter
+    DMA2D->AMTCR = (63 << 8) | DMA2D_AMTCR_EN;
 }
 
 void LcdDisplay::configLayer(int number, FrameBuffer *frameBuffer)
@@ -102,37 +105,31 @@ void LcdDisplay::setEnabled(bool enabled)
         LTDC->GCR &= ~LTDC_GCR_LTDCEN;
 }
 
+void LcdDisplay::setCurrentLayer(int number)
+{
+    if (number < 1 || number > 2)
+        return;
+    m_currentLayer = number - 1;
+}
+
 void LcdDisplay::setPixel(int x, int y, uint16_t color)
 {
-    if (m_layerFB[1])
-        m_layerFB[1]->setPixel(x, y, color);
-    else if (m_layerFB[0])
-        m_layerFB[0]->setPixel(x, y, color);
+    m_layerFB[m_currentLayer]->setPixel(x, y, color);
 }
 
 uint16_t LcdDisplay::pixel(int x, int y)
 {
-    if (m_layerFB[1])
-        return m_layerFB[1]->pixel(x, y);
-    else if (m_layerFB[0])
-        return m_layerFB[0]->pixel(x, y);
-    return 0;
+    return m_layerFB[m_currentLayer]->pixel(x, y);
 }
 
 void LcdDisplay::fillRect(int x, int y, int width, int height, uint16_t color)
 {
-    if (m_layerFB[1])
-        m_layerFB[1]->fillRect(x, y, width, height, color);
-    else if (m_layerFB[0])
-        m_layerFB[0]->fillRect(x, y, width, height, color);
+    m_layerFB[m_currentLayer]->fillRect(x, y, width, height, color);
 }
 
 void LcdDisplay::copyRect(int x, int y, int width, int height, const uint16_t *buffer)
 {
-    if (m_layerFB[1])
-        m_layerFB[1]->copyRect(x, y, width, height, buffer);
-    else if (m_layerFB[0])
-        m_layerFB[0]->copyRect(x, y, width, height, buffer);
+    m_layerFB[m_currentLayer]->copyRect(x, y, width, height, buffer);
 }
 
 void LcdDisplay::init(const Timings &timings)

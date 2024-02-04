@@ -7,10 +7,27 @@ TcpSocket::TcpSocket() :
     
 }
 
-TcpSocket::TcpSocket(struct tcp_pcb *pcb) :
+TcpSocket::TcpSocket(SocketDescriptor_t pcb) :
     m_pcb(pcb),
     m_p(0L)
 {
+    setSocketDescriptor(pcb);
+//    tcp_arg(m_pcb, this);
+//    tcp_recv(m_pcb, &TcpSocket::s_recv);
+//    tcp_err(m_pcb, &TcpSocket::s_error);
+//    tcp_poll(m_pcb, &TcpSocket::s_poll, 1);
+//    tcp_sent(m_pcb, &TcpSocket::s_sent);
+//    Device::open(Device::ReadWrite);
+}
+
+TcpSocket::~TcpSocket()
+{
+    close();
+} 
+
+void TcpSocket::setSocketDescriptor(SocketDescriptor_t pcb)
+{
+    m_pcb = pcb;
     tcp_arg(m_pcb, this);
     tcp_recv(m_pcb, &TcpSocket::s_recv);
     tcp_err(m_pcb, &TcpSocket::s_error);
@@ -18,11 +35,6 @@ TcpSocket::TcpSocket(struct tcp_pcb *pcb) :
     tcp_sent(m_pcb, &TcpSocket::s_sent);
     Device::open(Device::ReadWrite);
 }
-
-TcpSocket::~TcpSocket()
-{
-    close();
-}   
 
 void TcpSocket::connectToHost(ip_addr_t ipaddr, uint16_t port)
 {

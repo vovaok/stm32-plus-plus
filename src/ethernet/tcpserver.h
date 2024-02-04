@@ -17,7 +17,7 @@ public:
     Closure<void(TcpSocket *)> onNewConnection;
     
 protected:
-    virtual void incomingConnection(struct tcp_pcb *pcb);
+    virtual void incomingConnection(tcp_pcb *pcb);
   
 private:
     struct tcp_pcb *m_pcb;

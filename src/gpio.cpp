@@ -52,6 +52,21 @@ void Gpio::config(PinName pin, Flags flags, PinAF altFunction)
     config(c.config);
 }
 
+void Gpio::config(PinName pin, bool value)
+{
+    ConfigStruct c;
+    c.pin = pin;
+    c.flags = Output;
+    c.af = afNone;
+    config(c.config);
+    GPIO_TypeDef *port = getPortByNumber(c.portNumber);
+    if (value)
+        port->BSRR = 1 << c.pinNumber;
+    else
+        port->BSRR = 0x10000 << c.pinNumber;
+    
+}
+
 void Gpio::config(const Config &conf)
 {
     const ConfigStruct &c = reinterpret_cast<const ConfigStruct&>(conf);
