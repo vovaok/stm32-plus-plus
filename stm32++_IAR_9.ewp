@@ -14211,6 +14211,12 @@
             <name>$PROJ_DIR$\src\device\eeprom24c.h</name>
         </file>
         <file>
+            <name>$PROJ_DIR$\src\device\gpioexpander.cpp</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\device\gpioexpander.h</name>
+        </file>
+        <file>
             <name>$PROJ_DIR$\src\device\ili9341.cpp</name>
             <excluded>
                 <configuration>stm32f407vg</configuration>
@@ -14245,6 +14251,12 @@
         </file>
         <file>
             <name>$PROJ_DIR$\src\device\mt6835.h</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\device\shiftregister.cpp</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\device\shiftregister.h</name>
         </file>
         <file>
             <name>$PROJ_DIR$\src\device\stmpe811.cpp</name>

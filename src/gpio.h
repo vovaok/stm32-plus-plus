@@ -188,6 +188,11 @@ public:
         But other constructor is more convenient.
     */
     Gpio(PortName port, uint16_t mask = 0xFFFF, Flags flags = flagsDefault);
+    
+    /*! Constructor for software GPIOs
+        But may be used to construct a hardware one.
+    */
+    Gpio(GPIO_TypeDef *gpio, int pin);
 
     ~Gpio();
 
@@ -341,6 +346,7 @@ private:
 
     void init();
     static GPIO_TypeDef *getPortByNumber(int port);
+    static int getPortNumber(GPIO_TypeDef *gpio);
     void updateConfig();
 };
 

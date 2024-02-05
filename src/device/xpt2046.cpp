@@ -15,7 +15,7 @@ XPT2046::XPT2046(Spi *spi, Gpio::PinName cs, Gpio::PinName penirq) :
 
     setCalibration(340, 510, -360, -530);
 //    setCalibration(510, 340, -530, -360);
-//    setSwappedXY(true);
+    setSwappedXY(true);
 }
 
 bool XPT2046::read()

@@ -77,7 +77,7 @@ void GuiApplication::touchEvent(TouchEvent *event)
 
     int ori = m_display->orientation();
 
-    if (!(ori & 4))
+    if (ori & 4)
         std::swap(x, y);
     if (ori & 1)
         x = m_display->width() - x - 1;

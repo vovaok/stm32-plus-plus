@@ -16,6 +16,22 @@ Button::Button(PinName pin, bool pullUp, bool inverted) :
     m_tickid = stmApp()->registerTickEvent(EVENT(&Button::tick));
 }
 
+Button::Button(GPIO_TypeDef *gpio, int pin, bool inverted) :
+    Gpio(gpio, pin),
+    mFilter(false),
+    mState(false),
+    mInverted(inverted),
+    mAutoRepeatTime(0),
+    mDebounceTime(50),
+    mHoldTime(0),
+    mTime(mDebounceTime)
+{
+    mState = mInverted ^ read();
+    mFilter = mState;
+    m_taskid = stmApp()->registerTaskEvent(EVENT(&Button::task));
+    m_tickid = stmApp()->registerTickEvent(EVENT(&Button::tick));
+}
+
 Button::~Button()
 {
     stmApp()->unregisterTaskEvent(m_taskid);

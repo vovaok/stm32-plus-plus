@@ -9,6 +9,16 @@ Led::Led(Gpio::PinName pin, bool inverted) :
         write(1);
 }
 
+Led::Led(GPIO_TypeDef *gpio, int pin, bool inverted) :
+    Gpio(gpio, pin),
+    mCountMig(0),
+    mInverted(inverted)
+{
+    setAsOutput();
+    if (mInverted)
+        write(1);
+}        
+
 Led::Led(char portLetter, int pinNumber) :
     Gpio((Gpio::PinName)((((portLetter>='a'?portLetter-'a':portLetter>='A'?portLetter-'A':noPort) & 0x0F) << 4) | (pinNumber & 0x0F)), Gpio::modeOut),
     mCountMig(0),

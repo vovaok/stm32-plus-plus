@@ -36,6 +36,8 @@ public:
                       \arg false наоборот: нажатая кнопка воспринимается как 1, отпущенная как 0.
     */
     Button(PinName pin, bool pullUp=false, bool inverted=true);
+    
+    Button(GPIO_TypeDef *gpio, int pin, bool inverted=true);
 
     /*! Деструктор удаляет.
         Ножка при этом не разынициализируется. :)

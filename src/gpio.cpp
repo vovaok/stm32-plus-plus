@@ -13,16 +13,32 @@ Gpio::Gpio(PinName pin, Flags flags/*, PinAF altFunction*/)
     mConfig.pin = pin;
     mConfig.flags = flags;
     mConfig.af = afNone;//altFunction;
-    mPort = getPortByNumber(mConfig.portNumber);
-    mPin = pin==noPin? 0: (1 << mConfig.pinNumber);
+    if (pin != noPin)
+    {
+        mPort = getPortByNumber(mConfig.portNumber);
+        mPin = 1 << mConfig.pinNumber; 
+    }
+    else
+    {
+        mPort = 0L;
+        mPin = 0;
+    }
     config(mConfig.config);
 }
 
 Gpio::Gpio(Config conf)
 {
     mConfig.config = conf;
-    mPin = mConfig.pin==noPin? 0: (1 << mConfig.pinNumber);
-    mPort = getPortByNumber(mConfig.portNumber);
+    if (mConfig.pin != noPin)
+    {
+        mPort = getPortByNumber(mConfig.portNumber);
+        mPin = 1 << mConfig.pinNumber; 
+    }
+    else
+    {
+        mPort = 0L;
+        mPin = 0;
+    }
     config(mConfig.config);
 }
 
@@ -35,6 +51,25 @@ Gpio::Gpio(PortName port, uint16_t mask, Flags flags)
     mPort = getPortByNumber(mConfig.portNumber);
     mPin = mask;
     config(mConfig.config);
+}
+
+Gpio::Gpio(GPIO_TypeDef *gpio, int pin)
+{
+    int port = getPortNumber(gpio);
+    mPin = 1 << pin;
+    mPort = gpio;
+    if (port >= 0) // hardware GPIO
+    {
+        mConfig.portNumber = port;
+        mConfig.pinNumber = pin;
+        mConfig.flags = flagsDefault;
+        mConfig.af = afNone;
+        config(mConfig.config);
+    }
+    else
+    {
+        mConfig.pin = noPin;
+    }
 }
 
 Gpio::~Gpio()
@@ -64,7 +99,6 @@ void Gpio::config(PinName pin, bool value)
         port->BSRR = 1 << c.pinNumber;
     else
         port->BSRR = 0x10000 << c.pinNumber;
-    
 }
 
 void Gpio::config(const Config &conf)
@@ -200,6 +234,25 @@ GPIO_TypeDef *Gpio::getPortByNumber(int port)
         default: return 0L;
     }
 }
+        
+int Gpio::getPortNumber(GPIO_TypeDef *gpio)
+{
+    switch (reinterpret_cast<uint32_t>(gpio))
+    {
+    case GPIOA_BASE: return 0x0;
+    case GPIOB_BASE: return 0x1;
+    case GPIOC_BASE: return 0x2;
+    case GPIOD_BASE: return 0x3;
+    case GPIOE_BASE: return 0x4;
+    case GPIOF_BASE: return 0x5;
+    case GPIOG_BASE: return 0x6;
+    case GPIOH_BASE: return 0x7;
+    case GPIOI_BASE: return 0x8;
+    case GPIOJ_BASE: return 0x9;
+    case GPIOK_BASE: return 0xA;
+    default: return -1;
+    }
+}
 //---------------------------------------------------------------------------
 
 void Gpio::setAsInput()
@@ -242,7 +295,7 @@ void Gpio::setAsOutputOpenDrain()
 
 bool Gpio::read() const
 {
-    if (mConfig.pin == noPin)
+    if (!mPort)
         return false;
     if (mConfig.mode == modeOut)
         return mPort->ODR & mPin;
@@ -252,7 +305,7 @@ bool Gpio::read() const
 
 void Gpio::write(bool value)
 {
-    if (mConfig.pin == noPin)
+    if (!mPort)
         return;
 //    if (value)
 //        mPort->BSRRL = mPin;

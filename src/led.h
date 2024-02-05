@@ -17,6 +17,7 @@ private:
     
 public:
     Led(Gpio::PinName pin, bool inverted=false);
+    Led(GPIO_TypeDef *gpio, int pin, bool inverted=false);
     Led(char portLetter, int pinNumber);
     
     inline void on() {mInverted? reset(): set();}
