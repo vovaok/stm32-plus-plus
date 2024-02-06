@@ -18,19 +18,32 @@ void RotaryEncoder::task()
     
     int step = 0;
     
-    if (a != m_a)
+    if (m_fine)
     {
-        if (a == b)
-            step = -1;
-        else
-            step = 1;
+        if (a != m_a)
+        {
+            if (a == b)
+                step = -1;
+            else
+                step = 1;
+        }
+        if (b != m_b)
+        {
+            if (a == b)
+                step = 1;
+            else
+                step = -1;
+        }
     }
-    if (b != m_b)
+    else
     {
-        if (a == b)
-            step = 1;
-        else
-            step = -1;
+        if (a && !m_a)
+        {
+            if (a == b)
+                step = -1;
+            else
+                step = 1;
+        }
     }
     
     m_a = a;

@@ -7,6 +7,7 @@ class RotaryEncoder
 {
 public:
     RotaryEncoder(Gpio::PinName pinA, Gpio::PinName pinB);
+    void setFine(bool enabled) {m_fine = enabled;}
     
     Closure<void(int)> onStep;
     NotifyEvent onStepUp;
@@ -17,6 +18,7 @@ private:
     Gpio *m_pinB;
     
     bool m_a, m_b;
+    bool m_fine = false;
     
     void task();
 };
