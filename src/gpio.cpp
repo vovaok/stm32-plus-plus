@@ -64,11 +64,15 @@ Gpio::Gpio(GPIO_TypeDef *gpio, int pin)
         mConfig.pinNumber = pin;
         mConfig.flags = flagsDefault;
         mConfig.af = afNone;
+        mConfig.periph = 0;
         config(mConfig.config);
     }
     else
     {
         mConfig.pin = noPin;
+        mConfig.flags = flagsDefault;
+        mConfig.af = afNone;
+        mConfig.periph = 0;
     }
 }
 

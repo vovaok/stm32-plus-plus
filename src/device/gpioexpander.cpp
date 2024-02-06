@@ -7,6 +7,7 @@ GpioExpander::GpioExpander(Gpio::PinName sck, Gpio::PinName data, Gpio::PinName 
     memset(&m_gpio, 0, sizeof(GPIO_TypeDef));
     stmApp()->registerTaskEvent(EVENT(&GpioExpander::task));
     m_read = true;
+    task(); // update registers
 }
 
 GpioExpander::GpioExpander(Gpio* sck, Gpio* data, Gpio* sl, Gpio* cs) :
@@ -15,6 +16,7 @@ GpioExpander::GpioExpander(Gpio* sck, Gpio* data, Gpio* sl, Gpio* cs) :
     memset(&m_gpio, 0, sizeof(GPIO_TypeDef));
     stmApp()->registerTaskEvent(EVENT(&GpioExpander::task));
     m_read = true;
+    task(); // update registers
 }
 
 GpioExpander::GpioExpander(Gpio::PinName sck, Gpio::PinName data, Gpio::PinName cs) :
@@ -24,6 +26,7 @@ GpioExpander::GpioExpander(Gpio::PinName sck, Gpio::PinName data, Gpio::PinName 
     stmApp()->registerTaskEvent(EVENT(&GpioExpander::task));
     m_write = true;
     m_gpio.MODER = 0x55555555; // all outputs (if someone wants)
+    task(); // update registers
 }
 
 GpioExpander::GpioExpander(Gpio* sck, Gpio* data, Gpio* cs) :
@@ -33,6 +36,7 @@ GpioExpander::GpioExpander(Gpio* sck, Gpio* data, Gpio* cs) :
     stmApp()->registerTaskEvent(EVENT(&GpioExpander::task));
     m_write = true;
     m_gpio.MODER = 0x55555555; // all outputs (if someone wants)
+    task(); // update registers
 }
 
 void GpioExpander::task()

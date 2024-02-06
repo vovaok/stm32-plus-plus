@@ -19,12 +19,13 @@ public:
 
     void stepUp();
     void stepDown();
+    virtual void stepBy(int steps) = 0;
+    
     const ByteArray &text() {return m_edit->text();}
     
     void setBackgroundColor(Color c) {m_edit->setBackgroundColor(c);}
     
 protected:
-    virtual void stepBy(int steps) = 0;
     virtual void updateText() = 0;
     LineEdit *lineEdit() {return m_edit;}
     const LineEdit *lineEdit() const {return m_edit;}

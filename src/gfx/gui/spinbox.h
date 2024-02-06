@@ -25,9 +25,10 @@ public:
     
     Closure<void(int)> onValueChanged;
     
+    virtual void stepBy(int steps);
+    
 protected:    
     virtual void updateText();
-    virtual void stepBy(int steps);
     
 private:
     int m_value = 0;
