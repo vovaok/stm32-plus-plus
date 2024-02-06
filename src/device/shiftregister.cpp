@@ -27,13 +27,13 @@ uint32_t ShiftRegister::read(int bits)
     m_mosi->write(1);
     while (bits--)
     {
+        data <<= 1;
+        m_sck->reset();
         if (m_miso->read())
             data |= 1;
         else
             data &= ~1;
         m_sck->set();
-        data <<= 1;
-        m_sck->reset();
     }
     m_mosi->write(0);
     m_cs->write(1);
@@ -43,8 +43,8 @@ uint32_t ShiftRegister::read(int bits)
 void ShiftRegister::write(uint32_t data, int bits)
 {
     m_cs->write(0);
-    uint32_t mask = 1 << bits;
-    while (mask >>= 1)
+    uint32_t mask = 1 << (bits - 1);
+    while (mask)
     {
         m_sck->write(0);
         if (data & mask)
@@ -52,6 +52,7 @@ void ShiftRegister::write(uint32_t data, int bits)
         else
             m_mosi->reset();
         m_sck->write(1);
+        mask >>= 1;
     }
     m_sck->write(0);
     m_cs->write(1);
