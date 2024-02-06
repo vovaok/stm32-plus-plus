@@ -44,6 +44,7 @@ void GpioExpander::task()
     if (m_write)
     {
         uint32_t bsrr = m_gpio.BSRR;
+        m_gpio.BSRR = 0;
         m_gpio.ODR &= ~(bsrr >> 16);
         m_gpio.ODR |= bsrr & 0xFFFF;
         
