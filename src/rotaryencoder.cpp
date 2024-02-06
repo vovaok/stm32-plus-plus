@@ -1,4 +1,5 @@
 #include "rotaryencoder.h"
+#include "core/application.h"
 
 RotaryEncoder::RotaryEncoder(Gpio::PinName pinA, Gpio::PinName pinB)
 {
@@ -6,6 +7,8 @@ RotaryEncoder::RotaryEncoder(Gpio::PinName pinA, Gpio::PinName pinB)
     m_pinB = new Gpio(pinB);
     m_a = m_pinA->read();
     m_b = m_pinB->read();
+    
+    stmApp()->registerTaskEvent(EVENT(&RotaryEncoder::task));
 }
 
 void RotaryEncoder::task()
