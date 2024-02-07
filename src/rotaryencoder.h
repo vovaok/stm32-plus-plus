@@ -7,7 +7,14 @@ class RotaryEncoder
 {
 public:
     RotaryEncoder(Gpio::PinName pinA, Gpio::PinName pinB);
-    void setFine(bool enabled) {m_fine = enabled;}
+    
+    void setPrescaler(int value);
+    int prescaler() const {return m_psc;}
+    
+    int rawValue() const {return m_value;}
+    int value() const {return (m_value + m_psc / 2) / m_psc;}
+    
+    void reset();
     
     Closure<void(int)> onStep;
     NotifyEvent onStepUp;
@@ -18,7 +25,9 @@ private:
     Gpio *m_pinB;
     
     bool m_a, m_b;
-    bool m_fine = false;
+    int m_psc = 4;
+    uint32_t m_value = 0;
+    uint32_t m_filter = 0;
     
     void task();
 };
