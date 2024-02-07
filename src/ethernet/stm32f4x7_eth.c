@@ -43,6 +43,11 @@
 #include "stm32f4x7_eth.h"
 #include <string.h>
 #include "rcc.h"
+#include "ethernet.h"
+
+#define ETH_RXBUFNB     Ethernet::rxBufCount
+#define ETH_RX_BUF_SIZE Ethernet::rxBufSize
+#define ETH_TX_BUF_SIZE Ethernet::txBufSize
 
 /** @addtogroup STM32F4x7_ETH_Driver
   * @brief ETH driver modules
@@ -76,43 +81,43 @@
   * @{
   */ 
 
-#if defined   (__CC_ARM) /*!< ARM Compiler */
-  __align(4) 
-   ETH_DMADESCTypeDef  DMARxDscrTab[ETH_RXBUFNB];/* Ethernet Rx MA Descriptor */
-  __align(4) 
-   ETH_DMADESCTypeDef  DMATxDscrTab[ETH_TXBUFNB];/* Ethernet Tx DMA Descriptor */
-  __align(4) 
-   uint8_t Rx_Buff[ETH_RXBUFNB][ETH_RX_BUF_SIZE]; /* Ethernet Receive Buffer */
-  __align(4) 
-   uint8_t Tx_Buff[ETH_TXBUFNB][ETH_TX_BUF_SIZE]; /* Ethernet Transmit Buffer */
-
-#elif defined ( __ICCARM__ ) /*!< IAR Compiler */
-  #pragma data_alignment=4
-   ETH_DMADESCTypeDef  DMARxDscrTab[ETH_RXBUFNB];/* Ethernet Rx MA Descriptor */
-  #pragma data_alignment=4
-   ETH_DMADESCTypeDef  DMATxDscrTab[ETH_TXBUFNB];/* Ethernet Tx DMA Descriptor */
-  #pragma data_alignment=4
-   uint8_t Rx_Buff[ETH_RXBUFNB][ETH_RX_BUF_SIZE]; /* Ethernet Receive Buffer */
-  #pragma data_alignment=4
-   uint8_t Tx_Buff[ETH_TXBUFNB][ETH_TX_BUF_SIZE]; /* Ethernet Transmit Buffer */
-
-#elif defined (__GNUC__) /*!< GNU Compiler */
-  ETH_DMADESCTypeDef  DMARxDscrTab[ETH_RXBUFNB] __attribute__ ((aligned (4))); /* Ethernet Rx DMA Descriptor */
-  ETH_DMADESCTypeDef  DMATxDscrTab[ETH_TXBUFNB] __attribute__ ((aligned (4))); /* Ethernet Tx DMA Descriptor */
-  uint8_t Rx_Buff[ETH_RXBUFNB][ETH_RX_BUF_SIZE] __attribute__ ((aligned (4))); /* Ethernet Receive Buffer */
-  uint8_t Tx_Buff[ETH_TXBUFNB][ETH_TX_BUF_SIZE] __attribute__ ((aligned (4))); /* Ethernet Transmit Buffer */
-
-#elif defined  (__TASKING__) /*!< TASKING Compiler */                           
-  __align(4) 
-   ETH_DMADESCTypeDef  DMARxDscrTab[ETH_RXBUFNB];/* Ethernet Rx MA Descriptor */
-  __align(4) 
-   ETH_DMADESCTypeDef  DMATxDscrTab[ETH_TXBUFNB];/* Ethernet Tx DMA Descriptor */
-  __align(4) 
-   uint8_t Rx_Buff[ETH_RXBUFNB][ETH_RX_BUF_SIZE]; /* Ethernet Receive Buffer */
-  __align(4) 
-   uint8_t Tx_Buff[ETH_TXBUFNB][ETH_TX_BUF_SIZE]; /* Ethernet Transmit Buffer */
-
-#endif /* __CC_ARM */
+//#if defined   (__CC_ARM) /*!< ARM Compiler */
+//  __align(4) 
+//   ETH_DMADESCTypeDef  DMARxDscrTab[ETH_RXBUFNB];/* Ethernet Rx MA Descriptor */
+//  __align(4) 
+//   ETH_DMADESCTypeDef  DMATxDscrTab[ETH_TXBUFNB];/* Ethernet Tx DMA Descriptor */
+//  __align(4) 
+//   uint8_t Rx_Buff[ETH_RXBUFNB][ETH_RX_BUF_SIZE]; /* Ethernet Receive Buffer */
+//  __align(4) 
+//   uint8_t Tx_Buff[ETH_TXBUFNB][ETH_TX_BUF_SIZE]; /* Ethernet Transmit Buffer */
+//
+//#elif defined ( __ICCARM__ ) /*!< IAR Compiler */
+//  #pragma data_alignment=4
+//   ETH_DMADESCTypeDef  DMARxDscrTab[ETH_RXBUFNB];/* Ethernet Rx MA Descriptor */
+//  #pragma data_alignment=4
+//   ETH_DMADESCTypeDef  DMATxDscrTab[ETH_TXBUFNB];/* Ethernet Tx DMA Descriptor */
+//  #pragma data_alignment=4
+//   uint8_t Rx_Buff[ETH_RXBUFNB][ETH_RX_BUF_SIZE]; /* Ethernet Receive Buffer */
+//  #pragma data_alignment=4
+//   uint8_t Tx_Buff[ETH_TXBUFNB][ETH_TX_BUF_SIZE]; /* Ethernet Transmit Buffer */
+//
+//#elif defined (__GNUC__) /*!< GNU Compiler */
+//  ETH_DMADESCTypeDef  DMARxDscrTab[ETH_RXBUFNB] __attribute__ ((aligned (4))); /* Ethernet Rx DMA Descriptor */
+//  ETH_DMADESCTypeDef  DMATxDscrTab[ETH_TXBUFNB] __attribute__ ((aligned (4))); /* Ethernet Tx DMA Descriptor */
+//  uint8_t Rx_Buff[ETH_RXBUFNB][ETH_RX_BUF_SIZE] __attribute__ ((aligned (4))); /* Ethernet Receive Buffer */
+//  uint8_t Tx_Buff[ETH_TXBUFNB][ETH_TX_BUF_SIZE] __attribute__ ((aligned (4))); /* Ethernet Transmit Buffer */
+//
+//#elif defined  (__TASKING__) /*!< TASKING Compiler */                           
+//  __align(4) 
+//   ETH_DMADESCTypeDef  DMARxDscrTab[ETH_RXBUFNB];/* Ethernet Rx MA Descriptor */
+//  __align(4) 
+//   ETH_DMADESCTypeDef  DMATxDscrTab[ETH_TXBUFNB];/* Ethernet Tx DMA Descriptor */
+//  __align(4) 
+//   uint8_t Rx_Buff[ETH_RXBUFNB][ETH_RX_BUF_SIZE]; /* Ethernet Receive Buffer */
+//  __align(4) 
+//   uint8_t Tx_Buff[ETH_TXBUFNB][ETH_TX_BUF_SIZE]; /* Ethernet Transmit Buffer */
+//
+//#endif /* __CC_ARM */
 
 
 /* Global pointers on Tx and Rx descriptor used to track transmit and receive descriptors */
@@ -1037,7 +1042,7 @@ FrameTypeDef ETH_Get_Received_Frame_interrupt(void)
   
   /* scan descriptors owned by CPU */
   while (((DMARxDescToGet->Status & ETH_DMARxDesc_OWN) == (uint32_t)RESET)&&
-        (descriptor_scan_counter<ETH_RXBUFNB))
+         (descriptor_scan_counter < Ethernet::rxBufCount /*ETH_RXBUFNB*/))
   {
     
     /* Just by security */

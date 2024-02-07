@@ -14042,9 +14042,6 @@
                 <name>$PROJ_DIR$\lib\stm32_mw_lwip\src\core\udp.c</name>
             </file>
         </group>
-        <file>
-            <name>$PROJ_DIR$\lib\STM32F4x7_ETH_Driver\src\stm32f4x7_eth.c</name>
-        </file>
     </group>
     <group>
         <name>_doxygen</name>
@@ -14280,15 +14277,15 @@
     <group>
         <name>ethernet</name>
         <group>
-            <name>settings</name>
-            <file>
-                <name>$PROJ_DIR$\src\ethernet\ethernetif.c</name>
-            </file>
-            <file>
-                <name>$PROJ_DIR$\src\ethernet\ethernetif.h</name>
-            </file>
+            <name>port</name>
             <file>
                 <name>$PROJ_DIR$\src\ethernet\lwipopts.h</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\src\ethernet\stm32f4x7_eth.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\src\ethernet\stm32f4x7_eth.h</name>
             </file>
             <file>
                 <name>$PROJ_DIR$\src\ethernet\stm32f4x7_eth_conf.h</name>

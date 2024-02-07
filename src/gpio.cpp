@@ -249,11 +249,21 @@ int Gpio::getPortNumber(GPIO_TypeDef *gpio)
     case GPIOD_BASE: return 0x3;
     case GPIOE_BASE: return 0x4;
     case GPIOF_BASE: return 0x5;
+#if defined(GPIOG)    
     case GPIOG_BASE: return 0x6;
+#endif
+#if defined(GPIOH)    
     case GPIOH_BASE: return 0x7;
+#endif
+#if defined(GPIOI)
     case GPIOI_BASE: return 0x8;
+#endif
+#if defined(GPIOJ)    
     case GPIOJ_BASE: return 0x9;
+#endif
+#if defined(GPIOK)    
     case GPIOK_BASE: return 0xA;
+#endif
     default: return -1;
     }
 }

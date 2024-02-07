@@ -4,8 +4,10 @@
 #include "core/core.h"
 #include "core/timer.h"
 #include "stm32f4x7_eth.h"
-#include "ethernetif.h"
+//#include "ethernetif.h"
 #include "netif/etharp.h"
+#include "lwip/err.h"
+#include "lwip/netif.h"
 #include "lwip/mem.h"
 #include "lwip/memp.h"
 #include "lwip/init.h"
@@ -38,8 +40,15 @@ public:
     static Ethernet *instance();
     static Ethernet *instance(const RMII &rmii);
     
+    struct MacAddress_t
+    {
+        uint8_t b[ETHARP_HWADDR_LEN];
+    } __attribute__((packed));
+    
     bool isValid() const {return s_llInitCompleted;}
     
+    void setMacAddress(const MacAddress_t &mac);
+    const MacAddress_t &macAddress();
     void setupNetworkInterface(const char *ipaddr, const char *netmask, const char *gateway);
     
     const ip_addr_t &address() const {return m_netif.ip_addr;}
@@ -50,6 +59,12 @@ public:
     static bool netcmp(const ip_addr_t &addr);
     static ip_addr_t ipFromString(const char *s);
     
+    static MacAddress_t defaultMacAddress;
+    static int rxBufCount;
+    static int txBufCount;
+    static int rxBufSize;
+    static int txBufSize;
+    
 private:
     Ethernet(const RMII &rmii);
     static Ethernet *m_self;
@@ -57,10 +72,20 @@ private:
     
     struct netif m_netif;
     
+    // Ethernet Rx & Tx DMA Descriptors
+    ETH_DMADESCTypeDef *m_DMARxDscrTab, *m_DMATxDscrTab; // [ETH_RXBUFNB]
+    // Ethernet Driver Receive buffers
+    uint8_t *m_rxBuff;//[ETH_RXBUFNB][ETH_RX_BUF_SIZE];
+    // Ethernet Driver Transmit buffers
+    uint8_t *m_txBuff;//[ETH_TXBUFNB][ETH_TX_BUF_SIZE];
+    
     Timer m_tcpTimer, m_arpTimer, m_igmpTmr;
   
     void task();
     
+    struct pbuf * low_level_input();
+    static err_t low_level_output(struct netif *netif, struct pbuf *p);
+    static err_t ethernetif_init(struct netif *netif);
     bool ethConfig(uint16_t phyAddress);
 };
 
