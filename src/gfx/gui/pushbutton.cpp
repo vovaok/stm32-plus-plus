@@ -58,7 +58,7 @@ void PushButton::paintEvent(Display *d)
         int w = width();
         int h = height();
         Image img(w, h);
-        img.fill(parent()->backgroundColor().rgb565()); // a la transparent background
+        img.fill(parent()->backgroundColor()); // a la transparent background
         int off = 0;
         if (m_down)
             off = 1;

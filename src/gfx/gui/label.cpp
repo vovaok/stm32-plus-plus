@@ -62,7 +62,7 @@ void Label::paintEvent(Display *d)
         int h = textHeight();
         Image img(w, h);
         Color bgcol = m_enabled? m_backgroundColor: palette()->disabled();
-        img.fill(bgcol.rgb565());
+        img.fill(bgcol);
         img.setColor(m_enabled? m_color: palette()->disabledText());
         img.setFont(font());
         img.drawString(2, 2+font().info().ascent(), m_text.data());

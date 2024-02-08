@@ -75,8 +75,13 @@ void Widget::setHeight(int value)
 
 void Widget::setGeometry(int x, int y, int w, int h)
 {
+    if (x == m_x && y == m_y && w == m_width && h == m_height)
+        return; // nothing changed
     if (m_parent && m_parent->m_layout)
+    {
+        m_parent->m_layout->m_needUpdate = true;
         return; // layout manages the widget's size
+    }
     m_x = x;
     m_y = y;
     m_width = w;
@@ -90,28 +95,39 @@ void Widget::setMinimumSize(int width, int height)
 {
     m_minWidth = width;
     m_minHeight = height;
+    if (m_width < width)
+        setWidth(width);
+    if (m_height < height)
+        setHeight(height);
 }
 
 void Widget::setMaximumSize(int width, int height)
 {
     m_maxWidth = width;
     m_maxHeight = height;
+    if (m_width > width)
+        setWidth(width);
+    if (m_height > height)
+        setHeight(height);
 }
 
 void Widget::setFixedWidth(int value)
 {
     m_minWidth = m_maxWidth = value;
+    setWidth(value);
 }
 
 void Widget::setFixedHeight(int value)
 {
     m_minHeight = m_maxHeight = value;
+    setHeight(value);
 }
 
 void Widget::setFixedSize(int width, int height)
 {
     m_minWidth = m_maxWidth = width;
     m_minHeight = m_maxHeight = height;
+    resize(width, height);
 }
 
 void Widget::setVisible(bool visible)
@@ -168,6 +184,7 @@ void Widget::update()
 
 void Widget::updateGeometry()
 {
+    update();
     for (Widget *w = this; w; w = w->m_parent)
     {
         if (w->m_layout)

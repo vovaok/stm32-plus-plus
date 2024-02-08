@@ -140,9 +140,9 @@ void Display::renderChar(char c, int &x, int &y)
 				bit -= 8;
 				src++;
 			}
-            Color bgcolor = Color::fromRgb565(pixel(x0+c, y0+r));
+            Color bgcolor = fromRgb(pixel(x0+c, y0+r));
 			Color col = Color::blend(m_color, bgcolor, v * 255 / mask);
-			setPixel(x0+c, y0+r, col.rgb565());
+            setPixel(x0+c, y0+r, toRgb(col));
 		}
 	}
 	x += li.ha;
@@ -152,13 +152,18 @@ void Display::drawImage(int x, int y, const Image &img)
 {
     if (!img.isNull())
     {
-        copyRect(m_x+x, m_y+y, img.width(), img.height(), img.pixels());
+        if (img.m_pixelFormat == m_pixelFormat)
+            copyRect(m_x+x, m_y+y, img.width(), img.height(), img.data());
+        else
+        {
+//            QImage im = img.convertToFormat(m_pixelFormat);
+//            copyRect(m_x+x, m_y+y, im.width(), im.height(), im.data());
+        }
     }
 }
 
 void Display::drawLine(int x0, int y0, int x1, int y1)
 {
-    uint16_t color = m_color.rgb565();
     if (x0 == x1)
     {
         if (x0 > x1)
@@ -201,9 +206,9 @@ void Display::drawLine(int x0, int y0, int x1, int y1)
         for(; x0<=x1; x0++)
         {
             if (steep)
-                setPixel(m_x+y0, m_y+x0, color);
+                setPixel(m_x+y0, m_y+x0, m_color);
             else
-                setPixel(m_x+x0, m_y+y0, color);
+                setPixel(m_x+x0, m_y+y0, m_color);
             err -= dy;
             if(err < 0)
             {
@@ -229,12 +234,51 @@ void Display::drawRect(const Rect &rect)
 
 void Display::fillRect(int x, int y, int w, int h)
 {
-    fillRect(m_x+x, m_y+y, w, h, m_bgColor.rgb565());
+    fillRect(m_x+x, m_y+y, w, h, m_bgColor);
 }
 
 void Display::fillRect(const Rect &rect)
 {
-    fillRect(m_x+rect.x(), m_y+rect.y(), rect.width(), rect.height(), m_bgColor.rgb565());
+    fillRect(m_x+rect.x(), m_y+rect.y(), rect.width(), rect.height(), m_bgColor);
+}
+
+Color Display::fromRgb(uint32_t rgb) const
+{
+    switch (m_pixelFormat)
+    {
+//        case Format_ARGB8888:   return Color(rgb); // this is default case
+        case Format_RGB888:     return Color(0xFF000000 | rgb);
+        case Format_RGB565:     return Color(RGB_COMP(rgb, 11, 5), RGB_COMP(rgb, 5, 6), RGB_COMP(rgb, 0, 5));
+        case Format_ARGB1555:   return Color(RGB_COMP(rgb, 10, 5), RGB_COMP(rgb, 5, 5), RGB_COMP(rgb, 0, 5), (rgb >> 15) * 255);
+        case Format_ARGB4444:   return Color(RGB_COMP(rgb, 8, 4), RGB_COMP(rgb, 4, 4), RGB_COMP(rgb, 0, 4), RGB_COMP(rgb, 12, 4));
+//        case Format_L8:         m_bpp = 1; break;
+//        case Format_AL44:       m_bpp = 1; break;
+//        case Format_AL88:       m_bpp = 2; break;
+//        case Format_A4:         m_bpp = 0; break; // not allowed
+        case Format_A8:         return Color(rgb << 24);//Color::blend(m_color, Color(rgb << 24), 255);
+//        case Format_L4:         m_bpp = 0; break; // not allowed
+        default: return Color(rgb);
+    }
+}
+
+uint32_t Display::toRgb(Color color) const
+{
+    uint32_t rgb = color.rgb();
+    switch (m_pixelFormat)
+    {
+//        case Format_ARGB8888:   return rgb; // this is default case
+//        case Format_RGB888:     return rgb;
+        case Format_RGB565:     return RGB_BITS(rgb, 0, 5, 6, 5);
+        case Format_ARGB1555:   return RGB_BITS(rgb, 1, 5, 5, 5);
+        case Format_ARGB4444:   return RGB_BITS(rgb, 4, 4, 4, 4);
+//        case Format_L8:         m_bpp = 1; break;
+//        case Format_AL44:       m_bpp = 1; break;
+//        case Format_AL88:       m_bpp = 2; break;
+//        case Format_A4:         m_bpp = 0; break; // not allowed
+        case Format_A8:         return rgb >> 24;
+//        case Format_L4:         m_bpp = 0; break; // not allowed
+        default: return rgb;
+    }
 }
 
 void Display::drawFillRect(int x, int y, int w, int h)
@@ -250,7 +294,7 @@ void Display::drawFillRect(const Rect &rect)
 
 void Display::drawFillCircle(int16_t x0, int16_t y0, int16_t r)
 {
-    Color temp = m_color;
+    uint32_t temp = m_color;
     m_color = m_bgColor;
     Draw_FastVLine(x0, y0-r, 2*r+1);
     FillCircle_Helper(x0, y0, r, 3, 0);
@@ -328,7 +372,7 @@ void Display::fillRoundRect(int16_t x, int16_t y, int16_t w, int16_t h, int16_t 
         r = w/2;
     if (r > h/2)
         r = h/2;
-    Color temp = m_color;
+    uint32_t temp = m_color;
     m_color = m_bgColor;
     fillRect(x+r, y, w-2*r, h);
     FillCircle_Helper(x+w-r-1, y+r, r, 1, h-2*r-1);
@@ -343,17 +387,17 @@ void Display::fillRoundRect(const Rect &rect, int r)
 
 void Display::Draw_Pixel(int x, int y)
 {
-    setPixel(m_x+x, m_y+y, m_color.rgb565());
+    setPixel(m_x+x, m_y+y, m_color);
 }
 
 void Display::Draw_FastHLine(int x, int y, int length)
 {
-    fillRect(m_x+x, m_y+y, length, 1, m_color.rgb565());
+    fillRect(m_x+x, m_y+y, length, 1, m_color);
 }
 
 void Display::Draw_FastVLine(int x, int y, int length)
 {
-    fillRect(m_x+x, m_y+y, 1, length, m_color.rgb565());
+    fillRect(m_x+x, m_y+y, 1, length, m_color);
 }
 
 // Used to do circles and roundrects
@@ -420,4 +464,44 @@ void Display::DrawCircle_Helper( int16_t x0, int16_t y0, int16_t r, uint8_t corn
       Draw_Pixel(x0 - x, y0 - y);
     }
   }
+}
+
+
+Display::Display(int width, int height, PixelFormat pixelFormat) :
+    m_width(width), m_height(height),
+    m_pixelFormat(pixelFormat)
+{
+    switch (pixelFormat)
+    {
+    case Format_ARGB8888:   m_bpp = 4; break;
+    case Format_RGB888:     m_bpp = 3; break;
+    case Format_RGB565:     m_bpp = 2; break;
+    case Format_ARGB1555:   m_bpp = 2; break;
+    case Format_ARGB4444:   m_bpp = 2; break;
+    case Format_L8:         m_bpp = 1; break;
+    case Format_AL44:       m_bpp = 1; break;
+    case Format_AL88:       m_bpp = 2; break;
+    case Format_A4:         m_bpp = 0; break; // not allowed
+    case Format_A8:         m_bpp = 1; break;
+    case Format_L4:         m_bpp = 0; break; // not allowed
+    }
+
+    //! @todo check alignment
+    m_bpl = (m_bpp * m_width + 3) & ~3;
+}
+
+bool Display::hasAlphaChannel()
+{
+    switch (m_pixelFormat)
+    {
+    case Format_ARGB8888:
+    case Format_ARGB1555:
+    case Format_ARGB4444:
+    case Format_AL44:
+    case Format_AL88:
+    case Format_A4:
+    case Format_A8:
+        return true;
+    default: return false;
+    }
 }

@@ -93,7 +93,7 @@ void ProgressBar::paintEvent(Display *d)
     }
 
     Image img(w, h);
-    img.fill(m_parent->backgroundColor().rgb565());
+    img.fill(m_parent->backgroundColor());
     img.setColor(m_borderColor);
     img.setBackgroundColor(m_backgroundColor);
     img.drawFillRoundRect(0, 0, w, h, 3);

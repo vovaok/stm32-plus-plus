@@ -129,7 +129,7 @@ protected:
         
         int space = size - len;
 
-        int coord = x;
+        int coord = (m_direction == Horizontal)? x: y;
         int jc = m_flags & JustifyContent_Mask;
         int align = m_flags & AlignItems_Mask;
         if (jc == Justify_FlexEnd)

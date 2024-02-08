@@ -1,27 +1,18 @@
 #include "framebuffer.h"
 #include "dma2d.h"
 
-FrameBuffer::FrameBuffer(uint8_t *data, int width, int height, PixelFormat pixelFormat) :
-    m_data(data),
-    m_format(pixelFormat)
+FrameBuffer::FrameBuffer() :
+    m_data(nullptr)
 {
-    m_width = width;
-    m_height = height;
+    m_width = 0;
+    m_height = 0;
+    m_bpl = 0;
+}
 
-    switch (pixelFormat)
-    {
-    case Format_ARGB8888:   m_bpp = 4; break;
-    case Format_RGB888:     m_bpp = 3; break;
-    case Format_RGB565:     m_bpp = 2; break;
-    case Format_ARGB1555:   m_bpp = 2; break;
-    case Format_ARGB4444:   m_bpp = 2; break;
-    case Format_L8:         m_bpp = 1; break;
-    case Format_AL44:       m_bpp = 1; break;
-    case Format_AL88:       m_bpp = 2; break;
-    }
-
-    m_bpl = m_bpp * m_width;
-
+FrameBuffer::FrameBuffer(uint8_t *data, int width, int height, PixelFormat pixelFormat) :
+    Display(width, height, pixelFormat),
+    m_data(data)
+{
 //    memset(m_data, 0, m_bpl * m_height);
 }
 
@@ -34,14 +25,59 @@ void FrameBuffer::fill(uint32_t color)
     dma2d.setSource(color, m_width, m_height);
     dma2d.doTransfer();
 #else
-    uint8_t *dst = m_data;
-    int cnt = m_width * m_height * m_bpp;
-    while (cnt--)
-        *dst++ = color;
+    fillRect(0, 0, m_width, m_height, color);
+//    uint32_t *dst = reinterpret_cast<uint32_t*>(m_data);
+//    int cnt = m_width * m_height * m_bpp / 4;
+//    while (cnt--)
+//        *dst++ = color;
 #endif
 }
 
-void FrameBuffer::setPixel(int x, int y, uint16_t color)
+void FrameBuffer::drawImage(int x, int y, const Image &img)
+{
+    if (img.m_pixelFormat == m_pixelFormat && !hasAlphaChannel())
+    {
+        copyRect(x, y, img.m_width, img.m_height, img.m_data);
+        return;
+    }
+
+#if defined(DMA2D)
+    Dma2D dma2d(this, x, y);
+    dma2d.setSource(reinterpret_cast<const uint8_t*>(buffer), width, height, format);
+    dma2d.doTransfer();
+#else
+
+    int w = img.m_width;
+    int h = img.m_height;
+
+    if (w <= 0 || h <= 0)
+        return;
+    if (x >= m_width || y >= m_height)
+        return;
+    if (x < 0)
+        x = 0;
+    if (y < 0)
+        y = 0;
+    if (x + w > m_width)
+        w = m_width - x;
+    if (y + h > m_height)
+        h = m_height - y;
+
+    for (int i=0; i<h; i++)
+    {
+        int yi = y + i;
+        for (int j=0; j<w; j++)
+        {
+            int xj = x + j;
+            Color fg = img.pixelColor(j, i);
+            Color bg = fromRgb(pixel(xj, yi));
+            setPixel(xj, yi, toRgb(Color::blend(fg, bg, 255)));
+        }
+    }
+#endif
+}
+
+void FrameBuffer::setPixel(int x, int y, uint32_t color)
 {
     if ((uint32_t)x < (uint32_t)m_width && (uint32_t)y < (uint32_t)m_height)
     {
@@ -60,7 +96,7 @@ void FrameBuffer::setPixel(int x, int y, uint16_t color)
     }
 }
 
-uint16_t FrameBuffer::pixel(int x, int y)
+uint32_t FrameBuffer::pixel(int x, int y) const
 {
     union
     {
@@ -86,7 +122,7 @@ uint16_t FrameBuffer::pixel(int x, int y)
     return c32;
 }
 
-void FrameBuffer::fillRect(int x, int y, int width, int height, uint16_t color)
+void FrameBuffer::fillRect(int x, int y, int width, int height, uint32_t color)
 {
 #if defined(DMA2D)
     Dma2D dma2d(this, x, y);
@@ -106,18 +142,67 @@ void FrameBuffer::fillRect(int x, int y, int width, int height, uint16_t color)
     if (y + height > m_height)
         height = m_height - y;
 
-    int ey = y + height;
-    for (int i=y; i<ey; i++)
+    if (hasAlphaChannel())
     {
-        uint16_t *dst = scanLine(i) + x;
-        int cnt = width;
-        while (cnt--)
-            *dst++ = color;
+        for (int i=0; i<height; i++)
+        {
+            int yi = y + i;
+            for (int j=0; j<width; j++)
+            {
+                int xj = x + j;
+                Color bg = fromRgb(pixel(xj, yi));
+                setPixel(xj, yi, toRgb(Color::blend(color, bg, 255)));
+            }
+        }
+        return;
+    }
+
+    //uint8_t *dst = m_data + y * m_bpl + x * m_bpp;
+    uint32_t *dst = reinterpret_cast<uint32_t*>(m_data + y * m_bpl + x * m_bpp);
+
+    switch (m_bpp)
+    {
+    case 0:
+        return; // nonsense
+    case 1:
+        color &= 0xFF;
+        color |= (color << 8);
+        // no break - this is intended
+    case 2:
+        color &= 0xFFFF;
+        color |= (color << 16);
+        break;
+    case 3:
+        color &= 0xFFFFFF;
+    }
+
+    if (m_bpp == 3) // special case for 24-bit pixels
+    {
+        while (height--)
+        {
+            int cnt = width;
+            while (cnt--)
+                *dst++ = color;
+            dst += (m_bpl - width) / 4;
+        }
+    }
+    else
+    {
+        int ww = width * m_bpp / 4;
+        uint32_t mask = (1 << (((width * m_bpp) & 3) * 8)) - 1;
+        while (height--)
+        {
+            int cnt = ww;
+            while (cnt--)
+                *dst++ = color;
+            *dst = (*dst & ~mask) | (color & mask); // last pixel(s)
+            dst += m_bpl / 4 - ww;
+        }
     }
 #endif
 }
 
-void FrameBuffer::copyRect(int x, int y, int width, int height, const uint16_t *buffer)
+void FrameBuffer::copyRect(int x, int y, int width, int height, const uint8_t *buffer)
 {
 #if defined(DMA2D)
     Dma2D dma2d(this, x, y);
@@ -137,13 +222,17 @@ void FrameBuffer::copyRect(int x, int y, int width, int height, const uint16_t *
     if (y + height > m_height)
         height = m_height - y;
 
-    int ey = y + height;
-    for (int i=y; i<ey; i++)
+    uint32_t *dst = reinterpret_cast<uint32_t*>(m_data + y * m_bpl + x * m_bpp);
+    const uint32_t *src = reinterpret_cast<const uint32_t*>(buffer);
+
+    while (height--)
     {
-        uint16_t *dst = scanLine(i) + x;
-        int cnt = width;
+        int cnt = (width * m_bpp) / 4;
         while (cnt--)
-            *dst++ = *buffer++;
+            *dst++ = *src++;
+        dst += (m_bpl - width * m_bpp) / 4;
+
+        //! @todo check last pixel!!!
     }
 #endif
 }

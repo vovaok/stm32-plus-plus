@@ -58,7 +58,7 @@ void LineEdit::paintEvent(Display *d)
         int w = textWidth();
         int h = textHeight();
         Image img(w, h);
-        img.fill(bgcol.rgb565());
+        img.fill(bgcol);
         img.setColor(col);
         img.setBackgroundColor(bgcol);
         img.setFont(font());
