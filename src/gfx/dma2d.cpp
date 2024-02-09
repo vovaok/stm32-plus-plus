@@ -38,7 +38,7 @@ void Dma2D::setSource(const Image &img, uint8_t opacity)
 {
     int w = MIN(img.width(), m_maxw);
     int h = MIN(img.height(), m_maxh);
-    DMA2D->FGMAR = reinterpret_cast<uint32_t>(img.bits());
+    DMA2D->FGMAR = reinterpret_cast<uint32_t>(img.data());
     DMA2D->FGOR = img.width() - w;
     DMA2D->OOR = m_fb->width() - w;
 //    DMA2D->FGPFCCR = (opacity << 24) | (img.pixelFormat() & 0xF);

@@ -74,9 +74,13 @@ public:
 //    }
     
     uint8_t alpha() const {return m_value >> 24;}
+    void setAlpha(uint8_t value) {m_value = (m_value & 0x00FFFFFF) | (value << 24);}
     uint8_t r() const {return m_value >> 16;}
+    void setR(uint8_t value) {m_value = (m_value & 0xFF00FFFF) | (value << 16);}
     uint8_t g() const {return m_value >> 8;}
+    void setG(uint8_t value) {m_value = (m_value & 0xFFFF00FF) | (value << 8);}
     uint8_t b() const {return m_value;}
+    void setB(uint8_t value) {m_value = (m_value & 0xFFFFFF00) | (value);}
 
     uint32_t rgb() const {return m_value;}
     
@@ -89,14 +93,15 @@ public:
     
     static Color blend(Color fg, Color bg, uint8_t alpha)
     {
-        return fg;
-        //! @todo
-        uint8_t fa = fg.alpha();
+        uint8_t fa = fg.alpha() * alpha / 255;
         uint8_t ba = bg.alpha();
-        uint8_t a = (alpha * fa + ba * (255 - fa)) / 255;
-        uint8_t r = (fg.r() * fa + bg.r() * ba * (255 - a)) / (255 * a);
-        uint8_t g = (fg.g() * fa + bg.g() * ba * (255 - a)) / (255 * a);
-        uint8_t b = (fg.b() * fa + bg.b() * ba * (255 - a)) / (255 * a);
+        uint8_t amult = fa * ba / 255;
+        uint8_t a = fa + ba - amult;
+        if (!a)
+            return 0;
+        uint8_t r = (fg.r() * fa + bg.r() * (ba - amult)) / a;
+        uint8_t g = (fg.g() * fa + bg.g() * (ba - amult)) / a;
+        uint8_t b = (fg.b() * fa + bg.b() * (ba - amult)) / a;
         // premultiplied:
 //        uint8_t a = (fa     + ba     * (255 - fa)) / 255;
 //        uint8_t r = (fg.r() + bg.r() * (255 - fa)) / (255);

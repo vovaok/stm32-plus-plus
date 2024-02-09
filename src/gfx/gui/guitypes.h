@@ -19,6 +19,7 @@
 
 enum StdColor //: uint32_t
 {
+    Transparent = 0,
 	Black 	= RGB(0, 0, 0),
 	Red 	= RGB(255, 0, 0),
 	Yellow	= RGB(255, 255, 0),

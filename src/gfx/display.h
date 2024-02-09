@@ -29,13 +29,13 @@ public:
     inline int height() const {return m_height;}
 
     PixelFormat pixelFormat() const {return m_pixelFormat;}
-    bool hasAlphaChannel();
+    bool hasAlphaChannel() const;
     int bytesPerPixel() const {return m_bpp;}
     int bytesPerLine() const {return m_bpl;}
     int sizeInBytes() const {return m_bpl * m_height;}
 
     virtual void setPixel(int x, int y, uint32_t color) = 0;
-    virtual uint32_t pixel(int x, int y) const {return m_bgColor;};
+    virtual uint32_t pixel(int x, int y) const {return m_bgColor;}
     virtual bool isReadable() const {return false;}
 
 	void moveTo(int x, int y) {m_x = x; m_y = y;}
@@ -64,10 +64,13 @@ public:
     void drawFillRoundRect(const Rect &rect, int r);
     void fillRoundRect(int16_t x, int16_t y, int16_t w, int16_t h, int16_t r);
     void fillRoundRect(const Rect &rect, int r);
-    virtual void drawImage(int x, int y, const Image &img);
+    void drawImage(int x, int y, const Image &img);
     void fillRect(int x, int y, int w, int h);
     void fillRect(const Rect &rect);
 //    void fill(uint32_t color); //! @todo move it from FrameBuffer
+    
+    Color fromRgb(uint32_t rgb) const;
+    uint32_t toRgb(Color color) const;
 
 protected:
     int m_width = 0;
@@ -82,20 +85,19 @@ protected:
 
     virtual void fillRect(int x, int y, int width, int height, uint32_t color) = 0;
     virtual void copyRect(int x, int y, int width, int height, const uint8_t *buffer) = 0;
-//    virtual void copyRect(int x, int y, int width, int height, const uint8_t *buffer, PixelFormat format) = 0;
+    virtual void blendRect(int x, int y, int width, int height, const uint8_t *buffer, PixelFormat format) = 0;
 //    virtual void drawBuffer(int x, int y, FrameBuffer *fb) = 0;
 
-    Color fromRgb(uint32_t rgb) const;
-    uint32_t toRgb(Color color) const;
+    
 
 private:
     uint16_t m_x=0, m_y=0;
-    /*Color*/ uint32_t m_color, m_bgColor;
+    /*Color*/ uint32_t m_color = 0, m_bgColor = 0;
 	Font m_font;
 
     void renderChar(char c, int &x, int &y);
 
-    void Draw_Pixel(int x, int y);
+    void drawPixel(int x, int y);
     void Draw_FastHLine(int x, int y, int length);
     void Draw_FastVLine(int x, int y, int length);
     void FillCircle_Helper(int16_t x0, int16_t y0, int16_t r, uint8_t corner, int16_t delta);

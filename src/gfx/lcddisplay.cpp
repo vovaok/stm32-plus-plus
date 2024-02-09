@@ -112,24 +112,29 @@ void LcdDisplay::setCurrentLayer(int number)
     m_currentLayer = number - 1;
 }
 
-void LcdDisplay::setPixel(int x, int y, uint16_t color)
+void LcdDisplay::setPixel(int x, int y, uint32_t color)
 {
     m_layerFB[m_currentLayer]->setPixel(x, y, color);
 }
 
-uint16_t LcdDisplay::pixel(int x, int y)
+uint32_t LcdDisplay::pixel(int x, int y) const
 {
     return m_layerFB[m_currentLayer]->pixel(x, y);
 }
 
-void LcdDisplay::fillRect(int x, int y, int width, int height, uint16_t color)
+void LcdDisplay::fillRect(int x, int y, int width, int height, uint32_t color)
 {
     m_layerFB[m_currentLayer]->fillRect(x, y, width, height, color);
 }
 
-void LcdDisplay::copyRect(int x, int y, int width, int height, const uint16_t *buffer)
+void LcdDisplay::copyRect(int x, int y, int width, int height, const uint8_t *buffer)
 {
     m_layerFB[m_currentLayer]->copyRect(x, y, width, height, buffer);
+}
+
+void LcdDisplay::blendRect(int x, int y, int width, int height, const uint8_t *buffer, PixelFormat format)
+{
+    m_layerFB[m_currentLayer]->blendRect(x, y, width, height, buffer, format);
 }
 
 void LcdDisplay::init(const Timings &timings)

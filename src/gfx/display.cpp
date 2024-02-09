@@ -141,7 +141,8 @@ void Display::renderChar(char c, int &x, int &y)
 				src++;
 			}
             Color bgcolor = fromRgb(pixel(x0+c, y0+r));
-			Color col = Color::blend(m_color, bgcolor, v * 255 / mask);
+            Color fgcolor = fromRgb(m_color);
+            Color col = Color::blend(fgcolor, bgcolor, v * 255 / mask);
             setPixel(x0+c, y0+r, toRgb(col));
 		}
 	}
@@ -152,13 +153,10 @@ void Display::drawImage(int x, int y, const Image &img)
 {
     if (!img.isNull())
     {
-        if (img.m_pixelFormat == m_pixelFormat)
+        if (img.m_pixelFormat == m_pixelFormat && !img.hasAlphaChannel())
             copyRect(m_x+x, m_y+y, img.width(), img.height(), img.data());
         else
-        {
-//            QImage im = img.convertToFormat(m_pixelFormat);
-//            copyRect(m_x+x, m_y+y, im.width(), im.height(), im.data());
-        }
+            blendRect(m_x+x, m_y+y, img.width(), img.height(), img.data(), img.pixelFormat());
     }
 }
 
@@ -206,9 +204,9 @@ void Display::drawLine(int x0, int y0, int x1, int y1)
         for(; x0<=x1; x0++)
         {
             if (steep)
-                setPixel(m_x+y0, m_y+x0, m_color);
+                drawPixel(m_x+y0, m_y+x0);
             else
-                setPixel(m_x+x0, m_y+y0, m_color);
+                drawPixel(m_x+x0, m_y+y0);
             err -= dy;
             if(err < 0)
             {
@@ -234,6 +232,7 @@ void Display::drawRect(const Rect &rect)
 
 void Display::fillRect(int x, int y, int w, int h)
 {
+
     fillRect(m_x+x, m_y+y, w, h, m_bgColor);
 }
 
@@ -310,10 +309,10 @@ void Display::drawCircle(int16_t x0, int16_t y0, int16_t r)
   int16_t x = 0;
   int16_t y = r;
 
-  Draw_Pixel(x0  , y0+r);
-  Draw_Pixel(x0  , y0-r);
-  Draw_Pixel(x0+r, y0  );
-  Draw_Pixel(x0-r, y0  );
+  drawPixel(x0  , y0+r);
+  drawPixel(x0  , y0-r);
+  drawPixel(x0+r, y0  );
+  drawPixel(x0-r, y0  );
 
   while (x<y) {
     if (f >= 0) {
@@ -325,14 +324,14 @@ void Display::drawCircle(int16_t x0, int16_t y0, int16_t r)
     ddF_x += 2;
     f += ddF_x;
 
-    Draw_Pixel(x0 + x, y0 + y);
-    Draw_Pixel(x0 - x, y0 + y);
-    Draw_Pixel(x0 + x, y0 - y);
-    Draw_Pixel(x0 - x, y0 - y);
-    Draw_Pixel(x0 + y, y0 + x);
-    Draw_Pixel(x0 - y, y0 + x);
-    Draw_Pixel(x0 + y, y0 - x);
-    Draw_Pixel(x0 - y, y0 - x);
+    drawPixel(x0 + x, y0 + y);
+    drawPixel(x0 - x, y0 + y);
+    drawPixel(x0 + x, y0 - y);
+    drawPixel(x0 - x, y0 - y);
+    drawPixel(x0 + y, y0 + x);
+    drawPixel(x0 - y, y0 + x);
+    drawPixel(x0 + y, y0 - x);
+    drawPixel(x0 - y, y0 - x);
     }
 }
 
@@ -385,9 +384,21 @@ void Display::fillRoundRect(const Rect &rect, int r)
     fillRoundRect(rect.x(), rect.y(), rect.width(), rect.height(), r);
 }
 
-void Display::Draw_Pixel(int x, int y)
+void Display::drawPixel(int x, int y)
 {
-    setPixel(m_x+x, m_y+y, m_color);
+    int rx = m_x + x;
+    int ry = m_y + y;
+    if (hasAlphaChannel())
+    {
+        Color bg = fromRgb(pixel(rx, ry));
+        Color fg = fromRgb(m_color);
+        bg = Color::blend(fg, bg, 255);
+        setPixel(rx, ry, toRgb(bg));
+    }
+    else
+    {
+        setPixel(rx, ry, m_color);
+    }
 }
 
 void Display::Draw_FastHLine(int x, int y, int length)
@@ -448,20 +459,20 @@ void Display::DrawCircle_Helper( int16_t x0, int16_t y0, int16_t r, uint8_t corn
     ddF_x += 2;
     f += ddF_x;
     if (corner & 0x4) {
-      Draw_Pixel(x0 + x, y0 + y);
-      Draw_Pixel(x0 + y, y0 + x);
+      drawPixel(x0 + x, y0 + y);
+      drawPixel(x0 + y, y0 + x);
     }
     if (corner & 0x2) {
-      Draw_Pixel(x0 + x, y0 - y);
-      Draw_Pixel(x0 + y, y0 - x);
+      drawPixel(x0 + x, y0 - y);
+      drawPixel(x0 + y, y0 - x);
     }
     if (corner & 0x8) {
-      Draw_Pixel(x0 - y, y0 + x);
-      Draw_Pixel(x0 - x, y0 + y);
+      drawPixel(x0 - y, y0 + x);
+      drawPixel(x0 - x, y0 + y);
     }
     if (corner & 0x1) {
-      Draw_Pixel(x0 - y, y0 - x);
-      Draw_Pixel(x0 - x, y0 - y);
+      drawPixel(x0 - y, y0 - x);
+      drawPixel(x0 - x, y0 - y);
     }
   }
 }
@@ -490,7 +501,7 @@ Display::Display(int width, int height, PixelFormat pixelFormat) :
     m_bpl = (m_bpp * m_width + 3) & ~3;
 }
 
-bool Display::hasAlphaChannel()
+bool Display::hasAlphaChannel() const
 {
     switch (m_pixelFormat)
     {

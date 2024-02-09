@@ -33,49 +33,49 @@ void FrameBuffer::fill(uint32_t color)
 #endif
 }
 
-void FrameBuffer::drawImage(int x, int y, const Image &img)
-{
-    if (img.m_pixelFormat == m_pixelFormat && !hasAlphaChannel())
-    {
-        copyRect(x, y, img.m_width, img.m_height, img.m_data);
-        return;
-    }
+//void FrameBuffer::drawImage(int x, int y, const Image &img)
+//{
+//    if (img.m_pixelFormat == m_pixelFormat && !hasAlphaChannel())
+//    {
+//        copyRect(x, y, img.m_width, img.m_height, img.m_data);
+//        return;
+//    }
 
-#if defined(DMA2D)
-    Dma2D dma2d(this, x, y);
-    dma2d.setSource(reinterpret_cast<const uint8_t*>(buffer), width, height, format);
-    dma2d.doTransfer();
-#else
+//#if defined(DMA2D)
+//    Dma2D dma2d(this, x, y);
+//    dma2d.setSource(reinterpret_cast<const uint8_t*>(buffer), width, height, format);
+//    dma2d.doTransfer();
+//#else
 
-    int w = img.m_width;
-    int h = img.m_height;
+//    int w = img.m_width;
+//    int h = img.m_height;
 
-    if (w <= 0 || h <= 0)
-        return;
-    if (x >= m_width || y >= m_height)
-        return;
-    if (x < 0)
-        x = 0;
-    if (y < 0)
-        y = 0;
-    if (x + w > m_width)
-        w = m_width - x;
-    if (y + h > m_height)
-        h = m_height - y;
+//    if (w <= 0 || h <= 0)
+//        return;
+//    if (x >= m_width || y >= m_height)
+//        return;
+//    if (x < 0)
+//        x = 0;
+//    if (y < 0)
+//        y = 0;
+//    if (x + w > m_width)
+//        w = m_width - x;
+//    if (y + h > m_height)
+//        h = m_height - y;
 
-    for (int i=0; i<h; i++)
-    {
-        int yi = y + i;
-        for (int j=0; j<w; j++)
-        {
-            int xj = x + j;
-            Color fg = img.pixelColor(j, i);
-            Color bg = fromRgb(pixel(xj, yi));
-            setPixel(xj, yi, toRgb(Color::blend(fg, bg, 255)));
-        }
-    }
-#endif
-}
+//    for (int i=0; i<h; i++)
+//    {
+//        int yi = y + i;
+//        for (int j=0; j<w; j++)
+//        {
+//            int xj = x + j;
+//            Color fg = img.pixelColor(j, i);
+//            Color bg = fromRgb(pixel(xj, yi));
+//            setPixel(xj, yi, toRgb(Color::blend(fg, bg, 255)));
+//        }
+//    }
+//#endif
+//}
 
 void FrameBuffer::setPixel(int x, int y, uint32_t color)
 {
@@ -142,20 +142,21 @@ void FrameBuffer::fillRect(int x, int y, int width, int height, uint32_t color)
     if (y + height > m_height)
         height = m_height - y;
 
-    if (hasAlphaChannel())
-    {
-        for (int i=0; i<height; i++)
-        {
-            int yi = y + i;
-            for (int j=0; j<width; j++)
-            {
-                int xj = x + j;
-                Color bg = fromRgb(pixel(xj, yi));
-                setPixel(xj, yi, toRgb(Color::blend(color, bg, 255)));
-            }
-        }
-        return;
-    }
+//    //if (hasAlphaChannel())
+//    {
+//        for (int i=0; i<height; i++)
+//        {
+//            int yi = y + i;
+//            for (int j=0; j<width; j++)
+//            {
+//                int xj = x + j;
+//                Color bg = fromRgb(pixel(xj, yi));
+//                Color fg = fromRgb(color);
+//                setPixel(xj, yi, toRgb(Color::blend(fg, bg, 255)));
+//            }
+//        }
+//        return;
+//    }
 
     //uint8_t *dst = m_data + y * m_bpl + x * m_bpp;
     uint32_t *dst = reinterpret_cast<uint32_t*>(m_data + y * m_bpl + x * m_bpp);
@@ -206,7 +207,7 @@ void FrameBuffer::copyRect(int x, int y, int width, int height, const uint8_t *b
 {
 #if defined(DMA2D)
     Dma2D dma2d(this, x, y);
-    dma2d.setSource(reinterpret_cast<const uint8_t*>(buffer), width, height);
+    dma2d.setSource(buffer, width, height);
     dma2d.doTransfer();
 #else
     if (width <= 0 || height <= 0)
@@ -225,14 +226,66 @@ void FrameBuffer::copyRect(int x, int y, int width, int height, const uint8_t *b
     uint32_t *dst = reinterpret_cast<uint32_t*>(m_data + y * m_bpl + x * m_bpp);
     const uint32_t *src = reinterpret_cast<const uint32_t*>(buffer);
 
+    uint32_t mask = (1 << (((width * m_bpp) & 3) * 8)) - 1;
+
     while (height--)
     {
         int cnt = (width * m_bpp) / 4;
         while (cnt--)
             *dst++ = *src++;
+        // last pixel:
+        if (mask)
+            *dst++ = (*dst & ~mask) | (*src++ & mask); // last pixel(s)
         dst += (m_bpl - width * m_bpp) / 4;
 
         //! @todo check last pixel!!!
     }
+#endif
+}
+
+void FrameBuffer::blendRect(int x, int y, int width, int height, const uint8_t *buffer, PixelFormat format)
+{
+#if 0 && defined(DMA2D)
+    Dma2D dma2d(this, x, y);
+    dma2d.setSource(buffer, width, height, format);
+    dma2d.doTransfer();
+#else
+    if (width <= 0 || height <= 0)
+        return;
+    if (x >= m_width || y >= m_height)
+        return;
+    if (x < 0)
+        x = 0;
+    if (y < 0)
+        y = 0;
+    if (x + width > m_width)
+        width = m_width - x;
+    if (y + height > m_height)
+        height = m_height - y;
+
+    FrameBuffer src(const_cast<uint8_t *>(buffer), width, height, format);
+
+    Color fg;
+
+    for (int i=0; i<height; i++)
+    {
+        int yi = y + i;
+        for (int j=0; j<width; j++)
+        {
+            int xj = x + j;
+            if (format == Format_A8)
+            {
+                fg = color();
+                fg.setAlpha(src.pixel(j, i));
+            }
+            else
+            {
+                fg = src.fromRgb(src.pixel(j, i));
+            }
+            Color bg = fromRgb(pixel(xj, yi));
+            setPixel(xj, yi, toRgb(Color::blend(fg, bg, 255)));
+        }
+    }
+
 #endif
 }
