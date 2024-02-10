@@ -82,6 +82,21 @@ void ProgressBar::update()
 
 void ProgressBar::paintEvent(Display *d)
 {
+    if (d->isReadable())
+    {
+        doPaint(d);
+    }
+    else
+    {
+        Image img(width(), height());
+        img.fill(m_parent->backgroundColor());
+        doPaint(&img);
+        d->drawImage(0, 0, img);
+    }
+}
+
+void ProgressBar::doPaint(Display *d)
+{
     int w = width();
     int h = height();
     int x = 0;
@@ -92,22 +107,18 @@ void ProgressBar::paintEvent(Display *d)
         percent = (m_value - m_minimum) * 100 / (m_maximum - m_minimum);
     }
 
-    Image img(w, h);
-    img.fill(m_parent->backgroundColor());
-    img.setColor(m_borderColor);
-    img.setBackgroundColor(m_backgroundColor);
-    img.drawFillRoundRect(0, 0, w, h, 3);
-    img.setBackgroundColor(m_color);
-    img.fillRoundRect(1, 1, x, h-2, 2);
+    d->setColor(m_borderColor);
+    d->setBackgroundColor(m_backgroundColor);
+    d->drawFillRoundRect(0, 0, w, h, 3);
+    d->setBackgroundColor(m_color);
+    d->fillRoundRect(1, 1, x, h-2, 2);
     if (m_textVisible)
     {
         ByteArray s = m_format;
         s.replace("%p", ByteArray::number(percent, 'f', m_decimals));
         s.replace("%v", ByteArray::number(m_value, 'f', m_decimals));
-        img.setColor(m_enabled? palette()->text(): palette()->disabledText());
-        img.setFont(font());
-        img.drawString(0, 0, w, h, AlignCenter, s.data());
+        d->setColor(m_enabled? palette()->text(): palette()->disabledText());
+        d->setFont(font());
+        d->drawString(0, 0, w, h, AlignCenter, s.data());
     }
-
-    d->drawImage(0, 0, img);
 }

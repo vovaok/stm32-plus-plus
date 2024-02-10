@@ -17,6 +17,8 @@ public:
     void setText(const ByteArray &text);
     void setNum(int n);
     void setNum(float n, int prec=-1);
+
+    void setFont(Font font);
     
     void update();
    

@@ -55,22 +55,34 @@ void PushButton::paintEvent(Display *d)
 {
     if (m_text.size())
     {
-        int w = width();
-        int h = height();
-        Image img(w, h);
-        img.fill(parent()->backgroundColor()); // a la transparent background
-        int off = 0;
-        if (m_down)
-            off = 1;
-        img.setBackgroundColor(m_enabled? m_backgroundColor: palette()->disabled());
-        img.setFont(font());
-        img.setColor(m_enabled? m_borderColor: palette()->disabledText());
-        img.drawFillRoundRect(off, off, w-off, h-off, m_borderRadius);
-        img.setColor(m_enabled? m_color: palette()->disabledText());
-        img.drawString(off, off, w-off*2, h-off*2, (int)AlignCenter | (int)TextWordWrap, m_text.data());
-//        Widget::paintEvent(d); // fill background
-        d->drawImage(0, 0, img);
+        if (d->isReadable())
+        {
+            doPaint(d);
+        }
+        else
+        {
+            Image img(width(), height());
+            img.fill(parent()->backgroundColor()); // a la transparent background
+            doPaint(&img);
+            d->drawImage(0, 0, img);
+        }
     }
+}
+
+void PushButton::doPaint(Display *d)
+{
+    int w = width();
+    int h = height();
+    int off = 0;
+    if (m_down)
+        off = 1;
+    d->setBackgroundColor(m_enabled? m_backgroundColor: palette()->disabled());
+    d->setFont(font());
+    d->setColor(m_enabled? m_borderColor: palette()->disabledText());
+    d->drawFillRoundRect(off, off, w-off, h-off, m_borderRadius);
+    d->setColor(m_enabled? m_color: palette()->disabledText());
+    d->drawString(off, off, w-off*2, h-off*2, (int)AlignCenter | (int)TextWordWrap, m_text.data());
+//        Widget::paintEvent(d); // fill background
 }
 
 void PushButton::pressEvent(int x, int y)

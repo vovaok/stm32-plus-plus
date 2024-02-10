@@ -84,6 +84,7 @@ protected:
     Display(int width, int height, PixelFormat pixelFormat=Format_RGB565);
 
     virtual void fillRect(int x, int y, int width, int height, uint32_t color) = 0;
+    virtual void overlayRect(int x, int y, int width, int height, uint32_t color) = 0;
     virtual void copyRect(int x, int y, int width, int height, const uint8_t *buffer) = 0;
     virtual void blendRect(int x, int y, int width, int height, const uint8_t *buffer, PixelFormat format) = 0;
 //    virtual void drawBuffer(int x, int y, FrameBuffer *fb) = 0;

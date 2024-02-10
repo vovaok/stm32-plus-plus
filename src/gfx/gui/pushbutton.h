@@ -24,6 +24,7 @@ public:
 
 protected:
     void paintEvent(Display *d);
+    void doPaint(Display *d);
     void pressEvent(int x, int y);
     void releaseEvent(int x, int y);
 

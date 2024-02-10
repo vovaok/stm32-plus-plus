@@ -57,18 +57,31 @@ void LineEdit::paintEvent(Display *d)
     {
         int w = textWidth();
         int h = textHeight();
-        Image img(w, h);
-        img.fill(bgcol);
-        img.setColor(col);
-        img.setBackgroundColor(bgcol);
-        img.setFont(font());
-        img.drawString(0, font().info().ascent(), m_text.data());
-        int xpos=2, ypos=2;
-        if (m_align & AlignRight)
-            xpos = m_width - w;
-        else if (m_align & AlignHCenter)
-            xpos = (m_width - w) / 2;
-        d->drawImage(xpos, ypos, img);
+        if (d->isReadable())
+        {
+            d->setFont(font());
+            int xpos=2, ypos=2;
+            if (m_align & AlignRight)
+                xpos = m_width - w;
+            else if (m_align & AlignHCenter)
+                xpos = (m_width - w) / 2;
+            d->drawString(xpos, ypos + font().info().ascent(), m_text.data());
+        }
+        else
+        {
+            Image img(w, h);
+            img.fill(bgcol);
+            img.setColor(col);
+            img.setBackgroundColor(bgcol);
+            img.setFont(font());
+            img.drawString(0, font().info().ascent(), m_text.data());
+            int xpos=2, ypos=2;
+            if (m_align & AlignRight)
+                xpos = m_width - w;
+            else if (m_align & AlignHCenter)
+                xpos = (m_width - w) / 2;
+            d->drawImage(xpos, ypos, img);
+        }
     }
 }
 

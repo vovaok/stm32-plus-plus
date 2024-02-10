@@ -142,22 +142,6 @@ void FrameBuffer::fillRect(int x, int y, int width, int height, uint32_t color)
     if (y + height > m_height)
         height = m_height - y;
 
-//    //if (hasAlphaChannel())
-//    {
-//        for (int i=0; i<height; i++)
-//        {
-//            int yi = y + i;
-//            for (int j=0; j<width; j++)
-//            {
-//                int xj = x + j;
-//                Color bg = fromRgb(pixel(xj, yi));
-//                Color fg = fromRgb(color);
-//                setPixel(xj, yi, toRgb(Color::blend(fg, bg, 255)));
-//            }
-//        }
-//        return;
-//    }
-
     //uint8_t *dst = m_data + y * m_bpl + x * m_bpp;
     uint32_t *dst = reinterpret_cast<uint32_t*>(m_data + y * m_bpl + x * m_bpp);
 
@@ -198,6 +182,41 @@ void FrameBuffer::fillRect(int x, int y, int width, int height, uint32_t color)
                 *dst++ = color;
             *dst = (*dst & ~mask) | (color & mask); // last pixel(s)
             dst += m_bpl / 4 - ww;
+        }
+    }
+#endif
+}
+
+void FrameBuffer::overlayRect(int x, int y, int width, int height, uint32_t color)
+{
+#if defined(DMA2D)
+    Dma2D dma2d(this, x, y);
+    dma2d.setSource(color, width, height, !!blenderEnabled!!);
+    dma2d.doTransfer();
+#else
+
+    if (width <= 0 || height <= 0)
+        return;
+    if (x >= m_width || y >= m_height)
+        return;
+    if (x < 0)
+        x = 0;
+    if (y < 0)
+        y = 0;
+    if (x + width > m_width)
+        width = m_width - x;
+    if (y + height > m_height)
+        height = m_height - y;
+
+    for (int i=0; i<height; i++)
+    {
+        int yi = y + i;
+        for (int j=0; j<width; j++)
+        {
+            int xj = x + j;
+            Color bg = fromRgb(pixel(xj, yi));
+            Color fg = fromRgb(color);
+            setPixel(xj, yi, toRgb(Color::blend(fg, bg, 255)));
         }
     }
 #endif

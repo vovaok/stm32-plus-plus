@@ -20,6 +20,7 @@ public:
     void stepUp();
     void stepDown();
     virtual void stepBy(int steps) = 0;
+    virtual void reset() {}
     
     const ByteArray &text() {return m_edit->text();}
     

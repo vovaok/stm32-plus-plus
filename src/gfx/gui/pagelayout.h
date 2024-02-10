@@ -21,7 +21,7 @@ protected:
         for (Widget *widget: items())
         {
             widget->setVisible(m_index == idx++);
-            setWidgetGeometry(widget, m_widget->x(), m_widget->y(),
+            setWidgetGeometry(widget, 0, 0, //m_widget->x(), m_widget->y(),
                               m_widget->width(), m_widget->height());
         }
     }

@@ -6,6 +6,32 @@
 FloatSpinBox::FloatSpinBox(Widget *parent) : AbstractSpinBox(parent)
 {
     setValue(0);
+    updateText();
+}
+
+FloatSpinBox::FloatSpinBox(float min, float max, float def, float step, int prec, Widget *parent) :
+    AbstractSpinBox(parent),
+    m_min(min),
+    m_max(max),
+    m_step(step),
+    m_defaultValue(def),
+    m_precision(prec)
+{
+    setValue(m_defaultValue);
+    updateText();
+}
+
+FloatSpinBox::FloatSpinBox(float min, float max, float def, float step, int prec, const ByteArray &suffix, Widget *parent) :
+    AbstractSpinBox(parent),
+    m_min(min),
+    m_max(max),
+    m_step(step),
+    m_defaultValue(def),
+    m_precision(prec),
+    m_suffix(suffix)
+{
+    setValue(m_defaultValue);
+    updateText();
 }
 
 void FloatSpinBox::setValue(float value)
@@ -44,6 +70,11 @@ void FloatSpinBox::setStep(float value)
     m_step = value;
 }
 
+void FloatSpinBox::setDefaultValue(float value)
+{
+    m_defaultValue = value;
+}
+
 void FloatSpinBox::setPrefix(const ByteArray &s)
 {
     m_prefix = s;
@@ -65,6 +96,11 @@ void FloatSpinBox::setPrecision(int digits)
 void FloatSpinBox::stepBy(int steps)
 {
     setValue(m_value + m_step * steps);
+}
+
+void FloatSpinBox::reset()
+{
+    setValue(m_defaultValue);
 }
 
 void FloatSpinBox::updateText()

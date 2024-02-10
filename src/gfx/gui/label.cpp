@@ -3,12 +3,14 @@
 Label::Label(Widget *parent) :
     Widget(parent)
 {
+    setFixedHeight(textHeight());
 }
 
 Label::Label(const ByteArray &text, Widget *parent) :
     Widget(parent),
     m_text(text)
 {
+    setFixedHeight(textHeight());
     update();
 }
 
@@ -17,6 +19,7 @@ Label::Label(const ByteArray &text, Alignment align, Widget *parent) :
     m_text(text),
     m_align(align)
 {
+    setFixedHeight(textHeight());
     update();
 }
 
@@ -45,10 +48,16 @@ void Label::setNum(float n, int prec)
     setText(ByteArray::number(n, 'f', prec));
 }
 
+void Label::setFont(Font font)
+{
+    Widget::setFont(font);
+    setMinimumHeight(textHeight());
+}
+
 void Label::update()
 {
     setMinimumWidth(textWidth());
-    setFixedHeight(textHeight());
+//    setFixedHeight(textHeight());
     updateGeometry();
     Widget::update();
 }

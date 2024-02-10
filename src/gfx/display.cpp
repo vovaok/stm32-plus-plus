@@ -232,13 +232,18 @@ void Display::drawRect(const Rect &rect)
 
 void Display::fillRect(int x, int y, int w, int h)
 {
-
-    fillRect(m_x+x, m_y+y, w, h, m_bgColor);
+    if (hasAlphaChannel())
+        overlayRect(m_x+x, m_y+y, w, h, m_bgColor);
+    else
+        fillRect(m_x+x, m_y+y, w, h, m_bgColor);
 }
 
 void Display::fillRect(const Rect &rect)
 {
-    fillRect(m_x+rect.x(), m_y+rect.y(), rect.width(), rect.height(), m_bgColor);
+    if (hasAlphaChannel())
+        overlayRect(m_x+rect.x(), m_y+rect.y(), rect.width(), rect.height(), m_bgColor);
+    else
+        fillRect(m_x+rect.x(), m_y+rect.y(), rect.width(), rect.height(), m_bgColor);
 }
 
 Color Display::fromRgb(uint32_t rgb) const

@@ -24,6 +24,7 @@ public:
 
 protected:
     void paintEvent(Display *d) override;
+    void doPaint(Display *d);
 
 private:
     float m_value = 0;
@@ -32,4 +33,5 @@ private:
     int m_decimals = 0;
     bool m_textVisible = true;
     ByteArray m_format = "%p %";
+
 };
