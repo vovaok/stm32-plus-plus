@@ -75,6 +75,7 @@ protected:
             widget->m_y = y;
             widget->m_width = w;
             widget->m_height = h;
+            widget->updateGeometry();
         }
     }
     

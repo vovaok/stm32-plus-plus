@@ -8,6 +8,7 @@ ProgressBar::ProgressBar(Widget *parent) :
 {
     m_color = palette()->accent();
     m_backgroundColor = palette()->base();
+    setFixedHeight(font().info().height() + 4);
     update();
 }
 
@@ -75,9 +76,14 @@ void ProgressBar::setDecimals(int value)
 
 void ProgressBar::update()
 {
-    setFixedHeight(font().info().height() + 4);
     updateGeometry();
     Widget::update();
+}
+
+void ProgressBar::setFont(Font font)
+{
+    Widget::setFont(font);
+    setFixedHeight(font.info().height() + 4);
 }
 
 void ProgressBar::paintEvent(Display *d)

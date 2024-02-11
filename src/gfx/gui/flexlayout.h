@@ -78,6 +78,8 @@ protected:
             int i = 0;
             for (Widget *widget: items())
             {
+                if (!widget->visible())
+                    continue;
                 int sz = avg;
                 if (m_direction == Horizontal)
                 {
@@ -153,6 +155,8 @@ protected:
         int i = 0;
         for (Widget *widget: items())
         {
+            if (!widget->visible())
+                continue;
             int sz = sizes[i++];
             int off2 = 0;
             int size2 = 0;

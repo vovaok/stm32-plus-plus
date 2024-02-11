@@ -164,14 +164,14 @@ void Display::drawLine(int x0, int y0, int x1, int y1)
 {
     if (x0 == x1)
     {
-        if (x0 > x1)
-            std::swap(x0, x1);
+        if (y0 > y1)
+            std::swap(y0, y1);
         Draw_FastVLine(x0, y0, y1 - y0 + 1);
     }
     else if (y0 == y1)
     {
-        if (y0 > y1)
-            std::swap(y0, y1);
+        if (x0 > x1)
+            std::swap(x0, x1);
         Draw_FastHLine(x0, y0, x1 - x0 + 1);
     }
     else
@@ -204,9 +204,9 @@ void Display::drawLine(int x0, int y0, int x1, int y1)
         for(; x0<=x1; x0++)
         {
             if (steep)
-                drawPixel(m_x+y0, m_y+x0);
+                drawPixel(y0, x0);
             else
-                drawPixel(m_x+x0, m_y+y0);
+                drawPixel(x0, y0);
             err -= dy;
             if(err < 0)
             {
@@ -244,6 +244,15 @@ void Display::fillRect(const Rect &rect)
         overlayRect(m_x+rect.x(), m_y+rect.y(), rect.width(), rect.height(), m_bgColor);
     else
         fillRect(m_x+rect.x(), m_y+rect.y(), rect.width(), rect.height(), m_bgColor);
+}
+
+void Display::fillCircle(int x0, int y0, int r)
+{
+    uint32_t temp = m_color;
+    m_color = m_bgColor;
+    Draw_FastVLine(x0, y0-r, 2*r+1);
+    FillCircle_Helper(x0, y0, r, 3, 0);
+    m_color = temp;
 }
 
 Color Display::fromRgb(uint32_t rgb) const
@@ -298,11 +307,7 @@ void Display::drawFillRect(const Rect &rect)
 
 void Display::drawFillCircle(int16_t x0, int16_t y0, int16_t r)
 {
-    uint32_t temp = m_color;
-    m_color = m_bgColor;
-    Draw_FastVLine(x0, y0-r, 2*r+1);
-    FillCircle_Helper(x0, y0, r, 3, 0);
-    m_color = temp;
+    fillCircle(x0, y0, r-1);
     drawCircle(x0, y0, r);
 }
 

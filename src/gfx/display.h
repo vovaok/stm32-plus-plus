@@ -67,6 +67,7 @@ public:
     void drawImage(int x, int y, const Image &img);
     void fillRect(int x, int y, int w, int h);
     void fillRect(const Rect &rect);
+    void fillCircle(int x0, int y0, int r);
 //    void fill(uint32_t color); //! @todo move it from FrameBuffer
     
     Color fromRgb(uint32_t rgb) const;
