@@ -19,7 +19,7 @@ void SDRAM::initialize(int bank)
     fmc.sdramCmd(bank, Fmc::CmdModeAutoRefresh, 4); //!< @todo how many autorefresh cycles?
 
     // program the mode register
-    uint32_t modereg = BurstLength2 | BurstTypeSequential;
+    uint32_t modereg = BurstLength4 | BurstTypeSequential;
     if (CASLatency == 2)
         modereg |= CASLatency2;
     else

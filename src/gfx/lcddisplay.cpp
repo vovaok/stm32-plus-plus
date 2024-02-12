@@ -10,7 +10,7 @@ LcdDisplay::LcdDisplay(int width, int height)
     rcc().setPeriphEnabled(DMA2D);
     
     //! @todo make user able to set this parameter
-    DMA2D->AMTCR = (63 << 8) | DMA2D_AMTCR_EN;
+//    DMA2D->AMTCR = (63 << 8) | DMA2D_AMTCR_EN;
 }
 
 void LcdDisplay::configLayer(int number, FrameBuffer *frameBuffer)
