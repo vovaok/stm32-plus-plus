@@ -40,6 +40,7 @@ public:
 
 protected:
     virtual void fillRect(int x, int y, int width, int height, uint32_t color) override;
+    virtual void overlayRect(int x, int y, int width, int height, uint32_t color) override;
     virtual void copyRect(int x, int y, int width, int height, const uint8_t *buffer) override;
     virtual void blendRect(int x, int y, int width, int height, const uint8_t *buffer, PixelFormat format) override;
 

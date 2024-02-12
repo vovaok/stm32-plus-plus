@@ -2,7 +2,7 @@
 #define GAUGEWIDGET_H
 
 #include "progressbar.h"
-#include "image.h"
+#include "../image.h"
 
 class GaugeWidget : public ProgressBar
 {

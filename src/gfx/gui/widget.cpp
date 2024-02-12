@@ -273,7 +273,7 @@ void Widget::paint(Display *d)
     int oldy = d->yPos();
     d->moveTo(oldx + m_x, oldy + m_y);
 
-    if (m_needRepaint)
+    if (m_needRepaint && m_width > 0 && m_height > 0)
         paintEvent(d);
     m_needRepaint = false;
 

@@ -127,6 +127,11 @@ void LcdDisplay::fillRect(int x, int y, int width, int height, uint32_t color)
     m_layerFB[m_currentLayer]->fillRect(x, y, width, height, color);
 }
 
+void LcdDisplay::overlayRect(int x, int y, int width, int height, uint32_t color)
+{
+    m_layerFB[m_currentLayer]->overlayRect(x, y, width, height, color);
+}
+
 void LcdDisplay::copyRect(int x, int y, int width, int height, const uint8_t *buffer)
 {
     m_layerFB[m_currentLayer]->copyRect(x, y, width, height, buffer);

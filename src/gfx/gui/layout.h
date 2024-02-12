@@ -71,11 +71,15 @@ protected:
     {
         if (widget)
         {
+            bool needUpdate = false;
+            if (widget->m_width != w || widget->m_height != h)
+                needUpdate = true;
             widget->m_x = x;
             widget->m_y = y;
             widget->m_width = w;
             widget->m_height = h;
-            widget->updateGeometry();
+            if (needUpdate)
+                widget->updateGeometry();
         }
     }
     

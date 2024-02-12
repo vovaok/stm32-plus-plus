@@ -93,7 +93,7 @@ protected:
     
 
 private:
-    uint16_t m_x=0, m_y=0;
+    int m_x=0, m_y=0;
     /*Color*/ uint32_t m_color = 0, m_bgColor = 0;
 	Font m_font;
 

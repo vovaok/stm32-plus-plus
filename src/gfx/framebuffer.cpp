@@ -189,7 +189,7 @@ void FrameBuffer::fillRect(int x, int y, int width, int height, uint32_t color)
 
 void FrameBuffer::overlayRect(int x, int y, int width, int height, uint32_t color)
 {
-#if defined(DMA2D)
+#if 0 && defined(DMA2D)
     Dma2D dma2d(this, x, y);
     dma2d.setSource(color, width, height, !!blenderEnabled!!);
     dma2d.doTransfer();
@@ -264,7 +264,7 @@ void FrameBuffer::copyRect(int x, int y, int width, int height, const uint8_t *b
 
 void FrameBuffer::blendRect(int x, int y, int width, int height, const uint8_t *buffer, PixelFormat format)
 {
-#if 0 && defined(DMA2D)
+#if defined(DMA2D)
     Dma2D dma2d(this, x, y);
     dma2d.setSource(buffer, width, height, format);
     dma2d.doTransfer();
