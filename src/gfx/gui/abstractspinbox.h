@@ -25,6 +25,9 @@ public:
     const ByteArray &text() {return m_edit->text();}
     
     void setBackgroundColor(Color c) {m_edit->setBackgroundColor(c);}
+
+    void setWrapping(bool wrapping);
+    bool wrapping() const {return m_wrapping;}
     
 protected:
     virtual void updateText() = 0;
@@ -33,4 +36,5 @@ protected:
     
 private:
     LineEdit *m_edit;
+    bool m_wrapping = false;
 };

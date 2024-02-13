@@ -53,3 +53,8 @@ void AbstractSpinBox::stepDown()
     if (m_enabled)
         stepBy(-1);
 }
+
+void AbstractSpinBox::setWrapping(bool wrapping)
+{
+    m_wrapping = wrapping;
+}

@@ -30,7 +30,7 @@ enum StdColor //: uint32_t
 	White	= RGB(255, 255, 255),
 	Gray	= RGB(128, 128, 128),
     Orange  = RGB(255, 128, 0),
-    Pink    = 0xFC0FC0,//RGBHEX(0xFC0FC0),
+    Pink    = 0xFFFFB0BA,//(0xFFFC0FC0),
     DarkRed     = RGB(128, 0, 0),
     DarkYellow  = RGB(128, 128, 0),
     DarkGreen   = RGB(0, 128, 0),
