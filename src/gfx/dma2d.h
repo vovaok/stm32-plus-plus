@@ -10,10 +10,15 @@ class Dma2D
 {
 public:
     Dma2D(FrameBuffer *frameBuffer, int x=0, int y=0);
+
+    // must be called BEFORE setSource!
+    void setSize(int width, int height);
+
     void setSource(uint32_t color, int width, int height);
     void setSource(const uint8_t *data, int width, int height);
     void setSource(const uint8_t *data, int width, int height, PixelFormat fmt);
-//    void setSource(const Image &img, uint8_t opacity=255);
+    void setSource(const FrameBuffer *fb, int x=0, int y=0);
+    void setSource(const FrameBuffer *foreground, const FrameBuffer *background);
 
     void start();
     void wait();

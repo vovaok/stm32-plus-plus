@@ -12,13 +12,16 @@ public:
 
     void fill(uint32_t color);
 //    virtual void drawImage(int x, int y, const Image &img) override;
-    
+
     uint8_t *data() {return m_data;}
     const uint8_t *data() const {return m_data;}
 
     virtual void setPixel(int x, int y, uint32_t color) override;
     virtual uint32_t pixel(int x, int y) const override;
     virtual bool isReadable() const override {return true;}
+
+    void setOpacity(uint8_t value) {m_opacity = value;}
+    uint8_t opacity() const {return m_opacity;}
 
 protected:
     uint8_t *m_data;
@@ -35,6 +38,7 @@ private:
     // make these private:
     using Display::m_width;
     using Display::m_height;
+    uint8_t m_opacity = 255;
 
     uint8_t *scanLine(int y) {return reinterpret_cast<uint8_t*>(m_data + y*m_bpl);}
 };

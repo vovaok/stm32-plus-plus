@@ -25,6 +25,12 @@ Dma2D::Dma2D(FrameBuffer *fb, int x, int y) :
 //    DMA2D->OOR = fb->width();
 }
 
+void Dma2D::setSize(int width, int height)
+{
+    m_maxw = width;
+    m_maxh = height;
+}
+
 void Dma2D::setSource(uint32_t color, int width, int height)
 {
     width = MIN(width, m_maxw);
@@ -72,33 +78,75 @@ void Dma2D::setSource(const uint8_t *data, int width, int height, PixelFormat fm
     DMA2D->BGOR = m_fb->width() - w;
     DMA2D->BGPFCCR = m_fb->pixelFormat() & 0xF;
 
-//    DMA2D->OMAR += m_fb->m_bpl * 100;
-
     DMA2D->OOR = m_fb->width() - w;
     DMA2D->NLR = (w << 16) | h;
     DMA2D->CR = (DMA2D->CR & ~DMA2D_CR_MODE_Msk) | Mode_Mem2MemBlend;
 }
 
-//void Dma2D::setSource(const Image &img, uint8_t opacity)
-//{
-//    int w = MIN(img.width(), m_maxw);
-//    int h = MIN(img.height(), m_maxh);
-//    DMA2D->FGMAR = reinterpret_cast<uint32_t>(img.data());
-//    DMA2D->FGOR = img.width() - w;
-//    DMA2D->OOR = m_fb->width() - w;
-////    DMA2D->FGPFCCR = (opacity << 24) | (img.pixelFormat() & 0xF);
-////    if (m_fb->pixelFormat() == img.pixelFormat() && opacity == 255)
-//    {
-//        DMA2D->CR = (DMA2D->CR & ~DMA2D_CR_MODE_Msk) | Mode_Mem2Mem;
-//    }
-////    else
-////    {
-////        if (opacity < 255)
-////            DMA2D->FGPFCCR |= (2 << DMA2D_FGPFCCR_AM_Pos);
-////        DMA2D->CR = (DMA2D->CR & ~DMA2D_CR_MODE_Msk) | Mode_Mem2MemPfc;
-////    }
-//    //! @todo dodelat!
-//}
+void Dma2D::setSource(const FrameBuffer *fb, int x, int y)
+{
+    const uint8_t *data = fb->data() + y * fb->m_bpl + x * fb->m_bpp;
+    setSource(data, fb->width(), fb->height(), fb->pixelFormat());
+
+    if (fb->opacity() < 255 || fb->hasAlphaChannel())
+    {
+        uint32_t tmp = DMA2D->FGPFCCR & ~(DMA2D_FGPFCCR_ALPHA_Msk | DMA2D_FGPFCCR_AM_Msk);
+        DMA2D->FGPFCCR = tmp | (fb->opacity() << 24) | (DMA2D_FGPFCCR_AM_0);
+        DMA2D->CR = (DMA2D->CR & ~DMA2D_CR_MODE_Msk) | Mode_Mem2MemBlend;
+    }
+    else if (fb->pixelFormat() != m_fb->pixelFormat())
+    {
+        DMA2D->CR = (DMA2D->CR & ~DMA2D_CR_MODE_Msk) | Mode_Mem2MemPfc;
+    }
+    else
+    {
+        DMA2D->CR = (DMA2D->CR & ~DMA2D_CR_MODE_Msk) | Mode_Mem2Mem;
+    }
+}
+
+void Dma2D::setSource(const FrameBuffer *foreground, const FrameBuffer *background)
+{
+    int w = MIN(foreground->width(), m_maxw);
+    int h = MIN(foreground->height(), m_maxh);
+    PixelFormat fg_fmt = foreground->pixelFormat();
+    PixelFormat bg_fmt = background->pixelFormat();
+
+    DMA2D->FGMAR = reinterpret_cast<uint32_t>(foreground->data());
+    DMA2D->FGOR = foreground->width() - w;
+    DMA2D->FGPFCCR = fg_fmt & 0xF;
+
+    if (fg_fmt == Format_A8 || fg_fmt == Format_A4)
+    {
+        Color c = m_fb->color();
+        uint8_t a = c.alpha();
+        uint8_t r = c.r();
+        uint8_t g = c.g();
+        uint8_t b = c.b();
+        if (a != 255)
+            DMA2D->FGPFCCR |= (a << 24) | (DMA2D_FGPFCCR_AM_1);
+        DMA2D->FGCOLR = (r << 16) | (g << 8) | b;
+    }
+
+    DMA2D->BGMAR = reinterpret_cast<uint32_t>(background->data());
+    DMA2D->BGOR = background->width() - w;
+    DMA2D->BGPFCCR = bg_fmt & 0xF;
+
+    if (bg_fmt == Format_A8 || bg_fmt == Format_A4)
+    {
+        Color c = m_fb->backgroundColor();
+        uint8_t a = c.alpha();
+        uint8_t r = c.r();
+        uint8_t g = c.g();
+        uint8_t b = c.b();
+        if (a != 255)
+            DMA2D->BGPFCCR |= (a << 24) | (DMA2D_BGPFCCR_AM_1);
+        DMA2D->BGCOLR = (r << 16) | (g << 8) | b;
+    }
+
+    DMA2D->OOR = m_fb->width() - w;
+    DMA2D->NLR = (w << 16) | h;
+    DMA2D->CR = (DMA2D->CR & ~DMA2D_CR_MODE_Msk) | Mode_Mem2MemBlend;
+}
 
 void Dma2D::start()
 {
