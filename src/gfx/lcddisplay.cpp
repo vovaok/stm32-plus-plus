@@ -1,6 +1,14 @@
 #include "lcddisplay.h"
+#include "core/application.h"
 
 #if defined(LTDC)
+
+//static bool ltdcIrqFlag = false;
+//extern "C" void LTDC_IRQHandler()
+//{
+//    ltdcIrqFlag = true;
+//}
+
 
 LcdDisplay::LcdDisplay(int width, int height)
 {
@@ -9,8 +17,24 @@ LcdDisplay::LcdDisplay(int width, int height)
     rcc().setPeriphEnabled(LTDC);
     rcc().setPeriphEnabled(DMA2D);
     
+    stmApp()->registerTaskEvent(EVENT(&LcdDisplay::task));
+
     //! @todo make user able to set this parameter
 //    DMA2D->AMTCR = (63 << 8) | DMA2D_AMTCR_EN;
+}
+
+void LcdDisplay::task()
+{
+    if (LTDC->ISR & LTDC_ISR_LIF)
+    {
+        LTDC->ICR = LTDC_ISR_LIF;
+        if (onVsync)
+            onVsync();
+    }
+//    if (ltdcIrqFlag)
+//    {    
+//        ltdcIrqFlag = false;
+//    }
 }
 
 void LcdDisplay::configLayer(int number, FrameBuffer *frameBuffer)
@@ -43,7 +67,7 @@ void LcdDisplay::configLayer(int number, FrameBuffer *frameBuffer)
 
     // enable layer
     LTDC_Layer->CR |= LTDC_LxCR_LEN;
-    
+
     // update registers from shadow ones
     reloadConfig();
 }
@@ -100,9 +124,17 @@ void LcdDisplay::setLayerColorKeying(int number, Color color)
 void LcdDisplay::setEnabled(bool enabled)
 {
     if (enabled)
+    {
+        LTDC->IER |= LTDC_IER_LIE;
+        LTDC->LIPCR = 0;//m_height;
         LTDC->GCR |= LTDC_GCR_LTDCEN;
+//        NVIC_EnableIRQ(LTDC_IRQn);
+    }
     else
+    {
+//        NVIC_DisableIRQ(LTDC_IRQn);
         LTDC->GCR &= ~LTDC_GCR_LTDCEN;
+    }
 }
 
 void LcdDisplay::setCurrentLayer(int number)

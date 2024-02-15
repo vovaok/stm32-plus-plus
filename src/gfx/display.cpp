@@ -508,7 +508,8 @@ Display::Display(int width, int height, PixelFormat pixelFormat) :
     }
 
     //! @todo check alignment
-    m_bpl = (m_bpp * m_width + 3) & ~3;
+//    m_bpl = (m_bpp * m_width + 3) & ~3;
+    m_bpl = m_bpp * m_width;
 }
 
 bool Display::hasAlphaChannel() const

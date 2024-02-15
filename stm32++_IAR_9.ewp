@@ -14390,6 +14390,12 @@
                 <name>$PROJ_DIR$\src\gfx\gui\lineedit.h</name>
             </file>
             <file>
+                <name>$PROJ_DIR$\src\gfx\gui\listspinbox.cpp</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\src\gfx\gui\listspinbox.h</name>
+            </file>
+            <file>
                 <name>$PROJ_DIR$\src\gfx\gui\pagelayout.h</name>
             </file>
             <file>

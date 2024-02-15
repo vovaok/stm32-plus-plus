@@ -12,10 +12,10 @@ Dma2D::Dma2D(FrameBuffer *fb, int x, int y) :
         x = 0;
     if (y < 0)
         y = 0;
-    
+
     m_maxw = fb->width() - x;
     m_maxh = fb->height() - y;
-    
+
     if (m_maxw < 0)
         m_maxw = 0;
     if (m_maxh < 0)
@@ -51,11 +51,11 @@ void Dma2D::setSource(const uint8_t *data, int width, int height, PixelFormat fm
 {
     int w = MIN(width, m_maxw);
     int h = MIN(height, m_maxh);
-        
+
     DMA2D->FGMAR = reinterpret_cast<uint32_t>(data);
     DMA2D->FGOR = width - w;
     DMA2D->FGPFCCR = (fmt & 0xF);
-    
+
     if (fmt == Format_A8 || fmt == Format_A4)
     {
         Color c = m_fb->color();
@@ -67,13 +67,13 @@ void Dma2D::setSource(const uint8_t *data, int width, int height, PixelFormat fm
             DMA2D->FGPFCCR |= (a << 24) | (DMA2D_FGPFCCR_AM_1);
         DMA2D->FGCOLR = (r << 16) | (g << 8) | b;
     }
-    
+
     DMA2D->BGMAR = DMA2D->OMAR;
     DMA2D->BGOR = m_fb->width() - w;
     DMA2D->BGPFCCR = m_fb->pixelFormat() & 0xF;
-    
+
 //    DMA2D->OMAR += m_fb->m_bpl * 100;
-    
+
     DMA2D->OOR = m_fb->width() - w;
     DMA2D->NLR = (w << 16) | h;
     DMA2D->CR = (DMA2D->CR & ~DMA2D_CR_MODE_Msk) | Mode_Mem2MemBlend;

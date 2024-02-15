@@ -3,6 +3,7 @@
 #include "rcc.h"
 #include "display.h"
 #include "framebuffer.h"
+#include "core/coretypes.h"
 
 #if defined(LTDC)
 
@@ -37,6 +38,8 @@ public:
 
     virtual void setPixel(int x, int y, uint32_t color) override;
     virtual uint32_t pixel(int x, int y) const override;
+    
+    NotifyEvent onVsync;
 
 protected:
     virtual void fillRect(int x, int y, int width, int height, uint32_t color) override;
@@ -53,6 +56,8 @@ private:
     void reloadConfig(bool immediately = true);
     // choose appropriate register set
     static LTDC_Layer_TypeDef *ltdcLayer(int number);
+    
+    void task();
 };
 
 #endif

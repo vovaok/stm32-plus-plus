@@ -148,7 +148,7 @@ public:
     
     TIM_TypeDef* tim() {return mTim;}
     const TIM_TypeDef* tim() const {return mTim;}
-    unsigned long inputClk() const {return mInputClk;}
+    int inputClk() const {return mInputClk;}
     
     static TimerNumber getTimerByPin(Gpio::Config pinConfig);
     static ChannelNumber getChannelByPin(Gpio::Config pinConfig);

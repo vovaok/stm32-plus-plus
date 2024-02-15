@@ -33,7 +33,9 @@ protected:
 
     Widget *rootWidget() {return m_widget;}
     bool paintDone() const {return m_paintDone;} // first time painted
-    void setGuiAutoRepaint(bool enable) {m_autoRepaint = enable;}
+    void setGuiAutoRepaint(bool enable);
+    
+    void repaint();
 
     static void setFocusWidget(Widget *w);
     friend class Widget;
@@ -46,9 +48,8 @@ private:
     Palette *m_palette = nullptr;
     Timer *m_paintTimer;
     bool m_paintDone = false;
-    bool m_autoRepaint = true;
+//    bool m_autoRepaint = true;
     char m_decimalPoint = '.';
 
-    void paintTask();
     void touchEvent(TouchEvent *event);
 };
