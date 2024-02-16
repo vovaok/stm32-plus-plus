@@ -126,25 +126,38 @@ void Display::renderChar(char c, int &x, int &y)
 	const uint8_t *src = fi->bitmap(c);
 	int x0 = m_x + x + li.lb;
     int y0 = m_y + y - fi->a;
-	int bit = 0;
-    uint8_t mask = (1 << fi->bpp) - 1;
-	for (int r=li.sr; r<li.er; r++)
-	{
-		for (int c=0; c<li.w; c++)
-		{
-			const uint16_t *srcw = reinterpret_cast<const uint16_t*>(src);
-			uint8_t v = ((*srcw >> bit) & mask);
-			bit += fi->bpp;
-			if (bit > 8)
-			{
-				bit -= 8;
-				src++;
-			}
-            Color bgcolor = fromRgb(pixel(x0+c, y0+r));
-            Color fgcolor = fromRgb(m_color);
-            Color col = Color::blend(fgcolor, bgcolor, v * 255 / mask);
-            setPixel(x0+c, y0+r, toRgb(col));
-		}
+    
+    if (m_pixelFormat < 8 && fi->bpp == 4)
+    {
+        // li.w must be even for 4 bpp!
+        blendRect(x0, y0 + li.sr, li.w, li.er - li.sr, src, Format_A4);
+    }
+    else if (m_pixelFormat < 8 && fi->bpp == 8)
+    {
+        blendRect(x0, y0 + li.sr, li.w, li.er - li.sr, src, Format_A8);
+    }
+    else
+    {
+        int bit = 0;
+        uint8_t mask = (1 << fi->bpp) - 1;
+        for (int r=li.sr; r<li.er; r++)
+        {
+            for (int c=0; c<li.w; c++)
+            {
+                const uint16_t *srcw = reinterpret_cast<const uint16_t*>(src);
+                uint8_t v = ((*srcw >> bit) & mask);
+                bit += fi->bpp;
+                if (bit > 8)
+                {
+                    bit -= 8;
+                    src++;
+                }
+                Color bgcolor = fromRgb(pixel(x0+c, y0+r));
+                Color fgcolor = fromRgb(m_color);
+                Color col = Color::blend(fgcolor, bgcolor, v * 255 / mask);
+                setPixel(x0+c, y0+r, toRgb(col));
+            }
+        }
 	}
 	x += li.ha;
 }
