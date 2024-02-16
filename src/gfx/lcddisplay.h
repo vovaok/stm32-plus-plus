@@ -38,14 +38,15 @@ public:
 
     virtual void setPixel(int x, int y, uint32_t color) override;
     virtual uint32_t pixel(int x, int y) const override;
-    
-    NotifyEvent onVsync;
 
+    void setSyncEvent(NotifyEvent e, int line=-1);
+    
 protected:
     virtual void fillRect(int x, int y, int width, int height, uint32_t color) override;
     virtual void overlayRect(int x, int y, int width, int height, uint32_t color) override;
     virtual void copyRect(int x, int y, int width, int height, const uint8_t *buffer) override;
     virtual void blendRect(int x, int y, int width, int height, const uint8_t *buffer, PixelFormat format) override;
+    virtual void drawBuffer(int x, int y, const FrameBuffer *fb, int sx=0, int sy=0, int sw=-1, int sh=-1) override;
 
     // LCD panel timings (should be filled in child class):
     Timings m_timings {0};
@@ -56,6 +57,8 @@ private:
     void reloadConfig(bool immediately = true);
     // choose appropriate register set
     static LTDC_Layer_TypeDef *ltdcLayer(int number);
+    
+    NotifyEvent onVsync;
     
     void task();
 };

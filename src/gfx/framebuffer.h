@@ -11,7 +11,6 @@ public:
     FrameBuffer(uint8_t *data, int width, int height, PixelFormat pixelFormat);
 
     void fill(uint32_t color);
-//    virtual void drawImage(int x, int y, const Image &img) override;
 
     uint8_t *data() {return m_data;}
     const uint8_t *data() const {return m_data;}
@@ -30,6 +29,7 @@ protected:
     virtual void overlayRect(int x, int y, int width, int height, uint32_t color) override;
     virtual void copyRect(int x, int y, int width, int height, const uint8_t *buffer) override;
     virtual void blendRect(int x, int y, int width, int height, const uint8_t *buffer, PixelFormat format) override;
+    virtual void drawBuffer(int x, int y, const FrameBuffer *fb, int sx=0, int sy=0, int sw=-1, int sh=-1) override;
 
 private:
     friend class LcdDisplay;

@@ -1,7 +1,7 @@
 #include "ili9341.h"
 
-ILI9341::ILI9341(Spi *spi, Gpio::PinName cs, Gpio::PinName dc) :
-    LcdDisplay(240, 320),
+ILI9341::ILI9341(Spi *spi, Gpio::PinName cs, Gpio::PinName dc, int width, int height) :
+    LcdDisplay(width, height),
     m_spi(spi)
 {
     m_cs = new Gpio(cs, Gpio::Output);

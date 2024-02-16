@@ -125,8 +125,8 @@ void LcdDisplay::setEnabled(bool enabled)
 {
     if (enabled)
     {
-        LTDC->IER |= LTDC_IER_LIE;
-        LTDC->LIPCR = 0;//m_height;
+        if (onVsync)
+            LTDC->IER |= LTDC_IER_LIE;
         LTDC->GCR |= LTDC_GCR_LTDCEN;
 //        NVIC_EnableIRQ(LTDC_IRQn);
     }
@@ -142,6 +142,17 @@ void LcdDisplay::setCurrentLayer(int number)
     if (number < 1 || number > 2)
         return;
     m_currentLayer = number - 1;
+}
+
+void LcdDisplay::setSyncEvent(NotifyEvent e, int line)
+{
+    onVsync = e;
+    int th = m_timings.VS + m_timings.VBP + m_height + m_timings.VFP;
+    if (line < 0)
+        line = th - m_timings.VFP;
+    LTDC->LIPCR = line;
+    if (LTDC->GCR & LTDC_GCR_LTDCEN) // if LCD is already enabled
+        LTDC->IER |= LTDC_IER_LIE;   // enable line interrupt (flag)
 }
 
 void LcdDisplay::setPixel(int x, int y, uint32_t color)
@@ -172,6 +183,11 @@ void LcdDisplay::copyRect(int x, int y, int width, int height, const uint8_t *bu
 void LcdDisplay::blendRect(int x, int y, int width, int height, const uint8_t *buffer, PixelFormat format)
 {
     m_layerFB[m_currentLayer]->blendRect(x, y, width, height, buffer, format);
+}
+
+void LcdDisplay::drawBuffer(int x, int y, const FrameBuffer *fb, int sx, int sy, int sw, int sh)
+{
+    m_layerFB[m_currentLayer]->drawBuffer(x, y, fb, sx, sy, sw, sh);
 }
 
 void LcdDisplay::init(const Timings &timings)

@@ -20,8 +20,6 @@ public:
     void setFormat(const ByteArray &fmt, int decimals=0);
     void setDecimals(int value);
 
-    void update();
-
     void setFont(Font font);
 
 protected:

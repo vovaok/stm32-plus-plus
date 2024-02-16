@@ -6,7 +6,7 @@
 class ILI9341 : public LcdDisplay
 {
 public:
-    ILI9341(Spi *spi, Gpio::PinName cs, Gpio::PinName dc);
+    ILI9341(Spi *spi, Gpio::PinName cs, Gpio::PinName dc, int width=240, int height=320);
 
 //    void init();
 

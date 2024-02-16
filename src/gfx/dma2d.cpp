@@ -21,7 +21,7 @@ Dma2D::Dma2D(FrameBuffer *fb, int x, int y) :
     if (m_maxh < 0)
         m_maxh = 0;
     DMA2D->OPFCCR = fb->pixelFormat();
-    DMA2D->OMAR = reinterpret_cast<uint32_t>(fb->m_data + y * fb->m_bpl + x * fb->m_bpp);
+    DMA2D->OMAR = reinterpret_cast<uint32_t>(fb->m_data + y * fb->m_bpl + (x * fb->m_bpp >> 3));
 //    DMA2D->OOR = fb->width();
 }
 
@@ -85,13 +85,13 @@ void Dma2D::setSource(const uint8_t *data, int width, int height, PixelFormat fm
 
 void Dma2D::setSource(const FrameBuffer *fb, int x, int y)
 {
-    const uint8_t *data = fb->data() + y * fb->m_bpl + x * fb->m_bpp;
+    const uint8_t *data = fb->data() + y * fb->m_bpl + (x * fb->m_bpp >> 3);
     setSource(data, fb->width(), fb->height(), fb->pixelFormat());
 
     if (fb->opacity() < 255 || fb->hasAlphaChannel())
     {
         uint32_t tmp = DMA2D->FGPFCCR & ~(DMA2D_FGPFCCR_ALPHA_Msk | DMA2D_FGPFCCR_AM_Msk);
-        DMA2D->FGPFCCR = tmp | (fb->opacity() << 24) | (DMA2D_FGPFCCR_AM_0);
+        DMA2D->FGPFCCR = tmp | (fb->opacity() << 24) | (DMA2D_FGPFCCR_AM_1);//0);
         DMA2D->CR = (DMA2D->CR & ~DMA2D_CR_MODE_Msk) | Mode_Mem2MemBlend;
     }
     else if (fb->pixelFormat() != m_fb->pixelFormat())

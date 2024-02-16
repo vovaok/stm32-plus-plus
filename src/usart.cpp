@@ -460,20 +460,12 @@ void Usart::dmaTxComplete()
     if (!sz)
     {
         mDmaTx->stop();
-        // wait for last byte is being written in the TX complete interrupt
-        mDev->CR1 |= USART_CR1_TCIE;
-            
-//        if (m_halfDuplex)
-//        {
-//            while (!(mDev->SR & USART_SR_TC)); // wait for last byte is being written
-//            
-//            if (m_pinDE)
-//                m_pinDE->reset();
-//            mDev->CR1 |= USART_CR1_RE;
-//            
-//            if (onBytesWritten)
-//                onBytesWritten();
-//        }
+        // if there is necessary to handle the transfer completion:
+        if (m_halfDuplex || onBytesWritten)
+        {
+            // wait for last byte is being written in the TX complete interrupt
+            mDev->CR1 |= USART_CR1_TCIE;
+        }
         return;
     }
     mDmaTx->setSingleBuffer(mTxBuffer.data() + mTxReadPos, sz);
@@ -586,9 +578,9 @@ void Usart::handleInterrupt()
     
     if (sr & USART_SR_TC)
     {
+        mDev->CR1 &= ~USART_CR1_TCIE;
         if (mDmaTx && m_halfDuplex)
         {            
-            mDev->CR1 &= ~USART_CR1_TCIE;
             if (m_pinDE)
                 m_pinDE->reset();
             mDev->CR1 |= USART_CR1_RE;

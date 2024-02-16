@@ -30,7 +30,7 @@ public:
 
     PixelFormat pixelFormat() const {return m_pixelFormat;}
     bool hasAlphaChannel() const;
-    int bytesPerPixel() const {return m_bpp;}
+    int bytesPerPixel() const {return m_bpp >> 3;}
     int bytesPerLine() const {return m_bpl;}
     int sizeInBytes() const {return m_bpl * m_height;}
 
@@ -64,7 +64,8 @@ public:
     void drawFillRoundRect(const Rect &rect, int r);
     void fillRoundRect(int16_t x, int16_t y, int16_t w, int16_t h, int16_t r);
     void fillRoundRect(const Rect &rect, int r);
-    void drawImage(int x, int y, const Image &img);
+//    void drawImage(int x, int y, const Image &img);
+    void drawImage(int x, int y, const Image &img, int sx=0, int sy=0, int sw=-1, int sh=-1);
     void fillRect(int x, int y, int w, int h);
     void fillRect(const Rect &rect);
     void fillCircle(int x0, int y0, int r);
@@ -78,7 +79,7 @@ protected:
     int m_height = 0;
     Orientation m_orientation = Landscape; //! @todo move it to another class
     PixelFormat m_pixelFormat;
-    int m_bpp = 0; // bytes per pixel
+    int m_bpp = 0; // bits per pixel (not bytes!!)
     int m_bpl = 0; // bytes per line
 
     Display() {}
@@ -88,7 +89,7 @@ protected:
     virtual void overlayRect(int x, int y, int width, int height, uint32_t color) = 0;
     virtual void copyRect(int x, int y, int width, int height, const uint8_t *buffer) = 0;
     virtual void blendRect(int x, int y, int width, int height, const uint8_t *buffer, PixelFormat format) = 0;
-//    virtual void drawBuffer(int x, int y, FrameBuffer *fb) = 0;
+    virtual void drawBuffer(int x, int y, const FrameBuffer *fb, int sx=0, int sy=0, int sw=-1, int sh=-1) = 0;
 
     
 

@@ -74,16 +74,11 @@ void ProgressBar::setDecimals(int value)
     }
 }
 
-void ProgressBar::update()
-{
-    updateGeometry();
-    Widget::update();
-}
-
 void ProgressBar::setFont(Font font)
 {
     Widget::setFont(font);
     setFixedHeight(font.info().height() + 4);
+    updateGeometry();
 }
 
 void ProgressBar::paintEvent(Display *d)

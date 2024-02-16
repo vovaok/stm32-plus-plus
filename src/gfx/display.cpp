@@ -162,15 +162,21 @@ void Display::renderChar(char c, int &x, int &y)
 	x += li.ha;
 }
 
-void Display::drawImage(int x, int y, const Image &img)
+//void Display::drawImage(int x, int y, const Image &img)
+//{
+//    if (!img.isNull())
+//    {
+//        if (img.m_pixelFormat == m_pixelFormat && !img.hasAlphaChannel())
+//            copyRect(m_x+x, m_y+y, img.width(), img.height(), img.data());
+//        else
+//            blendRect(m_x+x, m_y+y, img.width(), img.height(), img.data(), img.pixelFormat());
+//    }
+//}
+
+void Display::drawImage(int x, int y, const Image &img, int sx, int sy, int sw, int sh)
 {
     if (!img.isNull())
-    {
-        if (img.m_pixelFormat == m_pixelFormat && !img.hasAlphaChannel())
-            copyRect(m_x+x, m_y+y, img.width(), img.height(), img.data());
-        else
-            blendRect(m_x+x, m_y+y, img.width(), img.height(), img.data(), img.pixelFormat());
-    }
+        drawBuffer(m_x+x, m_y+y, &img, sx, sy, sw, sh);
 }
 
 void Display::drawLine(int x0, int y0, int x1, int y1)
@@ -277,12 +283,12 @@ Color Display::fromRgb(uint32_t rgb) const
         case Format_RGB565:     return Color(RGB_COMP(rgb, 11, 5), RGB_COMP(rgb, 5, 6), RGB_COMP(rgb, 0, 5));
         case Format_ARGB1555:   return Color(RGB_COMP(rgb, 10, 5), RGB_COMP(rgb, 5, 5), RGB_COMP(rgb, 0, 5), (rgb >> 15) * 255);
         case Format_ARGB4444:   return Color(RGB_COMP(rgb, 8, 4), RGB_COMP(rgb, 4, 4), RGB_COMP(rgb, 0, 4), RGB_COMP(rgb, 12, 4));
-//        case Format_L8:         m_bpp = 1; break;
-//        case Format_AL44:       m_bpp = 1; break;
-//        case Format_AL88:       m_bpp = 2; break;
-//        case Format_A4:         m_bpp = 0; break; // not allowed
-        case Format_A8:         return Color(rgb << 24);//Color::blend(m_color, Color(rgb << 24), 255);
-//        case Format_L4:         m_bpp = 0; break; // not allowed
+//        case Format_L8:         m_bpp = 8; break;
+//        case Format_AL44:       m_bpp = 8; break;
+//        case Format_AL88:       m_bpp = 16; break;
+        case Format_A4:         return Color(rgb << 28);
+        case Format_A8:         return Color(rgb << 24);
+//        case Format_L4:         m_bpp = 4; break;
         default: return Color(rgb);
     }
 }
@@ -297,12 +303,12 @@ uint32_t Display::toRgb(Color color) const
         case Format_RGB565:     return RGB_BITS(rgb, 0, 5, 6, 5);
         case Format_ARGB1555:   return RGB_BITS(rgb, 1, 5, 5, 5);
         case Format_ARGB4444:   return RGB_BITS(rgb, 4, 4, 4, 4);
-//        case Format_L8:         m_bpp = 1; break;
-//        case Format_AL44:       m_bpp = 1; break;
-//        case Format_AL88:       m_bpp = 2; break;
-//        case Format_A4:         m_bpp = 0; break; // not allowed
+//        case Format_L8:         m_bpp = 8; break;
+//        case Format_AL44:       m_bpp = 8; break;
+//        case Format_AL88:       m_bpp = 16; break;
+        case Format_A4:         return rgb >> 28; break;
         case Format_A8:         return rgb >> 24;
-//        case Format_L4:         m_bpp = 0; break; // not allowed
+//        case Format_L4:         m_bpp = 4; break;
         default: return rgb;
     }
 }
@@ -507,22 +513,22 @@ Display::Display(int width, int height, PixelFormat pixelFormat) :
 {
     switch (pixelFormat)
     {
-    case Format_ARGB8888:   m_bpp = 4; break;
-    case Format_RGB888:     m_bpp = 3; break;
-    case Format_RGB565:     m_bpp = 2; break;
-    case Format_ARGB1555:   m_bpp = 2; break;
-    case Format_ARGB4444:   m_bpp = 2; break;
-    case Format_L8:         m_bpp = 1; break;
-    case Format_AL44:       m_bpp = 1; break;
-    case Format_AL88:       m_bpp = 2; break;
-    case Format_A4:         m_bpp = 0; break; // not allowed
-    case Format_A8:         m_bpp = 1; break;
-    case Format_L4:         m_bpp = 0; break; // not allowed
+    case Format_ARGB8888:   m_bpp = 32; break;
+    case Format_RGB888:     m_bpp = 24; break;
+    case Format_RGB565:     m_bpp = 16; break;
+    case Format_ARGB1555:   m_bpp = 16; break;
+    case Format_ARGB4444:   m_bpp = 16; break;
+    case Format_L8:         m_bpp = 8; break;
+    case Format_AL44:       m_bpp = 8; break;
+    case Format_AL88:       m_bpp = 16; break;
+    case Format_A4:         m_bpp = 4; break;
+    case Format_A8:         m_bpp = 8; break;
+    case Format_L4:         m_bpp = 4; break;
     }
 
     //! @todo check alignment
-//    m_bpl = (m_bpp * m_width + 3) & ~3;
-    m_bpl = m_bpp * m_width;
+//    m_bpl = ((m_bpp * m_width >> 3) + 3) & ~3;
+    m_bpl = m_bpp * m_width >> 3;
 }
 
 bool Display::hasAlphaChannel() const
