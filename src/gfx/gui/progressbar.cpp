@@ -56,13 +56,23 @@ void ProgressBar::setTextVisible(bool visible)
     }
 }
 
-void ProgressBar::setFormat(const ByteArray &fmt, int decimals)
+void ProgressBar::setFormat(const ByteArray &fmt)
 {
-    m_format = fmt;
-    setDecimals(decimals);
-    if (m_textVisible)
-        update();
+    if (m_format != fmt)
+    {
+        m_format = fmt;
+        if (m_textVisible)
+            update();
+    }
 }
+
+//void ProgressBar::setFormat(const ByteArray &fmt, int decimals)
+//{
+//    m_format = fmt;
+//    setDecimals(decimals);
+//    if (m_textVisible)
+//        update();
+//}
 
 void ProgressBar::setDecimals(int value)
 {

@@ -14427,6 +14427,12 @@
                 <name>$PROJ_DIR$\src\gfx\gui\spinbox.h</name>
             </file>
             <file>
+                <name>$PROJ_DIR$\src\gfx\gui\translator.cpp</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\src\gfx\gui\translator.h</name>
+            </file>
+            <file>
                 <name>$PROJ_DIR$\src\gfx\gui\widget.cpp</name>
             </file>
             <file>
@@ -14669,12 +14675,6 @@
     </group>
     <group>
         <name>serial</name>
-        <file>
-            <name>$PROJ_DIR$\src\serial\deviceframed.cpp</name>
-        </file>
-        <file>
-            <name>$PROJ_DIR$\src\serial\deviceframed.h</name>
-        </file>
         <file>
             <name>$PROJ_DIR$\src\serial\esp8266.cpp</name>
             <excluded>

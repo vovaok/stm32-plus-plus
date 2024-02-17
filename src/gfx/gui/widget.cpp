@@ -11,6 +11,14 @@ Widget::Widget(Widget *parent)
     setParent(parent);
 }
 
+Widget::~Widget()
+{
+    for (Widget *w: m_children)
+    {
+        delete w;
+    }
+}
+
 void Widget::setParent(Widget *parent)
 {
     if (m_parent)
@@ -300,4 +308,9 @@ void Widget::paint(Display *d)
     }
 
     d->moveTo(oldx, oldy);
+}
+
+Translator *Widget::translations()
+{
+    return GuiApplication::translator();
 }

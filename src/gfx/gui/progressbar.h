@@ -17,8 +17,11 @@ public:
     inline float value() const {return m_value;}
 
     void setTextVisible(bool visible);
-    void setFormat(const ByteArray &fmt, int decimals=0);
+    void setFormat(const ByteArray &fmt);
+    const ByteArray &format() const {return m_format;}
+//    void setFormat(const ByteArray &fmt, int decimals); // DEPRECATED! use separately setFormat and setDecimals instead
     void setDecimals(int value);
+    int decimals() const {return m_decimals;}
 
     void setFont(Font font);
 

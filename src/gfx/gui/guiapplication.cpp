@@ -17,6 +17,9 @@ GuiApplication::~GuiApplication()
 {
     m_paintTimer->stop();
     delete m_paintTimer;
+    delete m_widget;
+    delete m_palette;
+    delete m_translator;
 }
 
 GuiApplication *GuiApplication::instance()
@@ -37,6 +40,14 @@ Widget *GuiApplication::focusWidget()
 Palette* GuiApplication::palette()
 {
     return instance()->m_palette;
+}
+
+Translator *GuiApplication::translator()
+{
+    GuiApplication *app = instance();
+    if (!app->m_translator)
+        app->m_translator = new Translator;
+    return app->m_translator;
 }
 
 void GuiApplication::setFocusWidget(Widget *w)

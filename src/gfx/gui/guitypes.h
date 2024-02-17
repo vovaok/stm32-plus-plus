@@ -82,3 +82,9 @@ enum Direction
     Vertical
 };
 
+enum Language
+{
+    AnyLanguage = 0,
+    ru_RU,
+    en_US,
+};
