@@ -4968,7 +4968,7 @@
             <archiveVersion>1</archiveVersion>
             <data>
                 <prebuild></prebuild>
-                <postbuild>cmd /C rem start /D "$PROJ_DIR$\doxygen" doxygen Doxyfile</postbuild>
+                <postbuild></postbuild>
             </data>
         </settings>
         <settings>
@@ -6805,7 +6805,7 @@
                 </option>
                 <option>
                     <name>CCOptLevel</name>
-                    <state>0</state>
+                    <state>1</state>
                 </option>
                 <option>
                     <name>CCOptStrategy</name>
@@ -6814,7 +6814,7 @@
                 </option>
                 <option>
                     <name>CCOptLevelSlave</name>
-                    <state>0</state>
+                    <state>1</state>
                 </option>
                 <option>
                     <name>CCPosIndRopi</name>
@@ -7114,7 +7114,7 @@
             <archiveVersion>1</archiveVersion>
             <data>
                 <prebuild></prebuild>
-                <postbuild>cmd /C start /D "$PROJ_DIR$\doxygen" doxygen Doxyfile</postbuild>
+                <postbuild></postbuild>
             </data>
         </settings>
         <settings>
@@ -13946,6 +13946,9 @@
     </configuration>
     <group>
         <name>3rd_party</name>
+        <excluded>
+            <configuration>stm32f405rg_no-exceptions_no-rtti</configuration>
+        </excluded>
         <group>
             <name>lwip</name>
             <group>
@@ -14217,6 +14220,7 @@
             <name>$PROJ_DIR$\src\device\ili9341.cpp</name>
             <excluded>
                 <configuration>stm32f407vg</configuration>
+                <configuration>stm32f405rg_no-exceptions_no-rtti</configuration>
             </excluded>
         </file>
         <file>
@@ -14276,6 +14280,9 @@
     </group>
     <group>
         <name>ethernet</name>
+        <excluded>
+            <configuration>stm32f405rg_no-exceptions_no-rtti</configuration>
+        </excluded>
         <group>
             <name>port</name>
             <file>
@@ -14662,6 +14669,12 @@
     </group>
     <group>
         <name>serial</name>
+        <file>
+            <name>$PROJ_DIR$\src\serial\deviceframed.cpp</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\serial\deviceframed.h</name>
+        </file>
         <file>
             <name>$PROJ_DIR$\src\serial\esp8266.cpp</name>
             <excluded>

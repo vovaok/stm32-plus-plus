@@ -6,7 +6,7 @@ UsartFramed::UsartFramed(Gpio::Config pinTx, Gpio::Config pinRx) :
     setCharacterMatchEvent('}');
     m_sequential = false;
 }
-    
+
 //bool UsartFramed::fillBuffer(const char *data, int size)
 //{
 //    /// @todo check buffer capacity! can crash
@@ -22,12 +22,12 @@ UsartFramed::UsartFramed(Gpio::Config pinTx, Gpio::Config pinRx) :
 //    while (size--)
 //    {
 //        char b = *data++;
-//        
+//
 //        if (size)
 //            cs -= b;
 //        else
 //            b = cs;
-//            
+//
 //        switch (b)
 //        {
 //        case '{':
@@ -54,17 +54,17 @@ int UsartFramed::writeData(const char *data, int size)
     uint8_t cs = 0;
     if (Usart::writeBuffer("{", 1) <= 0)
         return 0;
-    
+
     int sz = size + 1;
     while (sz--)
     {
         char b = *data++;
-        
+
         if (sz)
             cs -= b;
         else
             b = cs;
-            
+
         switch (b)
         {
         case '{':
@@ -91,7 +91,7 @@ int UsartFramed::readData(char *data, int size)
     const char *src = begin + mRxPos;
     const char *end = begin + mRxBuffer.size();
     char *dst = data;
-    
+
     while (avail--)
     {
         if (*src == '{')
@@ -99,20 +99,20 @@ int UsartFramed::readData(char *data, int size)
         if (++src >= end)
             src = begin;
     }
-    
+
     mRxPos = src - begin;
     if (avail <= 0)
         return 0;
-    
+
     if (++src >= end)
         src = begin;
-    
+
     while (avail--)
     {
         char b = *src++;
         if (src >= end)
             src = begin;
-        
+
         if (b == '\\')
         {
             b = *src++ ^ 0x20;
@@ -134,12 +134,12 @@ int UsartFramed::readData(char *data, int size)
             dst = data;
             continue;
         }
-            
+
         if (sz < size)
             *dst++ = b;
         cs += b;
         sz++;
     }
-    
+
     return 0;
 }
