@@ -15,3 +15,8 @@ unsigned long upper_power_of_two(unsigned long v)
     v++;
     return v;
 }
+
+//int log2i(uint32_t value)
+//{
+//    return 31 - __iar_builtin_CLZ(value);
+//}

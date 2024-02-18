@@ -171,6 +171,19 @@ void Spi::setBaudratePrescaler(int psc)
     mConfig.baudrate = psc & 7;
     updateConfig();
 }
+
+void Spi::setBaudrate(int value)
+{
+    int pclk = rcc().getPeriphClk(mDev);
+    int psc = log2i(pclk / value) + 1;
+    setBaudratePrescaler(psc);
+}
+
+int Spi::baudrate() const
+{
+    int pclk = rcc().getPeriphClk(mDev);
+    return pclk >> mConfig.baudrate;
+}
 //--------------------------------------------------------------------------
 
 void Spi::open()
@@ -352,6 +365,21 @@ bool Spi::write(const uint8_t *data, int size)
     return true;
 }
 
+void Spi::setRxBuffer(uint8_t *data, int size, bool circular)
+{
+    if (!mDmaRx)
+        mDmaRx = new Dma(mDmaChannelRx);
+    int dataSize = (m_dataSize > 8)? 2: 1;
+    size /= dataSize;
+    mDmaRx->setSource(&mDev->DR, dataSize);
+    if (circular)
+        mDmaRx->setCircularBuffer(data, size);
+    else
+        mDmaRx->setSingleBuffer(data, size);
+    mConfig.RXDMAEN = 1;
+    updateConfig();
+}
+
 bool Spi::writeFill16(uint16_t *value, int count)
 {
     if (mDmaTx)
@@ -406,12 +434,12 @@ void Spi::waitForBytesWritten()
 }
 //---------------------------------------------------------------------------
 
-void Spi::setUseDmaRx(bool useDma)
-{
-    if (isOpen())
-        THROW(Exception::ResourceBusy);
-    mUseDmaRx = useDma;
-}
+//void Spi::setUseDmaRx(bool useDma)
+//{
+//    if (isOpen())
+//        THROW(Exception::ResourceBusy);
+//    mUseDmaRx = useDma;
+//}
 
 void Spi::setUseDmaTx(bool useDma)
 {
@@ -424,6 +452,12 @@ void Spi::setUseDmaTx(bool useDma)
 void Spi::setTransferCompleteEvent(SpiDataEvent e)
 {
     onTransferComplete = e;
+    enableInterrupt();
+}
+
+void Spi::setTransferCompleteEvent(NotifyEvent e)
+{
+    onTxEnd = e;
     enableInterrupt();
 }
 //---------------------------------------------------------------------------
@@ -449,14 +483,22 @@ void Spi::enableInterrupt()
     NVIC_EnableIRQ(mIrq);
 
     // enable RXNE interrupt
-    mDev->CR2 |= SPI_CR2_RXNEIE;
+    if (onTransferComplete)
+        mConfig.RXNEIE = 1;
+    if (onTxEnd)
+        mConfig.TXEIE = 1;
+    updateConfig();
 }
 
 void Spi::handleInterrupt()
 {
-    if (mDev->SR & SPI_SR_RXNE)
+    if ((mDev->SR & SPI_SR_RXNE) && onTransferComplete)
     {
         onTransferComplete(mDev->DR);
+    }
+    else if ((mDev->SR & SPI_SR_TXE) && onTxEnd)
+    {
+        onTxEnd();
     }
 }
 

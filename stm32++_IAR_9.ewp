@@ -14178,6 +14178,12 @@
     <group>
         <name>device</name>
         <file>
+            <name>$PROJ_DIR$\src\device\ad7888.cpp</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\device\ad7888.h</name>
+        </file>
+        <file>
             <name>$PROJ_DIR$\src\device\ads1220.c</name>
         </file>
         <file>

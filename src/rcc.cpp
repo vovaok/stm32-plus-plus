@@ -408,9 +408,9 @@ void Rcc::configClockOutput(Gpio::Config mco, ClockSource clk, int prescaler)
         prescaler += 2;
     else
         return; // wrong configuration
-    
+
     uint32_t cfgr = RCC->CFGR;
-    
+
     if (mco == Gpio::MCO1_PA8)
     {
         cfgr &= ~(RCC_CFGR_MCO1_Msk | RCC_CFGR_MCO1PRE_Msk);
@@ -437,7 +437,7 @@ void Rcc::configClockOutput(Gpio::Config mco, ClockSource clk, int prescaler)
         default: return; // wrong configuration
         }
     }
-    
+
     RCC->CFGR = cfgr;
     Gpio::config(mco);
 }
@@ -654,12 +654,12 @@ void Rcc::setPeriphEnabled(void *periphBase, bool enabled)
     case DMA2D_BASE:    RCC->AHB1ENR |= RCC_AHB1ENR_DMA2DEN; break;
 #endif
     case SYSCFG_BASE:   RCC->APB2ENR |= RCC_APB2ENR_SYSCFGEN; break;
-    
+
 #ifdef ETH
     case ETH_BASE:      RCC->AHB1ENR |=
                         RCC_AHB1ENR_ETHMACEN | /*RCC_AHB1ENR_ETHMACPTPEN | */
                         RCC_AHB1ENR_ETHMACRXEN | RCC_AHB1ENR_ETHMACTXEN;
-                        break;                   
+                        break;
 #endif
     //! @todo Fill other cases
     }
@@ -686,7 +686,18 @@ void Rcc::resetPeriph(void *periphBase)
     case ETH_BASE:      RCC->AHB1RSTR |= RCC_AHB1RSTR_ETHMACRST;
                         RCC->AHB1RSTR &= ~RCC_AHB1RSTR_ETHMACRST;
                         break;
-#endif    
+#endif
     //! @todo Fill other cases
     }
+}
+
+int Rcc::getPeriphClk(void *periphBase)
+{
+    if ((uint32_t)periphBase < 0x40010000)
+        return pClk1();
+    else if ((uint32_t)periphBase < 0x40020000)
+        return pClk2();
+    else if ((uint32_t)periphBase < 0x50000000)
+        return hClk();
+    return 0;
 }
