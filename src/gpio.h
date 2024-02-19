@@ -3,7 +3,7 @@
 
 #include <stdarg.h>
 #include "stm32.h"
-//#include "core/core.h"
+#include "core/coretypes.h"
 
 /*! Pin configuration macro.
     Intended for internal use.
@@ -16,6 +16,17 @@
 #define GpioConfigGetAF(cfg) ((cfg >> 16) & 0xFF)
 #define GpioConfigGetFlags(cfg) ((cfg >> 8) & 0xFF)
 #define GpioConfigGetName(cfg) (cfg & 0xFF)
+
+extern "C"
+{
+    void EXTI0_IRQHandler();
+    void EXTI1_IRQHandler();
+    void EXTI2_IRQHandler();
+    void EXTI3_IRQHandler();
+    void EXTI4_IRQHandler();
+    void EXTI9_5_IRQHandler();
+    void EXTI15_10_IRQHandler();
+}
 
 //#define GPIO_HAS_PORT(x)    defined(GPIO##x)
 
@@ -159,6 +170,14 @@ public:
         af14 = 14,
         af15 = 15,
     } PinAF;
+    
+    typedef enum
+    {
+        NoInterrupt = 0,
+        RisingEdge = 1,
+        FallingEdge = 2,
+        BothEdges = 3
+    } InterruptMode;
 
     /*! Predefined pin configurations.
         You can construct a pin with one of these configurations.
@@ -268,6 +287,8 @@ public:
         По идее, можно вызывать в любое время.
     */
     void setAsOutputOpenDrain();
+    
+    void configInterrupt(NotifyEvent event, InterruptMode mode = BothEdges);
 
     /*! Чтение состояния ноги.
         \return \c true, если на ноге 1, \c false, если 0. Что логично.
@@ -337,7 +358,9 @@ private:
         };
     } ConfigStruct;
 
-    static uint8_t mPinsUsed[140];
+    //! @todo obtain pin count from used controller
+    static uint8_t mPinsUsed[176];
+    static NotifyEvent m_interruptHandlers[16];
     static void usePin(const ConfigStruct &cfg);
 
     ConfigStruct mConfig;
@@ -348,6 +371,14 @@ private:
     static GPIO_TypeDef *getPortByNumber(int port);
     static int getPortNumber(GPIO_TypeDef *gpio);
     void updateConfig();
+    
+    friend void EXTI0_IRQHandler();
+    friend void EXTI1_IRQHandler();
+    friend void EXTI2_IRQHandler();
+    friend void EXTI3_IRQHandler();
+    friend void EXTI4_IRQHandler();
+    friend void EXTI9_5_IRQHandler();
+    friend void EXTI15_10_IRQHandler();
 };
 
 #endif

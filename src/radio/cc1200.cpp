@@ -14,10 +14,6 @@
 /* Symbol rate = 500 */
 /* Whitening = false */
 
-#warning TODO: implement EXTI interrupts class
-
-NotifyEvent extiHandlers[16];
-
 CC1200::RF_config_param CC1200::RF_config[] =
 {
     {0x0001, 0x06},
@@ -169,26 +165,28 @@ CC1200::CC1200(Spi *spi, Gpio::PinName csPin, Gpio::PinName resetPin) :
 
 void CC1200::setGpioPins(Gpio::PinName gpio0, Gpio::PinName gpio2, Gpio::PinName gpio3)
 {
-    delete pinGpio0, pinGpio2, pinGpio3;
+    delete pinGpio0;
+    delete pinGpio2;
+    delete pinGpio3;
     pinGpio0 = new Gpio(gpio0);
     pinGpio2 = new Gpio(gpio2);
     pinGpio3 = new Gpio(gpio3);
     
-    mLine = gpio2 & 0xF;
-    unsigned char port = gpio2 >> 4;
-    RCC->APB2ENR |= RCC_APB2ENR_SYSCFGEN;
-    SYSCFG->EXTICR[mLine >> 2] |= port << ((mLine & 0x3) << 2);
-    EXTI->FTSR |= (1<<mLine);
-    EXTI->IMR |= (1<<mLine);
+//    mLine = gpio2 & 0xF;
+//    unsigned char port = gpio2 >> 4;
+//    RCC->APB2ENR |= RCC_APB2ENR_SYSCFGEN;
+//    SYSCFG->EXTICR[mLine >> 2] |= port << ((mLine & 0x3) << 2);
+//    EXTI->FTSR |= (1<<mLine);
+//    EXTI->IMR |= (1<<mLine);
 }
 
-bool CC1200::getRxTxFlag()
-{
-    bool result = EXTI->PR & (1<<mLine);
-    if (result)
-        EXTI->PR |= (1<<mLine);
-    return result;
-}
+//bool CC1200::getRxTxFlag()
+//{
+//    bool result = EXTI->PR & (1<<mLine);
+//    if (result)
+//        EXTI->PR |= (1<<mLine);
+//    return result;
+//}
 
 void CC1200::select()
 {
@@ -356,7 +354,9 @@ void CC1200::setAddress(unsigned char addr)
 
 void CC1200::setRxTxEvent(const NotifyEvent &e)
 {
-    extiHandlers[mLine] = e;
+    pinGpio2->configInterrupt(e, Gpio::RisingEdge);
+    
+//    extiHandlers[mLine] = e;
 //    NVIC_InitTypeDef NVIC_InitStructure;
 //    NVIC_InitStructure.NVIC_IRQChannel = EXTI9_5_IRQn;
 //    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;
@@ -364,35 +364,5 @@ void CC1200::setRxTxEvent(const NotifyEvent &e)
 //    NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
 //    NVIC_Init(&NVIC_InitStructure);
     
-    NVIC_EnableIRQ(EXTI9_5_IRQn);
+//    NVIC_EnableIRQ(EXTI9_5_IRQn);
 }
-
-extern "C" void EXTI9_5_IRQHandler()
-{
-    if (EXTI->PR & (1<<5))
-    {
-        EXTI->PR |= (1<<5);
-        extiHandlers[5]();
-    }
-    else if (EXTI->PR & (1<<6))
-    {
-        EXTI->PR |= (1<<6);
-        extiHandlers[6]();
-    }
-    else if (EXTI->PR & (1<<7))
-    {
-        EXTI->PR |= (1<<7);
-        extiHandlers[7]();
-    }
-    else if (EXTI->PR & (1<<8))
-    {
-        EXTI->PR |= (1<<8);
-        extiHandlers[8]();
-    }
-    else if (EXTI->PR & (1<<9))
-    {
-        EXTI->PR |= (1<<9);
-        extiHandlers[9]();
-    }
-}
-//---------------------------------------------------------------------------

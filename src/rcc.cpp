@@ -645,16 +645,25 @@ bool Rcc::measureHseFreq()
 
 void Rcc::setPeriphEnabled(void *periphBase, bool enabled)
 {
-    switch (reinterpret_cast<uint32_t>(periphBase))
+    uint32_t base = reinterpret_cast<uint32_t>(periphBase);
+    uint32_t bus = periphBusBase(periphBase);
+    uint32_t offset = periphBusOffset(periphBase);
+    
+    //! @todo check for other STM families!
+
+    if (base == ADC2_BASE)
+        RCC->APB2ENR |= RCC_APB2ENR_ADC2EN;
+    else if (base == ADC3_BASE)
+        RCC->APB2ENR |= RCC_APB2ENR_ADC3EN;
+    else if (bus == APB1PERIPH_BASE)
+        RCC->APB1ENR |= 1 << (offset >> 10);
+    else if (bus == APB2PERIPH_BASE)
+        RCC->APB2ENR |= 1 << (offset >> 10);
+    else switch (base)
     {
-#ifdef LTDC
-    case LTDC_BASE:     RCC->APB2ENR |= RCC_APB2ENR_LTDCEN; break;
-#endif
 #ifdef DMA2D
     case DMA2D_BASE:    RCC->AHB1ENR |= RCC_AHB1ENR_DMA2DEN; break;
 #endif
-    case SYSCFG_BASE:   RCC->APB2ENR |= RCC_APB2ENR_SYSCFGEN; break;
-    
 #ifdef ETH
     case ETH_BASE:      RCC->AHB1ENR |=
                         RCC_AHB1ENR_ETHMACEN | /*RCC_AHB1ENR_ETHMACPTPEN | */
@@ -667,21 +676,21 @@ void Rcc::setPeriphEnabled(void *periphBase, bool enabled)
 
 void Rcc::resetPeriph(void *periphBase)
 {
-    switch (reinterpret_cast<uint32_t>(periphBase))
+    uint32_t base = reinterpret_cast<uint32_t>(periphBase);
+    uint32_t bus = periphBusBase(periphBase);
+    uint32_t offset = periphBusOffset(periphBase);
+    
+    if (bus == APB1PERIPH_BASE)
+        RCC->APB1RSTR |= 1 << (offset >> 10);
+    else if (bus == APB2PERIPH_BASE)
+        RCC->APB2RSTR |= 1 << (offset >> 10);
+    else switch (base)
     {
-#ifdef LTDC
-    case LTDC_BASE:     RCC->APB2RSTR |= RCC_APB2RSTR_LTDCRST;
-                        RCC->APB2RSTR &= ~RCC_APB2RSTR_LTDCRST;
-                        break;
-#endif
 #ifdef DMA2D
     case DMA2D_BASE:    RCC->AHB1RSTR |= RCC_AHB1RSTR_DMA2DRST;
                         RCC->AHB1RSTR &= ~RCC_AHB1RSTR_DMA2DRST;
                         break;
 #endif
-    case SYSCFG_BASE:   RCC->APB2RSTR |= RCC_APB2RSTR_SYSCFGRST;
-                        RCC->APB2RSTR &= ~RCC_APB2RSTR_SYSCFGRST;
-                        break;
 #ifdef ETH
     case ETH_BASE:      RCC->AHB1RSTR |= RCC_AHB1RSTR_ETHMACRST;
                         RCC->AHB1RSTR &= ~RCC_AHB1RSTR_ETHMACRST;
@@ -689,4 +698,27 @@ void Rcc::resetPeriph(void *periphBase)
 #endif    
     //! @todo Fill other cases
     }
+}
+                         
+uint32_t Rcc::periphBusBase(void *periph)
+{
+    uint32_t periphBase = reinterpret_cast<uint32_t>(periph);
+    if (periphBase >= 0xE0000000)
+        return 0;
+    if (periphBase >= 0x60000000)
+        return 0x60000000;
+    if (periphBase >= AHB2PERIPH_BASE)
+        return AHB2PERIPH_BASE;
+    if (periphBase >= AHB1PERIPH_BASE)
+        return AHB1PERIPH_BASE;
+    if (periphBase >= APB2PERIPH_BASE)
+        return APB2PERIPH_BASE;
+    if (periphBase >= APB1PERIPH_BASE)
+        return APB1PERIPH_BASE;
+    return 0;
+}
+
+uint32_t Rcc::periphBusOffset(void *periph)
+{
+    return reinterpret_cast<uint32_t>(periph) - periphBusBase(periph);
 }

@@ -29,5 +29,6 @@ private:
     uint32_t m_value = 0;
     uint32_t m_filter = 0;
     
+    void update();
     void task();
 };

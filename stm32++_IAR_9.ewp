@@ -9262,7 +9262,7 @@
             <archiveVersion>1</archiveVersion>
             <data>
                 <prebuild></prebuild>
-                <postbuild>cmd /C REM start /D "$PROJ_DIR$\doxygen" doxygen Doxyfile</postbuild>
+                <postbuild></postbuild>
             </data>
         </settings>
         <settings>

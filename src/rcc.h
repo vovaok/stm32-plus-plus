@@ -34,7 +34,7 @@ public:
         PLL = 0x3
     };
 #endif
-
+    
 #if defined(STM32F4) || defined(STM32G4) || defined(STM32L4)
     constexpr uint32_t hsiValue() const {return 16000000;}
 #elif defined(STM32F3)
@@ -72,6 +72,11 @@ private:
     static Rcc *m_self;
 
     bool measureHseFreq();
+    
+    // returns base address of periph bus
+    uint32_t periphBusBase(void *periph);
+    // returns offset of periph base relative to bus base
+    uint32_t periphBusOffset(void *periph);
 
     uint32_t mHseValue;
     uint32_t mPllM;
