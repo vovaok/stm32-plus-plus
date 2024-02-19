@@ -4968,7 +4968,7 @@
             <archiveVersion>1</archiveVersion>
             <data>
                 <prebuild></prebuild>
-                <postbuild>cmd /C rem start /D "$PROJ_DIR$\doxygen" doxygen Doxyfile</postbuild>
+                <postbuild></postbuild>
             </data>
         </settings>
         <settings>
@@ -6805,7 +6805,7 @@
                 </option>
                 <option>
                     <name>CCOptLevel</name>
-                    <state>0</state>
+                    <state>1</state>
                 </option>
                 <option>
                     <name>CCOptStrategy</name>
@@ -6814,7 +6814,7 @@
                 </option>
                 <option>
                     <name>CCOptLevelSlave</name>
-                    <state>0</state>
+                    <state>1</state>
                 </option>
                 <option>
                     <name>CCPosIndRopi</name>
@@ -7114,7 +7114,7 @@
             <archiveVersion>1</archiveVersion>
             <data>
                 <prebuild></prebuild>
-                <postbuild>cmd /C start /D "$PROJ_DIR$\doxygen" doxygen Doxyfile</postbuild>
+                <postbuild></postbuild>
             </data>
         </settings>
         <settings>
@@ -13946,6 +13946,9 @@
     </configuration>
     <group>
         <name>3rd_party</name>
+        <excluded>
+            <configuration>stm32f405rg_no-exceptions_no-rtti</configuration>
+        </excluded>
         <group>
             <name>lwip</name>
             <group>
@@ -14175,6 +14178,12 @@
     <group>
         <name>device</name>
         <file>
+            <name>$PROJ_DIR$\src\device\ad7888.cpp</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\device\ad7888.h</name>
+        </file>
+        <file>
             <name>$PROJ_DIR$\src\device\ads1220.c</name>
         </file>
         <file>
@@ -14217,6 +14226,7 @@
             <name>$PROJ_DIR$\src\device\ili9341.cpp</name>
             <excluded>
                 <configuration>stm32f407vg</configuration>
+                <configuration>stm32f405rg_no-exceptions_no-rtti</configuration>
             </excluded>
         </file>
         <file>
@@ -14276,6 +14286,9 @@
     </group>
     <group>
         <name>ethernet</name>
+        <excluded>
+            <configuration>stm32f405rg_no-exceptions_no-rtti</configuration>
+        </excluded>
         <group>
             <name>port</name>
             <file>
@@ -14418,6 +14431,12 @@
             </file>
             <file>
                 <name>$PROJ_DIR$\src\gfx\gui\spinbox.h</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\src\gfx\gui\translator.cpp</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\src\gfx\gui\translator.h</name>
             </file>
             <file>
                 <name>$PROJ_DIR$\src\gfx\gui\widget.cpp</name>

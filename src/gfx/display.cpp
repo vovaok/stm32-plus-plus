@@ -126,7 +126,7 @@ void Display::renderChar(char c, int &x, int &y)
 	const uint8_t *src = fi->bitmap(c);
 	int x0 = m_x + x + li.lb;
     int y0 = m_y + y - fi->a;
-    
+
     if (m_pixelFormat < 8 && fi->bpp == 4)
     {
         // li.w must be even for 4 bpp!

@@ -3,6 +3,7 @@
 #include "../display.h"
 #include "../touchscreen.h"
 #include "palette.h"
+#include "translator.h"
 //#include "layout.h"
 
 class Layout;
@@ -11,6 +12,7 @@ class Widget
 {
 public:
     Widget(Widget *parent=nullptr);
+    virtual ~Widget();
 
     void setParent(Widget *w);
     void addWidget(Widget *w);
@@ -99,6 +101,8 @@ protected:
     virtual void pressEvent(int x, int y) {}
     virtual void moveEvent(int x, int y) {}
     virtual void releaseEvent(int x, int y) {}
+
+    Translator *translations();
 
 private:
     bool m_needRepaint = true;

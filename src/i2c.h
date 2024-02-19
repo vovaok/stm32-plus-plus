@@ -3,7 +3,6 @@
 
 #include "gpio.h"
 #include "rcc.h"
-#include "core/core.h"
 
 class I2c
 {    
@@ -15,6 +14,10 @@ public:
     
     void open();
     void close();
+    
+    // high-level interface (some implementation)
+    bool readReg(uint8_t hw_addr, uint8_t reg_addr, uint8_t *buffer, uint8_t size);
+    bool writeReg(uint8_t hw_addr, uint8_t reg_addr, const uint8_t *buffer, uint8_t size);
     
     // common interface:
     bool read(uint8_t address, uint8_t *data, uint16_t size);
@@ -30,7 +33,7 @@ public:
     bool startTransmission(Direction dir, uint8_t slaveAddress);
     bool stopTransmission();
     bool writeData(uint8_t data);
-    bool readData(unsigned char *buf);
+    bool readData(uint8_t *buf);
     void setAcknowledge(bool state);
     
 private:

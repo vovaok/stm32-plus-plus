@@ -57,10 +57,12 @@ public:
     void setPeriphEnabled(void *periphBase, bool enabled=true);
     void resetPeriph(void *periphBase);
 
+    int getPeriphClk(void *periphBase);
+
 #if defined(LTDC)
     int configLtdcClock(int frequency); //!< return real programmed frequency
 #endif
-    
+
     // ''  It is highly recommended to change this
     //     prescaler only after reset before enabling
     //     the external oscillators and the PLLs       ''
