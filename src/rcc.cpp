@@ -699,6 +699,17 @@ void Rcc::resetPeriph(void *periphBase)
     //! @todo Fill other cases
     }
 }
+
+int Rcc::getPeriphClk(void *periphBase)
+{
+    uint32_t bus = periphBusBase(periphBase);
+    switch (bus)
+    {
+    case APB1PERIPH_BASE: return pClk1();
+    case APB2PERIPH_BASE: return pClk2();
+    default: return hClk();
+    }
+}
                          
 uint32_t Rcc::periphBusBase(void *periph)
 {
@@ -723,13 +734,3 @@ uint32_t Rcc::periphBusOffset(void *periph)
     return reinterpret_cast<uint32_t>(periph) - periphBusBase(periph);
 }
 
-int Rcc::getPeriphClk(void *periphBase)
-{
-    if ((uint32_t)periphBase < 0x40010000)
-        return pClk1();
-    else if ((uint32_t)periphBase < 0x40020000)
-        return pClk2();
-    else if ((uint32_t)periphBase < 0x50000000)
-        return hClk();
-    return 0;
-}
