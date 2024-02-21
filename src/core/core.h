@@ -29,12 +29,12 @@ unsigned long upper_power_of_two(unsigned long v);
 #define log2i(x)    (31 - __iar_builtin_CLZ(x))
 #endif
 
-constexpr int operator ""_kHz(unsigned long long int value)
+constexpr int operator ""_k(unsigned long long int value)
 {
     return value * 1000;
 }
 
-constexpr int operator ""_MHz(unsigned long long int value)
+constexpr int operator ""_M(unsigned long long int value)
 {
     return value * 1000000;
 }

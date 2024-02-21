@@ -29,7 +29,8 @@
 #define SPI2_DMA_CHANNEL_TX     Dma::SPI2_TX;
 #define SPI3_DMA_CHANNEL_RX     Dma::SPI3_RX;
 #define SPI3_DMA_CHANNEL_TX     Dma::SPI3_TX;
-
+#define SPI4_DMA_CHANNEL_RX     Dma::SPI4_RX;
+#define SPI4_DMA_CHANNEL_TX     Dma::SPI4_TX;
 #endif
 
 Spi *Spi::mSpies[6] = {0L, 0L, 0L, 0L, 0L, 0L};
@@ -58,7 +59,6 @@ Spi::Spi(Gpio::Config sck, Gpio::Config miso, Gpio::Config mosi) :
     {
       case 1:
         mDev = SPI1;
-        RCC->APB2ENR |= RCC_APB2ENR_SPI1EN;
         mIrq = SPI1_IRQn;
         mDmaChannelRx = SPI1_DMA_CHANNEL_RX;
         mDmaChannelTx = SPI1_DMA_CHANNEL_TX;
@@ -66,7 +66,6 @@ Spi::Spi(Gpio::Config sck, Gpio::Config miso, Gpio::Config mosi) :
 
       case 2:
         mDev = SPI2;
-        RCC->APB1ENR |= RCC_APB1ENR_SPI2EN;
         mIrq = SPI2_IRQn;
         mDmaChannelRx = SPI2_DMA_CHANNEL_RX;
         mDmaChannelTx = SPI2_DMA_CHANNEL_TX;
@@ -74,7 +73,6 @@ Spi::Spi(Gpio::Config sck, Gpio::Config miso, Gpio::Config mosi) :
 
       case 3:
         mDev = SPI3;
-        RCC->APB1ENR |= RCC_APB1ENR_SPI3EN;
         mIrq = SPI3_IRQn;
         mDmaChannelRx = SPI3_DMA_CHANNEL_RX;
         mDmaChannelTx = SPI3_DMA_CHANNEL_TX;
@@ -83,7 +81,6 @@ Spi::Spi(Gpio::Config sck, Gpio::Config miso, Gpio::Config mosi) :
 #if defined(SPI4)
       case 4:
         mDev = SPI4;
-        RCC->APB2ENR |= RCC_APB2ENR_SPI4EN;
         mIrq = SPI4_IRQn;
         mDmaChannelRx = SPI4_DMA_CHANNEL_RX;
         mDmaChannelTx = SPI4_DMA_CHANNEL_TX;
@@ -92,7 +89,6 @@ Spi::Spi(Gpio::Config sck, Gpio::Config miso, Gpio::Config mosi) :
 #if defined(SPI5)
       case 5:
         mDev = SPI5;
-        RCC->APB2ENR |= RCC_APB2ENR_SPI5EN;
         mIrq = SPI5_IRQn;
         mDmaChannelRx = SPI5_DMA_CHANNEL_RX;
         mDmaChannelTx = SPI5_DMA_CHANNEL_TX;
@@ -101,7 +97,6 @@ Spi::Spi(Gpio::Config sck, Gpio::Config miso, Gpio::Config mosi) :
 #if defined(SPI6)
       case 6:
         mDev = SPI6;
-        RCC->APB2ENR |= RCC_APB2ENR_SPI6EN;
         mIrq = SPI6_IRQn;
         mDmaChannelRx = SPI6_DMA_CHANNEL_RX;
         mDmaChannelTx = SPI6_DMA_CHANNEL_TX;
@@ -111,6 +106,8 @@ Spi::Spi(Gpio::Config sck, Gpio::Config miso, Gpio::Config mosi) :
 
     if (!mDev)
         THROW(Exception::InvalidPeriph);
+    
+    rcc().setPeriphEnabled(mDev);
 
     mConfig.SSI = 1;
     mConfig.SSM = 1;

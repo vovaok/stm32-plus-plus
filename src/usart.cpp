@@ -94,7 +94,6 @@ void Usart::commonConstructor(int number)
     {
       case 1:  
         mDev = USART1;
-        RCC->APB2ENR |= RCC_APB2ENR_USART1EN;
         mDmaChannelRx = USART1_RX_DMA;
         mDmaChannelTx = USART1_TX_DMA;
         mIrq = USART1_IRQn;
@@ -102,7 +101,6 @@ void Usart::commonConstructor(int number)
         
       case 2:  
         mDev = USART2;
-        RCC->APB1ENR |= RCC_APB1ENR_USART2EN;
         mDmaChannelRx = USART2_RX_DMA;
         mDmaChannelTx = USART2_TX_DMA;
         mIrq = USART2_IRQn;
@@ -110,7 +108,6 @@ void Usart::commonConstructor(int number)
         
       case 3:  
         mDev = USART3;
-        RCC->APB1ENR |= RCC_APB1ENR_USART3EN;
         mDmaChannelRx = USART3_RX_DMA;
         mDmaChannelTx = USART3_TX_DMA;
         mIrq = USART3_IRQn;
@@ -119,7 +116,6 @@ void Usart::commonConstructor(int number)
 #if defined(STM32F4) || defined(STM32L4) || defined(STM32G4)  
       case 4:  
         mDev = UART4;
-        RCC->APB1ENR |= RCC_APB1ENR_UART4EN;
         mDmaChannelRx = UART4_RX_DMA;
         mDmaChannelTx = UART4_TX_DMA;
         mIrq = UART4_IRQn;
@@ -127,7 +123,6 @@ void Usart::commonConstructor(int number)
         
       case 5:  
         mDev = UART5;
-        RCC->APB1ENR |= RCC_APB1ENR_UART5EN;
         mDmaChannelRx = UART5_RX_DMA;
         mDmaChannelTx = UART5_TX_DMA;
         mIrq = UART5_IRQn;
@@ -137,13 +132,14 @@ void Usart::commonConstructor(int number)
 #if defined(STM32F4)
       case 6:  
         mDev = USART6;
-        RCC->APB2ENR |= RCC_APB2ENR_USART6EN;
         mDmaChannelRx = USART6_RX_DMA;
         mDmaChannelTx = USART6_TX_DMA;
         mIrq = USART6_IRQn;
         break;
 #endif
     }
+    
+    rcc().setPeriphEnabled(mDev);
     
     mUsarts[number - 1] = this;
     

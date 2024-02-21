@@ -648,18 +648,12 @@ void Rcc::setPeriphEnabled(void *periphBase, bool enabled)
     uint32_t base = reinterpret_cast<uint32_t>(periphBase);
     uint32_t bus = periphBusBase(periphBase);
     uint32_t offset = periphBusOffset(periphBase);
+    uint32_t mask1 = 1 << (offset >> 10);
+    uint32_t mask2 = 1 << ((offset >> 10) - 32);
     
     //! @todo check for other STM families!
 
-    if (base == ADC2_BASE)
-        RCC->APB2ENR |= RCC_APB2ENR_ADC2EN;
-    else if (base == ADC3_BASE)
-        RCC->APB2ENR |= RCC_APB2ENR_ADC3EN;
-    else if (bus == APB1PERIPH_BASE)
-        RCC->APB1ENR |= 1 << (offset >> 10);
-    else if (bus == APB2PERIPH_BASE)
-        RCC->APB2ENR |= 1 << (offset >> 10);
-    else switch (base)
+    switch (base)
     {
 #ifdef DMA2D
     case DMA2D_BASE:    RCC->AHB1ENR |= RCC_AHB1ENR_DMA2DEN; break;
@@ -670,7 +664,31 @@ void Rcc::setPeriphEnabled(void *periphBase, bool enabled)
                         RCC_AHB1ENR_ETHMACRXEN | RCC_AHB1ENR_ETHMACTXEN;
                         break;
 #endif
+                        
+#if defined(STM32F4)
+    case ADC2_BASE:     RCC->APB2ENR |= RCC_APB2ENR_ADC2EN; break;
+    case ADC3_BASE:     RCC->APB2ENR |= RCC_APB2ENR_ADC3EN; break;
+#elif defined(STM32G4)
+    case FDCAN2_BASE:
+    case FDCAN3_BASE:
+        RCC->APB1ENR1 |= RCC_APB1ENR1_FDCANEN;
+        break;
+#endif
     //! @todo Fill other cases
+    default:
+        if (bus == APB1PERIPH_BASE)
+        {
+#if defined(STM32F4)
+            RCC->APB1ENR |= mask1;
+#elif defined(STM32G4) || defined(STM32L4)
+            RCC->APB1ENR1 |= mask1;
+            RCC->APB1ENR2 |= mask2;
+#endif            
+        }
+        else if (bus == APB2PERIPH_BASE)
+        {
+            RCC->APB2ENR |= mask1;
+        }
     }
 }
 
@@ -679,12 +697,10 @@ void Rcc::resetPeriph(void *periphBase)
     uint32_t base = reinterpret_cast<uint32_t>(periphBase);
     uint32_t bus = periphBusBase(periphBase);
     uint32_t offset = periphBusOffset(periphBase);
+    uint32_t mask1 = 1 << (offset >> 10);
+    uint32_t mask2 = 1 << ((offset >> 10) - 32);
     
-    if (bus == APB1PERIPH_BASE)
-        RCC->APB1RSTR |= 1 << (offset >> 10);
-    else if (bus == APB2PERIPH_BASE)
-        RCC->APB2RSTR |= 1 << (offset >> 10);
-    else switch (base)
+    switch (base)
     {
 #ifdef DMA2D
     case DMA2D_BASE:    RCC->AHB1RSTR |= RCC_AHB1RSTR_DMA2DRST;
@@ -697,6 +713,23 @@ void Rcc::resetPeriph(void *periphBase)
                         break;
 #endif
     //! @todo Fill other cases
+    default:
+        if (bus == APB1PERIPH_BASE)
+        {
+#if defined(STM32F4)
+            RCC->APB1RSTR |= mask1;
+            RCC->APB1RSTR &= ~mask1;
+#elif defined(STM32G4) || defined(STM32L4)
+            RCC->APB1RSTR1 |= mask1;
+            RCC->APB1RSTR2 |= mask2;
+            RCC->APB1RSTR1 &= ~mask1;
+            RCC->APB1RSTR2 &= ~mask2;
+#endif                        
+        }
+        else if (bus == APB2PERIPH_BASE)
+        {
+            RCC->APB2RSTR |= 1 << (offset >> 10);
+        }
     }
 }
 

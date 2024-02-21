@@ -4,6 +4,12 @@
 #if defined(STM32F37X)
 #define BSRRL   BSRR
 #define BSRRH   BRR
+#elif defined(STM32G4)
+    #define IMR     IMR1
+    #define EMR     EMR1
+    #define RTSR    RTSR1
+    #define FTSR    FTSR1
+    #define PR      PR1
 #endif
 
 uint8_t Gpio::mPinsUsed[176]; // assuming all items = 0 at startup

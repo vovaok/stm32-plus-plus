@@ -12251,7 +12251,7 @@
                 </option>
                 <option>
                     <name>IccRTTI2</name>
-                    <state>0</state>
+                    <state>1</state>
                 </option>
                 <option>
                     <name>OICompilerExtraOption</name>
@@ -13948,6 +13948,7 @@
         <name>3rd_party</name>
         <excluded>
             <configuration>stm32f405rg_no-exceptions_no-rtti</configuration>
+            <configuration>stm32g474</configuration>
         </excluded>
         <group>
             <name>lwip</name>
@@ -14227,6 +14228,7 @@
             <excluded>
                 <configuration>stm32f407vg</configuration>
                 <configuration>stm32f405rg_no-exceptions_no-rtti</configuration>
+                <configuration>stm32g474</configuration>
             </excluded>
         </file>
         <file>
@@ -14288,6 +14290,7 @@
         <name>ethernet</name>
         <excluded>
             <configuration>stm32f405rg_no-exceptions_no-rtti</configuration>
+            <configuration>stm32g474</configuration>
         </excluded>
         <group>
             <name>port</name>
