@@ -21,5 +21,5 @@ private:
     uint8_t m_idx = 0;
     int m_sampleCount = 0;
 
-    void sampleReady();
+    void sampleReady(uint16_t value);
 };

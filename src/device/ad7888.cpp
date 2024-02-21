@@ -37,7 +37,7 @@ void AD7888::start()
     m_spi->transferWordAsync(m_sequence[0]);
 }
 
-void AD7888::sampleReady()
+void AD7888::sampleReady(uint16_t value)
 {
     m_cs->set();
 

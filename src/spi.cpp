@@ -172,14 +172,14 @@ void Spi::setBaudratePrescaler(int psc)
 void Spi::setBaudrate(int value)
 {
     int pclk = rcc().getPeriphClk(mDev);
-    int psc = log2i(pclk / value) + 1;
+    int psc = log2i(pclk / value);
     setBaudratePrescaler(psc);
 }
 
 int Spi::baudrate() const
 {
     int pclk = rcc().getPeriphClk(mDev);
-    return pclk >> mConfig.baudrate;
+    return pclk >> (mConfig.baudrate + 1);
 }
 //--------------------------------------------------------------------------
 
@@ -195,6 +195,9 @@ void Spi::open()
 //        mDmaRx->setSource((void*)&mDev->DR, 1);
 //        mDev->CR2 |= SPI_CR2_RXDMAEN;
 //    }
+    
+    if (mDmaRx)
+        mDmaRx->start();
 
     if (mUseDmaTx)
     {
@@ -489,13 +492,15 @@ void Spi::enableInterrupt()
 
 void Spi::handleInterrupt()
 {
-    if ((mDev->SR & SPI_SR_RXNE) && onTransferComplete)
+    if ((mDev->SR & SPI_SR_RXNE) || (mDmaRx && (mDev->CR2 & SPI_CR2_RXNEIE)))
     {
-        onTransferComplete(mDev->DR);
+        if (onTransferComplete)
+            onTransferComplete(mDev->DR);
     }
-    else if ((mDev->SR & SPI_SR_TXE) && onTxEnd)
+    else if ((mDev->SR & SPI_SR_TXE) || (mDmaTx && (mDev->CR2 & SPI_CR2_TXEIE)))
     {
-        onTxEnd();
+        if (onTxEnd)
+            onTxEnd();
     }
 }
 
