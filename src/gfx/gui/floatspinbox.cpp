@@ -98,10 +98,12 @@ void FloatSpinBox::stepBy(int steps)
     if (wrapping() && m_value == m_max && steps > 0)
     {
         setValue(m_min);
+        return;
     }
     else if (wrapping() && m_value == m_min && steps < 0)
     {
         setValue(m_max);
+        return;
     }
     setValue(m_value + m_step * steps);
 }

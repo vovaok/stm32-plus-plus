@@ -293,16 +293,16 @@ void FrameBuffer::drawBuffer(int x, int y, const FrameBuffer *fb, int sx, int sy
     }
     
     if (sw <= 0)
-        sw = fb->width();
+        sw = fb->m_width;
     if (sh <= 0)
-        sh = fb->height();
+        sh = fb->m_height;
     
     if (x + sw > m_width)
         sw = m_width - x;
     if (y + sh > m_height)
         sh = m_height - y;
     
-    if (sx >= fb->width() || sy >= fb->height())
+    if (sx >= fb->m_width || sy >= fb->m_height)
         return; // nothing to do
     
 #if defined(DMA2D)
