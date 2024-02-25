@@ -30,6 +30,8 @@ void Widget::setParent(Widget *parent)
 
 void Widget::addWidget(Widget *w)
 {
+    if (w->m_parent)
+        w->m_parent->removeWidget(w);
     m_children.push_back(w);
     w->m_parent = this;
 //    w->m_backgroundColor = m_backgroundColor;
@@ -39,8 +41,8 @@ void Widget::addWidget(Widget *w)
 void Widget::removeWidget(Widget *w)
 {
     auto it = std::find(m_children.begin(), m_children.end(), w);
-    // if (it != m_children.end())
-    m_children.erase(it);
+    if (it != m_children.end())
+        m_children.erase(it);
     updateGeometry();
 }
 
@@ -144,7 +146,11 @@ void Widget::setVisible(bool visible)
     {
         m_visible = visible;
         if (m_parent)
+        {
             m_parent->update();
+            if (m_parent->layout())
+                m_parent->updateGeometry();
+        }
     }
 }
 

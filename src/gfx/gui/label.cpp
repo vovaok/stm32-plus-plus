@@ -48,6 +48,12 @@ void Label::setNum(float n, int prec)
     setText(ByteArray::number(n, 'f', prec));
 }
 
+void Label::setImage(const Image &img)
+{
+    m_image = img;
+    update();
+}
+
 void Label::setFont(Font font)
 {
     Widget::setFont(font);
@@ -64,17 +70,21 @@ void Label::update()
 
 void Label::paintEvent(Display *d)
 {
-    //Widget::paintEvent(d); // fill background
     if (m_text.size())
     {
         int w = textWidth();
         int h = textHeight();
-        Image img(w, h);
+        m_image = Image(w, h, d->pixelFormat());
         Color bgcol = m_enabled? m_backgroundColor: palette()->disabled();
-        img.fill(bgcol);
-        img.setColor(m_enabled? m_color: palette()->disabledText());
-        img.setFont(font());
-        img.drawString(2, 2+font().info().ascent(), m_text.data());
+        m_image.fill(bgcol);
+        m_image.setColor(m_enabled? m_color: palette()->disabledText());
+        m_image.setFont(font());
+        m_image.drawString(2, 2+font().info().ascent(), m_text.data());
+    }
+    if (!m_image.isNull())
+    {
+        int w = m_image.width();
+        int h = m_image.height();
         int xpos=0, ypos=0;
         if (m_align & AlignRight)
             xpos = m_width - w;
@@ -85,7 +95,7 @@ void Label::paintEvent(Display *d)
         else if (m_align & AlignVCenter)
             ypos = (m_height - h) / 2;
         Widget::paintEvent(d); // fill background
-        d->drawImage(xpos, ypos, img);
+        d->drawImage(xpos, ypos, m_image);
     }
 }
 

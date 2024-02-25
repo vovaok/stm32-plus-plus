@@ -18,6 +18,8 @@ public:
     void setNum(int n);
     void setNum(float n, int prec=-1);
 
+    void setImage(const Image &img);
+
     void setFont(Font font);
     
     void update();
@@ -27,6 +29,7 @@ protected:
     
 private:
     ByteArray m_text;
+    Image m_image;
     Alignment m_align = AlignLeft;
     
     int textWidth() const;
