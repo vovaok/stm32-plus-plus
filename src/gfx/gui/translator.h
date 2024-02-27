@@ -50,7 +50,9 @@ public:
     TranslationItem &create(PushButton *pushButton);
 
     void switchLanguage(Language lang);
+    Language currentLanguage() const {return m_lang;}
 
 private:
+    Language m_lang = AnyLanguage;
     std::vector<TranslationItem *> m_items;
 };

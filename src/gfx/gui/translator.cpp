@@ -21,6 +21,7 @@ Translator::TranslationItem &Translator::create(PushButton *pushButton)
 
 void Translator::switchLanguage(Language lang)
 {
+    m_lang = lang;
     for (TranslationItem *item: m_items)
     {
         item->translate(lang);

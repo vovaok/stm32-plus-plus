@@ -79,7 +79,9 @@ enum TextFlag
 enum Direction
 {
     Horizontal,
-    Vertical
+    Vertical,
+    HorizontalReversed,
+    VerticalReversed
 };
 
 enum Language
