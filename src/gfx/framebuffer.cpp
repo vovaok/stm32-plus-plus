@@ -148,7 +148,7 @@ void FrameBuffer::fillRect(int x, int y, int width, int height, uint32_t color)
             while (cnt--)
                 *dst++ = color;
             *dst = (*dst & ~mask) | (color & mask); // last pixel(s)
-            dst += m_bpl / 4 - ww;
+            dst = reinterpret_cast<uint32_t*>(reinterpret_cast<uint8_t*>(dst) + m_bpl - ww * 4);
         }
     }
 #endif
@@ -280,7 +280,7 @@ void FrameBuffer::drawBuffer(int x, int y, const FrameBuffer *fb, int sx, int sy
 {
     if (x >= m_width || y >= m_height)
         return; // nothing to do
-    
+
     if (x < 0)
     {
         sx -= x;
@@ -291,20 +291,20 @@ void FrameBuffer::drawBuffer(int x, int y, const FrameBuffer *fb, int sx, int sy
         sy -= y;
         y = 0;
     }
-    
+
     if (sw <= 0)
         sw = fb->m_width;
     if (sh <= 0)
         sh = fb->m_height;
-    
+
     if (x + sw > m_width)
         sw = m_width - x;
     if (y + sh > m_height)
         sh = m_height - y;
-    
+
     if (sx >= fb->m_width || sy >= fb->m_height)
         return; // nothing to do
-    
+
 #if defined(DMA2D)
     Dma2D dma2d(this, x, y);
     dma2d.setSize(sw, sh);

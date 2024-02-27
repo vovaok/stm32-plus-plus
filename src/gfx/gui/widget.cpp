@@ -229,6 +229,33 @@ void Widget::setColor(Color color)
     }
 }
 
+void Widget::setBorderSize(int value)
+{
+    if (m_borderSize != value)
+    {
+        m_borderSize = value;
+        update();
+    }
+}
+
+void Widget::setBorderRadius(int value)
+{
+    if (m_borderRadius != value)
+    {
+        m_borderRadius = value;
+        update();
+    }
+}
+
+void Widget::setOpacity(uint8_t value)
+{
+    if (m_opacity != value)
+    {
+        m_opacity = value;
+        update();
+    }
+}
+
 void Widget::setFont(Font font)
 {
     if (m_font != font)
@@ -286,6 +313,10 @@ void Widget::paint(Display *d)
     int oldx = d->xPos();
     int oldy = d->yPos();
     d->moveTo(oldx + m_x, oldy + m_y);
+
+//    FrameBuffer *fb = dynamic_cast<FrameBuffer*>(d);
+//    if (fb)
+//        fb->setOpacity(m_opacity);
 
     if (m_needRepaint && m_width > 0 && m_height > 0)
         paintEvent(d);

@@ -71,6 +71,12 @@ public:
     Color backgroundColor() const {return m_backgroundColor;}
     void setColor(Color color);
     Color color() const {return m_color;}
+    void setBorderSize(int value);
+    int borderSize() const {return m_borderSize;}
+    void setBorderRadius(int value);
+    int borderRadius() const {return m_borderRadius;}
+    void setOpacity(uint8_t value);
+    uint8_t opacity() const {return m_opacity;}
     void setFont(Font font);
     Font font() const;
 
@@ -89,7 +95,9 @@ protected:
     Color m_backgroundColor = palette()->window();
     Color m_color = palette()->windowText();
     Color m_borderColor = palette()->dark();
+    int m_borderSize = 0;
     int m_borderRadius = 0;
+    uint8_t m_opacity = 255;
 
     Widget *m_parent = nullptr;
     std::vector<Widget *> m_children;

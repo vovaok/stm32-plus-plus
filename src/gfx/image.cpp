@@ -19,6 +19,36 @@ Image::Image(const char *data, int width, int height, PixelFormat pixelFormat) :
     m_buffer = ByteArray::fromRawData(data, sizeInBytes());
 }
 
+Image::Image(const Image &other) :
+    FrameBuffer(other)
+{
+    m_buffer = other.m_buffer;
+    m_data = reinterpret_cast<uint8_t *>(m_buffer.data());
+}
+
+Image::Image(Image &&other) :
+    FrameBuffer(std::move(other))
+{
+    m_buffer = std::move(other.m_buffer);
+    m_data = reinterpret_cast<uint8_t *>(m_buffer.data());
+}
+
+Image &Image::operator =(const Image &other)
+{
+    FrameBuffer::operator=(other);
+    m_buffer = other.m_buffer;
+    m_data = reinterpret_cast<uint8_t *>(m_buffer.data());
+    return *this;
+}
+
+Image &Image::operator =(Image &&other)
+{
+    FrameBuffer::operator=(other);
+    m_buffer = std::move(other.m_buffer);
+    m_data = reinterpret_cast<uint8_t *>(m_buffer.data());
+    return *this;
+}
+
 Image Image::fromData(const char *data, int size)
 {
 #pragma pack(push, 1)

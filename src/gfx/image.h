@@ -12,9 +12,13 @@
 class Image: public FrameBuffer
 {
 public:
-    Image();
+    Image();    
     Image(int width, int height, PixelFormat pixelFormat=Format_RGB565);
     Image(const char *data, int width, int height, PixelFormat pixelFormat);
+    Image(const Image &other);
+    Image(Image &&other);
+    Image &operator =(const Image &other);
+    Image &operator =(Image &&other);
 
     static Image fromData(const char *data, int size);
 

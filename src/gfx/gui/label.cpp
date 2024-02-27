@@ -70,21 +70,29 @@ void Label::update()
 
 void Label::paintEvent(Display *d)
 {
+    Image img = m_image;
+    Color fgcol = m_enabled? m_color: palette()->disabledText();
+    Color bgcol = m_enabled? m_backgroundColor: palette()->disabled();
     if (m_text.size())
     {
         int w = textWidth();
         int h = textHeight();
-        m_image = Image(w, h, d->pixelFormat());
-        Color bgcol = m_enabled? m_backgroundColor: palette()->disabled();
-        m_image.fill(bgcol);
-        m_image.setColor(m_enabled? m_color: palette()->disabledText());
-        m_image.setFont(font());
-        m_image.drawString(2, 2+font().info().ascent(), m_text.data());
+        img = Image(w, h, Format_ARGB4444);//d->pixelFormat());
+
+//        if (m_parent)
+//            img.fill(m_parent->backgroundColor());
+//        else
+//            img.fill(bgcol);
+        img.fill(Transparent);
+        img.setColor(fgcol);
+//        img.setBackgroundColor(bgcol);
+        img.setFont(font());
+        img.drawString(2, 2+font().info().ascent(), m_text.data());
     }
-    if (!m_image.isNull())
+    if (!img.isNull())
     {
-        int w = m_image.width();
-        int h = m_image.height();
+        int w = img.width();
+        int h = img.height();
         int xpos=0, ypos=0;
         if (m_align & AlignRight)
             xpos = m_width - w;
@@ -94,8 +102,16 @@ void Label::paintEvent(Display *d)
             ypos = m_height - h;
         else if (m_align & AlignVCenter)
             ypos = (m_height - h) / 2;
-        Widget::paintEvent(d); // fill background
-        d->drawImage(xpos, ypos, m_image);
+//        Widget::paintEvent(d); // fill background
+//        dynamic_cast<FrameBuffer*>(d)->setOpacity(m_opacity);
+        d->setColor(fgcol);
+        d->setBackgroundColor(bgcol);
+        if (m_borderSize == 1)
+            d->drawFillRoundRect(0, 0, m_width, m_height, m_borderRadius);
+        else
+            d->fillRoundRect(0, 0, m_width, m_height, m_borderRadius);
+        img.setOpacity(m_opacity);
+        d->drawImage(xpos, ypos, img);
     }
 }
 
