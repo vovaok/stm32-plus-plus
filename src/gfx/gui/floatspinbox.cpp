@@ -95,12 +95,12 @@ void FloatSpinBox::setPrecision(int digits)
 
 void FloatSpinBox::stepBy(int steps)
 {
-    if (wrapping() && m_value == m_max && steps > 0)
+    if (wrapping() && m_value >= m_max - m_step/2 && steps > 0)
     {
         setValue(m_min);
         return;
     }
-    else if (wrapping() && m_value == m_min && steps < 0)
+    else if (wrapping() && m_value <= m_min + m_step / 2 && steps < 0)
     {
         setValue(m_max);
         return;
