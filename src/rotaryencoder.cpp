@@ -3,12 +3,17 @@
 
 RotaryEncoder::RotaryEncoder(Gpio::PinName pinA, Gpio::PinName pinB)
 {
+    if (pinA == Gpio::noPin || pinB == Gpio::noPin)
+        return; // discard config
+    
     m_pinA = new Gpio(pinA, Gpio::pullUp);
     m_pinB = new Gpio(pinB, Gpio::pullUp);
     m_a = m_pinA->read();
     m_b = m_pinB->read();
     
     stmApp()->registerTaskEvent(EVENT(&RotaryEncoder::task));
+    
+    m_pinA->configInterrupt(EVENT(&RotaryEncoder::update), Gpio::BothEdges);
 }
 
 void RotaryEncoder::setPrescaler(int value)
@@ -25,7 +30,7 @@ void RotaryEncoder::reset()
     m_filter = 0;
 }
 
-void RotaryEncoder::task()
+void RotaryEncoder::update()
 {
     bool a = m_pinA->read();
     bool b = m_pinB->read();
@@ -47,6 +52,11 @@ void RotaryEncoder::task()
     
     m_a = a;
     m_b = b;
+}
+
+void RotaryEncoder::task()
+{
+    update();
     
     int delta = m_value - m_filter;
     

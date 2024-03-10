@@ -11,6 +11,8 @@ class Dma2D
 public:
     Dma2D(FrameBuffer *frameBuffer, int x=0, int y=0);
 
+    void setPos(int x, int y);
+    
     // must be called BEFORE setSource!
     void setSize(int width, int height);
 

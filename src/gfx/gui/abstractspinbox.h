@@ -16,6 +16,7 @@ public:
     };
     
     void setButtonSymbols(ButtonSymbols bs);
+    void setDirection(Direction direction);
 
     void stepUp();
     void stepDown();

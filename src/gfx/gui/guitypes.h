@@ -79,6 +79,14 @@ enum TextFlag
 enum Direction
 {
     Horizontal,
-    Vertical
+    Vertical,
+    HorizontalReversed,
+    VerticalReversed
 };
 
+enum Language
+{
+    AnyLanguage = 0,
+    ru_RU,
+    en_US,
+};

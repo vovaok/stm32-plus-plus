@@ -408,9 +408,9 @@ void Rcc::configClockOutput(Gpio::Config mco, ClockSource clk, int prescaler)
         prescaler += 2;
     else
         return; // wrong configuration
-    
+
     uint32_t cfgr = RCC->CFGR;
-    
+
     if (mco == Gpio::MCO1_PA8)
     {
         cfgr &= ~(RCC_CFGR_MCO1_Msk | RCC_CFGR_MCO1PRE_Msk);
@@ -437,7 +437,7 @@ void Rcc::configClockOutput(Gpio::Config mco, ClockSource clk, int prescaler)
         default: return; // wrong configuration
         }
     }
-    
+
     RCC->CFGR = cfgr;
     Gpio::config(mco);
 }
@@ -645,48 +645,125 @@ bool Rcc::measureHseFreq()
 
 void Rcc::setPeriphEnabled(void *periphBase, bool enabled)
 {
-    switch (reinterpret_cast<uint32_t>(periphBase))
+    uint32_t base = reinterpret_cast<uint32_t>(periphBase);
+    uint32_t bus = periphBusBase(periphBase);
+    uint32_t offset = periphBusOffset(periphBase);
+    uint32_t mask1 = 1 << (offset >> 10);
+    uint32_t mask2 = 1 << ((offset >> 10) - 32);
+    
+    //! @todo check for other STM families!
+
+    switch (base)
     {
-#ifdef LTDC
-    case LTDC_BASE:     RCC->APB2ENR |= RCC_APB2ENR_LTDCEN; break;
-#endif
 #ifdef DMA2D
     case DMA2D_BASE:    RCC->AHB1ENR |= RCC_AHB1ENR_DMA2DEN; break;
 #endif
-    case SYSCFG_BASE:   RCC->APB2ENR |= RCC_APB2ENR_SYSCFGEN; break;
-    
 #ifdef ETH
     case ETH_BASE:      RCC->AHB1ENR |=
                         RCC_AHB1ENR_ETHMACEN | /*RCC_AHB1ENR_ETHMACPTPEN | */
                         RCC_AHB1ENR_ETHMACRXEN | RCC_AHB1ENR_ETHMACTXEN;
-                        break;                   
+                        break;
+#endif
+                        
+#if defined(STM32F4)
+    case ADC2_BASE:     RCC->APB2ENR |= RCC_APB2ENR_ADC2EN; break;
+    case ADC3_BASE:     RCC->APB2ENR |= RCC_APB2ENR_ADC3EN; break;
+#elif defined(STM32G4)
+    case FDCAN2_BASE:
+    case FDCAN3_BASE:
+        RCC->APB1ENR1 |= RCC_APB1ENR1_FDCANEN;
+        break;
 #endif
     //! @todo Fill other cases
+    default:
+        if (bus == APB1PERIPH_BASE)
+        {
+#if defined(STM32F4)
+            RCC->APB1ENR |= mask1;
+#elif defined(STM32G4) || defined(STM32L4)
+            RCC->APB1ENR1 |= mask1;
+            RCC->APB1ENR2 |= mask2;
+#endif            
+        }
+        else if (bus == APB2PERIPH_BASE)
+        {
+            RCC->APB2ENR |= mask1;
+        }
     }
 }
 
 void Rcc::resetPeriph(void *periphBase)
 {
-    switch (reinterpret_cast<uint32_t>(periphBase))
+    uint32_t base = reinterpret_cast<uint32_t>(periphBase);
+    uint32_t bus = periphBusBase(periphBase);
+    uint32_t offset = periphBusOffset(periphBase);
+    uint32_t mask1 = 1 << (offset >> 10);
+    uint32_t mask2 = 1 << ((offset >> 10) - 32);
+    
+    switch (base)
     {
-#ifdef LTDC
-    case LTDC_BASE:     RCC->APB2RSTR |= RCC_APB2RSTR_LTDCRST;
-                        RCC->APB2RSTR &= ~RCC_APB2RSTR_LTDCRST;
-                        break;
-#endif
 #ifdef DMA2D
     case DMA2D_BASE:    RCC->AHB1RSTR |= RCC_AHB1RSTR_DMA2DRST;
                         RCC->AHB1RSTR &= ~RCC_AHB1RSTR_DMA2DRST;
                         break;
 #endif
-    case SYSCFG_BASE:   RCC->APB2RSTR |= RCC_APB2RSTR_SYSCFGRST;
-                        RCC->APB2RSTR &= ~RCC_APB2RSTR_SYSCFGRST;
-                        break;
 #ifdef ETH
     case ETH_BASE:      RCC->AHB1RSTR |= RCC_AHB1RSTR_ETHMACRST;
                         RCC->AHB1RSTR &= ~RCC_AHB1RSTR_ETHMACRST;
                         break;
-#endif    
+#endif
     //! @todo Fill other cases
+    default:
+        if (bus == APB1PERIPH_BASE)
+        {
+#if defined(STM32F4)
+            RCC->APB1RSTR |= mask1;
+            RCC->APB1RSTR &= ~mask1;
+#elif defined(STM32G4) || defined(STM32L4)
+            RCC->APB1RSTR1 |= mask1;
+            RCC->APB1RSTR2 |= mask2;
+            RCC->APB1RSTR1 &= ~mask1;
+            RCC->APB1RSTR2 &= ~mask2;
+#endif                        
+        }
+        else if (bus == APB2PERIPH_BASE)
+        {
+            RCC->APB2RSTR |= 1 << (offset >> 10);
+        }
     }
 }
+
+int Rcc::getPeriphClk(void *periphBase)
+{
+    uint32_t bus = periphBusBase(periphBase);
+    switch (bus)
+    {
+    case APB1PERIPH_BASE: return pClk1();
+    case APB2PERIPH_BASE: return pClk2();
+    default: return hClk();
+    }
+}
+                         
+uint32_t Rcc::periphBusBase(void *periph)
+{
+    uint32_t periphBase = reinterpret_cast<uint32_t>(periph);
+    if (periphBase >= 0xE0000000)
+        return 0;
+    if (periphBase >= 0x60000000)
+        return 0x60000000;
+    if (periphBase >= AHB2PERIPH_BASE)
+        return AHB2PERIPH_BASE;
+    if (periphBase >= AHB1PERIPH_BASE)
+        return AHB1PERIPH_BASE;
+    if (periphBase >= APB2PERIPH_BASE)
+        return APB2PERIPH_BASE;
+    if (periphBase >= APB1PERIPH_BASE)
+        return APB1PERIPH_BASE;
+    return 0;
+}
+
+uint32_t Rcc::periphBusOffset(void *periph)
+{
+    return reinterpret_cast<uint32_t>(periph) - periphBusBase(periph);
+}
+

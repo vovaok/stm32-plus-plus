@@ -12,6 +12,34 @@ void ListSpinBox::addItem(const ByteArray &text)
     updateText();
 }
 
+void ListSpinBox::setItems(const ByteArray &list)
+{
+    m_items.clear();
+    int idx = 0;
+    do
+    {
+        int next_idx = list.indexOf('\n', idx);
+        if (next_idx > 0)
+            m_items.push_back(list.mid(idx, next_idx - idx));
+        else
+            m_items.push_back(list.mid(idx));
+        idx = next_idx + 1;
+    } while (idx > 0);
+    setRange(0, m_items.size());
+    updateText();
+}
+
+ByteArray ListSpinBox::items() const
+{
+    ByteArray list;
+    for (const ByteArray &ba: m_items)
+    {
+        list.append(ba);
+        list.append('\n');
+    }
+    return list;
+}
+
 const ByteArray &ListSpinBox::currentText() const
 {
     return lineEdit()->text();

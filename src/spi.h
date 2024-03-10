@@ -79,6 +79,7 @@ private:
     Config mConfig;
     IRQn_Type mIrq;
     SpiDataEvent onTransferComplete;
+    NotifyEvent onTxEnd;
 
     Dma::Channel mDmaChannelRx;
     Dma::Channel mDmaChannelTx;
@@ -108,8 +109,10 @@ public:
     void setMasterMode();
     void setCPOL_CPHA(bool CPOL, bool CPHA);
     void setBaudratePrescaler(int psc);
+    void setBaudrate(int value); // try to set nearest baudrate (less or equal)
+    int baudrate() const; // real baudrate
 
-    void setUseDmaRx(bool useDma);
+//    void setUseDmaRx(bool useDma);
     void setUseDmaTx(bool useDma);
 
     void open();
@@ -120,11 +123,13 @@ public:
     void transferWordAsync(uint16_t word=0xFFFF);
 
     void setTransferCompleteEvent(SpiDataEvent e);
+    void setTransferCompleteEvent(NotifyEvent e);
     void transfer(uint8_t* data, int size);
     void transfer(const uint8_t *data, uint8_t *buffer, int size);
     void setDataSize(int size);
 
     Dma *dmaTx() {return mDmaTx;}
+    Dma *dmaRx() {return mDmaRx;}
 
     uint8_t read();
     uint8_t write(uint8_t word);
@@ -133,6 +138,8 @@ public:
 
     void read(uint8_t* data, int size);
     bool write(const uint8_t *data, int size);
+
+    void setRxBuffer(uint8_t *data, int size, bool circular);
 
     // write (count) words of the same values (*value)
     bool writeFill16(uint16_t *value, int count);

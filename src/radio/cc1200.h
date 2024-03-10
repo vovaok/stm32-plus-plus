@@ -61,7 +61,6 @@ private:
     Spi *mSpi;
     Gpio *pinCS, *pinReset;
     Gpio *pinGpio0, *pinGpio2, *pinGpio3;
-    unsigned long mLine;
     
     static RF_config_param RF_config[];
   
@@ -98,7 +97,7 @@ public:
     
     void setAddress(unsigned char addr);
     
-    bool getRxTxFlag();
+//    bool getRxTxFlag();
     void setRxTxEvent(const NotifyEvent &e);
 };
 

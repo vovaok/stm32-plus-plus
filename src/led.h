@@ -22,7 +22,8 @@ public:
     inline bool state() const {return mInverted ^ read();}
     void setState(bool newState);
 
-    using Gpio::toggle;
+//    using Gpio::toggle; // don't work with closures
+    void toggle() {Gpio::toggle();}
 
     void setBlinkInterval(int value);
     bool isBlinking() const;

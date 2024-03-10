@@ -18,6 +18,9 @@ public:
     void setWidth(int value) {m_w = value;}
     int height() const {return m_h;}
     void setHeight(int value) {m_h = value;}
+
+    int xCenter() const {return m_x + m_w / 2;}
+    int yCenter() const {return m_y + m_h / 2;}
     
     void adjust(int dx1, int dy1, int dx2, int dy2)
     {

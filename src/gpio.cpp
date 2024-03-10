@@ -4,9 +4,16 @@
 #if defined(STM32F37X)
 #define BSRRL   BSRR
 #define BSRRH   BRR
+#elif defined(STM32G4)
+    #define IMR     IMR1
+    #define EMR     EMR1
+    #define RTSR    RTSR1
+    #define FTSR    FTSR1
+    #define PR      PR1
 #endif
 
-uint8_t Gpio::mPinsUsed[140]; // assuming all items = 0 at startup
+uint8_t Gpio::mPinsUsed[176]; // assuming all items = 0 at startup
+NotifyEvent Gpio::m_interruptHandlers[16];
 
 Gpio::Gpio(PinName pin, Flags flags/*, PinAF altFunction*/)
 {
@@ -305,6 +312,58 @@ void Gpio::setAsOutputOpenDrain()
     mConfig.pull = pullNone >> 3;
     updateConfig();
 }
+
+void Gpio::configInterrupt(NotifyEvent event, InterruptMode mode)
+{
+    setAsInput();
+    int line = mConfig.pinNumber;
+    uint32_t mask = 1 << line;
+    if (EXTI->IMR & mask)
+        THROW(Exception::ResourceBusy);
+    
+    rcc().setPeriphEnabled(SYSCFG);
+    SYSCFG->EXTICR[line >> 2] = mConfig.portNumber << ((line & 3) << 2);
+    
+    if (mode & 1)
+        EXTI->RTSR |= mask;
+    else
+        EXTI->RTSR &= ~mask;
+    
+    if (mode & 2)
+        EXTI->FTSR |= mask;
+    else
+        EXTI->FTSR &= ~mask;
+    
+    m_interruptHandlers[line] = event;
+    EXTI->IMR |= mask;
+    
+    IRQn_Type irqn;
+    switch (line)
+    {
+    case 0: irqn = EXTI0_IRQn; break;
+    case 1: irqn = EXTI1_IRQn; break;
+    case 2: irqn = EXTI2_IRQn; break;
+    case 3: irqn = EXTI3_IRQn; break;
+    case 4: irqn = EXTI4_IRQn; break;
+    case 5: 
+    case 6:
+    case 7:
+    case 8:
+    case 9:
+        irqn = EXTI9_5_IRQn;
+        break;
+    case 10:
+    case 11:
+    case 12:
+    case 13:
+    case 14:
+    case 15:
+        irqn = EXTI15_10_IRQn;
+        break;
+    default:;
+    }
+    NVIC_EnableIRQ(irqn);
+}
 //---------------------------------------------------------------------------
 
 bool Gpio::read() const
@@ -345,3 +404,65 @@ uint16_t Gpio::readPort()
         return mPort->IDR & mPin;
 }
 //---------------------------------------------------------------------------
+
+extern "C"
+{
+
+void EXTI0_IRQHandler()
+{
+    EXTI->PR = 1 << 0;
+    Gpio::m_interruptHandlers[0]();
+}
+
+void EXTI1_IRQHandler()
+{
+    EXTI->PR = 1 << 1;
+    Gpio::m_interruptHandlers[1]();
+}
+
+void EXTI2_IRQHandler()
+{
+    EXTI->PR = 1 << 2;
+    Gpio::m_interruptHandlers[2]();
+}
+
+void EXTI3_IRQHandler()
+{
+    EXTI->PR = 1 << 3;
+    Gpio::m_interruptHandlers[3]();
+}
+
+void EXTI4_IRQHandler()
+{
+    EXTI->PR = 1 << 4;
+    Gpio::m_interruptHandlers[4]();
+}
+
+void EXTI9_5_IRQHandler()
+{
+    for (int i=5; i<9; i++)
+    {
+        uint32_t mask = 1 << i;
+        if (EXTI->PR & mask)
+        {
+            EXTI->PR = mask;
+            Gpio::m_interruptHandlers[i]();
+        }
+    }
+}
+
+void EXTI15_10_IRQHandler()
+{
+    for (int i=10; i<15; i++)
+    {
+        uint32_t mask = 1 << i;
+        if (EXTI->PR & mask)
+        {
+            EXTI->PR = mask;
+            Gpio::m_interruptHandlers[i]();
+        }
+    }
+}
+
+} // extern "C"
+     

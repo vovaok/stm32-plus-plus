@@ -7,7 +7,7 @@ class FloatSpinBox: public AbstractSpinBox
 {
 public:
     FloatSpinBox(Widget *parent=nullptr);
-    FloatSpinBox(float min, float max, float def=0, float step=1, int prec=1, Widget *parent=nullptr);
+    FloatSpinBox(float min, float max, float def=0, float step=1, int prec=0, Widget *parent=nullptr);
     FloatSpinBox(float min, float max, float def, float step, int prec, const ByteArray &suffix, Widget *parent=nullptr);
     
     void setValue(float value);

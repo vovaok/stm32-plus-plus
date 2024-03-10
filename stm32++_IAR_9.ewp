@@ -8990,7 +8990,7 @@
                 </option>
                 <option>
                     <name>IccStaticDestr</name>
-                    <state>1</state>
+                    <state>0</state>
                 </option>
                 <option>
                     <name>IccCppInlineSemantics</name>
@@ -9035,7 +9035,7 @@
                 </option>
                 <option>
                     <name>IccExceptions2</name>
-                    <state>1</state>
+                    <state>0</state>
                 </option>
                 <option>
                     <name>IccRTTI2</name>
@@ -9262,7 +9262,7 @@
             <archiveVersion>1</archiveVersion>
             <data>
                 <prebuild></prebuild>
-                <postbuild>cmd /C REM start /D "$PROJ_DIR$\doxygen" doxygen Doxyfile</postbuild>
+                <postbuild></postbuild>
             </data>
         </settings>
         <settings>
@@ -12251,7 +12251,7 @@
                 </option>
                 <option>
                     <name>IccRTTI2</name>
-                    <state>0</state>
+                    <state>1</state>
                 </option>
                 <option>
                     <name>OICompilerExtraOption</name>
@@ -13948,6 +13948,7 @@
         <name>3rd_party</name>
         <excluded>
             <configuration>stm32f405rg_no-exceptions_no-rtti</configuration>
+            <configuration>stm32g474</configuration>
         </excluded>
         <group>
             <name>lwip</name>
@@ -14178,6 +14179,12 @@
     <group>
         <name>device</name>
         <file>
+            <name>$PROJ_DIR$\src\device\ad7888.cpp</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\device\ad7888.h</name>
+        </file>
+        <file>
             <name>$PROJ_DIR$\src\device\ads1220.c</name>
         </file>
         <file>
@@ -14222,6 +14229,7 @@
                 <configuration>stm32f407zg</configuration>
                 <configuration>stm32f407vg</configuration>
                 <configuration>stm32f405rg_no-exceptions_no-rtti</configuration>
+                <configuration>stm32g474</configuration>
             </excluded>
         </file>
         <file>
@@ -14289,6 +14297,7 @@
         <name>ethernet</name>
         <excluded>
             <configuration>stm32f405rg_no-exceptions_no-rtti</configuration>
+            <configuration>stm32g474</configuration>
         </excluded>
         <group>
             <name>port</name>
@@ -14432,6 +14441,12 @@
             </file>
             <file>
                 <name>$PROJ_DIR$\src\gfx\gui\spinbox.h</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\src\gfx\gui\translator.cpp</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\src\gfx\gui\translator.h</name>
             </file>
             <file>
                 <name>$PROJ_DIR$\src\gfx\gui\widget.cpp</name>
@@ -14677,12 +14692,6 @@
     </group>
     <group>
         <name>serial</name>
-        <file>
-            <name>$PROJ_DIR$\src\serial\deviceframed.cpp</name>
-        </file>
-        <file>
-            <name>$PROJ_DIR$\src\serial\deviceframed.h</name>
-        </file>
         <file>
             <name>$PROJ_DIR$\src\serial\esp8266.cpp</name>
             <excluded>

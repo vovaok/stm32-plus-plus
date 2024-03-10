@@ -35,6 +35,12 @@ public:
     void setGap(int value) {m_gap = value;}
     int gap() const {return m_gap;}
     
+    void setDirection(Direction value)
+    {
+        m_direction = value;
+        update();
+    }
+    
 protected:
     Direction m_direction;
     int m_flags = 0;
@@ -44,7 +50,8 @@ protected:
     {
         if (!m_widget)
             return;
-        int cnt = items().size();        
+        int itemCount = items().size();
+        int cnt = itemCount;        
         int w = m_widget->width() - marginLeft - marginRight;
         int h = m_widget->height() - marginTop - marginBottom;
         
@@ -71,13 +78,19 @@ protected:
         std::vector<int> sizes;
         sizes.resize(cnt);
         
+        bool rev = (m_direction == HorizontalReversed || m_direction == VerticalReversed);
+//        Widget **_items = items().data();
+        auto _items = items();
+        
         do
         {
             len = m_gap * (cnt - 1);
             int dcnt = 0;
             int i = 0;
-            for (Widget *widget: items())
+//            for (Widget *widget: items())
+            for (int idx=0; idx<itemCount; idx++)
             {
+                Widget *widget = rev? _items[itemCount-idx-1]: _items[idx];
                 if (!widget->visible())
                     continue;
                 int sz = avg;
@@ -153,8 +166,10 @@ protected:
             coord += g;
         
         int i = 0;
-        for (Widget *widget: items())
+//        for (Widget *widget: items())
+        for (int idx=0; idx<itemCount; idx++)
         {
+            Widget *widget = rev? _items[itemCount-idx-1]: _items[idx];
             if (!widget->visible())
                 continue;
             int sz = sizes[i++];

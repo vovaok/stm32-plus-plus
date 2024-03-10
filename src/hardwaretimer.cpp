@@ -28,49 +28,42 @@ HardwareTimer::HardwareTimer(TimerNumber timerNumber, unsigned int frequency_Hz)
     {
 #if !defined(STM32F37X)
       case 1:
-        RCC->APB2ENR |= RCC_APB2ENR_TIM1EN;
         mTim = TIM1;
         mIrq = TIM_IRQn(1_UP); // у этого таймера 4 прерывания, задаётся позже, когда нужно
         break;
 #endif
         
       case 2:
-        RCC->APB1ENR |= RCC_APB1ENR_TIM2EN;
         mTim = TIM2;
         mIrq = TIM_IRQn(2);
         mInputClk = pclk1;
         break;
         
       case 3:
-        RCC->APB1ENR |= RCC_APB1ENR_TIM3EN;
         mTim = TIM3;
         mIrq = TIM_IRQn(3);
         mInputClk = pclk1;
         break;
         
       case 4:
-        RCC->APB1ENR |= RCC_APB1ENR_TIM4EN;
         mTim = TIM4;
         mIrq = TIM_IRQn(4);
         mInputClk = pclk1;
         break;
         
       case 5:
-        RCC->APB1ENR |= RCC_APB1ENR_TIM5EN;
         mTim = TIM5;
         mIrq = TIM_IRQn(5);
         mInputClk = pclk1;
         break;
         
       case 6:
-        RCC->APB1ENR |= RCC_APB1ENR_TIM6EN;
         mTim = TIM6;
         mInputClk = pclk1;
         mIrq = TIM_IRQn(6);
         break;
         
       case 7:
-        RCC->APB1ENR |= RCC_APB1ENR_TIM7EN;
         mTim = TIM7;
         mIrq = TIM_IRQn(7);
         mInputClk = pclk1;
@@ -78,21 +71,18 @@ HardwareTimer::HardwareTimer(TimerNumber timerNumber, unsigned int frequency_Hz)
         
 #if defined(TIM8_UP_IRQ)     
       case 8:
-        RCC->APB2ENR |= RCC_APB2ENR_TIM8EN;
         mTim = TIM8;
         mIrq = TIM_IRQn(8_UP); // у этого таймера 4 прерывания, задаётся позже, когда нужно
         break;
 #endif
 #if defined(TIM9_IRQ)
       case 9:
-        RCC->APB2ENR |= RCC_APB2ENR_TIM9EN;
         mTim = TIM9;
         mIrq = TIM_IRQn(9);
         break;
 #endif
 #if defined(TIM10_IRQ)      
       case 10:
-        RCC->APB2ENR |= RCC_APB2ENR_TIM10EN;
         mTim = TIM10;
         mIrq = TIM_IRQn(10);
         mInputClk = pclk1; // or pclk2 ??? 
@@ -100,14 +90,12 @@ HardwareTimer::HardwareTimer(TimerNumber timerNumber, unsigned int frequency_Hz)
 #endif
 #if defined(TIM11_IRQ)     
       case 11:
-        RCC->APB2ENR |= RCC_APB2ENR_TIM11EN;
         mTim = TIM11;
         mIrq = TIM_IRQn(11);
         break;
 #endif
 #if defined(TIM12_IRQ)        
       case 12:
-        RCC->APB1ENR |= RCC_APB1ENR_TIM12EN;
         mTim = TIM12;
         mInputClk = pclk1;
         mIrq = TIM_IRQn(12);
@@ -115,7 +103,6 @@ HardwareTimer::HardwareTimer(TimerNumber timerNumber, unsigned int frequency_Hz)
 #endif
 #if defined(TIM13_IRQ)         
       case 13:
-        RCC->APB1ENR |= RCC_APB1ENR_TIM13EN;
         mTim = TIM13;
         mInputClk = pclk1;
         mIrq = TIM_IRQn(13);
@@ -123,7 +110,6 @@ HardwareTimer::HardwareTimer(TimerNumber timerNumber, unsigned int frequency_Hz)
 #endif
 #if defined(TIM14_IRQ)         
       case 14:
-        RCC->APB1ENR |= RCC_APB1ENR_TIM14EN;
         mTim = TIM14;
         mInputClk = pclk1;
         mIrq = TIM_IRQn(14);
@@ -131,28 +117,24 @@ HardwareTimer::HardwareTimer(TimerNumber timerNumber, unsigned int frequency_Hz)
 #endif
 #if defined(TIM15_IRQ)         
       case 15:
-        RCC->APB2ENR |= RCC_APB2ENR_TIM15EN;
         mTim = TIM15;
         mIrq = TIM_IRQn(15);
         break;
 #endif
 #if defined(TIM16_IRQ)         
       case 16:
-        RCC->APB2ENR |= RCC_APB2ENR_TIM16EN;
         mTim = TIM16;
         mIrq = TIM_IRQn(16);
         break;
 #endif
 #if defined(TIM17_IRQ)         
       case 17:
-        RCC->APB2ENR |= RCC_APB2ENR_TIM17EN;
         mTim = TIM17;
         mIrq = TIM_IRQn(17);
         break;
 #endif
 #if defined(TIM18_IRQ)         
       case 18:
-        RCC->APB1ENR |= RCC_APB1ENR_TIM18EN;
         mTim = TIM18;
         mIrq = TIM_IRQn(18);
         mInputClk = pclk1;
@@ -160,7 +142,6 @@ HardwareTimer::HardwareTimer(TimerNumber timerNumber, unsigned int frequency_Hz)
 #endif
 #if defined(TIM19_IRQ)         
       case 19:
-        RCC->APB2ENR |= RCC_APB2ENR_TIM19EN;
         mTim = TIM19;
         mIrq = TIM_IRQn(19);
         break;
@@ -169,6 +150,8 @@ HardwareTimer::HardwareTimer(TimerNumber timerNumber, unsigned int frequency_Hz)
       default:
         return;
     }
+    
+    rcc().setPeriphEnabled(mTim);
     
     if (mTimers[timerNumber-1])
         THROW(Exception::ResourceBusy); // ALARM!! this timer already in use!

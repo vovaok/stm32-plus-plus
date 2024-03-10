@@ -110,7 +110,64 @@ void FrameBuffer::fillRect(int x, int y, int width, int height, uint32_t color)
     if (y + height > m_height)
         height = m_height - y;
 
-    uint32_t *dst = reinterpret_cast<uint32_t*>(m_data + y * m_bpl + (x * m_bpp >> 3));
+    switch (m_bpp)
+    {
+    case 8:
+        while (height--)
+        {
+            uint8_t *dst = m_data + y * m_bpl + x;
+            int cnt = width;
+            while (cnt--)
+                *dst++ = color;
+            y++;
+        }
+        break;
+
+    case 16:
+        while (height--)
+        {
+            uint16_t *dst = reinterpret_cast<uint16_t*>(m_data + y * m_bpl + x * 2);
+            int cnt = width;
+            while (cnt--)
+                *dst++ = color;
+            y++;
+        }
+        break;
+
+    case 24:
+        while (height--)
+        {
+            uint8_t *dst = m_data + y * m_bpl + x * 3;
+            int cnt = width;
+            while (cnt--)
+            {
+                *dst++ = reinterpret_cast<uint8_t*>(&color)[0];
+                *dst++ = reinterpret_cast<uint8_t*>(&color)[1];
+                *dst++ = reinterpret_cast<uint8_t*>(&color)[2];
+            }
+            y++;
+        }
+        break;
+
+    case 32:
+        while (height--)
+        {
+            uint32_t *dst = reinterpret_cast<uint32_t*>(m_data + y * m_bpl + x * 4);
+            int cnt = width;
+            while (cnt--)
+                *dst++ = color;
+            y++;
+        }
+        break;
+    }
+
+    // kak nibud potom
+
+/*    uint32_t offset = y * m_bpl + (x * m_bpp >> 3);
+//    uint32_t *dst = reinterpret_cast<uint32_t*>(m_data + y * m_bpl + (x * m_bpp >> 3));
+    uint32_t mask1 = ~((1 << ((offset & 3) * 8)) - 1);
+    uint32_t mask2 = (1 << (((offset + (width * m_bpp >> 3)) & 3) * 8)) - 1;
+    uint32_t *dst = reinterpret_cast<uint32_t>(m_data + (offset & ~3));
 
     switch (m_bpp)
     {
@@ -141,16 +198,20 @@ void FrameBuffer::fillRect(int x, int y, int width, int height, uint32_t color)
     else
     {
         int ww = width * m_bpp / 32;
-        uint32_t mask = (1 << (((width * m_bpp >> 3) & 3) * 8)) - 1;
+//        uint32_t mask = (1 << (((width * m_bpp >> 3) & 3) * 8)) - 1;
         while (height--)
         {
             int cnt = ww;
+            if (mask1)
+                *dst++ = (*dst & ~mask1) | (color & mask1);
             while (cnt--)
                 *dst++ = color;
-            *dst = (*dst & ~mask) | (color & mask); // last pixel(s)
-            dst += m_bpl / 4 - ww;
+            if (mask2)
+                *dst = (*dst & ~mask2) | (color & mask2); // last pixel(s)
+//            dst = reinterpret_cast<uint32_t*>(reinterpret_cast<uint8_t*>(dst) + m_bpl - ww * 4);
+            dst += m_bpl - cnt - 1;
         }
-    }
+    }*/
 #endif
 }
 
@@ -223,6 +284,8 @@ void FrameBuffer::copyRect(int x, int y, int width, int height, const uint8_t *b
         if (mask)
             *dst++ = (*dst & ~mask) | (*src++ & mask); // last pixel(s)
         dst += (m_bpl - (width * m_bpp >> 3)) / 4;
+        // maybe this is more correct:
+//        dst = reinterpret_cast<uint32_t*>(reinterpret_cast<uint8_t*>(dst) + m_bpl - cnt * 4);
 
         //! @todo check last pixel!!!
     }
@@ -280,7 +343,7 @@ void FrameBuffer::drawBuffer(int x, int y, const FrameBuffer *fb, int sx, int sy
 {
     if (x >= m_width || y >= m_height)
         return; // nothing to do
-    
+
     if (x < 0)
     {
         sx -= x;
@@ -291,20 +354,20 @@ void FrameBuffer::drawBuffer(int x, int y, const FrameBuffer *fb, int sx, int sy
         sy -= y;
         y = 0;
     }
-    
+
     if (sw <= 0)
-        sw = fb->width();
+        sw = fb->m_width;
     if (sh <= 0)
-        sh = fb->height();
-    
+        sh = fb->m_height;
+
     if (x + sw > m_width)
         sw = m_width - x;
     if (y + sh > m_height)
         sh = m_height - y;
-    
-    if (sx >= fb->width() || sy >= fb->height())
+
+    if (sx >= fb->m_width || sy >= fb->m_height)
         return; // nothing to do
-    
+
 #if defined(DMA2D)
     Dma2D dma2d(this, x, y);
     dma2d.setSize(sw, sh);

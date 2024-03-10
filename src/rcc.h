@@ -34,7 +34,7 @@ public:
         PLL = 0x3
     };
 #endif
-
+    
 #if defined(STM32F4) || defined(STM32G4) || defined(STM32L4)
     constexpr uint32_t hsiValue() const {return 16000000;}
 #elif defined(STM32F3)
@@ -57,10 +57,12 @@ public:
     void setPeriphEnabled(void *periphBase, bool enabled=true);
     void resetPeriph(void *periphBase);
 
+    int getPeriphClk(void *periphBase);
+
 #if defined(LTDC)
     int configLtdcClock(int frequency); //!< return real programmed frequency
 #endif
-    
+
     // ''  It is highly recommended to change this
     //     prescaler only after reset before enabling
     //     the external oscillators and the PLLs       ''
@@ -72,6 +74,11 @@ private:
     static Rcc *m_self;
 
     bool measureHseFreq();
+    
+    // returns base address of periph bus
+    uint32_t periphBusBase(void *periph);
+    // returns offset of periph base relative to bus base
+    uint32_t periphBusOffset(void *periph);
 
     uint32_t mHseValue;
     uint32_t mPllM;
@@ -89,19 +96,19 @@ private:
 extern Rcc &rcc();
 
 #if defined(STM32L4) || defined (STM32G4)
-    #define APB1ENR                 APB1ENR1
-    #define RCC_APB1ENR_SPI2EN      RCC_APB1ENR1_SPI2EN
-    #define RCC_APB1ENR_SPI3EN      RCC_APB1ENR1_SPI3EN
-    #define RCC_APB1ENR_USART2EN    RCC_APB1ENR1_USART2EN
-    #define RCC_APB1ENR_USART3EN    RCC_APB1ENR1_USART3EN
-    #define RCC_APB1ENR_UART4EN     RCC_APB1ENR1_UART4EN
-    #define RCC_APB1ENR_UART5EN     RCC_APB1ENR1_UART5EN
-    #define RCC_APB1ENR_TIM2EN      RCC_APB1ENR1_TIM2EN
-    #define RCC_APB1ENR_TIM3EN      RCC_APB1ENR1_TIM3EN
-    #define RCC_APB1ENR_TIM4EN      RCC_APB1ENR1_TIM4EN
-    #define RCC_APB1ENR_TIM5EN      RCC_APB1ENR1_TIM5EN
-    #define RCC_APB1ENR_TIM6EN      RCC_APB1ENR1_TIM2EN
-    #define RCC_APB1ENR_TIM7EN      RCC_APB1ENR1_TIM7EN
+//    #define APB1ENR                 APB1ENR1
+//    #define RCC_APB1ENR_SPI2EN      RCC_APB1ENR1_SPI2EN
+//    #define RCC_APB1ENR_SPI3EN      RCC_APB1ENR1_SPI3EN
+//    #define RCC_APB1ENR_USART2EN    RCC_APB1ENR1_USART2EN
+//    #define RCC_APB1ENR_USART3EN    RCC_APB1ENR1_USART3EN
+//    #define RCC_APB1ENR_UART4EN     RCC_APB1ENR1_UART4EN
+//    #define RCC_APB1ENR_UART5EN     RCC_APB1ENR1_UART5EN
+//    #define RCC_APB1ENR_TIM2EN      RCC_APB1ENR1_TIM2EN
+//    #define RCC_APB1ENR_TIM3EN      RCC_APB1ENR1_TIM3EN
+//    #define RCC_APB1ENR_TIM4EN      RCC_APB1ENR1_TIM4EN
+//    #define RCC_APB1ENR_TIM5EN      RCC_APB1ENR1_TIM5EN
+//    #define RCC_APB1ENR_TIM6EN      RCC_APB1ENR1_TIM2EN
+//    #define RCC_APB1ENR_TIM7EN      RCC_APB1ENR1_TIM7EN
 #endif
 
 #endif

@@ -11,6 +11,14 @@ Widget::Widget(Widget *parent)
     setParent(parent);
 }
 
+Widget::~Widget()
+{
+    for (Widget *w: m_children)
+    {
+        delete w;
+    }
+}
+
 void Widget::setParent(Widget *parent)
 {
     if (m_parent)
@@ -22,6 +30,8 @@ void Widget::setParent(Widget *parent)
 
 void Widget::addWidget(Widget *w)
 {
+    if (w->m_parent)
+        w->m_parent->removeWidget(w);
     m_children.push_back(w);
     w->m_parent = this;
 //    w->m_backgroundColor = m_backgroundColor;
@@ -31,8 +41,8 @@ void Widget::addWidget(Widget *w)
 void Widget::removeWidget(Widget *w)
 {
     auto it = std::find(m_children.begin(), m_children.end(), w);
-    // if (it != m_children.end())
-    m_children.erase(it);
+    if (it != m_children.end())
+        m_children.erase(it);
     updateGeometry();
 }
 
@@ -136,7 +146,11 @@ void Widget::setVisible(bool visible)
     {
         m_visible = visible;
         if (m_parent)
+        {
             m_parent->update();
+            if (m_parent->layout())
+                m_parent->updateGeometry();
+        }
     }
 }
 
@@ -215,6 +229,33 @@ void Widget::setColor(Color color)
     }
 }
 
+void Widget::setBorderSize(int value)
+{
+    if (m_borderSize != value)
+    {
+        m_borderSize = value;
+        update();
+    }
+}
+
+void Widget::setBorderRadius(int value)
+{
+    if (m_borderRadius != value)
+    {
+        m_borderRadius = value;
+        update();
+    }
+}
+
+void Widget::setOpacity(uint8_t value)
+{
+    if (m_opacity != value)
+    {
+        m_opacity = value;
+        update();
+    }
+}
+
 void Widget::setFont(Font font)
 {
     if (m_font != font)
@@ -273,6 +314,10 @@ void Widget::paint(Display *d)
     int oldy = d->yPos();
     d->moveTo(oldx + m_x, oldy + m_y);
 
+//    FrameBuffer *fb = dynamic_cast<FrameBuffer*>(d);
+//    if (fb)
+//        fb->setOpacity(m_opacity);
+
     if (m_needRepaint && m_width > 0 && m_height > 0)
         paintEvent(d);
     m_needRepaint = false;
@@ -300,4 +345,9 @@ void Widget::paint(Display *d)
     }
 
     d->moveTo(oldx, oldy);
+}
+
+Translator *Widget::translations()
+{
+    return GuiApplication::translator();
 }
