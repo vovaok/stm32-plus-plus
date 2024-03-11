@@ -3254,11 +3254,11 @@
                 </option>
                 <option>
                     <name>Input description</name>
-                    <state>Automatic choice of formatter.</state>
+                    <state>Automatic choice of formatter, without multibyte support.</state>
                 </option>
                 <option>
                     <name>Output description</name>
-                    <state>Automatic choice of formatter.</state>
+                    <state>Automatic choice of formatter, without multibyte support.</state>
                 </option>
                 <option>
                     <name>GOutputBinary</name>
@@ -3280,7 +3280,7 @@
                 </option>
                 <option>
                     <name>RTDescription</name>
-                    <state>To be used with the full configuration of the C/C++ runtime library. Full locale interface, C locale, file descriptor support, multibytes in printf and scanf, and hex floats in strtod.</state>
+                    <state>To be used with a complete configuration of the C/C++14 runtime library. Full locale interface, C locale, file descriptor support, multibytes in printf and scanf, and hex floats in strtod.</state>
                 </option>
                 <option>
                     <name>OGProductVersion</name>
@@ -3288,7 +3288,7 @@
                 </option>
                 <option>
                     <name>OGLastSavedByProductVersion</name>
-                    <state>7.50.3.10745</state>
+                    <state>9.30.1.50052</state>
                 </option>
                 <option>
                     <name>OGChipSelectEditMenu</name>
@@ -3312,7 +3312,7 @@
                 </option>
                 <option>
                     <name>RTConfigPath2</name>
-                    <state>$TOOLKIT_DIR$\INC\c\DLib_Config_Full.h</state>
+                    <state>$TOOLKIT_DIR$\inc\c\DLib_Config_Full.h</state>
                 </option>
                 <option>
                     <name>GBECoreSlave</name>
@@ -3398,7 +3398,7 @@
                 </option>
                 <option>
                     <name>DSPExtension</name>
-                    <state>0</state>
+                    <state>1</state>
                 </option>
                 <option>
                     <name>TrustZone</name>
@@ -3444,7 +3444,7 @@
                 </option>
                 <option>
                     <name>CCDefines</name>
-                    <state>STM32F40XX</state>
+                    <state>STM32F407xx</state>
                 </option>
                 <option>
                     <name>CCPreprocFile</name>
@@ -4286,7 +4286,7 @@
                 </option>
                 <option>
                     <name>IarchiveOutput</name>
-                    <state>D:\projects\iar\components\stm32++\bin\stm32f407zg\stm32++.a</state>
+                    <state>D:\projects\iar\components\stm32++\bin\stm32f407zg\stm32++_IAR_9.a</state>
                 </option>
             </data>
         </settings>
@@ -14226,6 +14226,7 @@
         <file>
             <name>$PROJ_DIR$\src\device\ili9341.cpp</name>
             <excluded>
+                <configuration>stm32f407zg</configuration>
                 <configuration>stm32f407vg</configuration>
                 <configuration>stm32f405rg_no-exceptions_no-rtti</configuration>
                 <configuration>stm32g474</configuration>
@@ -14242,6 +14243,12 @@
         </file>
         <file>
             <name>$PROJ_DIR$\src\device\ili9486.h</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\device\max31855.cpp</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\device\max31855.h</name>
         </file>
         <file>
             <name>$PROJ_DIR$\src\device\mt6818.cpp</name>
@@ -14496,6 +14503,7 @@
         <file>
             <name>$PROJ_DIR$\src\gfx\lcddisplay.cpp</name>
             <excluded>
+                <configuration>stm32f407zg</configuration>
                 <configuration>stm32f407vg</configuration>
             </excluded>
         </file>
