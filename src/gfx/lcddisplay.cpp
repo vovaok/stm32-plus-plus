@@ -16,7 +16,7 @@ LcdDisplay::LcdDisplay(int width, int height)
     m_height = height;
     rcc().setPeriphEnabled(LTDC);
     rcc().setPeriphEnabled(DMA2D);
-    
+
     stmApp()->registerTaskEvent(EVENT(&LcdDisplay::task));
 
     //! @todo make user able to set this parameter
@@ -32,7 +32,7 @@ void LcdDisplay::task()
             onVsync();
     }
 //    if (ltdcIrqFlag)
-//    {    
+//    {
 //        ltdcIrqFlag = false;
 //    }
 }
@@ -69,6 +69,16 @@ void LcdDisplay::configLayer(int number, FrameBuffer *frameBuffer)
     LTDC_Layer->CR |= LTDC_LxCR_LEN;
 
     // update registers from shadow ones
+    reloadConfig();
+}
+
+void LcdDisplay::setLayerEnabled(int number, bool enabled)
+{
+    LTDC_Layer_TypeDef *LTDC_Layer = ltdcLayer(number);
+    if (enabled)
+        LTDC_Layer->CR |= LTDC_LxCR_LEN;
+    else
+        LTDC_Layer->CR &= ~LTDC_LxCR_LEN;
     reloadConfig();
 }
 

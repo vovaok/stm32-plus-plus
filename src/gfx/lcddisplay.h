@@ -28,6 +28,7 @@ public:
     int getFps();
 
     void configLayer(int number, FrameBuffer *frameBuffer);
+    void setLayerEnabled(int number, bool enabled);
     void setLayerPos(int number, int x, int y);
     void setLayerOpacity(int number, uint8_t alpha);
     void setLayerDefaultColor(int number, Color color);
@@ -40,7 +41,7 @@ public:
     virtual uint32_t pixel(int x, int y) const override;
 
     void setSyncEvent(NotifyEvent e, int line=-1);
-    
+
 protected:
     virtual void fillRect(int x, int y, int width, int height, uint32_t color) override;
     virtual void overlayRect(int x, int y, int width, int height, uint32_t color) override;
@@ -57,9 +58,9 @@ private:
     void reloadConfig(bool immediately = true);
     // choose appropriate register set
     static LTDC_Layer_TypeDef *ltdcLayer(int number);
-    
+
     NotifyEvent onVsync;
-    
+
     void task();
 };
 
