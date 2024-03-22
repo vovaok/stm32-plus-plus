@@ -20,7 +20,7 @@ public:
     bool busPresent();
 
 protected:
-    virtual bool send(const CommonMessage &msg);
+    virtual bool send(const CommonMessage &msg) override;
 
 private:
     Device *m_device;

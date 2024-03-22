@@ -81,8 +81,10 @@ void ObjnetCommonNode::onNewMessage()
     {
         if (mBusAddress != 0xFF)
         {
-            handleMessage(*msg);
+#warning message is being taken from queue BEFORE it is used
             mInterface->discardNext();
+            handleMessage(*msg);
+            
         }
     }
 }

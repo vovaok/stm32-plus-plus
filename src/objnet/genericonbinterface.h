@@ -27,7 +27,7 @@ public:
 protected:
     const uint32_t *prefix = nullptr;
     
-    virtual bool send(const CommonMessage &msg);
+    virtual bool send(const CommonMessage &msg) override;
     void receiveHandler();
   
 private:
