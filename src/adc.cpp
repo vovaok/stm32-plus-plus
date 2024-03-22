@@ -99,8 +99,11 @@ void Adc::addChannel(Channel channel, SampleTime sampleTime)
 
 Adc::Channel Adc::addChannel(Gpio::Config pin, SampleTime sampleTime)
 {
-    int periphNumber = GpioConfigGetPeriphNumber(pin);
+    int periphNumber = GpioConfigGetPeriphNumber(pin) & 0x7;
     Channel channel = (Channel)GpioConfigGetPeriphChannel(pin);
+//    // for STM32G4:
+//    if (GpioConfigGetPeriphNumber(pin) & 0x80)
+//        channel += 16;
     
     if (mInstances[periphNumber - 1] != this)
         THROW(Exception::InvalidPeriph);

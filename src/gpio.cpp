@@ -384,16 +384,21 @@ void Gpio::write(bool value)
 //        mPort->BSRRL = mPin;
 //    else
 //        mPort->BSRRH = mPin;
+//    if (value)
+//        mPort->BSRR = mPin;
+//    else
+//        mPort->BSRR = mPin << 16;
     if (value)
-        mPort->BSRR = mPin;
+        mPort->ODR |= mPin;
     else
-        mPort->BSRR = mPin << 16;
+        mPort->ODR &= ~mPin;
 }
 //---------------------------------------------------------------------------
 
 void Gpio::writePort(uint16_t value)
 {
-    mPort->ODR = (mPort->ODR & (~mPin)) | (value & mPin);
+    if (mPort)
+        mPort->ODR = (mPort->ODR & (~mPin)) | (value & mPin);
 }
 
 uint16_t Gpio::readPort()

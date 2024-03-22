@@ -112,7 +112,7 @@ public:
     void setBaudrate(int value); // try to set nearest baudrate (less or equal)
     int baudrate() const; // real baudrate
 
-//    void setUseDmaRx(bool useDma);
+    void setUseDmaRx(bool useDma);
     void setUseDmaTx(bool useDma);
 
     void open();
@@ -126,6 +126,7 @@ public:
     void setTransferCompleteEvent(NotifyEvent e);
     void transfer(uint8_t* data, int size);
     void transfer(const uint8_t *data, uint8_t *buffer, int size);
+    bool transferDma(const uint8_t *data, uint8_t *buffer, int size);
     void setDataSize(int size);
 
     Dma *dmaTx() {return mDmaTx;}

@@ -1,20 +1,20 @@
-#include "canInterface.h"
+#include "canonbinterface.h"
 
 using namespace Objnet;
 
-CanInterface::CanInterface(Can *can, int fifoNumber) :
+CanOnbInterface::CanOnbInterface(Can *can, int fifoNumber) :
     mCan(can),
     mCurFilterFifo(fifoNumber)
 { 
     mMaxFrameSize = 8;
     setTxQueueSize(128);
     mBusType = BusCan;
-    mCan->setReceiveEvent(EVENT(&CanInterface::receiveHandler));
-//    mCan->setTransmitReadyEvent(EVENT(&CanInterface::transmitHandler));
+    mCan->setReceiveEvent(EVENT(&CanOnbInterface::receiveHandler));
+//    mCan->setTransmitReadyEvent(EVENT(&CanOnbInterface::transmitHandler));
 }
 //---------------------------------------------------------------------------
 
-//bool CanInterface::readRx(CanRxMsg &msg)
+//bool CanOnbInterface::readRx(CanRxMsg &msg)
 //{
 //    bool result = false;
 //    
@@ -40,7 +40,7 @@ CanInterface::CanInterface(Can *can, int fifoNumber) :
 //    return result;
 //}
 //
-//bool CanInterface::writeRx(CanRxMsg &msg)
+//bool CanOnbInterface::writeRx(CanRxMsg &msg)
 //{      
 //    if (mRxQueue.size() < mRxQueueSize) 
 //    {
@@ -50,7 +50,7 @@ CanInterface::CanInterface(Can *can, int fifoNumber) :
 //    return false;
 //}
 //
-//bool CanInterface::readTx(CanTxMsg &msg)
+//bool CanOnbInterface::readTx(CanTxMsg &msg)
 //{
 //    if (!mTxQueue.empty())
 //    {
@@ -61,7 +61,7 @@ CanInterface::CanInterface(Can *can, int fifoNumber) :
 //    return false;
 //}
 //
-//bool CanInterface::writeTx(CanTxMsg &msg)
+//bool CanOnbInterface::writeTx(CanTxMsg &msg)
 //{
 //    msg.IDE = CAN_ID_EXT;
 //    if (mTxQueue.empty())
@@ -80,7 +80,7 @@ CanInterface::CanInterface(Can *can, int fifoNumber) :
 //}
 //---------------------------------------------------------------------------
 
-void CanInterface::receiveHandler(int fifoNumber, CanRxMsg &canmsg)
+void CanOnbInterface::receiveHandler(int fifoNumber, CanRxMsg &canmsg)
 {
     if (fifoNumber != mCurFilterFifo)
         return;
@@ -94,12 +94,12 @@ void CanInterface::receiveHandler(int fifoNumber, CanRxMsg &canmsg)
     receive(CommonMessage(canmsg.ExtId, ByteArray(canmsg.Data, canmsg.DLC)));
 }
 
-void CanInterface::setReceiveEnabled(bool enabled)
+void CanOnbInterface::setReceiveEnabled(bool enabled)
 {
     mCan->setRxInterruptEnabled(enabled);
 }
 
-//void CanInterface::transmitHandler()
+//void CanOnbInterface::transmitHandler()
 //{
 //    CanTxMsg msg;
 //    if (readTx(msg))
@@ -107,7 +107,7 @@ void CanInterface::setReceiveEnabled(bool enabled)
 //}
 //---------------------------------------------------------------------------
 
-bool CanInterface::read(CommonMessage &msg)
+bool CanOnbInterface::read(CommonMessage &msg)
 {
     CanRxMsg canmsg;
     if (mCan->receive(mCurFilterFifo, canmsg))
@@ -116,7 +116,7 @@ bool CanInterface::read(CommonMessage &msg)
     return ObjnetInterface::read(msg);
 }
 
-bool CanInterface::send(const CommonMessage &msg)
+bool CanOnbInterface::send(const CommonMessage &msg)
 {
     if (msg.data().size() > mMaxFrameSize)
         return false;
@@ -131,14 +131,14 @@ bool CanInterface::send(const CommonMessage &msg)
 }
 //---------------------------------------------------------------------------
 
-void CanInterface::flush()
+void CanOnbInterface::flush()
 {
     ObjnetInterface::flush();
     mCan->flush(); 
 }
 //---------------------------------------------------------------------------
 
-int CanInterface::addFilter(uint32_t id, uint32_t mask)
+int CanOnbInterface::addFilter(uint32_t id, uint32_t mask)
 {
     int filter = mCan->addFilterB(id, mask, mCurFilterFifo);
 //    if (mCurFilterFifo >= 2)
@@ -146,7 +146,7 @@ int CanInterface::addFilter(uint32_t id, uint32_t mask)
     return filter;
 }
 
-void CanInterface::removeFilter(int number)
+void CanOnbInterface::removeFilter(int number)
 {
     mCan->removeFilter(number);
 }

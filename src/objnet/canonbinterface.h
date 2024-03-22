@@ -1,5 +1,5 @@
-#ifndef _CAN_INTERFACE_H
-#define _CAN_INTERFACE_H
+#ifndef _CANONBINTERFACE_H
+#define _CANONBINTERFACE_H
 
 #include "objnetInterface.h"
 #include "can.h"
@@ -7,7 +7,7 @@
 namespace Objnet
 {
 
-class CanInterface : public ObjnetInterface
+class CanOnbInterface : public ObjnetInterface
 {
 private:
     Can *mCan;
@@ -18,7 +18,7 @@ private:
 //    void transmitHandler();
   
 public:
-    CanInterface(Can *can, int fifoNumber=0);
+    CanOnbInterface(Can *can, int fifoNumber=0);
   
     bool read(CommonMessage &msg);
     void flush();

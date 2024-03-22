@@ -69,81 +69,87 @@ HardwareTimer::HardwareTimer(TimerNumber timerNumber, unsigned int frequency_Hz)
         mInputClk = pclk1;
         break;
         
-#if defined(TIM8_UP_IRQ)     
+#if defined(TIM8)     
       case 8:
         mTim = TIM8;
         mIrq = TIM_IRQn(8_UP); // у этого таймера 4 прерывания, задаётся позже, когда нужно
         break;
 #endif
-#if defined(TIM9_IRQ)
+#if defined(TIM9)
       case 9:
         mTim = TIM9;
         mIrq = TIM_IRQn(9);
         break;
 #endif
-#if defined(TIM10_IRQ)      
+#if defined(TIM10)      
       case 10:
         mTim = TIM10;
         mIrq = TIM_IRQn(10);
         mInputClk = pclk1; // or pclk2 ??? 
         break;
 #endif
-#if defined(TIM11_IRQ)     
+#if defined(TIM11)     
       case 11:
         mTim = TIM11;
         mIrq = TIM_IRQn(11);
         break;
 #endif
-#if defined(TIM12_IRQ)        
+#if defined(TIM12)        
       case 12:
         mTim = TIM12;
         mInputClk = pclk1;
         mIrq = TIM_IRQn(12);
         break;
 #endif
-#if defined(TIM13_IRQ)         
+#if defined(TIM13)         
       case 13:
         mTim = TIM13;
         mInputClk = pclk1;
         mIrq = TIM_IRQn(13);
         break;
 #endif
-#if defined(TIM14_IRQ)         
+#if defined(TIM14)         
       case 14:
         mTim = TIM14;
         mInputClk = pclk1;
         mIrq = TIM_IRQn(14);
         break;
 #endif
-#if defined(TIM15_IRQ)         
+#if defined(TIM15)         
       case 15:
         mTim = TIM15;
         mIrq = TIM_IRQn(15);
         break;
 #endif
-#if defined(TIM16_IRQ)         
+#if defined(TIM16)         
       case 16:
         mTim = TIM16;
         mIrq = TIM_IRQn(16);
         break;
 #endif
-#if defined(TIM17_IRQ)         
+#if defined(TIM17)         
       case 17:
         mTim = TIM17;
         mIrq = TIM_IRQn(17);
         break;
 #endif
-#if defined(TIM18_IRQ)         
+#if defined(TIM18)         
       case 18:
         mTim = TIM18;
         mIrq = TIM_IRQn(18);
         mInputClk = pclk1;
         break;
 #endif
-#if defined(TIM19_IRQ)         
+#if defined(TIM19)         
       case 19:
         mTim = TIM19;
         mIrq = TIM_IRQn(19);
+        break;
+#endif
+#if defined(TIM20)         
+      case 20:
+        mTim = TIM20;
+        mIrq = TIM_IRQn(20_UP);
         break;
 #endif
         
@@ -179,7 +185,12 @@ HardwareTimer::HardwareTimer(TimerNumber timerNumber, unsigned int frequency_Hz)
 
 HardwareTimer::TimerNumber HardwareTimer::getTimerByPin(Gpio::Config pinConfig)
 {
-    return static_cast<TimerNumber>(GpioConfigGetPeriphNumber(pinConfig));
+    int num = GpioConfigGetPeriphNumber(pinConfig);
+#if defined(STM32G4)
+    if (GpioConfigGetPeriphChannel(pinConfig) & 0x40) // TIMx >= TIM16
+        num += 16;    
+#endif
+    return static_cast<TimerNumber>(num);
 }
 
 HardwareTimer::ChannelNumber HardwareTimer::getChannelByPin(Gpio::Config pinConfig)
@@ -446,6 +457,18 @@ void HardwareTimer::enableInterrupt(InterruptSource source)
           case isrcBreak: mIrq = TIM_IRQn(8_BRK); break;
         }
     }
+#if defined(TIM20)
+    else if (mTim == TIM20)
+    {
+        switch (source)
+        {
+          case isrcUpdate: mIrq = TIM_IRQn(20_UP); break;
+          case isrcCC1: case isrcCC2: case isrcCC3: case isrcCC4: mIrq = TIM_IRQn(20_CC); break;
+          case isrcCom: case isrcTrigger: mIrq = TIM_IRQn(20_TRG_COM); break;
+          case isrcBreak: mIrq = TIM_IRQn(20_BRK); break;
+        }
+    }
+#endif
     
 //#warning priority for PWM generation must be 0!!!
     NVIC_SetPriority(mIrq, 0);
@@ -504,8 +527,8 @@ void HardwareTimer::handleInterrupt()
     f(2) f(3) f(4) f(5) f(6) f(7) f(9) f(10) f(11) f(12) f(13) f(14)
 #define FOREACH_COMPLEX_TIM_IRQ(f) \
     f(1_BRK, 1, 15) f(1_UP, 1, 16) f(1_TRG_COM, 1, 17) f(1_CC, 1, 0) \
-    f(8_BRK, 8, 0)  f(8_UP, 8, 0)  f(8_TRG_COM, 8, 0)  f(8_CC, 8, 0)       
-    
+    f(8_BRK, 8, 0)  f(8_UP, 8, 0)  f(8_TRG_COM, 8, 0)  f(8_CC, 8, 0)
+    //! @todo TIM20
 #endif
 
 // definition of simplex timer handlers (one irq handler per timer)

@@ -18,7 +18,7 @@ Buzzer::Buzzer(Gpio::Config pin) :
     if (mChan == HardwareTimer::ChNone)
         THROW(Exception::InvalidPin);
     
-    mPwm = new PwmOutput(tim, 1 _kHz);
+    mPwm = new PwmOutput(tim, 1000);
     //mPwm->configChannel(mChan, pin);
     mPwm->configChannelToggleMode(pin);
 //    mPwm->setDutyCycle(mChan, 32768);
