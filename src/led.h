@@ -29,7 +29,9 @@ public:
     bool isBlinking() const;
     void setBlinkingEnabled(bool enabled);
     void blink();
+    void blink(int interval_ms);
     void blinkOnce();
+    void blinkOnce(int duration_ms);
 
     void toggleSkip(int count);
     void toggleSkip(int count1, int count2);

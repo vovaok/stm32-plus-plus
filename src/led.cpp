@@ -66,11 +66,23 @@ void Led::blink()
     setBlinkingEnabled(true);
 }
 
+void Led::blink(int interval_ms)
+{
+    timer()->setInterval(interval_ms);
+    blink();
+}
+
 void Led::blinkOnce()
 {
     on();
     timer()->setSingleShot(true);
     setBlinkingEnabled(true);
+}
+
+void Led::blinkOnce(int duration_ms)
+{
+    timer()->setInterval(duration_ms);
+    blinkOnce();
 }
 
 void Led::toggleSkip(int count)

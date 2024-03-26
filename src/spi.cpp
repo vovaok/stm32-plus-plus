@@ -399,7 +399,9 @@ bool Spi::write(const uint8_t *data, int size)
 
 void Spi::setRxBuffer(uint8_t *data, int size, bool circular)
 {
-    if (!mDmaRx)
+    if (mDmaRx)
+        mDmaRx->stop(true);
+    else
         mDmaRx = new Dma(mDmaChannelRx);
     int dataSize = (m_dataSize > 8)? 2: 1;
     size /= dataSize;
@@ -410,6 +412,7 @@ void Spi::setRxBuffer(uint8_t *data, int size, bool circular)
         mDmaRx->setSingleBuffer(data, size);
     mConfig.RXDMAEN = 1;
     updateConfig();
+    mDmaRx->start();
 }
 
 bool Spi::writeFill16(uint16_t *value, int count)
