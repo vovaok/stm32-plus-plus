@@ -9,7 +9,7 @@ class GaugeWidget : public ProgressBar
 public:
     GaugeWidget(Widget *parent=nullptr);
     
-    void setBackgroundImage(const Image &img);
+    void setBackgroundImage(Image &&img);
 
     void setTargetValue(float value);
     float targetValue() const {return m_targetValue;}

@@ -8,9 +8,9 @@ GaugeWidget::GaugeWidget(Widget *parent) :
 {
 }
 
-void GaugeWidget::setBackgroundImage(const Image &img)
+void GaugeWidget::setBackgroundImage(Image &&img)
 {
-    m_back = img;
+    m_back = std::move(img);
 }
 
 void GaugeWidget::setTargetValue(float value)
