@@ -1,10 +1,16 @@
 #include "gaugewidget.h"
 #include <math.h>
+#include "core/advmath.h"
 #include "core/macros.h"
 
 GaugeWidget::GaugeWidget(Widget *parent) :
     ProgressBar(parent)
 {
+}
+
+void GaugeWidget::setBackgroundImage(const Image &img)
+{
+    m_back = img;
 }
 
 void GaugeWidget::setTargetValue(float value)
@@ -24,34 +30,36 @@ void GaugeWidget::paintEvent(Display *d)
     if (h > w/2 + 6)
         h = w/2 + 6;
 
-    if (w != m_back.width() || h != m_back.height())
+//    if (w != m_back.width() || h != m_back.height())
+    if (m_back.isNull()) // draw background image only once!
         drawBack();
 
     int a = 0;
     float percent = 0;
     if (m_maximum > m_minimum)
     {
-        a = (m_maximum - m_value) * 180 / (m_maximum - m_minimum);
+//        a = (m_maximum - m_value) * 180 / (m_maximum - m_minimum);
+        a = static_cast<int>((m_maximum - m_value) * 128 / (m_maximum - m_minimum));
         percent = (m_value - m_minimum) * 100 / (m_maximum - m_minimum);
     }
 
     d->drawImage(0, 0, m_back);
 
     int cx = w / 2;
-    int cy = h - 5;
-    int r = w / 2.0 - 6;
+    int cy = h - 6;
+    int r = cx - 6;
 
-    // Bhaskara sine approximation
-    auto sin_deg = [](int x, int r)
-    {
-        x = x % 360;
-        if (x < 0)
-            x += 360;
-        if (x < 180)
-            return 4*r*x*(180-x) / (40500-x*(180-x));
-        x -= 180;
-            return -4*r*x*(180-x) / (40500-x*(180-x));
-    };
+//    // Bhaskara sine approximation
+//    auto sin_deg = [](int x, int r)
+//    {
+//        x = x % 360;
+//        if (x < 0)
+//            x += 360;
+//        if (x < 180)
+//            return 4*r*x*(180-x) / (40500-x*(180-x));
+//        x -= 180;
+//            return -4*r*x*(180-x) / (40500-x*(180-x));
+//    };
 
 //    auto cos_deg = [sin_deg](int x, int r)
 //    {
@@ -60,19 +68,32 @@ void GaugeWidget::paintEvent(Display *d)
 
     if (m_targetVisible)
     {
-        int ta = (m_maximum - m_targetValue) * 180 / (m_maximum - m_minimum);
+//        int ta = (m_maximum - m_targetValue) * 180 / (m_maximum - m_minimum);
 //        int x = lroundf(cx + r*cos(ta));
 //        int y = lroundf(cy - r*sin(ta));
-        int x = cx + sin_deg(ta+90, r);
-        int y = cy - sin_deg(ta, r);
+//        int x = cx + sin_deg(ta+90, r);
+//        int y = cy - sin_deg(ta, r);
+        int ta = static_cast<int>((m_maximum - m_targetValue) * 128 / (m_maximum - m_minimum));
+        float cta = cos_i16(ta) / 32768.f;
+        float sta = sin_i16(ta) / 32768.f;
+        float r1 = r;// * 0.9f;
+        float r2 = cx;// * 1.1f;
+        int x = static_cast<int>(cx + r1 * cta);
+        int y = static_cast<int>(cy - r1 * sta);
+        int x1 = static_cast<int>(cx + r2 * cta - 2*sta);
+        int y1 = static_cast<int>(cy - r2 * sta - 2*cta);
+        int x2 = static_cast<int>(cx + r2 * cta + 2*sta);
+        int y2 = static_cast<int>(cy - r2 * sta + 2*cta);
 
-//        d->setColor(m_borderColor);
-        d->setBackgroundColor(Green);
-        d->fillCircle(x, y, 4);
+        d->setColor(Black);
+        d->drawTriangle(x, y, x1, y1, x2, y2);
+        
+//        d->setBackgroundColor(Green);
+//        d->fillCircle(x, y, 4);
     }
 
-    int rx = sin_deg(a+90, r);
-    int ry = sin_deg(a, r);
+    int rx = r * cos_i16(a) / 32768;
+    int ry = r * sin_i16(a) / 32768;
     int x = cx + rx;
     int y = cy - ry;
 
