@@ -15,12 +15,15 @@ void SerialFrame::task()
     if (m_ready)
         return;
 
-    char buferok[16];
-    int sz = m_device->read(buferok, 16);
+//    char buferok[16];
+//    int sz = m_device->read(buferok, 16);
 
-    for (int i=0; i<sz; i++)
+//    for (int i=0; i<sz; i++)
     {
-        uint8_t byte = buferok[i];
+//        uint8_t byte = buferok[i];
+        uint8_t byte;
+        if (!m_device->read((char*)&byte, 1))
+            return;
 
         switch (byte)
         {

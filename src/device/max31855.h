@@ -10,7 +10,7 @@ public:
     void read();
 
     bool isFault() const {return m_value & 0x00010007;}
-    float temperature() const {return (m_value >> 18) * 0.25f;}
+    float temperature() const {return (static_cast<int32_t>(m_value) >> 18) * 0.25f;}
     float internalTemp() const {return (static_cast<int16_t>(m_value) >> 4) * 0.0625f;}
 
 private:

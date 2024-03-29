@@ -96,7 +96,7 @@ void PwmOutput::configChannel(Gpio::Config pin, Gpio::Config complementaryPin, b
     Gpio::config(pin);
     Gpio::config(complementaryPin);
 
-    configPwm(channel, PwmMode_PWM2, invert);
+    configPwm(channel, PwmMode_PWM1, invert);
 
     if (chEnabled)
         m_chMask |= channel;
@@ -116,7 +116,7 @@ void PwmOutput::configChannel(Gpio::Config pin, bool invert)
 
     Gpio::config(pin);
 
-    configPwm(channel, PwmMode_PWM2, invert);
+    configPwm(channel, PwmMode_PWM1, invert);
 
     if (comp)
         m_chMask |= ((unsigned long)channel) << 16;
