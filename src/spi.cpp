@@ -263,28 +263,12 @@ void Spi::transferWordAsync(uint16_t word)
 
 void Spi::transfer(uint8_t* data, int size)
 {
-//    if (!mUseDmaRx && !mUseDmaTx)
-//    {
-        for (int i=0; i<size; i++)
-        {
-            mDev->DR = data[i];
-            while (!(mDev->SR & SPI_SR_RXNE)); // wait for RX Not Empty
-            data[i] =  mDev->DR;
-        }
-//    }
-//    else
-//    {
-//        if (mUseDmaRx)
-//        {
-//            mDmaRx->setSingleBuffer(data, size);
-//            mDmaRx->start();
-//        }
-//        if (mUseDmaTx)
-//        {
-//            mDmaTx->setSingleBuffer(data, size);
-//            mDmaTx->start();
-//        }
-//    }
+    while (size--)
+    {
+        *((__IO uint8_t *)(&mDev->DR)) = *data;
+        while (!(mDev->SR & SPI_SR_RXNE)); // wait for RX Not Empty
+        *data++ = *((__IO uint8_t *)(&mDev->DR));
+    }
 }
 
 bool Spi::transferDma(const uint8_t *data, uint8_t *buffer, int size)
