@@ -35,6 +35,10 @@ protected:
     int m_decimals = 0;
     bool m_textVisible = true;
     ByteArray m_format = "%p %";
+
+    //! @return x-coord of value in px;
+    int map(float value);
+
 //private:
 
 };

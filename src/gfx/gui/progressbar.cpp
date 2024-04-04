@@ -114,7 +114,7 @@ void ProgressBar::doPaint(Display *d)
     float percent = 0;
     if (m_maximum > m_minimum)
     {
-        x = lrintf((m_value - m_minimum) * (w - 2) / (m_maximum - m_minimum));
+        x = map(m_value);//lrintf((m_value - m_minimum) * (w - 2) / (m_maximum - m_minimum));
         percent = (m_value - m_minimum) * 100 / (m_maximum - m_minimum);
     }
 
@@ -122,7 +122,7 @@ void ProgressBar::doPaint(Display *d)
     d->setBackgroundColor(m_backgroundColor);
     d->drawFillRoundRect(0, 0, w, h, 3);
     d->setBackgroundColor(m_color);
-    d->fillRoundRect(1, 1, x, h-2, 2);
+    d->fillRoundRect(1, 1, x-1, h-2, 2);
     if (m_textVisible)
     {
         ByteArray s = m_format;
@@ -132,4 +132,17 @@ void ProgressBar::doPaint(Display *d)
         d->setFont(font());
         d->drawString(0, 0, w, h, AlignCenter, s.data());
     }
+}
+
+int ProgressBar::map(float value)
+{
+    if (m_maximum == m_minimum)
+        return 0;
+    int w = m_width - 2;
+    int x = static_cast<int>((value - m_minimum) * w / (m_maximum - m_minimum)) + 1;
+    if (x < 1)
+        return 1;
+    else if (x > w)
+        return w;
+    return x;
 }

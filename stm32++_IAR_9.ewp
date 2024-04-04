@@ -14374,6 +14374,12 @@
                 <name>$PROJ_DIR$\src\gfx\gui\font_Tahoma_13.cpp</name>
             </file>
             <file>
+                <name>$PROJ_DIR$\src\gfx\gui\gaugebarwidget.cpp</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\src\gfx\gui\gaugebarwidget.h</name>
+            </file>
+            <file>
                 <name>$PROJ_DIR$\src\gfx\gui\gaugewidget.cpp</name>
             </file>
             <file>

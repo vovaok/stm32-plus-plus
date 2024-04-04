@@ -15,9 +15,30 @@ void GaugeWidget::setBackgroundImage(Image &&img)
 
 void GaugeWidget::setTargetValue(float value)
 {
+    value = BOUND(m_minimum, value, m_maximum);
     bool needUpdate = !m_targetVisible || (m_targetValue != value);
-    m_targetValue = BOUND(m_minimum, value, m_maximum);
+    m_targetValue = value;
     m_targetVisible = true;
+    if (needUpdate)
+        update();
+}
+
+void GaugeWidget::setLowValue(float value)
+{
+    value = BOUND(m_minimum, value, m_maximum);
+    bool needUpdate = !m_lowVisible || (m_lowValue != value);
+    m_lowValue = value;
+    m_lowVisible = true;
+    if (needUpdate)
+        update();
+}
+
+void GaugeWidget::setHighValue(float value)
+{
+    value = BOUND(m_minimum, value, m_maximum);
+    bool needUpdate = !m_highVisible || (m_highValue != value);
+    m_highValue = value;
+    m_highVisible = true;
     if (needUpdate)
         update();
 }
@@ -30,7 +51,6 @@ void GaugeWidget::paintEvent(Display *d)
     if (h > w/2 + 6)
         h = w/2 + 6;
 
-//    if (w != m_back.width() || h != m_back.height())
     if (m_back.isNull()) // draw background image only once!
         drawBack();
 
@@ -87,9 +107,6 @@ void GaugeWidget::paintEvent(Display *d)
 
         d->setColor(Black);
         d->drawTriangle(x, y, x1, y1, x2, y2);
-        
-//        d->setBackgroundColor(Green);
-//        d->fillCircle(x, y, 4);
     }
 
     int rx = r * cos_i16(a) / 32768;
@@ -101,7 +118,7 @@ void GaugeWidget::paintEvent(Display *d)
 
     d->setColor(m_color);
     d->setBackgroundColor(m_color);
-//    d->drawTriangle();
+//    d->drawFillTriangle();
     for (int i=-3; i<=3; i++)
         d->drawLine(cx + i*ry/r, cy + i*rx/r, x, y);
     d->setColor(m_backgroundColor);
