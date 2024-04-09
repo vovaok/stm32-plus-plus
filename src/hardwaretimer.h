@@ -6,12 +6,12 @@
 #include "gpio.h"
 #include "rcc.h"
 
-#define _us  
-#define _ms     *1000
-#define _s      *1000000
-#define _Hz
-#define _kHz    *1000
-#define _MHz    *1000000
+//#define _us  
+//#define _ms     *1000
+//#define _s      *1000000
+//#define _Hz
+//#define _kHz    *1000
+//#define _MHz    *1000000
 
 #if defined(STM32F4)
 #define TIM1_UP_IRQ         TIM1_UP_TIM10_IRQ
@@ -86,6 +86,7 @@ public:
         Tim17   = 17,
         Tim18   = 18,
         Tim19   = 19,
+        Tim20   = 20
     } TimerNumber;
 
     typedef enum

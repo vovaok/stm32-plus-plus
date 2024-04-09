@@ -2,6 +2,11 @@
 #define _ADC_H
 
 #include "stm32.h"
+
+#if defined(STM32G4)
+
+#else
+
 #include "dma.h"
 #include "core/bytearray.h"
 #include "gpio.h"
@@ -129,5 +134,6 @@ public:
 
     void setCompleteEvent(NotifyEvent e);
 };
+#endif
 
 #endif

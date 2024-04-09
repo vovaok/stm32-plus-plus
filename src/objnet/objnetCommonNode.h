@@ -7,7 +7,7 @@
 #include "objectinfo.h"
 
 #if !defined(QT_CORE_LIB) && !defined(NRF52840_XXAA)
-    #include "canInterface.h"
+//    #include "canonbinterface.h"
     #include "gpio.h"
 #endif
 

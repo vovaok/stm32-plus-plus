@@ -184,8 +184,11 @@ public:
         @note This declaration is located in the corresponding gpiconfigX.h
     */
     // enum GpioConfig = {...};
-    #if defined(STM32F4) || defined(STM32L4) || defined(STM32G4)
+    #include "gpioconfig_macros.h"
+    #if defined(STM32F4) || defined(STM32L4)
     #include "gpioconfig4.h"
+    #elif defined(STM32G4)
+    #include "gpioconfig_g4.h"
     #elif defined(STM32F3)
     #include "gpioconfig3.h"
     #endif

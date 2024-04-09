@@ -119,6 +119,11 @@ Application *stmApp()
 }
 //---------------------------------------------------------------------------
 
+void Application::systemReset()
+{
+    NVIC_SystemReset();
+}
+
 bool Application::startOnbBootloader()
 {
     unsigned long *ptr = (unsigned long*)0x08000000;

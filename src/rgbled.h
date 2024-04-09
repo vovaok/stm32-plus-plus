@@ -11,7 +11,7 @@ private:
     unsigned char mR, mG, mB;
     
 public:
-    RgbLed(Gpio::Config pinR, Gpio::Config pinG, Gpio::Config pinB, int pwmFrequency=1 _kHz, bool inverted=false);
+    RgbLed(Gpio::Config pinR, Gpio::Config pinG, Gpio::Config pinB, int pwmFrequency=1000, bool inverted=false);
     void setR(int value);
     void setG(int value);
     void setB(int value);

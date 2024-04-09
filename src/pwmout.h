@@ -13,7 +13,7 @@ private:
     void init();
   
 public:
-    PwmOutput(TimerNumber timerNo, unsigned long pwmFreq);
+    PwmOutput(TimerNumber timerNo, int pwmFreq);
     PwmOutput(Gpio::Config pin1,                Gpio::Config pin2=Gpio::NoConfig,
               Gpio::Config pin3=Gpio::NoConfig, Gpio::Config pin4=Gpio::NoConfig,
               Gpio::Config pin5=Gpio::NoConfig, Gpio::Config pin6=Gpio::NoConfig);
@@ -39,9 +39,18 @@ public:
     void setDutyCyclePercent(ChannelNumber channel, float value);
     void setDutyCycle(int dutyCycle1, int dutyCycle2 = 0, int dutyCycle3 = 0, int dutyCycle4 = 0);
     
-    void setPwmMode(uint8_t mode);
+    enum PwmAlignMode
+    {
+        EdgeAlignedMode = 0,
+        CenterAlignedMode1 = 1 << 5,
+        CenterAlignedMode2 = 2 << 5,
+        CenterAlignedMode3 = 3 << 5,
+    };
+    
+    void setPwmAlignMode(PwmAlignMode mode);
     
     void setFrequency(int f_Hz);
+    int frequency();
     void setDeadtime(float deadtime_us);
     
     int maxPwm() const {return mPeriod;}

@@ -110,6 +110,8 @@ protected:
     void setBurnCount(unsigned long cnt) {mBurnCount = cnt;}
     void setSleeping(bool sleep) {m_sleeping = sleep;}
     
+    void systemReset();
+    
 public:
     /*! Экземпляр приложения. */
     static Application *instance() {return self;}

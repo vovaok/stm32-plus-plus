@@ -139,6 +139,16 @@ void Ethernet::setupNetworkInterface(const char *ipaddr, const char *netmask, co
 //    igmp_start(&m_netif);
 }
 
+void Ethernet::setAddress(const char *ipaddr, const char *netmask, const char *gateway)
+{
+    ip_addr_t addr, mask, gw;
+    addr = ipFromString(ipaddr);
+    mask = ipFromString(netmask);
+    gw = ipFromString(gateway);
+    
+    netif_set_addr(&m_netif, &addr, &mask, &gw);
+}
+
 bool Ethernet::netcmp(const ip_addr_t &addr)
 {
     return ip_addr_netcmp(&m_self->m_netif.ip_addr, &addr, &m_self->m_netif.netmask);

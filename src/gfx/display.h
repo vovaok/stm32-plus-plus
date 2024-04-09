@@ -52,6 +52,7 @@ public:
     void drawString(int x, int y, int w, int h, int flags, const char *s);
     void drawString(const Rect &rect, int flags, const char *s);
     void drawLine(int x0, int y0, int x1, int y1);
+    void drawTriangle(int x1, int y1, int x2, int y2, int x3, int y3);
     void drawRect(int x, int y, int w, int h);
     void drawRect(const Rect &rect);
     void drawFillRect(int x, int y, int w, int h);

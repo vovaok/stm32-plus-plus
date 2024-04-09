@@ -188,30 +188,38 @@ void Spi::open()
     if (isOpen())
         return;// false;
 
-//    if (mUseDmaRx)
-//    {
-//        if (!mDmaRx)
-//            mDmaRx = Dma::getStreamForPeriph(mDmaChannelRx);
-//        mDmaRx->setSource((void*)&mDev->DR, 1);
-//        mDev->CR2 |= SPI_CR2_RXDMAEN;
-//    }
+    if (mUseDmaRx)
+    {
+        if (!mDmaRx)
+        mDmaRx = new Dma(mDmaChannelRx);
+        int dataSize = (m_dataSize > 8)? 2: 1;
+//        size /= dataSize;
+        mDmaRx->setSource(&mDev->DR, dataSize);
+//        if (circular)
+//            mDmaRx->setCircularBuffer(data, size);
+//        else
+//            mDmaRx->setSingleBuffer(data, size);
+        mConfig.RXDMAEN = 1;
+    }
     
-    if (mDmaRx)
-        mDmaRx->start();
+//    if (mDmaRx)
+//        mDmaRx->start();
 
     if (mUseDmaTx)
     {
         if (!mDmaTx)
             mDmaTx = new Dma(mDmaChannelTx);
-        mDmaTx->setTransferCompleteEvent(EVENT(&Spi::handleDmaInterrupt));
+        if (onBytesWritten)
+            mDmaTx->setTransferCompleteEvent(EVENT(&Spi::handleDmaInterrupt));
         if (m_dataSize <= 8)
             mDmaTx->setSink((void*)&mDev->DR, 1);
         else
             mDmaTx->setSink((void*)&mDev->DR, 2);
         mConfig.TXDMAEN = 1;
-        updateConfig();
     }
 
+    updateConfig();
+    
     mConfig.enable = 1;
     mDev->CR1 = mConfig.cr1;
 }
@@ -255,28 +263,36 @@ void Spi::transferWordAsync(uint16_t word)
 
 void Spi::transfer(uint8_t* data, int size)
 {
-//    if (!mUseDmaRx && !mUseDmaTx)
-//    {
-        for (int i=0; i<size; i++)
-        {
-            mDev->DR = data[i];
-            while (!(mDev->SR & SPI_SR_RXNE)); // wait for RX Not Empty
-            data[i] =  mDev->DR;
-        }
-//    }
-//    else
-//    {
-//        if (mUseDmaRx)
-//        {
-//            mDmaRx->setSingleBuffer(data, size);
-//            mDmaRx->start();
-//        }
-//        if (mUseDmaTx)
-//        {
-//            mDmaTx->setSingleBuffer(data, size);
-//            mDmaTx->start();
-//        }
-//    }
+    while (size--)
+    {
+        *((__IO uint8_t *)(&mDev->DR)) = *data;
+        while (!(mDev->SR & SPI_SR_RXNE)); // wait for RX Not Empty
+        *data++ = *((__IO uint8_t *)(&mDev->DR));
+    }
+}
+
+bool Spi::transferDma(const uint8_t *data, uint8_t *buffer, int size)
+{
+    if (mDmaTx->isEnabled() && !mDmaTx->isComplete())
+        return false;
+    
+    if (m_dataSize <= 8)
+    {
+        mDmaRx->setSingleBuffer(buffer, size);
+        mDmaTx->setSingleBuffer(const_cast<uint8_t*>(data), size);
+    }
+    else
+    {
+        mDmaRx->setSingleBuffer(buffer, size / 2);
+        mDmaTx->setSingleBuffer(const_cast<uint8_t*>(data), size / 2);
+    }
+    if (buffer)
+        mDmaRx->start();
+    mDmaTx->start();
+    
+//    while (!mDmaRx->isComplete());
+    
+    return true;
 }
 
 void Spi::transfer(const uint8_t *data, uint8_t *buffer, int size)
@@ -367,7 +383,9 @@ bool Spi::write(const uint8_t *data, int size)
 
 void Spi::setRxBuffer(uint8_t *data, int size, bool circular)
 {
-    if (!mDmaRx)
+    if (mDmaRx)
+        mDmaRx->stop(true);
+    else
         mDmaRx = new Dma(mDmaChannelRx);
     int dataSize = (m_dataSize > 8)? 2: 1;
     size /= dataSize;
@@ -378,6 +396,7 @@ void Spi::setRxBuffer(uint8_t *data, int size, bool circular)
         mDmaRx->setSingleBuffer(data, size);
     mConfig.RXDMAEN = 1;
     updateConfig();
+    mDmaRx->start();
 }
 
 bool Spi::writeFill16(uint16_t *value, int count)
@@ -434,12 +453,12 @@ void Spi::waitForBytesWritten()
 }
 //---------------------------------------------------------------------------
 
-//void Spi::setUseDmaRx(bool useDma)
-//{
-//    if (isOpen())
-//        THROW(Exception::ResourceBusy);
-//    mUseDmaRx = useDma;
-//}
+void Spi::setUseDmaRx(bool useDma)
+{
+    if (isOpen())
+        THROW(Exception::ResourceBusy);
+    mUseDmaRx = useDma;
+}
 
 void Spi::setUseDmaTx(bool useDma)
 {

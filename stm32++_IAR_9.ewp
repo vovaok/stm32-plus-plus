@@ -12474,7 +12474,7 @@
             <archiveVersion>1</archiveVersion>
             <data>
                 <prebuild></prebuild>
-                <postbuild>cmd /C rem start /D "$PROJ_DIR$\doxygen" doxygen Doxyfile</postbuild>
+                <postbuild></postbuild>
             </data>
         </settings>
         <settings>
@@ -14374,6 +14374,12 @@
                 <name>$PROJ_DIR$\src\gfx\gui\font_Tahoma_13.cpp</name>
             </file>
             <file>
+                <name>$PROJ_DIR$\src\gfx\gui\gaugebarwidget.cpp</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\src\gfx\gui\gaugebarwidget.h</name>
+            </file>
+            <file>
                 <name>$PROJ_DIR$\src\gfx\gui\gaugewidget.cpp</name>
             </file>
             <file>
@@ -14530,10 +14536,10 @@
             <configuration>stm32g474</configuration>
         </excluded>
         <file>
-            <name>$PROJ_DIR$\src\objnet\canInterface.cpp</name>
+            <name>$PROJ_DIR$\src\objnet\canonbinterface.cpp</name>
         </file>
         <file>
-            <name>$PROJ_DIR$\src\objnet\canInterface.h</name>
+            <name>$PROJ_DIR$\src\objnet\canonbinterface.h</name>
         </file>
         <file>
             <name>$PROJ_DIR$\src\objnet\genericonbinterface.cpp</name>
@@ -15133,6 +15139,19 @@
         <name>$PROJ_DIR$\src\encoder.h</name>
     </file>
     <file>
+        <name>$PROJ_DIR$\src\fdcan.cpp</name>
+        <excluded>
+            <configuration>stm32f407vg</configuration>
+            <configuration>stm32f429zi</configuration>
+        </excluded>
+    </file>
+    <file>
+        <name>$PROJ_DIR$\src\fdcan.h</name>
+        <excluded>
+            <configuration>stm32f429zi</configuration>
+        </excluded>
+    </file>
+    <file>
         <name>$PROJ_DIR$\src\flash.h</name>
         <excluded>
             <configuration>stm32f373xB_no-exceptions_no-rtti</configuration>
@@ -15195,6 +15214,9 @@
     </file>
     <file>
         <name>$PROJ_DIR$\src\gpioconfig4.h</name>
+    </file>
+    <file>
+        <name>$PROJ_DIR$\src\gpioconfig_g4.h</name>
     </file>
     <file>
         <name>$PROJ_DIR$\src\hardwaretimer.cpp</name>
