@@ -35,13 +35,13 @@ ObjnetNode::ObjnetNode(ObjnetInterface *iface) :
     mCpuInfo = stmApp()->cpuInfo();
     mBurnCount = stmApp()->burnCount();
     #endif
-    
+
     mBusType = iface->busType();
-    
+
     // sendTimer must be running for mTimestamp++
 //    if (mBusType == BusSwonb || mBusType == BusRadio)
 //        mSendTimer.stop();
-    
+
     if (mNodesCount)
         mSerial ^= rand();
 
@@ -55,7 +55,7 @@ ObjnetNode::ObjnetNode(ObjnetInterface *iface) :
     registerSvcObject(ObjectInfo("burnCount", mBurnCount));
     registerSvcObject(ObjectInfo("objCount", EVENT(&ObjnetNode::objectCount), ObjectInfo::ReadOnly));
     registerSvcObject(ObjectInfo("busType", mBusType, ObjectInfo::ReadOnly));
-    
+
     mNodesCount++;
 }
 //---------------------------------------------------------------------------
@@ -132,7 +132,7 @@ void ObjnetNode::task()
             mTimer.stop();
             mNetState = netnReady;
         }
-        
+
         if (mAdjacentNode)
         {
             // call event for master
@@ -143,7 +143,7 @@ void ObjnetNode::task()
       case netnReady:
         if (mBusType == BusSwonb || mBusType == BusRadio)
         {
-          
+
         }
         else
         {
@@ -234,7 +234,7 @@ void ObjnetNode::parseServiceMessage(const CommonMessage &msg)
                 }
             }
             break;
-            
+
           case aidUpgradeStart:
           {
             uint32_t classId = *reinterpret_cast<const uint32_t*>(msg.data().data());
@@ -250,7 +250,7 @@ void ObjnetNode::parseServiceMessage(const CommonMessage &msg)
                 emit upgradeRequest();
             #endif
           } break;
-          
+
           case aidSync:
             mTimestamp = 0;
             break;
@@ -272,7 +272,7 @@ void ObjnetNode::parseServiceMessage(const CommonMessage &msg)
       case svcEcho:
         sendServiceMessage(remoteAddr, svcEcho);
         break;
-      
+
       case svcHello:
         if (mBusType == BusSwonb || mBusType == BusRadio)
         {
@@ -320,7 +320,7 @@ void ObjnetNode::parseServiceMessage(const CommonMessage &msg)
                     obj.mAutoPeriod = 0;
                     obj.mTimedRequest = false;
                 }
-              
+
                 mNetAddress = msg.data()[0];
                 mNetState = netnAccepted;
                 int len = mName.length();
@@ -362,7 +362,7 @@ void ObjnetNode::parseServiceMessage(const CommonMessage &msg)
             sendServiceMessage(remoteAddr, svcFail, oid);
         }
       } break;
-      
+
       case svcGetTimedObject:
       {
           #ifndef QT_CORE_LIB
@@ -387,7 +387,7 @@ void ObjnetNode::parseServiceMessage(const CommonMessage &msg)
             sendServiceMessage(remoteAddr, svcFail, oid);
         }
       } break;
-        
+
       case svcRequestAllInfo:
         if (mBusType == BusSwonb)// || mBusType == BusRadio)
         {
@@ -459,7 +459,7 @@ void ObjnetNode::parseServiceMessage(const CommonMessage &msg)
             sendServiceMessage(remoteAddr, svcFail, oid);
         }
         break;
-        
+
       case svcGroupedRequest:
       {
         ByteArray ba;
@@ -476,7 +476,7 @@ void ObjnetNode::parseServiceMessage(const CommonMessage &msg)
         sendServiceMessage(remoteAddr, svcGroupedObject, std::move(ba));
         break;
       }
-        
+
       case svcUpgradeRequest:
       {
         uint32_t classId = *reinterpret_cast<const uint32_t*>(msg.data().data());
@@ -492,7 +492,7 @@ void ObjnetNode::parseServiceMessage(const CommonMessage &msg)
             emit upgradeRequest();
         #endif
       } break;
-        
+
       default:;
     }
 
@@ -568,23 +568,23 @@ void ObjnetNode::parseMessage(const CommonMessage &msg)
 void ObjnetNode::onTimeoutTimer()
 {
     mNetTimeout += mTimer.interval();
-    
+
     if (mBusType == BusSwonb || mBusType == BusRadio)
     {
         return;
     }
-  
+
     if (mNetState == netnConnecting)
     {
         mNetState = netnDisconnecting;
     }
-    
+
     if (mNetTimeout >= 1000)
     {
         mInterface->reconnect(); //! @todo maybe there is better solution
 
         mNetState = netnStart;
-        
+
         for (unsigned int oid=0; oid<mObjects.size(); oid++)
         {
             ObjectInfo &obj = mObjects[oid];
@@ -649,14 +649,14 @@ bool ObjnetNode::sendObjectInfo(uint8_t remoteAddr, ObjectInfo *obj, const ByteA
     bool result = sendServiceMessage(remoteAddr, svcObjectInfo, std::move(ba));
     if (!result)
         return false;
-    
+
     for (uint8_t idx = 0; idx < obj->subobjectCount(); idx++)
     {
         ByteArray ba = loc;
         ba.append(idx);
         sendObjectInfo(remoteAddr, &obj->subobject(idx), ba);
     }
-    
+
     return true;
 }
 

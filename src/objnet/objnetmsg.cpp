@@ -101,6 +101,8 @@ void CommonMessageBufferList::damage(int pts)
             delete tmp;
 #endif
         }
+        if (!b->m_next)
+            break;
     }
 }
 
