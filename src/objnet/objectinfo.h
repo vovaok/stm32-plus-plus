@@ -81,6 +81,7 @@ public:
         QQuaternion = 85,
 
         String = 10,  // QString B Qt, string B APMe
+        StringList = 11, // QStringList | std::vector<std::string>
         Common = 12, // Common - this is (Q)ByteArray
         
         Compound = 0x80, // bits 0...6 reflect subobject count
@@ -101,6 +102,7 @@ public:
     typedef float Float_t;
     typedef signed char SChar_t;
     typedef string String_t;
+    typedef vector<string> StringList_t;
     typedef ::QVector3D QVector3D_t;
     typedef ::QQuaternion QQuaternion_t;
 
@@ -288,7 +290,8 @@ DeclareTypeOfVar(UShort)
 DeclareTypeOfVar(UChar)
 DeclareTypeOfVar(Float)
 DeclareTypeOfVar(SChar)
-template<> ObjectInfo::Type typeOfVar<_String>(_String &var) {(void)var; return ObjectInfo::String;}
+template<> ObjectInfo::Type typeOfVar<_String>(_String &) {return ObjectInfo::String;}
+DeclareTypeOfVar(StringList)
 DeclareTypeOfVar(QVector3D)
 DeclareTypeOfVar(QQuaternion)
 

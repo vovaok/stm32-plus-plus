@@ -1,6 +1,5 @@
 #include "progressbar.h"
 #include "../image.h"
-#include <math.h>
 #include "core/macros.h"
 
 ProgressBar::ProgressBar(Widget *parent) :

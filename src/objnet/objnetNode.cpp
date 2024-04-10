@@ -19,8 +19,8 @@ ObjnetNode::ObjnetNode(ObjnetInterface *iface) :
     mBurnCount(0)
 {
     #ifndef QT_CORE_LIB
-    mTimer.setTimeoutEvent(EVENT(&ObjnetNode::onTimeoutTimer));
-    mSendTimer.setTimeoutEvent(EVENT(&ObjnetNode::onSendTimer));
+    mTimer.onTimeout = EVENT(&ObjnetNode::onTimeoutTimer);
+    mSendTimer.onTimeout = EVENT(&ObjnetNode::onSendTimer);
     #else
     QObject::connect(&mTimer, SIGNAL(timeout()), this, SLOT(onTimeoutTimer()));
     QObject::connect(&mSendTimer, SIGNAL(timeout()), this, SLOT(onSendTimer()));

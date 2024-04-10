@@ -33,7 +33,7 @@ Encoder::Encoder(Gpio::Config pinA, Gpio::Config pinB, Gpio::Config pinIdx) :
 //    Task::Add(this);
 
     m_updateTimer = new Timer;
-    m_updateTimer->setTimeoutEvent(EVENT(&Encoder::update));
+    m_updateTimer->onTimeout = EVENT(&Encoder::update);
 
     setEnabled(true);
     valid = false;

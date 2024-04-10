@@ -14098,6 +14098,12 @@
             <name>$PROJ_DIR$\src\audio\microphone.h</name>
         </file>
         <file>
+            <name>$PROJ_DIR$\src\audio\sequencer.cpp</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\audio\sequencer.h</name>
+        </file>
+        <file>
             <name>$PROJ_DIR$\src\audio\speaker.cpp</name>
         </file>
         <file>

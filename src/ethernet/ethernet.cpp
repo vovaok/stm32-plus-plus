@@ -75,13 +75,13 @@ Ethernet::Ethernet(const RMII &rmii)
         
         lwip_init();
         
-        m_tcpTimer.callback = tcp_tmr;
+        m_tcpTimer.onTimeout = tcp_tmr;
         m_tcpTimer.start(250);
 
-        m_arpTimer.callback = etharp_tmr;
+        m_arpTimer.onTimeout = etharp_tmr;
         m_arpTimer.start(5000);
         
-        m_igmpTmr.callback = igmp_tmr;
+        m_igmpTmr.onTimeout = igmp_tmr;
         m_igmpTmr.start(IGMP_TMR_INTERVAL);
         
         stmApp()->registerTaskEvent(EVENT(&Ethernet::task));
