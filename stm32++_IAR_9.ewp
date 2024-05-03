@@ -14536,6 +14536,57 @@
         </file>
     </group>
     <group>
+        <name>modbus</name>
+        <file>
+            <name>$PROJ_DIR$\src\modbus\commonproxy.cpp</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\modbus\commonproxy.h</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\modbus\modbus.cpp</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\modbus\modbus.h</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\modbus\modbusdevice.cpp</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\modbus\modbusdevice.h</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\modbus\modbusmaster.cpp</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\modbus\modbusmaster.h</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\modbus\modbusproxy.cpp</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\modbus\modbusproxy.h</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\modbus\modbusslave.cpp</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\modbus\modbusslave.h</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\modbus\modbustcp.cpp</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\modbus\modbustcp.h</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\modbus\modbustransport.cpp</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\modbus\modbustransport.h</name>
+        </file>
+    </group>
+    <group>
         <name>objnet</name>
         <excluded>
             <configuration>stm32l476rg</configuration>
