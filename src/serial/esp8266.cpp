@@ -37,7 +37,7 @@ ESP8266::ESP8266(Usart *usart, Gpio::PinName resetPin) :
     for (int i=0; i<10000; i++);
     mResetPin->write(1);
     
-    mTimer.setTimeoutEvent(EVENT(&ESP8266::onTimer));
+    mTimer.onTimeout =(EVENT(&ESP8266::onTimer));
     mTimer.start(1000);
 }
 

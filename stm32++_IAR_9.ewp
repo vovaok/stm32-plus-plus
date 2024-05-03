@@ -1142,11 +1142,11 @@
                 </option>
                 <option>
                     <name>OGLastSavedByProductVersion</name>
-                    <state>7.50.3.10745</state>
+                    <state>9.30.1.50052</state>
                 </option>
                 <option>
                     <name>OGChipSelectEditMenu</name>
-                    <state>STM32F373xB	ST STM32F373xB</state>
+                    <state>STM32F373VB	ST STM32F373VB</state>
                 </option>
                 <option>
                     <name>GenLowLevelInterface</name>
@@ -1166,7 +1166,7 @@
                 </option>
                 <option>
                     <name>RTConfigPath2</name>
-                    <state>$TOOLKIT_DIR$\INC\c\DLib_Config_Full.h</state>
+                    <state>$TOOLKIT_DIR$\inc\c\DLib_Config_Full.h</state>
                 </option>
                 <option>
                     <name>GBECoreSlave</name>
@@ -1192,7 +1192,7 @@
                 </option>
                 <option>
                     <name>GFPUDeviceSlave</name>
-                    <state>STM32F373xB	ST STM32F373xB</state>
+                    <state>STM32F373VB	ST STM32F373VB</state>
                 </option>
                 <option>
                     <name>FPU2</name>
@@ -1252,7 +1252,7 @@
                 </option>
                 <option>
                     <name>DSPExtension</name>
-                    <state>0</state>
+                    <state>1</state>
                 </option>
                 <option>
                     <name>TrustZone</name>
@@ -2140,7 +2140,7 @@
                 </option>
                 <option>
                     <name>IarchiveOutput</name>
-                    <state>D:\projects\iar\components\stm32++\bin\stm32f373xB\stm32++.a</state>
+                    <state>D:\projects\iar\components\stm32++\bin\stm32f373xB\stm32++_IAR_9.a</state>
                 </option>
             </data>
         </settings>
@@ -13944,11 +13944,1084 @@
             </data>
         </settings>
     </configuration>
+    <configuration>
+        <name>stm32f303x8</name>
+        <toolchain>
+            <name>ARM</name>
+        </toolchain>
+        <debug>1</debug>
+        <settings>
+            <name>General</name>
+            <archiveVersion>3</archiveVersion>
+            <data>
+                <version>35</version>
+                <wantNonLocal>1</wantNonLocal>
+                <debug>1</debug>
+                <option>
+                    <name>BrowseInfoPath</name>
+                    <state>stm32f303x8\BrowseInfo</state>
+                </option>
+                <option>
+                    <name>ExePath</name>
+                    <state>stm32f303x8\Exe</state>
+                </option>
+                <option>
+                    <name>ObjPath</name>
+                    <state>stm32f303x8\Obj</state>
+                </option>
+                <option>
+                    <name>ListPath</name>
+                    <state>stm32f303x8\List</state>
+                </option>
+                <option>
+                    <name>GEndianMode</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>Input description</name>
+                    <state>Automatic choice of formatter, without multibyte support.</state>
+                </option>
+                <option>
+                    <name>Output description</name>
+                    <state>Automatic choice of formatter, without multibyte support.</state>
+                </option>
+                <option>
+                    <name>GOutputBinary</name>
+                    <state>1</state>
+                </option>
+                <option>
+                    <name>OGCoreOrChip</name>
+                    <state>1</state>
+                </option>
+                <option>
+                    <name>GRuntimeLibSelect</name>
+                    <version>0</version>
+                    <state>2</state>
+                </option>
+                <option>
+                    <name>GRuntimeLibSelectSlave</name>
+                    <version>0</version>
+                    <state>2</state>
+                </option>
+                <option>
+                    <name>RTDescription</name>
+                    <state>To be used with a complete configuration of the C/C++14 runtime library. Full locale interface, C locale, file descriptor support, multibytes in printf and scanf, and hex floats in strtod.</state>
+                </option>
+                <option>
+                    <name>OGProductVersion</name>
+                    <state>6.30.1.53141</state>
+                </option>
+                <option>
+                    <name>OGLastSavedByProductVersion</name>
+                    <state>9.30.1.50052</state>
+                </option>
+                <option>
+                    <name>OGChipSelectEditMenu</name>
+                    <state>STM32F303C8	ST STM32F303C8</state>
+                </option>
+                <option>
+                    <name>GenLowLevelInterface</name>
+                    <state>1</state>
+                </option>
+                <option>
+                    <name>GEndianModeBE</name>
+                    <state>1</state>
+                </option>
+                <option>
+                    <name>OGBufferedTerminalOutput</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>GenStdoutInterface</name>
+                    <state>1</state>
+                </option>
+                <option>
+                    <name>RTConfigPath2</name>
+                    <state>$TOOLKIT_DIR$\inc\c\DLib_Config_Full.h</state>
+                </option>
+                <option>
+                    <name>GBECoreSlave</name>
+                    <version>32</version>
+                    <state>39</state>
+                </option>
+                <option>
+                    <name>OGUseCmsis</name>
+                    <state>1</state>
+                </option>
+                <option>
+                    <name>OGUseCmsisDspLib</name>
+                    <state>1</state>
+                </option>
+                <option>
+                    <name>GRuntimeLibThreads</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>CoreVariant</name>
+                    <version>32</version>
+                    <state>39</state>
+                </option>
+                <option>
+                    <name>GFPUDeviceSlave</name>
+                    <state>STM32F303C8	ST STM32F303C8</state>
+                </option>
+                <option>
+                    <name>FPU2</name>
+                    <version>0</version>
+                    <state>4</state>
+                </option>
+                <option>
+                    <name>NrRegs</name>
+                    <version>0</version>
+                    <state>1</state>
+                </option>
+                <option>
+                    <name>NEON</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>GFPUCoreSlave2</name>
+                    <version>32</version>
+                    <state>39</state>
+                </option>
+                <option>
+                    <name>OGCMSISPackSelectDevice</name>
+                </option>
+                <option>
+                    <name>OgLibHeap</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>OGLibAdditionalLocale</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>OGPrintfVariant</name>
+                    <version>0</version>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>OGPrintfMultibyteSupport</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>OGScanfVariant</name>
+                    <version>0</version>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>OGScanfMultibyteSupport</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>GenLocaleTags</name>
+                    <state></state>
+                </option>
+                <option>
+                    <name>GenLocaleDisplayOnly</name>
+                    <state></state>
+                </option>
+                <option>
+                    <name>DSPExtension</name>
+                    <state>1</state>
+                </option>
+                <option>
+                    <name>TrustZone</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>TrustZoneModes</name>
+                    <version>0</version>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>OGAarch64Abi</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>OG_32_64Device</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>BuildFilesPath</name>
+                    <state>stm32f303x8\</state>
+                </option>
+                <option>
+                    <name>PointerAuthentication</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>FPU64</name>
+                    <state>1</state>
+                </option>
+            </data>
+        </settings>
+        <settings>
+            <name>ICCARM</name>
+            <archiveVersion>2</archiveVersion>
+            <data>
+                <version>37</version>
+                <wantNonLocal>1</wantNonLocal>
+                <debug>1</debug>
+                <option>
+                    <name>CCOptimizationNoSizeConstraints</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>CCDefines</name>
+                    <state>STM32F303x8</state>
+                </option>
+                <option>
+                    <name>CCPreprocFile</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>CCPreprocComments</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>CCPreprocLine</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>CCListCFile</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>CCListCMnemonics</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>CCListCMessages</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>CCListAssFile</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>CCListAssSource</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>CCEnableRemarks</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>CCDiagSuppress</name>
+                    <state></state>
+                </option>
+                <option>
+                    <name>CCDiagRemark</name>
+                    <state></state>
+                </option>
+                <option>
+                    <name>CCDiagWarning</name>
+                    <state></state>
+                </option>
+                <option>
+                    <name>CCDiagError</name>
+                    <state></state>
+                </option>
+                <option>
+                    <name>CCObjPrefix</name>
+                    <state>1</state>
+                </option>
+                <option>
+                    <name>CCAllowList</name>
+                    <version>1</version>
+                    <state>00000000</state>
+                </option>
+                <option>
+                    <name>CCDebugInfo</name>
+                    <state>1</state>
+                </option>
+                <option>
+                    <name>IEndianMode</name>
+                    <state>1</state>
+                </option>
+                <option>
+                    <name>IProcessor</name>
+                    <state>1</state>
+                </option>
+                <option>
+                    <name>IExtraOptionsCheck</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>IExtraOptions</name>
+                    <state></state>
+                </option>
+                <option>
+                    <name>CCLangConformance</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>CCSignedPlainChar</name>
+                    <state>1</state>
+                </option>
+                <option>
+                    <name>CCRequirePrototypes</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>CCDiagWarnAreErr</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>CCCompilerRuntimeInfo</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>IFpuProcessor</name>
+                    <state>1</state>
+                </option>
+                <option>
+                    <name>OutputFile</name>
+                    <state>$FILE_BNAME$.o</state>
+                </option>
+                <option>
+                    <name>CCLibConfigHeader</name>
+                    <state>1</state>
+                </option>
+                <option>
+                    <name>PreInclude</name>
+                    <state></state>
+                </option>
+                <option>
+                    <name>CCIncludePath2</name>
+                    <state>$PROJ_DIR$\lib\CMSIS\Device\ST\cmsis_device_f3\Include</state>
+                    <state>$PROJ_DIR$\src</state>
+                </option>
+                <option>
+                    <name>CCStdIncCheck</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>CCCodeSection</name>
+                    <state>.text</state>
+                </option>
+                <option>
+                    <name>IProcessorMode2</name>
+                    <state>1</state>
+                </option>
+                <option>
+                    <name>CCOptLevel</name>
+                    <state>1</state>
+                </option>
+                <option>
+                    <name>CCOptStrategy</name>
+                    <version>0</version>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>CCOptLevelSlave</name>
+                    <state>1</state>
+                </option>
+                <option>
+                    <name>CCPosIndRopi</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>CCPosIndRwpi</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>CCPosIndNoDynInit</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>IccLang</name>
+                    <state>1</state>
+                </option>
+                <option>
+                    <name>IccCDialect</name>
+                    <state>1</state>
+                </option>
+                <option>
+                    <name>IccAllowVLA</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>IccStaticDestr</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>IccCppInlineSemantics</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>IccCmsis</name>
+                    <state>1</state>
+                </option>
+                <option>
+                    <name>IccFloatSemantics</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>CCNoLiteralPool</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>CCOptStrategySlave</name>
+                    <version>0</version>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>CCGuardCalls</name>
+                    <state>1</state>
+                </option>
+                <option>
+                    <name>CCEncSource</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>CCEncOutput</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>CCEncOutputBom</name>
+                    <state>1</state>
+                </option>
+                <option>
+                    <name>CCEncInput</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>IccExceptions2</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>IccRTTI2</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>OICompilerExtraOption</name>
+                    <state>1</state>
+                </option>
+                <option>
+                    <name>CCStackProtection</name>
+                    <state>0</state>
+                </option>
+            </data>
+        </settings>
+        <settings>
+            <name>AARM</name>
+            <archiveVersion>2</archiveVersion>
+            <data>
+                <version>11</version>
+                <wantNonLocal>1</wantNonLocal>
+                <debug>1</debug>
+                <option>
+                    <name>AObjPrefix</name>
+                    <state>1</state>
+                </option>
+                <option>
+                    <name>AEndian</name>
+                    <state>1</state>
+                </option>
+                <option>
+                    <name>ACaseSensitivity</name>
+                    <state>1</state>
+                </option>
+                <option>
+                    <name>MacroChars</name>
+                    <version>0</version>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>AWarnEnable</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>AWarnWhat</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>AWarnOne</name>
+                    <state></state>
+                </option>
+                <option>
+                    <name>AWarnRange1</name>
+                    <state></state>
+                </option>
+                <option>
+                    <name>AWarnRange2</name>
+                    <state></state>
+                </option>
+                <option>
+                    <name>ADebug</name>
+                    <state>1</state>
+                </option>
+                <option>
+                    <name>AltRegisterNames</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>ADefines</name>
+                    <state></state>
+                </option>
+                <option>
+                    <name>AList</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>AListHeader</name>
+                    <state>1</state>
+                </option>
+                <option>
+                    <name>AListing</name>
+                    <state>1</state>
+                </option>
+                <option>
+                    <name>Includes</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>MacDefs</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>MacExps</name>
+                    <state>1</state>
+                </option>
+                <option>
+                    <name>MacExec</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>OnlyAssed</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>MultiLine</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>PageLengthCheck</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>PageLength</name>
+                    <state>80</state>
+                </option>
+                <option>
+                    <name>TabSpacing</name>
+                    <state>8</state>
+                </option>
+                <option>
+                    <name>AXRef</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>AXRefDefines</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>AXRefInternal</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>AXRefDual</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>AProcessor</name>
+                    <state>1</state>
+                </option>
+                <option>
+                    <name>AFpuProcessor</name>
+                    <state>1</state>
+                </option>
+                <option>
+                    <name>AOutputFile</name>
+                    <state>$FILE_BNAME$.o</state>
+                </option>
+                <option>
+                    <name>ALimitErrorsCheck</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>ALimitErrorsEdit</name>
+                    <state>100</state>
+                </option>
+                <option>
+                    <name>AIgnoreStdInclude</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>AUserIncludes</name>
+                    <state></state>
+                </option>
+                <option>
+                    <name>AExtraOptionsCheckV2</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>AExtraOptionsV2</name>
+                    <state></state>
+                </option>
+                <option>
+                    <name>AsmNoLiteralPool</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>PreInclude</name>
+                    <state></state>
+                </option>
+            </data>
+        </settings>
+        <settings>
+            <name>OBJCOPY</name>
+            <archiveVersion>0</archiveVersion>
+            <data>
+                <version>1</version>
+                <wantNonLocal>1</wantNonLocal>
+                <debug>1</debug>
+                <option>
+                    <name>OOCOutputFormat</name>
+                    <version>3</version>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>OCOutputOverride</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>OOCOutputFile</name>
+                    <state></state>
+                </option>
+                <option>
+                    <name>OOCCommandLineProducer</name>
+                    <state>1</state>
+                </option>
+                <option>
+                    <name>OOCObjCopyEnable</name>
+                    <state>0</state>
+                </option>
+            </data>
+        </settings>
+        <settings>
+            <name>CUSTOM</name>
+            <archiveVersion>3</archiveVersion>
+            <data>
+                <extensions></extensions>
+                <cmdline></cmdline>
+                <hasPrio>144</hasPrio>
+                <buildSequence>inputOutputBased</buildSequence>
+            </data>
+        </settings>
+        <settings>
+            <name>BUILDACTION</name>
+            <archiveVersion>1</archiveVersion>
+            <data>
+                <prebuild></prebuild>
+                <postbuild>cmd /C rem start /D "$PROJ_DIR$\doxygen" doxygen Doxyfile</postbuild>
+            </data>
+        </settings>
+        <settings>
+            <name>ILINK</name>
+            <archiveVersion>0</archiveVersion>
+            <data>
+                <version>27</version>
+                <wantNonLocal>1</wantNonLocal>
+                <debug>1</debug>
+                <option>
+                    <name>IlinkLibIOConfig</name>
+                    <state>1</state>
+                </option>
+                <option>
+                    <name>IlinkInputFileSlave</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>IlinkOutputFile</name>
+                    <state>stm32++.out</state>
+                </option>
+                <option>
+                    <name>IlinkDebugInfoEnable</name>
+                    <state>1</state>
+                </option>
+                <option>
+                    <name>IlinkKeepSymbols</name>
+                    <state></state>
+                </option>
+                <option>
+                    <name>IlinkRawBinaryFile</name>
+                    <state></state>
+                </option>
+                <option>
+                    <name>IlinkRawBinarySymbol</name>
+                    <state></state>
+                </option>
+                <option>
+                    <name>IlinkRawBinarySegment</name>
+                    <state></state>
+                </option>
+                <option>
+                    <name>IlinkRawBinaryAlign</name>
+                    <state></state>
+                </option>
+                <option>
+                    <name>IlinkDefines</name>
+                    <state></state>
+                </option>
+                <option>
+                    <name>IlinkConfigDefines</name>
+                    <state></state>
+                </option>
+                <option>
+                    <name>IlinkMapFile</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>IlinkLogFile</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>IlinkLogInitialization</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>IlinkLogModule</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>IlinkLogSection</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>IlinkLogVeneer</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>IlinkIcfOverride</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>IlinkIcfFile</name>
+                    <state>lnk0t.icf</state>
+                </option>
+                <option>
+                    <name>IlinkIcfFileSlave</name>
+                    <state></state>
+                </option>
+                <option>
+                    <name>IlinkEnableRemarks</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>IlinkSuppressDiags</name>
+                    <state></state>
+                </option>
+                <option>
+                    <name>IlinkTreatAsRem</name>
+                    <state></state>
+                </option>
+                <option>
+                    <name>IlinkTreatAsWarn</name>
+                    <state></state>
+                </option>
+                <option>
+                    <name>IlinkTreatAsErr</name>
+                    <state></state>
+                </option>
+                <option>
+                    <name>IlinkWarningsAreErrors</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>IlinkUseExtraOptions</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>IlinkExtraOptions</name>
+                    <state></state>
+                </option>
+                <option>
+                    <name>IlinkLowLevelInterfaceSlave</name>
+                    <state>1</state>
+                </option>
+                <option>
+                    <name>IlinkAutoLibEnable</name>
+                    <state>1</state>
+                </option>
+                <option>
+                    <name>IlinkAdditionalLibs</name>
+                    <state></state>
+                </option>
+                <option>
+                    <name>IlinkOverrideProgramEntryLabel</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>IlinkProgramEntryLabelSelect</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>IlinkProgramEntryLabel</name>
+                    <state></state>
+                </option>
+                <option>
+                    <name>DoFill</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>FillerByte</name>
+                    <state>0xFF</state>
+                </option>
+                <option>
+                    <name>FillerStart</name>
+                    <state>0x0</state>
+                </option>
+                <option>
+                    <name>FillerEnd</name>
+                    <state>0x0</state>
+                </option>
+                <option>
+                    <name>CrcSize</name>
+                    <version>0</version>
+                    <state>1</state>
+                </option>
+                <option>
+                    <name>CrcAlign</name>
+                    <state>1</state>
+                </option>
+                <option>
+                    <name>CrcPoly</name>
+                    <state>0x11021</state>
+                </option>
+                <option>
+                    <name>CrcCompl</name>
+                    <version>0</version>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>CrcBitOrder</name>
+                    <version>0</version>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>CrcInitialValue</name>
+                    <state>0x0</state>
+                </option>
+                <option>
+                    <name>DoCrc</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>IlinkBE8Slave</name>
+                    <state>1</state>
+                </option>
+                <option>
+                    <name>IlinkBufferedTerminalOutput</name>
+                    <state>1</state>
+                </option>
+                <option>
+                    <name>IlinkStdoutInterfaceSlave</name>
+                    <state>1</state>
+                </option>
+                <option>
+                    <name>CrcFullSize</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>IlinkIElfToolPostProcess</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>IlinkLogAutoLibSelect</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>IlinkLogRedirSymbols</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>IlinkLogUnusedFragments</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>IlinkCrcReverseByteOrder</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>IlinkCrcUseAsInput</name>
+                    <state>1</state>
+                </option>
+                <option>
+                    <name>IlinkOptInline</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>IlinkOptExceptionsAllow</name>
+                    <state>1</state>
+                </option>
+                <option>
+                    <name>IlinkOptExceptionsForce</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>IlinkCmsis</name>
+                    <state>1</state>
+                </option>
+                <option>
+                    <name>IlinkOptMergeDuplSections</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>IlinkOptUseVfe</name>
+                    <state>1</state>
+                </option>
+                <option>
+                    <name>IlinkOptForceVfe</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>IlinkStackAnalysisEnable</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>IlinkStackControlFile</name>
+                    <state></state>
+                </option>
+                <option>
+                    <name>IlinkStackCallGraphFile</name>
+                    <state></state>
+                </option>
+                <option>
+                    <name>CrcAlgorithm</name>
+                    <version>1</version>
+                    <state>1</state>
+                </option>
+                <option>
+                    <name>CrcUnitSize</name>
+                    <version>0</version>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>IlinkThreadsSlave</name>
+                    <state>1</state>
+                </option>
+                <option>
+                    <name>IlinkLogCallGraph</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>IlinkIcfFile_AltDefault</name>
+                    <state></state>
+                </option>
+                <option>
+                    <name>IlinkEncInput</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>IlinkEncOutput</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>IlinkEncOutputBom</name>
+                    <state>1</state>
+                </option>
+                <option>
+                    <name>IlinkHeapSelect</name>
+                    <state>1</state>
+                </option>
+                <option>
+                    <name>IlinkLocaleSelect</name>
+                    <state>1</state>
+                </option>
+                <option>
+                    <name>IlinkTrustzoneImportLibraryOut</name>
+                    <state>###Unitialized###</state>
+                </option>
+                <option>
+                    <name>OILinkExtraOption</name>
+                    <state>1</state>
+                </option>
+                <option>
+                    <name>IlinkRawBinaryFile2</name>
+                    <state></state>
+                </option>
+                <option>
+                    <name>IlinkRawBinarySymbol2</name>
+                    <state></state>
+                </option>
+                <option>
+                    <name>IlinkRawBinarySegment2</name>
+                    <state></state>
+                </option>
+                <option>
+                    <name>IlinkRawBinaryAlign2</name>
+                    <state></state>
+                </option>
+                <option>
+                    <name>IlinkLogCrtRoutineSelection</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>IlinkLogFragmentInfo</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>IlinkLogInlining</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>IlinkLogMerging</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>IlinkDemangle</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>IlinkWrapperFileEnable</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>IlinkWrapperFile</name>
+                    <state></state>
+                </option>
+                <option>
+                    <name>IlinkProcessor</name>
+                    <state>1</state>
+                </option>
+                <option>
+                    <name>IlinkFpuProcessor</name>
+                    <state>1</state>
+                </option>
+            </data>
+        </settings>
+        <settings>
+            <name>IARCHIVE</name>
+            <archiveVersion>0</archiveVersion>
+            <data>
+                <version>0</version>
+                <wantNonLocal>1</wantNonLocal>
+                <debug>1</debug>
+                <option>
+                    <name>IarchiveInputs</name>
+                    <state></state>
+                </option>
+                <option>
+                    <name>IarchiveOverride</name>
+                    <state>1</state>
+                </option>
+                <option>
+                    <name>IarchiveOutput</name>
+                    <state>D:\projects\iar\components\stm32++\bin\stm32f303\stm32++.a</state>
+                </option>
+            </data>
+        </settings>
+    </configuration>
     <group>
         <name>3rd_party</name>
         <excluded>
             <configuration>stm32f405rg_no-exceptions_no-rtti</configuration>
             <configuration>stm32g474</configuration>
+            <configuration>stm32f303xC</configuration>
+            <configuration>stm32f303x8</configuration>
         </excluded>
         <group>
             <name>lwip</name>
@@ -14063,6 +15136,8 @@
             <configuration>stm32f373xB_no-exceptions_no-rtti</configuration>
             <configuration>stm32l476rg</configuration>
             <configuration>stm32g474</configuration>
+            <configuration>stm32f303xC</configuration>
+            <configuration>stm32f303x8</configuration>
         </excluded>
         <file>
             <name>$PROJ_DIR$\src\audio\amicrophone.cpp</name>
@@ -14184,6 +15259,10 @@
     </group>
     <group>
         <name>device</name>
+        <excluded>
+            <configuration>stm32f303xC</configuration>
+            <configuration>stm32f303x8</configuration>
+        </excluded>
         <file>
             <name>$PROJ_DIR$\src\device\ad7888.cpp</name>
         </file>
@@ -14304,6 +15383,8 @@
         <excluded>
             <configuration>stm32f405rg_no-exceptions_no-rtti</configuration>
             <configuration>stm32g474</configuration>
+            <configuration>stm32f303xC</configuration>
+            <configuration>stm32f303x8</configuration>
         </excluded>
         <group>
             <name>port</name>
@@ -14359,6 +15440,10 @@
     </group>
     <group>
         <name>gfx</name>
+        <excluded>
+            <configuration>stm32f303xC</configuration>
+            <configuration>stm32f303x8</configuration>
+        </excluded>
         <group>
             <name>gui</name>
             <file>
@@ -14591,6 +15676,8 @@
         <excluded>
             <configuration>stm32l476rg</configuration>
             <configuration>stm32g474</configuration>
+            <configuration>stm32f303xC</configuration>
+            <configuration>stm32f303x8</configuration>
         </excluded>
         <file>
             <name>$PROJ_DIR$\src\objnet\canonbinterface.cpp</name>
@@ -14678,6 +15765,7 @@
                 <configuration>stm32l476rg</configuration>
                 <configuration>stm32g474</configuration>
                 <configuration>stm32f303xC</configuration>
+                <configuration>stm32f303x8</configuration>
             </excluded>
         </file>
         <file>
@@ -14696,12 +15784,14 @@
                 <configuration>stm32f405rg_no-exceptions_no-rtti</configuration>
                 <configuration>stm32f446</configuration>
                 <configuration>stm32f303xC</configuration>
+                <configuration>stm32f303x8</configuration>
             </excluded>
         </file>
         <file>
             <name>$PROJ_DIR$\src\objnet\udponbinterface.h</name>
             <excluded>
                 <configuration>stm32f303xC</configuration>
+                <configuration>stm32f303x8</configuration>
             </excluded>
         </file>
         <file>
@@ -14716,6 +15806,8 @@
         <excluded>
             <configuration>stm32l476rg</configuration>
             <configuration>stm32g474</configuration>
+            <configuration>stm32f303xC</configuration>
+            <configuration>stm32f303x8</configuration>
         </excluded>
         <file>
             <name>$PROJ_DIR$\src\radio\cc1200.cpp</name>
@@ -14738,6 +15830,7 @@
                 <configuration>stm32l476rg</configuration>
                 <configuration>stm32g474</configuration>
                 <configuration>stm32f303xC</configuration>
+                <configuration>stm32f303x8</configuration>
             </excluded>
         </file>
         <file>
@@ -14750,11 +15843,16 @@
                 <configuration>stm32l476rg</configuration>
                 <configuration>stm32g474</configuration>
                 <configuration>stm32f303xC</configuration>
+                <configuration>stm32f303x8</configuration>
             </excluded>
         </file>
     </group>
     <group>
         <name>serial</name>
+        <excluded>
+            <configuration>stm32f303xC</configuration>
+            <configuration>stm32f303x8</configuration>
+        </excluded>
         <file>
             <name>$PROJ_DIR$\src\serial\esp8266.cpp</name>
             <excluded>
@@ -14762,6 +15860,7 @@
                 <configuration>stm32l476rg</configuration>
                 <configuration>stm32g474</configuration>
                 <configuration>stm32f303xC</configuration>
+                <configuration>stm32f303x8</configuration>
             </excluded>
         </file>
         <file>
@@ -14790,6 +15889,7 @@
                 <configuration>stm32l476rg</configuration>
                 <configuration>stm32g474</configuration>
                 <configuration>stm32f303xC</configuration>
+                <configuration>stm32f303x8</configuration>
             </excluded>
         </file>
         <file>
@@ -14816,6 +15916,8 @@
             <configuration>stm32f427ii</configuration>
             <configuration>stm32l476rg</configuration>
             <configuration>stm32g474</configuration>
+            <configuration>stm32f303xC</configuration>
+            <configuration>stm32f303x8</configuration>
         </excluded>
         <group>
             <name>otgDriver</name>
@@ -15035,10 +16137,16 @@
             <configuration>stm32f373xB_no-exceptions_no-rtti</configuration>
             <configuration>stm32l476rg</configuration>
             <configuration>stm32g474</configuration>
+            <configuration>stm32f303xC</configuration>
+            <configuration>stm32f303x8</configuration>
         </excluded>
     </file>
     <file>
         <name>$PROJ_DIR$\src\can.h</name>
+        <excluded>
+            <configuration>stm32f303xC</configuration>
+            <configuration>stm32f303x8</configuration>
+        </excluded>
     </file>
     <file>
         <name>$PROJ_DIR$\src\can_old.cpp</name>
@@ -15056,6 +16164,7 @@
             <configuration>stm32l476rg</configuration>
             <configuration>stm32g474</configuration>
             <configuration>stm32f303xC</configuration>
+            <configuration>stm32f303x8</configuration>
         </excluded>
     </file>
     <file>
@@ -15094,6 +16203,7 @@
             <configuration>stm32l476rg</configuration>
             <configuration>stm32g474</configuration>
             <configuration>stm32f303xC</configuration>
+            <configuration>stm32f303x8</configuration>
         </excluded>
     </file>
     <file>
@@ -15108,16 +16218,25 @@
             <configuration>stm32l476rg</configuration>
             <configuration>stm32g474</configuration>
             <configuration>stm32f303xC</configuration>
+            <configuration>stm32f303x8</configuration>
         </excluded>
     </file>
     <file>
         <name>$PROJ_DIR$\src\dac4xx.h</name>
         <excluded>
             <configuration>stm32f373xB_no-exceptions_no-rtti</configuration>
+            <configuration>stm32f303xC</configuration>
+            <configuration>stm32f303x8</configuration>
         </excluded>
     </file>
     <file>
         <name>$PROJ_DIR$\src\dma.h</name>
+    </file>
+    <file>
+        <name>$PROJ_DIR$\src\dma303x8.cpp</name>
+    </file>
+    <file>
+        <name>$PROJ_DIR$\src\dma303x8.h</name>
     </file>
     <file>
         <name>$PROJ_DIR$\src\dma37x.cpp</name>
@@ -15130,7 +16249,7 @@
             <configuration>stm32f446</configuration>
             <configuration>stm32l476rg</configuration>
             <configuration>stm32g474</configuration>
-            <configuration>stm32f303xC</configuration>
+            <configuration>stm32f303x8</configuration>
         </excluded>
     </file>
     <file>
@@ -15144,7 +16263,7 @@
             <configuration>stm32f446</configuration>
             <configuration>stm32l476rg</configuration>
             <configuration>stm32g474</configuration>
-            <configuration>stm32f303xC</configuration>
+            <configuration>stm32f303x8</configuration>
         </excluded>
     </file>
     <file>
@@ -15154,6 +16273,8 @@
             <configuration>stm32f373xB_no-exceptions_no-rtti</configuration>
             <configuration>stm32l476rg</configuration>
             <configuration>stm32g474</configuration>
+            <configuration>stm32f303xC</configuration>
+            <configuration>stm32f303x8</configuration>
         </excluded>
     </file>
     <file>
@@ -15163,6 +16284,8 @@
             <configuration>stm32f373xB_no-exceptions_no-rtti</configuration>
             <configuration>stm32l476rg</configuration>
             <configuration>stm32g474</configuration>
+            <configuration>stm32f303xC</configuration>
+            <configuration>stm32f303x8</configuration>
         </excluded>
     </file>
     <file>
@@ -15174,6 +16297,7 @@
             <configuration>stm32f429zi</configuration>
             <configuration>stm32f446</configuration>
             <configuration>stm32f303xC</configuration>
+            <configuration>stm32f303x8</configuration>
         </excluded>
     </file>
     <file>
@@ -15190,28 +16314,40 @@
         <excluded>
             <configuration>stm32l476rg</configuration>
             <configuration>stm32g474</configuration>
+            <configuration>stm32f303xC</configuration>
+            <configuration>stm32f303x8</configuration>
         </excluded>
     </file>
     <file>
         <name>$PROJ_DIR$\src\encoder.h</name>
+        <excluded>
+            <configuration>stm32f303xC</configuration>
+            <configuration>stm32f303x8</configuration>
+        </excluded>
     </file>
     <file>
         <name>$PROJ_DIR$\src\fdcan.cpp</name>
         <excluded>
             <configuration>stm32f407vg</configuration>
             <configuration>stm32f429zi</configuration>
+            <configuration>stm32f303xC</configuration>
+            <configuration>stm32f303x8</configuration>
         </excluded>
     </file>
     <file>
         <name>$PROJ_DIR$\src\fdcan.h</name>
         <excluded>
             <configuration>stm32f429zi</configuration>
+            <configuration>stm32f303xC</configuration>
+            <configuration>stm32f303x8</configuration>
         </excluded>
     </file>
     <file>
         <name>$PROJ_DIR$\src\flash.h</name>
         <excluded>
             <configuration>stm32f373xB_no-exceptions_no-rtti</configuration>
+            <configuration>stm32f303xC</configuration>
+            <configuration>stm32f303x8</configuration>
         </excluded>
     </file>
     <file>
@@ -15220,6 +16356,8 @@
             <configuration>stm32f429zi</configuration>
             <configuration>stm32l476rg</configuration>
             <configuration>stm32g474</configuration>
+            <configuration>stm32f303xC</configuration>
+            <configuration>stm32f303x8</configuration>
         </excluded>
     </file>
     <file>
@@ -15235,6 +16373,8 @@
             <configuration>stm32f373xB_no-exceptions_no-rtti</configuration>
             <configuration>stm32l476rg</configuration>
             <configuration>stm32g474</configuration>
+            <configuration>stm32f303xC</configuration>
+            <configuration>stm32f303x8</configuration>
         </excluded>
     </file>
     <file>
@@ -15249,6 +16389,8 @@
         <excluded>
             <configuration>stm32l476rg</configuration>
             <configuration>stm32g474</configuration>
+            <configuration>stm32f303xC</configuration>
+            <configuration>stm32f303x8</configuration>
         </excluded>
     </file>
     <file>
@@ -15256,9 +16398,17 @@
     </file>
     <file>
         <name>$PROJ_DIR$\src\fmc.cpp</name>
+        <excluded>
+            <configuration>stm32f303xC</configuration>
+            <configuration>stm32f303x8</configuration>
+        </excluded>
     </file>
     <file>
         <name>$PROJ_DIR$\src\fmc.h</name>
+        <excluded>
+            <configuration>stm32f303xC</configuration>
+            <configuration>stm32f303x8</configuration>
+        </excluded>
     </file>
     <file>
         <name>$PROJ_DIR$\src\gpio.cpp</name>
@@ -15288,6 +16438,7 @@
             <configuration>stm32f373xB_no-exceptions_no-rtti</configuration>
             <configuration>stm32l476rg</configuration>
             <configuration>stm32g474</configuration>
+            <configuration>stm32f303x8</configuration>
         </excluded>
     </file>
     <file>
@@ -15295,6 +16446,7 @@
         <excluded>
             <configuration>stm32f373xB</configuration>
             <configuration>stm32f373xB_no-exceptions_no-rtti</configuration>
+            <configuration>stm32f303x8</configuration>
         </excluded>
     </file>
     <file>
@@ -15310,6 +16462,7 @@
             <configuration>stm32l476rg</configuration>
             <configuration>stm32g474</configuration>
             <configuration>stm32f303xC</configuration>
+            <configuration>stm32f303x8</configuration>
         </excluded>
     </file>
     <file>
@@ -15321,9 +16474,17 @@
     </file>
     <file>
         <name>$PROJ_DIR$\src\imu.cpp</name>
+        <excluded>
+            <configuration>stm32f303xC</configuration>
+            <configuration>stm32f303x8</configuration>
+        </excluded>
     </file>
     <file>
         <name>$PROJ_DIR$\src\imu.h</name>
+        <excluded>
+            <configuration>stm32f303xC</configuration>
+            <configuration>stm32f303x8</configuration>
+        </excluded>
     </file>
     <file>
         <name>$PROJ_DIR$\src\led.cpp</name>
@@ -15426,6 +16587,8 @@
         <excluded>
             <configuration>stm32f373xB</configuration>
             <configuration>stm32f373xB_no-exceptions_no-rtti</configuration>
+            <configuration>stm32f303xC</configuration>
+            <configuration>stm32f303x8</configuration>
         </excluded>
     </file>
     <file>
@@ -15433,6 +16596,8 @@
         <excluded>
             <configuration>stm32f373xB</configuration>
             <configuration>stm32f373xB_no-exceptions_no-rtti</configuration>
+            <configuration>stm32f303xC</configuration>
+            <configuration>stm32f303x8</configuration>
         </excluded>
     </file>
     <file>
@@ -15443,6 +16608,10 @@
     </file>
     <file>
         <name>$PROJ_DIR$\src\usart.cpp</name>
+        <excluded>
+            <configuration>stm32f303xC</configuration>
+            <configuration>stm32f303x8</configuration>
+        </excluded>
     </file>
     <file>
         <name>$PROJ_DIR$\src\usart.h</name>

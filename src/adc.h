@@ -25,7 +25,58 @@ public:
 
     typedef enum {ModeSingle, ModeDual, ModeTriple} Mode;
 
+#if defined(STM32F303x8)
     typedef enum
+    {
+        Res6bit = ADC_CFGR_RES,
+        Res8bit = ADC_CFGR_RES_1,
+        Res10bit = ADC_CFGR_RES_0,
+        Res12bit = 0,
+        Res16bit = ADC_CFGR_ALIGN
+    } Resolution;
+
+    typedef enum
+    {
+        EdgeNone = 0,
+        EdgeRising = ADC_CFGR_EXTEN_0,
+        EdgeFalling = ADC_CFGR_EXTEN_1,
+        EdgeBoth = ADC_CFGR_EXTEN_0 | ADC_CFGR_EXTEN_1
+    } Edge;
+
+    typedef enum
+    {
+        TriggerTim1CC1 = 0,
+        TriggerTim1CC2 = ADC_CFGR_EXTSEL_0,
+        TriggerTim1CC3 = ADC_CFGR_EXTSEL_1,
+        TriggerTim2CC2 = (ADC_CFGR_EXTSEL_1 | ADC_CFGR_EXTSEL_0),
+        TriggerTim2CC3 = ADC_CFGR_EXTSEL_2,
+        TriggerTim2CC4 = (ADC_CFGR_EXTSEL_2 | ADC_CFGR_EXTSEL_0),
+        TriggerTim2 = (ADC_CFGR_EXTSEL_2 | ADC_CFGR_EXTSEL_1),
+        TriggerTim3CC1 = (ADC_CFGR_EXTSEL_2 | ADC_CFGR_EXTSEL_1 | ADC_CFGR_EXTSEL_0),
+        TriggerTim3 = ADC_CFGR_EXTSEL_3,
+        TriggerTim4CC4 = (ADC_CFGR_EXTSEL_3 | ADC_CFGR_EXTSEL_0),
+        TriggerTim5CC1 = (ADC_CFGR_EXTSEL_3 | ADC_CFGR_EXTSEL_1),
+        TriggerTim5CC2 = (ADC_CFGR_EXTSEL_3 | ADC_CFGR_EXTSEL_1 | ADC_CFGR_EXTSEL_0),
+        TriggerTim5CC3 = (ADC_CFGR_EXTSEL_3 | ADC_CFGR_EXTSEL_2),
+        TriggerTim8CC1 = (ADC_CFGR_EXTSEL_3 | ADC_CFGR_EXTSEL_2 | ADC_CFGR_EXTSEL_0),
+        TriggerTim8 = (ADC_CFGR_EXTSEL_3 | ADC_CFGR_EXTSEL_2 | ADC_CFGR_EXTSEL_1),
+        TriggerExtIT11 = ADC_CFGR_EXTSEL
+    } Trigger;  // не проверил по даташиту, скорее всего ничего не совпадет.
+
+    typedef enum
+    {
+        SampleTime_3Cycles = 0,
+        SampleTime_15Cycles = ADC_SMPR1_SMP0_0,
+        SampleTime_28Cycles = ADC_SMPR1_SMP0_1,
+        SampleTime_56Cycles = (ADC_SMPR1_SMP0_1 | ADC_SMPR1_SMP0_0),
+        SampleTime_84Cycles = ADC_SMPR1_SMP0_2,
+        SampleTime_112Cycles = (ADC_SMPR1_SMP0_2 | ADC_SMPR1_SMP0_0),
+        SampleTime_144Cycles = (ADC_SMPR1_SMP0_2 | ADC_SMPR1_SMP0_1),
+        SampleTime_480Cycles = ADC_SMPR1_SMP0,
+    } SampleTime;
+    
+#else
+        typedef enum
     {
         Res6bit = ADC_CR1_RES,
         Res8bit = ADC_CR1_RES_1,
@@ -73,6 +124,7 @@ public:
         SampleTime_144Cycles = (ADC_SMPR1_SMP10_2 | ADC_SMPR1_SMP10_1),
         SampleTime_480Cycles = ADC_SMPR1_SMP10,
     } SampleTime;
+#endif
 
 private:
     static Adc *mInstances[3];
