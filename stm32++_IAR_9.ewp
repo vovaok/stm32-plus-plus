@@ -2214,11 +2214,11 @@
                 </option>
                 <option>
                     <name>OGLastSavedByProductVersion</name>
-                    <state>7.50.3.10745</state>
+                    <state>9.30.1.50052</state>
                 </option>
                 <option>
                     <name>OGChipSelectEditMenu</name>
-                    <state>STM32F373xB	ST STM32F373xB</state>
+                    <state>STM32F373VB	ST STM32F373VB</state>
                 </option>
                 <option>
                     <name>GenLowLevelInterface</name>
@@ -2264,7 +2264,7 @@
                 </option>
                 <option>
                     <name>GFPUDeviceSlave</name>
-                    <state>STM32F373xB	ST STM32F373xB</state>
+                    <state>STM32F373VB	ST STM32F373VB</state>
                 </option>
                 <option>
                     <name>FPU2</name>
@@ -14607,7 +14607,7 @@
             <data>
                 <extensions></extensions>
                 <cmdline></cmdline>
-                <hasPrio>144</hasPrio>
+                <hasPrio>1</hasPrio>
                 <buildSequence>inputOutputBased</buildSequence>
             </data>
         </settings>
@@ -15018,7 +15018,9 @@
     <group>
         <name>3rd_party</name>
         <excluded>
+            <configuration>stm32f405rg</configuration>
             <configuration>stm32f405rg_no-exceptions_no-rtti</configuration>
+            <configuration>stm32f446</configuration>
             <configuration>stm32g474</configuration>
             <configuration>stm32f303xC</configuration>
             <configuration>stm32f303x8</configuration>
@@ -15313,7 +15315,9 @@
             <excluded>
                 <configuration>stm32f407zg</configuration>
                 <configuration>stm32f407vg</configuration>
+                <configuration>stm32f405rg</configuration>
                 <configuration>stm32f405rg_no-exceptions_no-rtti</configuration>
+                <configuration>stm32f446</configuration>
                 <configuration>stm32g474</configuration>
             </excluded>
         </file>
@@ -15381,7 +15385,9 @@
     <group>
         <name>ethernet</name>
         <excluded>
+            <configuration>stm32f405rg</configuration>
             <configuration>stm32f405rg_no-exceptions_no-rtti</configuration>
+            <configuration>stm32f446</configuration>
             <configuration>stm32g474</configuration>
             <configuration>stm32f303xC</configuration>
             <configuration>stm32f303x8</configuration>
@@ -15441,6 +15447,8 @@
     <group>
         <name>gfx</name>
         <excluded>
+            <configuration>stm32f405rg</configuration>
+            <configuration>stm32f446</configuration>
             <configuration>stm32f303xC</configuration>
             <configuration>stm32f303x8</configuration>
         </excluded>
@@ -16032,6 +16040,7 @@
             <configuration>stm32f373xB_no-exceptions_no-rtti</configuration>
             <configuration>stm32l476rg</configuration>
             <configuration>stm32g474</configuration>
+            <configuration>stm32f303x8</configuration>
         </excluded>
     </file>
     <file>
@@ -16132,6 +16141,7 @@
             <configuration>stm32f373xB_no-exceptions_no-rtti</configuration>
             <configuration>stm32l476rg</configuration>
             <configuration>stm32g474</configuration>
+            <configuration>stm32f303x8</configuration>
         </excluded>
     </file>
     <file>
@@ -16152,7 +16162,6 @@
             <configuration>stm32l476rg</configuration>
             <configuration>stm32g474</configuration>
             <configuration>stm32f303xC</configuration>
-            <configuration>stm32f303x8</configuration>
         </excluded>
     </file>
     <file>
@@ -16167,7 +16176,6 @@
             <configuration>stm32l476rg</configuration>
             <configuration>stm32g474</configuration>
             <configuration>stm32f303xC</configuration>
-            <configuration>stm32f303x8</configuration>
         </excluded>
     </file>
     <file>
@@ -16183,6 +16191,9 @@
     </file>
     <file>
         <name>$PROJ_DIR$\src\dma303x8.cpp</name>
+        <excluded>
+            <configuration>stm32f405rg</configuration>
+        </excluded>
     </file>
     <file>
         <name>$PROJ_DIR$\src\dma303x8.h</name>
@@ -16278,6 +16289,7 @@
         <name>$PROJ_DIR$\src\fdcan.cpp</name>
         <excluded>
             <configuration>stm32f407vg</configuration>
+            <configuration>stm32f405rg</configuration>
             <configuration>stm32f429zi</configuration>
             <configuration>stm32f303xC</configuration>
             <configuration>stm32f303x8</configuration>
@@ -16376,6 +16388,9 @@
     </file>
     <file>
         <name>$PROJ_DIR$\src\hardwaretimer.cpp</name>
+        <excluded>
+            <configuration>stm32f303x8</configuration>
+        </excluded>
     </file>
     <file>
         <name>$PROJ_DIR$\src\hardwaretimer.h</name>
@@ -16470,6 +16485,7 @@
             <configuration>stm32f373xB_no-exceptions_no-rtti</configuration>
             <configuration>stm32l476rg</configuration>
             <configuration>stm32g474</configuration>
+            <configuration>stm32f303x8</configuration>
         </excluded>
     </file>
     <file>
@@ -16481,6 +16497,9 @@
     </file>
     <file>
         <name>$PROJ_DIR$\src\precisetimer.cpp</name>
+        <excluded>
+            <configuration>stm32f303x8</configuration>
+        </excluded>
     </file>
     <file>
         <name>$PROJ_DIR$\src\precisetimer.h</name>
@@ -16492,6 +16511,7 @@
             <configuration>stm32f446</configuration>
             <configuration>stm32l476rg</configuration>
             <configuration>stm32g474</configuration>
+            <configuration>stm32f303x8</configuration>
         </excluded>
     </file>
     <file>
@@ -16499,6 +16519,9 @@
     </file>
     <file>
         <name>$PROJ_DIR$\src\pwmout.cpp</name>
+        <excluded>
+            <configuration>stm32f303x8</configuration>
+        </excluded>
     </file>
     <file>
         <name>$PROJ_DIR$\src\pwmout.h</name>
