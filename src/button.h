@@ -3,6 +3,7 @@
 
 #include "gpio.h"
 #include "core/core.h"
+#include <functional>
 
 /*! Кнопка.
     Кнопка подключается к любой ножке контроллера, и с помощью этого класса с ней легко работать.
@@ -29,13 +30,13 @@ public:
         Инициализирует заданную ножку на вход и устанавливает подтяжку вверх, если это указано.
         \param pin Имя ножки, к которой подключена кнопка, например, Gpio::PE10.
         \param pullUp Подтяжка:
-                      \arg true подтяжка вверх активирована;
-                      \arg false (по умолчанию) без внутреней подтяжки (необходима внешняя).
+                      \arg true (по умолчанию) подтяжка вверх активирована;
+                      \arg false без внутреней подтяжки (необходима внешняя).
         \param inverted Инвертирование входа:
                       \arg true (по умолчанию) нажатая кнопка воспринимается как 0, отпущенная как 1;
                       \arg false наоборот: нажатая кнопка воспринимается как 1, отпущенная как 0.
     */
-    Button(PinName pin, bool pullUp=false, bool inverted=true);
+    Button(PinName pin, bool pullUp=true, bool inverted=true);
     
     Button(GPIO_TypeDef *gpio, int pin, bool inverted=true);
 
@@ -76,13 +77,15 @@ public:
         \param Указатель на функцию Closure<void(void)>, которая назначается обработчиком.\n
         Пример использования: \code myButton->onPress = EVENT(&MyClass::MyPressHandler); \endcode
     */
-    NotifyEvent onPress;
+    std::function<void(void)> onPress;
+//    NotifyEvent onPress;
 
     /*! Обработчик события отпускания.
         \param Указатель на функцию Closure<void(void)>, которая назначается обработчиком.\n
         Пример использования: \code myButton->onPress = EVENT(&MyClass::MyReleaseHandler); \endcode
     */
-    NotifyEvent onRelease;
+    std::function<void(void)> onRelease;
+//    NotifyEvent onRelease;
 
 
     /*! Установка обработчика события клика.
@@ -91,7 +94,8 @@ public:
         \param Указатель на функцию Closure<void(void)>, которая назначается обработчиком.\n
         Пример использования: \code myButton->onPress = EVENT(&MyClass::MyReleaseHandler); \endcode
     */
-    NotifyEvent onClick;
+    std::function<void(void)> onClick;
+//    NotifyEvent onClick;
 
     using Gpio::read;
 };
