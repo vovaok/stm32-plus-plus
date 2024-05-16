@@ -172,7 +172,9 @@ void Spi::setBaudratePrescaler(int psc)
 void Spi::setBaudrate(int value)
 {
     int pclk = rcc().getPeriphClk(mDev);
-    int psc = log2i(pclk / value);
+    int psc = log2i(pclk / value) - 1;
+    if (psc < 0)
+        psc = 0;
     setBaudratePrescaler(psc);
 }
 
