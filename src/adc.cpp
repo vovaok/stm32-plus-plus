@@ -40,7 +40,7 @@ Adc::Adc(int adcBase) :
     // ADC Common Init
     int freq = rcc().pClk2();
     int psc = (freq + 71999999) / 72000000 - 1;
-    ADC->CCR = ((psc & 0x3) << ADC_CCR_ADCPRE_Pos); // ADC_Prescaler_Div6, independent mode
+    ADC12_COMMON->CCR = ((psc & 0x3) << ADC_CCR_ADCPRE_Pos); // ADC_Prescaler_Div6, independent mode
 
     // Scan conversion mode is enabled
     mAdc->CR1 = (mResolution & ADC_CR1_RES_Msk) | ADC_CR1_SCAN;

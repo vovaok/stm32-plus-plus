@@ -126,6 +126,8 @@ void Gpio::config(const Config &conf)
     RCC->AHB1ENR |= (1 << c.portNumber); // enable port clocks
 #elif defined(STM32L4) || defined(STM32G4)
     RCC->AHB2ENR |= (1 << c.portNumber); // enable port clocks
+#elif defined(STM32F303x8) || defined(STM32F328xx) 
+    RCC->AHBENR |= (1 << (c.portNumber+17));
 #endif
 
     uint16_t mask;
@@ -225,7 +227,9 @@ GPIO_TypeDef *Gpio::getPortByNumber(int port)
         case 0x1: return GPIOB;
         case 0x2: return GPIOC;
         case 0x3: return GPIOD;
+#if defined(GPIOE)
         case 0x4: return GPIOE;
+#endif
         case 0x5: return GPIOF;
 #if defined(GPIOG)
         case 0x6: return GPIOG;
@@ -254,7 +258,9 @@ int Gpio::getPortNumber(GPIO_TypeDef *gpio)
     case GPIOB_BASE: return 0x1;
     case GPIOC_BASE: return 0x2;
     case GPIOD_BASE: return 0x3;
+#if defined(GPIOE) 
     case GPIOE_BASE: return 0x4;
+#endif
     case GPIOF_BASE: return 0x5;
 #if defined(GPIOG)    
     case GPIOG_BASE: return 0x6;
@@ -342,7 +348,11 @@ void Gpio::configInterrupt(NotifyEvent event, InterruptMode mode)
     {
     case 0: irqn = EXTI0_IRQn; break;
     case 1: irqn = EXTI1_IRQn; break;
+#if defined(STM32F303x8)
+    case 2: irqn = EXTI2_TSC_IRQn; break;
+#else
     case 2: irqn = EXTI2_IRQn; break;
+#endif
     case 3: irqn = EXTI3_IRQn; break;
     case 4: irqn = EXTI4_IRQn; break;
     case 5: 
