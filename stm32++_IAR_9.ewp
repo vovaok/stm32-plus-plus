@@ -14607,7 +14607,7 @@
             <data>
                 <extensions></extensions>
                 <cmdline></cmdline>
-                <hasPrio>144</hasPrio>
+                <hasPrio>1</hasPrio>
                 <buildSequence>inputOutputBased</buildSequence>
             </data>
         </settings>
@@ -15635,6 +15635,12 @@
             <name>$PROJ_DIR$\src\modbus\modbus.h</name>
         </file>
         <file>
+            <name>$PROJ_DIR$\src\modbus\modbus485.cpp</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\modbus\modbus485.h</name>
+        </file>
+        <file>
             <name>$PROJ_DIR$\src\modbus\modbusdevice.cpp</name>
         </file>
         <file>
@@ -15660,9 +15666,15 @@
         </file>
         <file>
             <name>$PROJ_DIR$\src\modbus\modbustcp.cpp</name>
+            <excluded>
+                <configuration>stm32f405rg_no-exceptions_no-rtti</configuration>
+            </excluded>
         </file>
         <file>
             <name>$PROJ_DIR$\src\modbus\modbustcp.h</name>
+            <excluded>
+                <configuration>stm32f405rg_no-exceptions_no-rtti</configuration>
+            </excluded>
         </file>
         <file>
             <name>$PROJ_DIR$\src\modbus\modbustransport.cpp</name>
@@ -16234,9 +16246,17 @@
     </file>
     <file>
         <name>$PROJ_DIR$\src\dma303x8.cpp</name>
+        <excluded>
+            <configuration>stm32f405rg_no-exceptions_no-rtti</configuration>
+            <configuration>stm32f429zi</configuration>
+        </excluded>
     </file>
     <file>
         <name>$PROJ_DIR$\src\dma303x8.h</name>
+        <excluded>
+            <configuration>stm32f405rg_no-exceptions_no-rtti</configuration>
+            <configuration>stm32f429zi</configuration>
+        </excluded>
     </file>
     <file>
         <name>$PROJ_DIR$\src\dma37x.cpp</name>
@@ -16329,6 +16349,7 @@
         <name>$PROJ_DIR$\src\fdcan.cpp</name>
         <excluded>
             <configuration>stm32f407vg</configuration>
+            <configuration>stm32f405rg_no-exceptions_no-rtti</configuration>
             <configuration>stm32f429zi</configuration>
             <configuration>stm32f303xC</configuration>
             <configuration>stm32f303x8</configuration>
@@ -16337,6 +16358,7 @@
     <file>
         <name>$PROJ_DIR$\src\fdcan.h</name>
         <excluded>
+            <configuration>stm32f405rg_no-exceptions_no-rtti</configuration>
             <configuration>stm32f429zi</configuration>
             <configuration>stm32f303xC</configuration>
             <configuration>stm32f303x8</configuration>

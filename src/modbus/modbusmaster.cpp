@@ -4,9 +4,10 @@
 using namespace Modbus;
 
 ModbusMaster::ModbusMaster(Device *device) :
-    ModbusBase(device),
+    Modbus485(device),
     m_queue(16)
 {
+    onAduReceived = EVENT(&ModbusMaster::parseADU);
     m_timer = new Timer();
     m_timer->onTimeout = EVENT(&ModbusMaster::onTimeout);
     m_timer->setInterval(100);
@@ -74,7 +75,7 @@ void ModbusMaster::writeNextAdu()
 {
     if (!m_queue.isEmpty())
     {
-        ModbusBase::writeADU(m_queue.front().adu());
+        Modbus485::writeADU(m_queue.front().adu());
         m_timer->start();
     }
 }

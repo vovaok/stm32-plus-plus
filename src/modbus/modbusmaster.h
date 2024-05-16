@@ -1,7 +1,7 @@
 #ifndef MODBUSMASTER_H
 #define MODBUSMASTER_H
 
-#include "modbus.h"
+#include "modbus485.h"
 #include "core/timer.h"
 #include "core/ringbuffer.h"
 
@@ -10,7 +10,7 @@
 
 class ModbusProxy;
 
-class ModbusMaster : public ModbusBase
+class ModbusMaster : public Modbus485
 {
 public:
     ModbusMaster(Device *device);
@@ -23,7 +23,7 @@ public:
 
 protected:
     void writeADU(const Modbus::ADU &adu);
-    virtual void parseADU(const Modbus::ADU &adu) override;
+    void parseADU(const Modbus::ADU &adu);
     virtual void responseUpdated() override;
     uint16_t getCurrentRequestAddress();
     uint16_t getCurrentRequestQuantity();
