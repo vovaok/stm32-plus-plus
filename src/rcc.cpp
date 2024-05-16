@@ -358,6 +358,50 @@ bool Rcc::measureHseFreq()
     return true;
 }
 
+void Rcc::configPll(ClockSource pll, int freqP, int freqQ, int freqR)
+{
+    volatile PllCfgr *cfgr = nullptr;
+    switch (pll)
+    {
+//    case PLL: cfgr = *reinterpret_cast<PllCfgr*>(RCC->PLLCFGR); break; // not implemented here
+#if defined(RCC_CR_PLLI2SON)
+    case PLLI2S: cfgr = reinterpret_cast<volatile PllCfgr *>(&RCC->PLLI2SCFGR); break;
+#endif
+#if defined(RCC_CR_PLLSAION)
+    case PLLSAI: cfgr = reinterpret_cast<volatile PllCfgr *>(&RCC->PLLSAICFGR); break;
+#endif
+    default: return;
+    }
+    
+    if (isReady(pll))
+        setEnabled(pll, false);        
+    
+    int pllin = 1000000; // PLL input frequency
+    int R, Q, N = 0;
+    for (Q=2; Q<16 && !N; Q++)
+    {
+        int Nq = Q * freqQ / pllin;
+        for (R=2; R<8 && !N; R++)
+        {
+            int Nr = R * freqR / pllin;
+            if (Nq == Nr)
+                N = Nr;
+        }
+    }
+    
+    if (N)
+    {
+        cfgr->N = N;
+        cfgr->Q = --Q;
+        cfgr->R = --R;
+        setEnabled(pll, true);
+    }
+    else
+    {
+        THROW(Exception::OutOfRange);
+    }
+}
+
 #if defined(LTDC)
 int Rcc::configLtdcClock(int frequency)
 {

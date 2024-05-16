@@ -43,6 +43,7 @@ public:
 
     bool configPll(uint32_t hseValue, uint32_t sysClk);
     bool configPll(uint32_t sysClk);
+    void configPll(ClockSource pll, int freqP, int freqQ, int freqR);
     uint32_t hseValue() const {return mHseValue;}
     uint32_t sysClk() const {return mSysClk;}
     uint32_t hClk() const {return mAHBClk;}
@@ -61,6 +62,21 @@ public:
 
 #if defined(LTDC)
     int configLtdcClock(int frequency); //!< return real programmed frequency
+#endif
+    
+#if defined(STM32F4)
+    struct PllCfgr
+    {
+        uint32_t M: 6; // only for main PLL
+        uint32_t N: 9;
+        uint32_t : 1;
+        uint32_t P: 2;
+        uint32_t : 4;
+        uint32_t src: 1; // only for main PLL
+        uint32_t : 1;
+        uint32_t Q: 4;
+        uint32_t R: 3;
+    } __attribute__(( packed, aligned(4) ));
 #endif
 
     // ''  It is highly recommended to change this
