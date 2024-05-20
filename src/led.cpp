@@ -61,9 +61,12 @@ void Led::setBlinkingEnabled(bool enabled)
 
 void Led::blink()
 {
-    on();
-    timer()->setSingleShot(false);
-    setBlinkingEnabled(true);
+    if (!isBlinking())
+    {
+        on();
+        timer()->setSingleShot(false);
+        setBlinkingEnabled(true);
+    }
 }
 
 void Led::blink(int interval_ms)

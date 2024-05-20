@@ -23,7 +23,7 @@ void Modbus485::task()
     m_buffer.resize(m_buffer.size() + sz);
     if (sz)
     {
-        m_timeout = 10;
+        m_timeout = 2;
         responseUpdated();
     }
 

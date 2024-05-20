@@ -175,6 +175,7 @@ public:
 
     int result(unsigned char channel);
     int resultByIndex(unsigned char index);
+    float averageByIndex(uint8_t index);
     int lastResultByIndex(unsigned char index);
     const ByteArray &buffer() const {return mBuffer;}
     const uint16_t *samples() const {return reinterpret_cast<const uint16_t*>(mBuffer.data());}

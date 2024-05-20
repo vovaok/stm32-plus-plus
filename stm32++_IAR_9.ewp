@@ -15676,12 +15676,14 @@
             <name>$PROJ_DIR$\src\modbus\modbustcp.cpp</name>
             <excluded>
                 <configuration>stm32f405rg_no-exceptions_no-rtti</configuration>
+                <configuration>stm32f303x8</configuration>
             </excluded>
         </file>
         <file>
             <name>$PROJ_DIR$\src\modbus\modbustcp.h</name>
             <excluded>
                 <configuration>stm32f405rg_no-exceptions_no-rtti</configuration>
+                <configuration>stm32f303x8</configuration>
             </excluded>
         </file>
         <file>
@@ -16255,7 +16257,7 @@
     <file>
         <name>$PROJ_DIR$\src\dma303x8.cpp</name>
         <excluded>
-			<configuration>stm32f405rg</configuration>
+            <configuration>stm32f405rg</configuration>
             <configuration>stm32f405rg_no-exceptions_no-rtti</configuration>
             <configuration>stm32f429zi</configuration>
         </excluded>
@@ -16358,7 +16360,7 @@
         <name>$PROJ_DIR$\src\fdcan.cpp</name>
         <excluded>
             <configuration>stm32f407vg</configuration>
-			<configuration>stm32f405rg</configuration>
+            <configuration>stm32f405rg</configuration>
             <configuration>stm32f405rg_no-exceptions_no-rtti</configuration>
             <configuration>stm32f429zi</configuration>
             <configuration>stm32f303xC</configuration>
@@ -16459,9 +16461,6 @@
     </file>
     <file>
         <name>$PROJ_DIR$\src\hardwaretimer.cpp</name>
-        <excluded>
-            <configuration>stm32f303x8</configuration>
-        </excluded>
     </file>
     <file>
         <name>$PROJ_DIR$\src\hardwaretimer.h</name>

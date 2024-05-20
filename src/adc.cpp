@@ -310,6 +310,24 @@ int Adc::resultByIndex(unsigned char index)
     return -1;
 }
 
+float Adc::averageByIndex(uint8_t index)
+{
+    unsigned short *buf = reinterpret_cast<unsigned short*>(mBuffer.data());
+    if (index < mChannelCount)
+    {
+        if (mSampleCount == 1)
+            return buf[index];
+        else
+        {
+            float sum = 0;
+            for (int i=0; i<mSampleCount; i++)
+                sum += buf[i*mChannelCount + index];
+            return (sum / mSampleCount);
+        }
+    }
+    return NAN;
+}
+
 int Adc::lastResultByIndex(unsigned char index)
 {
     const uint16_t *buf = samples();

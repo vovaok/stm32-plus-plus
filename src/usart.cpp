@@ -599,12 +599,12 @@ void Usart::handleInterrupt()
     {
         if (mDev->RDR == m_characterMatch)
         {
-            GPIOA->BSRR = 1;
+//            GPIOA->BSRR = 1; // this is for performance tests only!
             if (m_characterMatchEvent)
                 m_characterMatchEvent();
             else if (onReadyRead)
                 onReadyRead();
-            GPIOA->BSRR = 1 << 16;
+//            GPIOA->BSRR = 1 << 16;
         }
     }
     else if (onReadyRead)
