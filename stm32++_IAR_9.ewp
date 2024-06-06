@@ -9253,7 +9253,7 @@
             <data>
                 <extensions></extensions>
                 <cmdline></cmdline>
-                <hasPrio>0</hasPrio>
+                <hasPrio>112</hasPrio>
                 <buildSequence>inputOutputBased</buildSequence>
             </data>
         </settings>

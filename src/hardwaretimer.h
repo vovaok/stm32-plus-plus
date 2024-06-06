@@ -1,17 +1,9 @@
 #ifndef _HARDWARETIMER_H
 #define _HARDWARETIMER_H
 
-//#include "stm32_conf.h"
 #include "core/core.h"
 #include "gpio.h"
 #include "rcc.h"
-
-//#define _us  
-//#define _ms     *1000
-//#define _s      *1000000
-//#define _Hz
-//#define _kHz    *1000
-//#define _MHz    *1000000
 
 #if defined(STM32F4)
 #define TIM1_UP_IRQ         TIM1_UP_TIM10_IRQ
@@ -44,6 +36,14 @@
     #define TIM7_IRQ            TIM7_DAC_IRQ
     #endif
 
+#elif defined(STM32F3)
+#define TIM1_UP_IRQ         TIM1_UP_TIM16_IRQ
+#define TIM1_BRK_IRQ        TIM1_BRK_TIM15_IRQ
+#define TIM1_TRG_COM_IRQ    TIM1_TRG_COM_TIM17_IRQ
+#define TIM15_IRQ           TIM1_BRK_TIM15_IRQ
+#define TIM16_IRQ           TIM1_UP_TIM16_IRQ
+#define TIM17_IRQ           TIM1_TRG_COM_TIM17_IRQ
+
 #endif
 
 #define TIM6_IRQ            TIM6_DAC_IRQ
@@ -57,7 +57,9 @@
     f(1_BRK) f(1_UP) f(1_TRG_COM) f(1_CC) \
     f(2) f(3)  f(4)  f(5)  f(6)  f(7) \
     f(8_BRK) f(8_UP) f(8_TRG_COM) f(8_CC) \
-    f(9) f(10) f(11) f(12) f(13) f(14)
+    f(9) f(10) f(11) f(12) f(13) f(14) \
+    f(15) f(16) f(17) f(18) f(19) \
+    f(20_BRK) f(20_UP) f(20_TRG_COM) f(20_CC) \
 
 FOREACH_TIM_IRQ(DECLARE_TIM_IRQ_HANDLER)
 
@@ -164,7 +166,7 @@ public:
     void start();
     void stop();
     void setEnabled(bool enable);
-    bool isEnabled() const {return mEnabled;}
+    bool isEnabled() const {return mTim->CR1 & TIM_CR1_CEN;}
     void setOnePulseMode(bool enabled);
     
     bool isReady() const;
@@ -244,12 +246,29 @@ private:
     bool mEnabledIrq[8];
     
     unsigned long mInputClk;
-    bool mEnabled;
     
-    static HardwareTimer* mTimers[19];
+    static HardwareTimer* mTimers[20];
     
     void enableInterrupt(InterruptSource source);
     void handleInterrupt();
+    
+    enum Capability
+    {
+        NoCaps          = 0x00,
+        InputOutput     = 0x01, // input capture, output compare, PWM generation, one-pulse mode output
+        Res32bit        = 0x02, // has 32-bit counter
+        UpDown          = 0x04, // can count up, down or up/down
+        Complementary   = 0x08, // has complementary outputs with deadtime
+        Encoder         = 0x10, // has quadrature encoder inputs
+        Repetition      = 0x20, // has repetition counter
+        AdvancedControl = InputOutput | UpDown | Complementary | Encoder | Repetition, // TIM1, TIM8, TIM20
+        GeneralPurpose1 = InputOutput | UpDown | Encoder, // TIM2 to TIM5
+        Basic           = NoCaps, // TIM6, TIM7
+        GeneralPurpose2 = InputOutput, // TIM9 to TIM14
+        GeneralPurpose3 = InputOutput | Complementary | Repetition, // TIM15 to TIM17 
+    } m_caps = NoCaps;
+    
+    inline bool hasCapability(Capability cap) {return m_caps & cap;}
     
     FOREACH_TIM_IRQ(DECLARE_TIM_FRIEND)
 };
