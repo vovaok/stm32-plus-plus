@@ -45,20 +45,32 @@ ObjnetNode::ObjnetNode(ObjnetInterface *iface) :
     if (mNodesCount)
         mSerial ^= rand();
 
-    registerSvcObject(ObjectInfo("class", mClass, ObjectInfo::ReadOnly));
-    registerSvcObject(ObjectInfo("name", mName));
-    registerSvcObject(ObjectInfo("fullName", mFullName));
-    registerSvcObject(ObjectInfo("serial", mSerial, ObjectInfo::ReadOnly));
-    registerSvcObject(ObjectInfo("version", mVersion, ObjectInfo::ReadOnly));
-    registerSvcObject(ObjectInfo("buildDate", mBuildDate, ObjectInfo::ReadOnly));
-    registerSvcObject(ObjectInfo("cpuInfo", mCpuInfo, ObjectInfo::ReadOnly));
-    registerSvcObject(ObjectInfo("burnCount", mBurnCount));
-    registerSvcObject(ObjectInfo("objCount", EVENT(&ObjnetNode::objectCount), ObjectInfo::ReadOnly));
-    registerSvcObject(ObjectInfo("busType", mBusType, ObjectInfo::ReadOnly));
+    bindSvcObject(svcClass,       ObjectInfo("class", mClass, ObjectInfo::ReadOnly));
+    bindSvcObject(svcName,        ObjectInfo("name", mName));
+    bindSvcObject(svcFullName,    ObjectInfo("fullName", mFullName, ObjectInfo::Storage));
+    bindSvcObject(svcSerial,      ObjectInfo("serial", mSerial, ObjectInfo::ReadOnly));
+    bindSvcObject(svcVersion,     ObjectInfo("version", mVersion, ObjectInfo::ReadOnly));
+    bindSvcObject(svcBuildDate,   ObjectInfo("buildDate", mBuildDate, ObjectInfo::ReadOnly));
+    bindSvcObject(svcCpuInfo,     ObjectInfo("cpuInfo", mCpuInfo, ObjectInfo::ReadOnly));
+    bindSvcObject(svcBurnCount,   ObjectInfo("burnCount", mBurnCount, ObjectInfo::Storage));
+    bindSvcObject(svcObjectCount, ObjectInfo("objCount", EVENT(&ObjnetNode::objectCount), ObjectInfo::ReadOnly));
+    bindSvcObject(svcBusType,     ObjectInfo("busType", mBusType, ObjectInfo::ReadOnly));
+    bindSvcObject(svcBusAddress,  ObjectInfo("busAddress", mBusAddress, ObjectInfo::Storage));
 
+    setBusAddress(mBusAddress);
+    
     mNodesCount++;
 }
 //---------------------------------------------------------------------------
+
+void ObjnetNode::bindSvcObject(SvcOID oid, const ObjectInfo &obj)
+{
+    mSvcObjects[oid] = obj;
+    #ifndef QT_CORE_LIB
+    if (obj.isStorable())
+        objnetStorage()->load(mSvcObjects[oid]);
+    #endif
+}
 
 ObjectInfo &ObjnetNode::bindObject(const ObjectInfo &info)
 {
@@ -504,6 +516,15 @@ void ObjnetNode::parseServiceMessage(const CommonMessage &msg)
             if (msg.data().size()) // write
             {
                 obj.write(msg.data());
+                #ifndef QT_CORE_LIB
+                if (obj.isStorable())
+                    objnetStorage()->save(obj);
+                #endif
+                if (oid == svcBusAddress)
+                {
+                    setBusAddress(mBusAddress);
+                    mNetState = netnStart;
+                }
             }
             else
             {
