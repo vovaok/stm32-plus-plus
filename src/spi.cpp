@@ -1,17 +1,17 @@
 #include "spi.h"
 
 #if defined(STM32F4)
-#define SPI1_DMA_CHANNEL_RX     Dma::SPI1_RX_Stream0; // Dma::SPI1_RX_Stream2;
+#define SPI1_DMA_CHANNEL_RX     Dma::SPI1_RX_Stream2; // Dma::SPI1_RX_Stream0;
 #define SPI1_DMA_CHANNEL_TX     Dma::SPI1_TX_Stream3; // Dma::SPI1_TX_Stream5;
 #define SPI2_DMA_CHANNEL_RX     Dma::SPI2_RX_Stream3;
 #define SPI2_DMA_CHANNEL_TX     Dma::SPI2_TX_Stream4;
 #define SPI3_DMA_CHANNEL_RX     Dma::SPI3_RX_Stream0; // Dma::SPI3_RX_Stream2;
-#define SPI3_DMA_CHANNEL_TX     Dma::SPI3_TX_Stream5; // DMa::SPI3_TX_Stream7;
+#define SPI3_DMA_CHANNEL_TX     Dma::SPI3_TX_Stream7; // DMa::SPI3_TX_Stream5;
 #define SPI4_DMA_CHANNEL_RX     Dma::SPI4_RX_Stream0; // Dma::SPI4_RX_Stream3;
 #define SPI4_DMA_CHANNEL_TX     Dma::SPI4_TX_Stream1; // Dma::SPI4_TX_Stream4;
-#define SPI5_DMA_CHANNEL_RX     Dma::SPI5_RX_Stream3; // Dma::SPI5_RX_Stream5
+#define SPI5_DMA_CHANNEL_RX     Dma::SPI5_RX_Stream5; // Dma::SPI5_RX_Stream3;
 #define SPI5_DMA_CHANNEL_TX     Dma::SPI5_TX_Stream4; // Dma::SPI5_TX_Stream6;
-#define SPI6_DMA_CHANNEL_RX     Dma::SPI6_TX_Stream5;
+#define SPI6_DMA_CHANNEL_RX     Dma::SPI6_TX_Stream5; // CONFLICT with SPI5_DMA_CHANNEL_RX!
 #define SPI6_DMA_CHANNEL_TX     Dma::SPI6_RX_Stream6;
 
 #elif defined(STM32L4)
