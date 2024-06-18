@@ -38,6 +38,14 @@
 #define UART5_RX_DMA    Dma::UART5_RX;
 #define UART5_TX_DMA    Dma::UART5_TX;
 
+#elif defined (STM32F303x8)
+#define USART1_RX_DMA   Dma::Channel5_USART1_RX;
+#define USART1_TX_DMA   Dma::Channel4_USART1_TX;
+#define USART2_RX_DMA   Dma::Channel6_USART2_RX;
+#define USART2_TX_DMA   Dma::Channel7_USART2_TX;
+#define USART3_RX_DMA   Dma::Channel3_USART3_RX;
+#define USART3_TX_DMA   Dma::Channel2_USART3_TX;
+
 #endif
 
 #if defined(STM32F4)
@@ -139,8 +147,16 @@ void Usart::commonConstructor(int number)
 #endif
     }
     
+#if defined(STM32F3)
+    switch(number)
+    {
+    case 1: RCC->APB2ENR |= RCC_APB2ENR_USART1EN; break;
+    case 2: RCC->APB1ENR |= RCC_APB1ENR_USART2EN; break;
+    case 3: RCC->APB1ENR |= RCC_APB1ENR_USART3EN; break;
+    }
+#else
     rcc().setPeriphEnabled(mDev);
-    
+#endif   
     mUsarts[number - 1] = this;
     
     setConfig(Mode8N1);
@@ -354,6 +370,8 @@ int Usart::writeData(const char *data, int size)
     int sz = writeBuffer(data, size);
     if (sz < 0)
         return -1;
+    if(sz ==0)
+        return 0;
     
 //    sz = (mTxPos - curPos) & mask;
     
@@ -477,6 +495,8 @@ void Usart::setBaudrate(int baudrate)
     #elif defined(STM32F4)
     int apbclock = ((mDev == USART1) || (mDev == USART6))? rcc().pClk2(): rcc().pClk1();
     #elif defined(STM32L4) || defined(STM32G4)
+    int apbclock = (mDev == USART1)? rcc().pClk2(): rcc().pClk1();
+    #elif defined(STM32F303x8)
     int apbclock = (mDev == USART1)? rcc().pClk2(): rcc().pClk1();
     #endif
 
