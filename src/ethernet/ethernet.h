@@ -50,7 +50,7 @@ public:
     void setMacAddress(const MacAddress_t &mac);
     const MacAddress_t &macAddress();
     void setupNetworkInterface(const char *ipaddr, const char *netmask, const char *gateway);
-    void setAddress(const char *ipaddr, const char *netmask, const char *gateway);
+    void setAddress(const char *ipaddr, const char *netmask=nullptr, const char *gateway=nullptr);
     
     const ip_addr_t &address() const {return m_netif.ip_addr;}
     const ip_addr_t &netmask() const {return m_netif.netmask;}

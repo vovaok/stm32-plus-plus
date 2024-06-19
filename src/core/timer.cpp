@@ -42,8 +42,8 @@ void Timer::task()
     if (mUpdated)
     {
         mUpdated = false;
-        if (callback)
-            callback();
+//        if (callback)
+//            callback();
         if (onTimeout)
             onTimeout();
     }

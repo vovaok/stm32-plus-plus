@@ -9,7 +9,7 @@ PowerManager::PowerManager(Adc *adc) :
     mAdc->addChannel(Adc::TempSensor, Adc::SampleTime_56Cycles);
   
     Timer *timer = new Timer();
-    timer->setTimeoutEvent(EVENT(&PowerManager::onTimer));
+    timer->onTimeout = EVENT(&PowerManager::onTimer);
     timer->start(10);
 }
 

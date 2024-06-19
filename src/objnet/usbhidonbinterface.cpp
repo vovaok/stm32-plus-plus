@@ -22,7 +22,7 @@ UsbHidOnbInterface::UsbHidOnbInterface(UsbInterface *usbif)
     usbif->attachNode(mHidEpOut);
     
     mReportTimer = new Timer();
-    mReportTimer->setTimeoutEvent(EVENT(&UsbHidOnbInterface::onTimer));
+    mReportTimer->onTimeout = EVENT(&UsbHidOnbInterface::onTimer);
     mReportTimer->start(2); // polling interval
 }
 //---------------------------------------------------------------------------

@@ -23,32 +23,40 @@ Dac::Dac(Gpio::Config out1, Gpio::Config out2) :
     }
     
     if (out2 == out1)
-        throw Exception::resourceBusy;
+        THROW(Exception::ResourceBusy);
       
     switch (out2)
     {
     case Gpio::DAC1_OUT1_PA4:
-        if (mDac != DAC1)
-            throw Exception::invalidPeriph;
+        if (mDac != DAC1) 
+            THROW(Exception::InvalidPeriph);
         mChannels = ChannelBoth;
         break;
         
     case Gpio::DAC1_OUT2_PA5:
         if (mDac != DAC1)
-            throw Exception::invalidPeriph;
+            THROW(Exception::InvalidPeriph);
         mChannels = ChannelBoth;
         break;
         
     case Gpio::DAC2_OUT1_PA6:
-        throw Exception::invalidPeriph;
+        THROW(Exception::InvalidPeriph);
         break;
     }
     
+#if defined(STM32F303x8) || defined(STM32F328xx) 
+    
+if (mDac == DAC1)
+        RCC->APB1ENR |= RCC_APB1ENR_DAC1EN;
+    else
+        RCC->APB1ENR |= RCC_APB1ENR_DAC2EN;
+
+#else  
     if (mDac == DAC1)
         RCC_APB1PeriphClockCmd(RCC_APB1Periph_DAC1, ENABLE);
     else
         RCC_APB1PeriphClockCmd(RCC_APB1Periph_DAC2, ENABLE);
-    
+#endif    
     Gpio::config(out1);
     Gpio::config(out2);
     

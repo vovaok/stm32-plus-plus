@@ -12,11 +12,11 @@ MotorDC::MotorDC(PwmOutput *pwmIn) : slopePwm(0),mEnable(false),kpPos(0), kiPos(
     pwm =  pwmIn ;
     
     timerPos = new Timer();
-    timerPos->setTimeoutEvent(EVENT(&MotorDC::positionLoop));
+    timerPos->onTimeout = EVENT(&MotorDC::positionLoop);
     timerPos->start(10); // ms 
     
     timerCurrent = new Timer();
-    timerCurrent->setTimeoutEvent(EVENT(&MotorDC::currentLoop));
+    timerCurrent->onTimeout = EVENT(&MotorDC::currentLoop);
     timerCurrent->start(1); // ms 
     
     sSCur = (kiCur)? (((long)255*65535)/kiCur): 0;

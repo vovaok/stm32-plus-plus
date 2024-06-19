@@ -31,8 +31,8 @@ void UdpOnbInterface::advertise()
             ip_addr_t addr;
             uint16_t port;
             char buf[4];
-            m_socket->readDatagram(buf, 4, &addr, &port);
-            if (!strncmp(buf, "ONB1", 4))
+            int size = m_socket->readDatagram(buf, 4, &addr, &port);
+            if (size > 4 && !strncmp(buf, "ONB1", 4))
             {
                 m_socket->connectToHost(addr, port);
                 m_advertiseTimer->stop();

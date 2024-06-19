@@ -20,7 +20,7 @@ Led7::Led7(int digitCount, Gpio::PinName dataFirstPin, Gpio::PinName controlFirs
     mControlPort->write(1);
   
     mTimer = new Timer();
-    mTimer->setTimeoutEvent(EVENT(&Led7::onTimer));
+    mTimer->onTimeout = EVENT(&Led7::onTimer);
     mTimer->start(1); // ms 
 }
 

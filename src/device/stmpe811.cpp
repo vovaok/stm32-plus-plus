@@ -7,7 +7,7 @@ STMPE811::STMPE811(I2c *i2c, uint8_t address) :
 {
     m_timer = new Timer;
     m_timer->setInterval(10);
-    m_timer->setTimeoutEvent(EVENT(&STMPE811::onTimer));
+    m_timer->onTimeout = EVENT(&STMPE811::onTimer);
 
     m_i2c->setBusClock(100000);
     m_i2c->open();

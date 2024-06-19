@@ -84,9 +84,17 @@ void Dac::setEnabled(bool enabled)
     
     mEnabled = enabled;
     if (enabled)
-        DAC->CR |= cr;
+        DAC1->CR |= cr;
     else
-        DAC->CR &= ~cr;
+        DAC1->CR &= ~cr;
+}
+
+void Dac::disableBuffer()
+{
+    if (mChannels & Channel1)
+        DAC1->CR |= DAC_CR_BOFF1;
+    if (mChannels & Channel2)
+        DAC1->CR |= DAC_CR_BOFF2;
 }
 //---------------------------------------------------------------------------
 

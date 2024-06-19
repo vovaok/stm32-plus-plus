@@ -16,11 +16,42 @@ Adc::Adc(int adcBase) :
         mChannelResultMap[i] = -1;
 
     mInstances[adcBase - 1] = this;
+#if defined(STM32F303x8)
+    
+      switch (adcBase)
+    {
+      case 1:
+        mAdc = ADC1;
 
+        RCC->AHBENR |= RCC_AHBENR_ADC12EN;
+        mDmaChannel = Dma::Channel1_ADC1; // Dma::ADC1_Stream0
+        break;
+
+      case 2:
+        mAdc = ADC2;
+        RCC->AHBENR |= RCC_AHBENR_ADC12EN;
+        mDmaChannel = Dma::Channel4_ADC2 ; // Dma::ADC2_Stream3
+        break;     
+
+      default:
+        return;
+    }
+
+    // ADC Common Init
+    int freq = rcc().pClk2();
+    int psc = (freq + 71999999) / 72000000 - 1;
+    ADC12_COMMON->CCR = ((psc & 0x3) << ADC_CCR_ADCPRE_Pos); // ADC_Prescaler_Div6, independent mode
+
+    // Scan conversion mode is enabled
+    mAdc->CR1 = (mResolution & ADC_CR1_RES_Msk) | ADC_CR1_SCAN;
+    mAdc->CR2 = (mResolution & ADC_CR2_ALIGN_Msk);
+    
+#else
     switch (adcBase)
     {
       case 1:
         mAdc = ADC1;
+
         RCC->APB2ENR |= RCC_APB2ENR_ADC1EN;
         mDmaChannel = Dma::ADC1_Stream4; // Dma::ADC1_Stream0
         break;
@@ -49,6 +80,8 @@ Adc::Adc(int adcBase) :
     // Scan conversion mode is enabled
     mAdc->CR1 = (mResolution & ADC_CR1_RES_Msk) | ADC_CR1_SCAN;
     mAdc->CR2 = (mResolution & ADC_CR2_ALIGN_Msk);
+    
+#endif
 }
 
 Adc::~Adc()
@@ -275,6 +308,24 @@ int Adc::resultByIndex(unsigned char index)
         }
     }
     return -1;
+}
+
+float Adc::averageByIndex(uint8_t index)
+{
+    unsigned short *buf = reinterpret_cast<unsigned short*>(mBuffer.data());
+    if (index < mChannelCount)
+    {
+        if (mSampleCount == 1)
+            return buf[index];
+        else
+        {
+            float sum = 0;
+            for (int i=0; i<mSampleCount; i++)
+                sum += buf[i*mChannelCount + index];
+            return (sum / mSampleCount);
+        }
+    }
+    return NAN;
 }
 
 int Adc::lastResultByIndex(unsigned char index)

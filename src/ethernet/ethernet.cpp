@@ -1,4 +1,5 @@
 #include "ethernet.h"
+#include "cpuid.h"
 
 Ethernet::MacAddress_t Ethernet::defaultMacAddress = {0xF8, 0x5C, 0x4D, 0x33, 0x10, 0x00};
 int Ethernet::rxBufCount = 5;
@@ -75,13 +76,13 @@ Ethernet::Ethernet(const RMII &rmii)
         
         lwip_init();
         
-        m_tcpTimer.callback = tcp_tmr;
+        m_tcpTimer.onTimeout = tcp_tmr;
         m_tcpTimer.start(250);
 
-        m_arpTimer.callback = etharp_tmr;
+        m_arpTimer.onTimeout = etharp_tmr;
         m_arpTimer.start(5000);
         
-        m_igmpTmr.callback = igmp_tmr;
+        m_igmpTmr.onTimeout = igmp_tmr;
         m_igmpTmr.start(IGMP_TMR_INTERVAL);
         
         stmApp()->registerTaskEvent(EVENT(&Ethernet::task));
@@ -143,9 +144,8 @@ void Ethernet::setAddress(const char *ipaddr, const char *netmask, const char *g
 {
     ip_addr_t addr, mask, gw;
     addr = ipFromString(ipaddr);
-    mask = ipFromString(netmask);
-    gw = ipFromString(gateway);
-    
+    mask = netmask? ipFromString(netmask): m_netif.netmask;
+    gw = gateway? ipFromString(gateway): m_netif.gw;
     netif_set_addr(&m_netif, &addr, &mask, &gw);
 }
 
@@ -338,6 +338,9 @@ err_t Ethernet::ethernetif_init(struct netif *netif)
     netif->linkoutput = low_level_output;
 
     /* initialize the hardware */
+    uint32_t serial = CpuId::serial();
+    for (int i=0; i<3; i++)
+        defaultMacAddress.b[5-i] = reinterpret_cast<uint8_t *>(&serial)[i];
     m_self->setMacAddress(defaultMacAddress);
 
     /* maximum transfer unit */

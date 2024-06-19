@@ -21,7 +21,7 @@ ObjnetMaster::ObjnetMaster(ObjnetInterface *iface) :
     reset();
     
     #ifndef QT_CORE_LIB
-    mTimer.setTimeoutEvent(EVENT(&ObjnetMaster::onTimer));
+    mTimer.onTimeout = EVENT(&ObjnetMaster::onTimer);
     mInterface->nakEvent = EVENT(&ObjnetMaster::onNak);
     #else
     QObject::connect(&mTimer, SIGNAL(timeout()), this, SLOT(onTimer()));

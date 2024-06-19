@@ -8,7 +8,21 @@
 class Dac
 {
 public:
-     
+  
+  
+#if defined(STM32F303x8) || defined(STM32F328xx) 
+  typedef enum
+    {
+        TriggerNone =     0,
+        TriggerTim2 =     (DAC_CR_TSEL1_2                                   | DAC_CR_TEN1),       
+        TriggerTim15 =    (                 DAC_CR_TSEL1_1 | DAC_CR_TSEL1_0 | DAC_CR_TEN1),
+        TriggerTim6 =     (                                                   DAC_CR_TEN1),
+        TriggerTim7 =     (                 DAC_CR_TSEL1_1                  | DAC_CR_TEN1),
+        TriggerTim3 =     (                                  DAC_CR_TSEL1_0 | DAC_CR_TEN1),
+        TriggerExtPin =   (DAC_CR_TSEL1_2 | DAC_CR_TSEL1_1                  | DAC_CR_TEN1),
+        TriggerSoftware = (DAC_CR_TSEL1                                     | DAC_CR_TEN1)
+    } Trigger;
+#else
     typedef enum
     {
         TriggerNone = DAC_Trigger_None,
@@ -22,7 +36,7 @@ public:
         TriggerExtPin = DAC_Trigger_Ext_IT9,
         TriggerSoftware = DAC_Trigger_Software
     } Trigger;
-    
+#endif
     typedef enum
     {
         Res8bit,

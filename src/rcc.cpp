@@ -358,6 +358,50 @@ bool Rcc::measureHseFreq()
     return true;
 }
 
+void Rcc::configPll(ClockSource pll, int freqP, int freqQ, int freqR)
+{
+    volatile PllCfgr *cfgr = nullptr;
+    switch (pll)
+    {
+//    case PLL: cfgr = *reinterpret_cast<PllCfgr*>(RCC->PLLCFGR); break; // not implemented here
+#if defined(RCC_CR_PLLI2SON)
+    case PLLI2S: cfgr = reinterpret_cast<volatile PllCfgr *>(&RCC->PLLI2SCFGR); break;
+#endif
+#if defined(RCC_CR_PLLSAION)
+    case PLLSAI: cfgr = reinterpret_cast<volatile PllCfgr *>(&RCC->PLLSAICFGR); break;
+#endif
+    default: return;
+    }
+    
+    if (isReady(pll))
+        setEnabled(pll, false);        
+    
+    int pllin = 1000000; // PLL input frequency
+    int R, Q, N = 0;
+    for (Q=2; Q<16 && !N; Q++)
+    {
+        int Nq = Q * freqQ / pllin;
+        for (R=2; R<8 && !N; R++)
+        {
+            int Nr = R * freqR / pllin;
+            if (Nq == Nr)
+                N = Nr;
+        }
+    }
+    
+    if (N)
+    {
+        cfgr->N = N;
+        cfgr->Q = --Q;
+        cfgr->R = --R;
+        setEnabled(pll, true);
+    }
+    else
+    {
+        THROW(Exception::OutOfRange);
+    }
+}
+
 #if defined(LTDC)
 int Rcc::configLtdcClock(int frequency)
 {
@@ -567,70 +611,107 @@ bool Rcc::measureHseFreq()
 
 bool Rcc::configPll(uint32_t sysClk)
 {
-    uint32_t inputClk = mHseValue;
-    if (!inputClk)
-        inputClk = hsiValue();
+  
+//    uint32_t inputClk = mHseValue;
+//    if (!inputClk)
+//        inputClk = hsiValue();
+//
+//    if (systemClockSource() == PLL)
+//    {
+//        if (!setSystemClockSource(HSI))
+//            return false;
+//        FLASH->ACR = (FLASH->ACR & ~FLASH_ACR_LATENCY_Msk);// | FLASH_ACR_LATENCY_0WS;
+//        setEnabled(PLL, false);
+//    }
+//
+//    uint32_t pllR = 2;
+//    uint32_t pllvco = sysClk * pllR;
+//
+//    mPllM = inputClk / 4000000;
+//    if (!mPllM)
+//        mPllM = 1;
+//    if (mPllM > 16)
+//        THROW(Exception::BadSoBad);
+//    mPllN = pllvco / (inputClk / mPllM);
+//    if (mPllN < 8 || mPllN > 127)
+//        THROW(Exception::BadSoBad);
+//    mPllP = 2;
+//    mPllQ = pllvco / 48000000;
+//
+//    //! @todo USB clock poorly matches 48 MHz
+//
+//    mSysClk = inputClk;
+//    mAHBClk = mSysClk;
+//    mAPB1Clk = mSysClk;
+//    mAPB2Clk = mSysClk;
+//
+//    if (sysClk >= 150000000)
+//        PWR->CR5 &= ~PWR_CR5_R1MODE;
+//    else
+//        PWR->CR5 |= PWR_CR5_R1MODE;
+//
+//    RCC->PLLCFGR = ((mPllM - 1) << 4) | ((mPllN & 0x7F) << 8) /*| (((mPllQ>>1)-1) << 21) */| (((pllR>>1)-1) << 25) | (RCC_PLLCFGR_PLLREN); // | (RCC_PLLCFGR_PLLQEN);
+//
+//    if (mHseValue) // if HSE is present make it the clock source of PLL
+//        RCC->PLLCFGR |= RCC_PLLCFGR_PLLSRC_HSE;
+//
+//    if (setEnabled(PLL, true))
+//    {
+//        uint32_t acr = FLASH->ACR;
+//        acr |= FLASH_ACR_PRFTEN | FLASH_ACR_ICEN | FLASH_ACR_DCEN;
+//        acr = (acr & ~FLASH_ACR_LATENCY_Msk) | FLASH_ACR_LATENCY_4WS;
+//        FLASH->ACR = acr;
+//
+//        if (setSystemClockSource(PLL))
+//        {
+//            mSysClk = inputClk / mPllM * mPllN / pllR;
+//            mAHBClk = mSysClk;
+//            mAPB1Clk = mSysClk;
+//            mAPB2Clk = mSysClk;
+//        }
+//        else
+//            THROW(Exception::BadSoBad);
+//    }
+////    else if (mHseValue && setEnabled(HSE, true)) {}
+//    else
+//        THROW(Exception::BadSoBad);
+/////////*********************
+  mSysClk  = 68812800;
+  mAPB1Clk = 68812800;         // только под кварц 14.7456
+  mAPB2Clk = 68812800/2;
+/////////////////*************
+      RCC->CR |= RCC_CR_HSEON;
+  while(!(RCC->CR & RCC_CR_HSERDY));
 
-    if (systemClockSource() == PLL)
-    {
-        if (!setSystemClockSource(HSI))
-            return false;
-        FLASH->ACR = (FLASH->ACR & ~FLASH_ACR_LATENCY_Msk);// | FLASH_ACR_LATENCY_0WS;
-        setEnabled(PLL, false);
-    }
+  // Настройка флэш-памяти на 2 цикла ожидания, если частота SYSCLK выше 48 МГц
+  FLASH->ACR |= FLASH_ACR_LATENCY_1;
 
-    uint32_t pllR = 2;
-    uint32_t pllvco = sysClk * pllR;
+  // Настройка коэффициентов PLL
+  RCC->CFGR &= ~RCC_CFGR_PLLMUL; // Сброс множителя PLL
+  // Для HSE 14.7456 МГц, чтобы получить SYSCLK = 72 МГц, множитель PLL должен быть 14\3 (PLLMUL x 5)
+  RCC->CFGR |= RCC_CFGR_PLLMUL14;
 
-    mPllM = inputClk / 4000000;
-    if (!mPllM)
-        mPllM = 1;
-    if (mPllM > 16)
-        THROW(Exception::BadSoBad);
-    mPllN = pllvco / (inputClk / mPllM);
-    if (mPllN < 8 || mPllN > 127)
-        THROW(Exception::BadSoBad);
-    mPllP = 2;
-    mPllQ = pllvco / 48000000;
+  RCC->CFGR &= ~RCC_CFGR_PLLSRC; // Выбор HSE как источника для PLL
+  RCC->CFGR |= RCC_CFGR_PLLSRC_HSE_PREDIV;
+ 
+  
+  RCC->CFGR2 |= RCC_CFGR2_PREDIV_DIV3;
 
-    //! @todo USB clock poorly matches 48 MHz
+  // Включение PLL и ожидание его готовности
+  RCC->CR |= RCC_CR_PLLON;
+  while(!(RCC->CR & RCC_CR_PLLRDY));
 
-    mSysClk = inputClk;
-    mAHBClk = mSysClk;
-    mAPB1Clk = mSysClk;
-    mAPB2Clk = mSysClk;
+  // Выбор PLL как источника SYSCLK и ожидание его выбора
+  RCC->CFGR &= ~RCC_CFGR_SW;
+  RCC->CFGR |= RCC_CFGR_SW_PLL;
+  while((RCC->CFGR & RCC_CFGR_SWS) != RCC_CFGR_SWS_PLL);
 
-    if (sysClk >= 150000000)
-        PWR->CR5 &= ~PWR_CR5_R1MODE;
-    else
-        PWR->CR5 |= PWR_CR5_R1MODE;
-
-    RCC->PLLCFGR = ((mPllM - 1) << 4) | ((mPllN & 0x7F) << 8) /*| (((mPllQ>>1)-1) << 21) */| (((pllR>>1)-1) << 25) | (RCC_PLLCFGR_PLLREN); // | (RCC_PLLCFGR_PLLQEN);
-
-    if (mHseValue) // if HSE is present make it the clock source of PLL
-        RCC->PLLCFGR |= RCC_PLLCFGR_PLLSRC_HSE;
-
-    if (setEnabled(PLL, true))
-    {
-        uint32_t acr = FLASH->ACR;
-        acr |= FLASH_ACR_PRFTEN | FLASH_ACR_ICEN | FLASH_ACR_DCEN;
-        acr = (acr & ~FLASH_ACR_LATENCY_Msk) | FLASH_ACR_LATENCY_4WS;
-        FLASH->ACR = acr;
-
-        if (setSystemClockSource(PLL))
-        {
-            mSysClk = inputClk / mPllM * mPllN / pllR;
-            mAHBClk = mSysClk;
-            mAPB1Clk = mSysClk;
-            mAPB2Clk = mSysClk;
-        }
-        else
-            THROW(Exception::BadSoBad);
-    }
-//    else if (mHseValue && setEnabled(HSE, true)) {}
-    else
-        THROW(Exception::BadSoBad);
-
+  // Настройка делителей AHB, APB1 и APB2
+  RCC->CFGR &= ~RCC_CFGR_HPRE; // AHB prescaler = 1
+  RCC->CFGR &= ~RCC_CFGR_PPRE1; // APB1 prescaler = 2 (36 МГц максимум для APB1)
+  RCC->CFGR |= RCC_CFGR_PPRE1_DIV2;
+  RCC->CFGR &= ~RCC_CFGR_PPRE2; // APB2 prescaler = 1
+  
     return true;
 }
 

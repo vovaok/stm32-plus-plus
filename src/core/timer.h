@@ -2,6 +2,7 @@
 #define _TIMER_H
 
 #include "core.h"
+#include <functional>
 
 class Timer
 {
@@ -26,15 +27,13 @@ public:
     bool isSingleShot() const {return mSingleShot;}
     void setSingleShot(bool singleShot) {mSingleShot = singleShot;}
 
-    NotifyEvent onTimeout;
-    void (*callback)(void) = nullptr;
+    std::function<void(void)> onTimeout;
+//    void (*callback)(void) = nullptr;
 
-    NotifyEvent timeoutEvent() {return onTimeout;}
-    void setTimeoutEvent(NotifyEvent event) {onTimeout = event;}
+//    NotifyEvent timeoutEvent() {return onTimeout;}
+//    void setTimeoutEvent(NotifyEvent event) {onTimeout = event;}
 
-//    void reset();
     void start(int interval = 0);
-//    void pause();
     void stop();
 
     int time() const {return mTime;}
