@@ -15142,12 +15142,14 @@
         <name>$PROJ_DIR$\src\fdcan.cpp</name>
         <excluded>
             <configuration>stm32f407vg</configuration>
+            <configuration>stm32f405rg_no-exceptions_no-rtti</configuration>
             <configuration>stm32f429zi</configuration>
         </excluded>
     </file>
     <file>
         <name>$PROJ_DIR$\src\fdcan.h</name>
         <excluded>
+            <configuration>stm32f405rg_no-exceptions_no-rtti</configuration>
             <configuration>stm32f429zi</configuration>
         </excluded>
     </file>
