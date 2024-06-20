@@ -721,8 +721,146 @@ bool Rcc::measureHseFreq()
     return false;
 }
 
-
 #endif
+
+typedef enum
+{
+#if defined(STM32F4)
+    // AHB1
+    RccGPIOA    = 1 << 0,   
+    RccGPIOB    = 1 << 1,
+    RccGPIOC    = 1 << 2,
+    RccGPIOD    = 1 << 3,
+    RccGPIOE    = 1 << 4,
+    RccGPIOF    = 1 << 5,
+    RccGPIOG    = 1 << 6,
+    RccGPIOH    = 1 << 7,
+    RccGPIOI    = 1 << 8,
+    RccGPIOJ    = 1 << 9,
+    RccGPIOK    = 1 << 10,
+    RccCRC      = 1 << 12,
+    RccBKPSRAM  = 1 << 18,
+    RccCCM      = 1 << 20, // CCM data RAM
+    RccDMA1     = 1 << 21,
+    RccDMA2     = 1 << 22,
+    RccDMA2D    = 1 << 23,
+    RccETH      = (1<<25) | (1<<26) | (1<<27) | (1<<28),
+    RccOTGHS    = 1 << 29,
+    RccOTGHSULPI = 1 << 30,
+    // AHB2
+    RccDCMI     = 1 << 0,
+    RccCRYP     = 1 << 4,
+    RccHASH     = 1 << 5,
+    RccRNG      = 1 << 6,
+    RccOTGFS    = 1 << 7,
+    // AHB3
+    RccFMC      = 1 << 0,
+    RccDAC1     = 0,
+    RccDAC2     = 0,
+    RccDAC3     = 0,
+    RccDAC4     = 0,
+    
+#elif defined(STM32G4)
+    // AHB1
+    RccDMA1     = 1 << 0,
+    RccDMA2     = 1 << 1,
+    RccDMAMUX1  = 1 << 2,
+    RccCORDIC   = 1 << 3,
+    RccFMAC     = 1 << 4,
+    RccFLASH    = 1 << 8,
+    RccCRC      = 1 << 12,
+    // AHB2
+    RccGPIOA    = 1 << 0,   
+    RccGPIOB    = 1 << 1,
+    RccGPIOC    = 1 << 2,
+    RccGPIOD    = 1 << 3,
+    RccGPIOE    = 1 << 4,
+    RccGPIOF    = 1 << 5,
+    RccGPIOG    = 1 << 6,
+    RccGPIOH    = 1 << 7,
+    RccGPIOI    = 1 << 8,
+    RccGPIOJ    = 1 << 9,
+    RccGPIOK    = 1 << 10,
+    RccADC1     = 1 << 13,
+    RccADC2     = 1 << 13,
+    RccADC3     = 1 << 14,
+    RccADC4     = 1 << 14,
+    RccADC5     = 1 << 14,
+    RccDAC1     = 1 << 16,
+    RccDAC2     = 1 << 17,
+    RccDAC3     = 1 << 18,
+    RccDAC4     = 1 << 19,
+    RccAES      = 1 << 24,
+    RccRNG      = 1 << 26,
+    // AHB3
+    RccFMC      = 1 << 0,
+    RccQSPI     = 1 << 8,
+    
+#elif defined(STM32L4)
+    // AHB1
+    RccDMA1     = 1 << 0,
+    RccDMA2     = 1 << 1,
+    RccFLASH    = 1 << 8,
+    RccCRC      = 1 << 12,
+    RccTSC      = 1 << 16,
+    RccDMA2D    = 1 << 17,
+    // AHB2
+    RccGPIOA    = 1 << 0,   
+    RccGPIOB    = 1 << 1,
+    RccGPIOC    = 1 << 2,
+    RccGPIOD    = 1 << 3,
+    RccGPIOE    = 1 << 4,
+    RccGPIOF    = 1 << 5,
+    RccGPIOG    = 1 << 6,
+    RccGPIOH    = 1 << 7,
+    RccGPIOI    = 1 << 8,
+    RccGPIOJ    = 1 << 9,
+    RccGPIOK    = 1 << 10,
+    RccOTGFS    = 1 << 12,
+    RccADC1     = 1 << 13,
+    RccADC2     = 1 << 13,
+    RccADC3     = 1 << 13,
+    RccDCMI     = 1 << 14,
+    RccAES      = 1 << 16,
+    RccHASH     = 1 << 17,
+    RccRNG      = 1 << 18,
+    // AHB3
+    RccFMC      = 1 << 0,
+    RccQSPI     = 1 << 8,
+    RccDAC1     = 0,
+    RccDAC2     = 0,
+    RccDAC3     = 0,
+    RccDAC4     = 0,
+    
+#elif defined(STM32F3)
+    RccGPIOA    = 1 << 17,   
+    RccGPIOB    = 1 << 18,
+    RccGPIOC    = 1 << 19,
+    RccGPIOD    = 1 << 20,
+    RccGPIOE    = 1 << 21,
+    RccGPIOF    = 1 << 22,
+    RccGPIOG    = 1 << 23,
+    RccGPIOH    = 1 << 16,
+    RccGPIOI    = 0,
+    RccGPIOJ    = 0,
+    RccGPIOK    = 0,
+    RccDMA1     = 1 << 0,
+    RccDMA2     = 1 << 1,
+    RccFLITF    = 1 << 4,
+    RccFMC      = 1 << 5,
+    RccCRC      = 1 << 6,
+    RccTSC      = 1 << 24,
+    RccADC1     = 1 << 28,
+    RccADC2     = 1 << 28,
+    RccADC3     = 1 << 29,
+    RccADC4     = 1 << 29,
+    RccDAC1     = 0,
+    RccDAC2     = 0,
+    RccDAC3     = 0,
+    RccDAC4     = 0,
+    
+#endif
+} RccEnableBit;
 
 void Rcc::setPeriphEnabled(void *periphBase, bool enabled)
 {
@@ -732,30 +870,126 @@ void Rcc::setPeriphEnabled(void *periphBase, bool enabled)
     uint32_t mask1 = 1 << (offset >> 10);
     uint32_t mask2 = 1 << ((offset >> 10) - 32);
     
+#if defined(STM32F3)
+    #define AHB1ENR     AHBENR
+    #define AHB2ENR     AHBENR
+    #define AHB3ENR     AHBENR
+#elif defined(STM32G4)
+    #define APB1ENR     APB1ENR1
+#endif
+    
+    volatile uint32_t *ENR = nullptr;
+    switch (bus)
+    {
+        case AHB1PERIPH_BASE: ENR = &RCC->AHB1ENR; break;
+        case AHB2PERIPH_BASE: ENR = &RCC->AHB2ENR; break;
+        case AHB3PERIPH_BASE: ENR = &RCC->AHB3ENR; break;
+        case APB1PERIPH_BASE: ENR = &RCC->APB1ENR; break;
+        case APB2PERIPH_BASE: ENR = &RCC->APB2ENR; break;
+        //! @todo deal with APB1ENR2 register in some MCUs
+    }
+    
     //! @todo check for other STM families!
 
-    switch (base)
+    if (base >= AHB1PERIPH_BASE)
     {
-#ifdef DMA2D
-    case DMA2D_BASE:    RCC->AHB1ENR |= RCC_AHB1ENR_DMA2DEN; break;
-#endif
-#ifdef ETH
-    case ETH_BASE:      RCC->AHB1ENR |=
-                        RCC_AHB1ENR_ETHMACEN | /*RCC_AHB1ENR_ETHMACPTPEN | */
-                        RCC_AHB1ENR_ETHMACRXEN | RCC_AHB1ENR_ETHMACTXEN;
-                        break;
-#endif
-                        
-#if defined(STM32F4)
-    case ADC2_BASE:     RCC->APB2ENR |= RCC_APB2ENR_ADC2EN; break;
-    case ADC3_BASE:     RCC->APB2ENR |= RCC_APB2ENR_ADC3EN; break;
-#elif defined(STM32G4)
+        switch (base)
+        {
+    #if defined(GPIOA)
+        case GPIOA_BASE:    *ENR |= RccGPIOA; break;
+    #endif
+    #if defined(GPIOB) 
+        case GPIOB_BASE:    *ENR |= RccGPIOB; break;
+    #endif
+    #if defined(GPIOC) 
+        case GPIOC_BASE:    *ENR |= RccGPIOC; break;
+    #endif
+    #if defined(GPIOD) 
+        case GPIOD_BASE:    *ENR |= RccGPIOD; break;
+    #endif
+    #if defined(GPIOE) 
+        case GPIOE_BASE:    *ENR |= RccGPIOE; break;
+    #endif
+    #if defined(GPIOF) 
+        case GPIOF_BASE:    *ENR |= RccGPIOF; break;
+    #endif
+    #if defined(GPIOG) 
+        case GPIOG_BASE:    *ENR |= RccGPIOG; break;
+    #endif
+    #if defined(GPIOH) 
+        case GPIOH_BASE:    *ENR |= RccGPIOH; break;
+    #endif
+    #if defined(GPIOI) 
+        case GPIOI_BASE:    *ENR |= RccGPIOI; break;
+    #endif
+    #if defined(GPIOJ) 
+        case GPIOJ_BASE:    *ENR |= RccGPIOJ; break;
+    #endif
+    #if defined(GPIOK) 
+        case GPIOK_BASE:    *ENR |= RccGPIOK; break;
+    #endif 
+    #if defined(DMA1)
+        case DMA1_BASE:     *ENR |= RccDMA1; break;
+    #endif
+    #if defined(DMA2)
+        case DMA2_BASE:     *ENR |= RccDMA2; break;
+    #endif
+    #if defined(ADC1)
+        case ADC1_BASE:     *ENR |= RccADC1; break;
+    #endif
+    #if defined(ADC2)    
+        case ADC2_BASE:     *ENR |= RccADC2; break;
+    #endif
+    #if defined(ADC3)
+        case ADC3_BASE:     *ENR |= RccADC3; break;
+    #endif
+    #if defined(ADC4)
+        case ADC4_BASE:     *ENR |= RccADC4; break;
+    #endif
+    #if defined(ADC5)
+        case ADC5_BASE:     *ENR |= RccADC5; break;
+    #endif
+    #if defined(DAC1)
+        case DAC1_BASE:     *ENR |= RccDAC1; break;
+    #endif
+    #if defined(DAC2)    
+        case DAC2_BASE:     *ENR |= RccDAC2; break;
+    #endif
+    #if defined(DAC3)
+        case DAC3_BASE:     *ENR |= RccDAC3; break;
+    #endif
+    #if defined(DAC4)
+        case DAC4_BASE:     *ENR |= RccDAC4; break;
+    #endif        
+        
+    #ifdef DMA2D
+        case DMA2D_BASE:    *ENR |= RccDMA2D; break;
+    #endif
+    #ifdef ETH
+        case ETH_BASE:      *ENR |= RccETH; break;
+    #endif
+        
+    #if defined(FMC_BASE)
+        case FMC_BASE:      *ENR |= RccFMC; break;
+    #endif
+        }
+    }
+    else switch (base)
+    {
+#if defined(STM32G4)
     case FDCAN2_BASE:
     case FDCAN3_BASE:
         RCC->APB1ENR1 |= RCC_APB1ENR1_FDCANEN;
         break;
+#elif defined(STM32F3)
+    #if defined(DAC2)
+    case DAC2:
+        RCC->APB1ENR |= RCC_APB1ENR_DAC2EN;
+    #endif
 #endif
+        
     //! @todo Fill other cases
+
     default:
         if (bus == APB1PERIPH_BASE)
         {
@@ -775,6 +1009,8 @@ void Rcc::setPeriphEnabled(void *periphBase, bool enabled)
 
 void Rcc::resetPeriph(void *periphBase)
 {
+    //! @todo Make the same as enablePeriph
+    
     uint32_t base = reinterpret_cast<uint32_t>(periphBase);
     uint32_t bus = periphBusBase(periphBase);
     uint32_t offset = periphBusOffset(periphBase);

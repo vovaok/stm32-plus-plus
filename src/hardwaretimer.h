@@ -25,7 +25,7 @@
     #define TIM1_TRG_COM_IRQ    TIM1_TRG_COM_TIM17_IRQ
     #endif
 #define TIM1_BRK_IRQ        TIM1_BRK_TIM15_IRQ
-#define TIM8_UP_IRQ         TIM8_UP_IRQ
+#define TIM8_UP_IRQ         TIM8_UP_IRQ             // TODO: wut?
 #define TIM8_TRG_COM_IRQ    TIM8_TRG_COM_IRQ
 #define TIM8_BRK_IRQ        TIM8_BRK_IRQ
 #define TIM15_IRQ           TIM1_BRK_TIM15_IRQ
@@ -212,6 +212,24 @@ public:
     inline void generateUpdateEvent() {mTim->EGR = TIM_EGR_UG;}
     inline void generateComEvent() {mTim->EGR = TIM_EGR_COMG;}
     
+    enum Capability
+    {
+        NoCaps          = 0x00,
+        InputOutput     = 0x01, // input capture, output compare, PWM generation, one-pulse mode output
+        Res32bit        = 0x02, // has 32-bit counter
+        UpDown          = 0x04, // can count up, down or up/down
+        Complementary   = 0x08, // has complementary outputs with deadtime
+        Encoder         = 0x10, // has quadrature encoder inputs
+        Repetition      = 0x20, // has repetition counter
+        AdvancedControl = InputOutput | UpDown | Complementary | Encoder | Repetition, // TIM1, TIM8, TIM20
+        GeneralPurpose1 = InputOutput | UpDown | Encoder, // TIM2 to TIM5
+        Basic           = NoCaps, // TIM6, TIM7
+        GeneralPurpose2 = InputOutput, // TIM9 to TIM14
+        GeneralPurpose3 = InputOutput | Complementary | Repetition, // TIM15 to TIM17 
+    } m_caps = NoCaps;
+    
+    inline bool hasCapability(Capability cap) {return m_caps & cap;}
+    
 protected:
     typedef enum
     {
@@ -251,24 +269,6 @@ private:
     
     void enableInterrupt(InterruptSource source);
     void handleInterrupt();
-    
-    enum Capability
-    {
-        NoCaps          = 0x00,
-        InputOutput     = 0x01, // input capture, output compare, PWM generation, one-pulse mode output
-        Res32bit        = 0x02, // has 32-bit counter
-        UpDown          = 0x04, // can count up, down or up/down
-        Complementary   = 0x08, // has complementary outputs with deadtime
-        Encoder         = 0x10, // has quadrature encoder inputs
-        Repetition      = 0x20, // has repetition counter
-        AdvancedControl = InputOutput | UpDown | Complementary | Encoder | Repetition, // TIM1, TIM8, TIM20
-        GeneralPurpose1 = InputOutput | UpDown | Encoder, // TIM2 to TIM5
-        Basic           = NoCaps, // TIM6, TIM7
-        GeneralPurpose2 = InputOutput, // TIM9 to TIM14
-        GeneralPurpose3 = InputOutput | Complementary | Repetition, // TIM15 to TIM17 
-    } m_caps = NoCaps;
-    
-    inline bool hasCapability(Capability cap) {return m_caps & cap;}
     
     FOREACH_TIM_IRQ(DECLARE_TIM_FRIEND)
 };

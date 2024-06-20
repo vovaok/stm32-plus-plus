@@ -1,4 +1,5 @@
 #include "motorDC.h"
+#include <math.h>
 #define sat(x, c) (((x)>(c))? (c): ((x)<-(c))? -(c): (x))
 
 
@@ -59,7 +60,7 @@ MotorDC::MotorDC(PwmOutput *pwmIn) : slopePwm(0),mEnable(false),kpPos(0), kiPos(
         mPwm = err * kpPos + erriPos * kiPos;
 
         if (!mEnableCurrentLoop)
-            setSpeed(lrintf(mPwm));
+            setSpeed(lroundf(mPwm));
         else
             mPwm = sat(mPwm, mCurrentLimit);
     
@@ -97,7 +98,7 @@ MotorDC::MotorDC(PwmOutput *pwmIn) : slopePwm(0),mEnable(false),kpPos(0), kiPos(
          
         float pwm = (err*kpCur+erriCur*kiCur);
              
-        setSpeed(lrintf(pwm));
+        setSpeed(lroundf(pwm));
     }
   }
 

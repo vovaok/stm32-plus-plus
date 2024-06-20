@@ -1,6 +1,6 @@
 #include "cpuid.h"
 
-#if defined(STM32F37X)
+#if defined(STM32F3)
 const unsigned long * const  CpuId::mSignature = (const unsigned long*) 0x1FFFF7AC;
 const unsigned short * const CpuId::mFlashSize = (const unsigned short*)0x1FFFF7CC;
 const unsigned short * const CpuId::mPackage   = (const unsigned short*)0x1FFFF7AC; // signature instead of package

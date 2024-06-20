@@ -38,7 +38,7 @@
 #define UART5_RX_DMA    Dma::UART5_RX;
 #define UART5_TX_DMA    Dma::UART5_TX;
 
-#elif defined (STM32F303x8)
+#elif defined (STM32F3)
 #define USART1_RX_DMA   Dma::Channel5_USART1_RX;
 #define USART1_TX_DMA   Dma::Channel4_USART1_TX;
 #define USART2_RX_DMA   Dma::Channel6_USART2_RX;
@@ -490,22 +490,14 @@ void Usart::dmaTxComplete()
 
 void Usart::setBaudrate(int baudrate)
 {    
-    #if defined(STM32F37X)
-    int apbclock = (mDev == USART1)? rcc().pClk2(): rcc().pClk1();
-    #elif defined(STM32F4)
-    int apbclock = ((mDev == USART1) || (mDev == USART6))? rcc().pClk2(): rcc().pClk1();
-    #elif defined(STM32L4) || defined(STM32G4)
-    int apbclock = (mDev == USART1)? rcc().pClk2(): rcc().pClk1();
-    #elif defined(STM32F303x8)
-    int apbclock = (mDev == USART1)? rcc().pClk2(): rcc().pClk1();
-    #endif
+    int apbclock = rcc().getPeriphClk(mDev);
 
     uint32_t tmpreg = apbclock / baudrate;
     mBaudrate = apbclock / tmpreg;
     
-#if defined(STM32F37X)
-//    mBaudrate = apbclock / tmpreg;
-#else
+//#if defined(STM32F37X)
+////    mBaudrate = apbclock / tmpreg;
+//#else
     
     if (tmpreg < 8)
         THROW(Exception::OutOfRange);
@@ -518,7 +510,7 @@ void Usart::setBaudrate(int baudrate)
     {
         mDev->CR1 &= ~USART_CR1_OVER8;
     }
-#endif
+//#endif
     
     mDev->BRR = (uint16_t)tmpreg;
 }
