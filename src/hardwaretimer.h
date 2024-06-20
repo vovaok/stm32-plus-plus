@@ -142,6 +142,28 @@ public:
         BothEdge = 0xA
     } Polarity;
     
+    typedef enum
+    {
+        isrcUpdate  = 0,
+        isrcCC1     = 1,
+        isrcCC2     = 2,
+        isrcCC3     = 3,
+        isrcCC4     = 4,
+        isrcCom     = 5,
+        isrcTrigger = 6,
+        isrcBreak   = 7
+    } InterruptSource;
+    
+    typedef enum
+    {
+        PwmMode_Timing   = 0x0000,
+        PwmMode_Active   = 0x0010,
+        PwmMode_Inactive = 0x0020,
+        PwmMode_Toggle   = 0x0030,
+        PwmMode_PWM1     = 0x0060,
+        PwmMode_PWM2     = 0x0070
+    } PwmMode;
+    
     /*! Инициализация аппаратного таймера.
     \param timerNumber Номер аппаратного таймера.
     \param frequency_Hz Частота таймера в герцах. Для красоты можно использовать макросы _Hz, _kHz, _MHz.
@@ -231,27 +253,6 @@ public:
     inline bool hasCapability(Capability cap) {return m_caps & cap;}
     
 protected:
-    typedef enum
-    {
-        isrcUpdate  = 0,
-        isrcCC1     = 1,
-        isrcCC2     = 2,
-        isrcCC3     = 3,
-        isrcCC4     = 4,
-        isrcCom     = 5,
-        isrcTrigger = 6,
-        isrcBreak   = 7
-    } InterruptSource;
-    
-    typedef enum
-    {
-        PwmMode_Timing   = 0x0000,
-        PwmMode_Active   = 0x0010,
-        PwmMode_Inactive = 0x0020,
-        PwmMode_Toggle   = 0x0030,
-        PwmMode_PWM1     = 0x0060,
-        PwmMode_PWM2     = 0x0070
-    } PwmMode;
     
 //    unsigned long inputClk() const {return mInputClk;}
     

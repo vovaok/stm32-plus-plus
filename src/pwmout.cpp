@@ -57,7 +57,7 @@ void PwmOutput::init()
 //    tim()->RCR = 0x01; // update event freq / 2;
 
     setEnabled(true);
-    if (tim() == TIM1 || tim() == TIM8)
+    if (hasCapability(Complementary))
     {
         tim()->BDTR &= 0xFF; //! @todo check this
         tim()->BDTR |= 100;

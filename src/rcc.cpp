@@ -983,7 +983,7 @@ void Rcc::setPeriphEnabled(void *periphBase, bool enabled)
         break;
 #elif defined(STM32F3)
     #if defined(DAC2)
-    case DAC2:
+    case DAC2_BASE:
         RCC->APB1ENR |= RCC_APB1ENR_DAC2EN;
     #endif
 #endif

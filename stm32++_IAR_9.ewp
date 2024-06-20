@@ -16609,9 +16609,6 @@
     </file>
     <file>
         <name>$PROJ_DIR$\src\pwmout.cpp</name>
-        <excluded>
-            <configuration>stm32f303x8</configuration>
-        </excluded>
     </file>
     <file>
         <name>$PROJ_DIR$\src\pwmout.h</name>
