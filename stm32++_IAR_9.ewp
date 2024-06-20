@@ -4577,7 +4577,7 @@
                 <option>
                     <name>CCAllowList</name>
                     <version>1</version>
-                    <state>11111110</state>
+                    <state>00000000</state>
                 </option>
                 <option>
                     <name>CCDebugInfo</name>
@@ -4659,7 +4659,7 @@
                 </option>
                 <option>
                     <name>CCOptLevel</name>
-                    <state>3</state>
+                    <state>0</state>
                 </option>
                 <option>
                     <name>CCOptStrategy</name>
@@ -4668,7 +4668,7 @@
                 </option>
                 <option>
                     <name>CCOptLevelSlave</name>
-                    <state>3</state>
+                    <state>0</state>
                 </option>
                 <option>
                     <name>CCPosIndRopi</name>
@@ -15364,6 +15364,12 @@
             <name>$PROJ_DIR$\src\device\shiftregister.h</name>
         </file>
         <file>
+            <name>$PROJ_DIR$\src\device\st7796.cpp</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\device\st7796.h</name>
+        </file>
+        <file>
             <name>$PROJ_DIR$\src\device\stmpe811.cpp</name>
         </file>
         <file>
@@ -16257,6 +16263,7 @@
     <file>
         <name>$PROJ_DIR$\src\dma303x8.cpp</name>
         <excluded>
+            <configuration>stm32f407vg</configuration>
             <configuration>stm32f405rg</configuration>
             <configuration>stm32f405rg_no-exceptions_no-rtti</configuration>
             <configuration>stm32f429zi</configuration>

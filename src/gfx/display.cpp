@@ -127,12 +127,12 @@ void Display::renderChar(char c, int &x, int &y)
 	int x0 = m_x + x + li.lb;
     int y0 = m_y + y - fi->a;
 
-    if (m_pixelFormat < 8 && fi->bpp == 4)
+    if (isReadable() && m_pixelFormat < 8 && fi->bpp == 4)
     {
         // li.w must be even for 4 bpp!
         blendRect(x0, y0 + li.sr, li.w, li.er - li.sr, src, Format_A4);
     }
-    else if (m_pixelFormat < 8 && fi->bpp == 8)
+    else if (isReadable() && m_pixelFormat < 8 && fi->bpp == 8)
     {
         blendRect(x0, y0 + li.sr, li.w, li.er - li.sr, src, Format_A8);
     }
