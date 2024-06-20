@@ -14,10 +14,10 @@ Dma::Dma(Channel channelName)
 {
 
     int dma_num = channelName >> 8;
-    mChannelNum  = ((channelName >> 4) & 7) - 1; // 0...6
+    mChannelNum  = channelName & 0x07; // 0...6
     mChannelSel = channelName & 7;
       
-    int idx = mChannelNum + CH_PER_DMA * (dma_num - 1);
+    int idx = mChannelNum ;
     if (mChannels[idx])
         THROW(Exception::ResourceBusy);
     
@@ -25,16 +25,12 @@ Dma::Dma(Channel channelName)
     
     mChannels[idx] = this;
     
-    if (dma_num == 1)
-    {
+   
         mDma = DMA1;
-        mChannel = DMA1_Channel1 + mChannelNum;
+        mChannel = (DMA_Channel_TypeDef *)((uint32_t *)DMA1_Channel1 + mChannelNum * 5);
         
         RCC->AHBENR |= RCC_AHBENR_DMA1EN;
 
-      //  DMA1_CSELR->CSELR |= mChannelSel << (mChannelNum*4);       
-
-    }    
 
     
     static const IRQn_Type irq[DMA_CHANNEL_COUNT] = {FOR_EACH_DMA(DMA_IRQn)};

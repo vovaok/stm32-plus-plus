@@ -82,7 +82,7 @@ void Led::blinkOnce()
     setBlinkingEnabled(true);
 }
 
-void Led::blinkOnce(int duration_ms)
+void Led::blinkOnceFor(int duration_ms)
 {
     timer()->setInterval(duration_ms);
     blinkOnce();

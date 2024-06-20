@@ -675,7 +675,11 @@ bool Rcc::configPll(uint32_t sysClk)
 ////    else if (mHseValue && setEnabled(HSE, true)) {}
 //    else
 //        THROW(Exception::BadSoBad);
-
+/////////*********************
+  mSysClk  = 68812800;
+  mAPB1Clk = 68812800;         // только под кварц 14.7456
+  mAPB2Clk = 68812800/2;
+/////////////////*************
       RCC->CR |= RCC_CR_HSEON;
   while(!(RCC->CR & RCC_CR_HSERDY));
 

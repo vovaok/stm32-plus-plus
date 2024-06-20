@@ -9253,7 +9253,7 @@
             <data>
                 <extensions></extensions>
                 <cmdline></cmdline>
-                <hasPrio>112</hasPrio>
+                <hasPrio>1</hasPrio>
                 <buildSequence>inputOutputBased</buildSequence>
             </data>
         </settings>
@@ -16659,7 +16659,6 @@
         <name>$PROJ_DIR$\src\usart.cpp</name>
         <excluded>
             <configuration>stm32f303xC</configuration>
-            <configuration>stm32f303x8</configuration>
         </excluded>
     </file>
     <file>
