@@ -111,6 +111,27 @@ public:
         TrgOC3Ref   = 0x0060,
         TrgOC4Ref   = 0x0070
     } TrgSource;
+#if defined (STM32F303x8) 
+    typedef enum
+    {
+        TRGO2_RESET                          = 0x000000,                  
+        TRGO2_ENABLE                         = 0x100000,
+        TRGO2_UPDATE                         = 0x200000,
+        TRGO2_OC1                            = 0x300000,
+        TRGO2_OC1REF                         = 0x400000,
+        TRGO2_OC2REF                         = 0x500000,
+        TRGO2_OC3REF                         = 0x600000,
+        TRGO2_OC4REF                         = 0x700000,
+        TRGO2_OC5REF                         = 0x800000,
+        TRGO2_OC6REF                         = 0x900000,
+        TRGO2_OC4REF_RISINGFALLING           = 0xA00000,
+        TRGO2_OC6REF_RISINGFALLING           = 0xB00000,
+        TRGO2_OC4REF_RISING_OC6REF_RISING    = 0xC00000,
+        TRGO2_OC4REF_RISING_OC6REF_FALLING   = 0xD00000,
+        TRGO2_OC5REF_RISING_OC6REF_RISING    = 0xE00000,
+        TRGO2_OC5REF_RISING_OC6REF_FALLING   = 0xF00000
+    } TrgSource2;
+#endif
     
     typedef enum
     {
@@ -181,6 +202,9 @@ public:
     void selectInputTrigger(InputTrigger trgi);
     void setSlaveMode(SlaveMode sms);
     void selectOutputTrigger(TrgSource source);
+#if defined (STM32F303x8)
+    void HardwareTimer::selectOutputTrigger2(TrgSource2 source);
+#endif
     void setFrequency(int frequency_Hz);
     int frequency() const; // current programmed frequency
     int clockFrequency() const; // current clock frequency

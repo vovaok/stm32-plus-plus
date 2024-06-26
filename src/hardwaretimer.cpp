@@ -234,6 +234,14 @@ void HardwareTimer::setSlaveMode(SlaveMode sms)
     mTim->SMCR = (mTim->SMCR & ~TIM_SMCR_SMS) | (sms & TIM_SMCR_SMS);
 }
 
+#if defined (STM32F303x8)
+void HardwareTimer::selectOutputTrigger2(TrgSource2 source)
+{
+    mTim->CR2 = mTim->CR2 & ~TIM_CR2_MMS2 | (uint32_t)source;
+}
+
+#endif
+
 void HardwareTimer::selectOutputTrigger(TrgSource source)
 {
     mTim->CR2 = mTim->CR2 & ~TIM_CR2_MMS | (uint16_t)source;

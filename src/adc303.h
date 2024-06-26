@@ -1,5 +1,5 @@
-#ifndef _ADC_H
-#define _ADC_H
+#ifndef _ADC303_H
+#define _ADC303_H
 
 #include "stm32.h"
 
@@ -25,55 +25,53 @@ public:
 
     typedef enum {ModeSingle, ModeDual, ModeTriple} Mode;
 
-
-        typedef enum
+    typedef enum
     {
-        Res6bit = ADC_CR1_RES,
-        Res8bit = ADC_CR1_RES_1,
-        Res10bit = ADC_CR1_RES_0,
+        Res6bit = ADC_CFGR_RES,
+        Res8bit = ADC_CFGR_RES_1,
+        Res10bit = ADC_CFGR_RES_0,
         Res12bit = 0,
-        Res16bit = ADC_CR2_ALIGN
+        Res16bit = ADC_CFGR_ALIGN
     } Resolution;
 
     typedef enum
     {
         EdgeNone = 0,
-        EdgeRising = ADC_CR2_EXTEN_0,
-        EdgeFalling = ADC_CR2_EXTEN_1,
-        EdgeBoth = ADC_CR2_EXTEN_0 | ADC_CR2_EXTEN_1
+        EdgeRising = ADC_CFGR_EXTEN_0,
+        EdgeFalling = ADC_CFGR_EXTEN_1,
+        EdgeBoth = ADC_CFGR_EXTEN_0 | ADC_CFGR_EXTEN_1
     } Edge;
 
     typedef enum
     {
         TriggerTim1CC1 = 0,
-        TriggerTim1CC2 = ADC_CR2_EXTSEL_0,
-        TriggerTim1CC3 = ADC_CR2_EXTSEL_1,
-        TriggerTim2CC2 = (ADC_CR2_EXTSEL_1 | ADC_CR2_EXTSEL_0),
-        TriggerTim2CC3 = ADC_CR2_EXTSEL_2,
-        TriggerTim2CC4 = (ADC_CR2_EXTSEL_2 | ADC_CR2_EXTSEL_0),
-        TriggerTim2 = (ADC_CR2_EXTSEL_2 | ADC_CR2_EXTSEL_1),
-        TriggerTim3CC1 = (ADC_CR2_EXTSEL_2 | ADC_CR2_EXTSEL_1 | ADC_CR2_EXTSEL_0),
-        TriggerTim3 = ADC_CR2_EXTSEL_3,
-        TriggerTim4CC4 = (ADC_CR2_EXTSEL_3 | ADC_CR2_EXTSEL_0),
-        TriggerTim5CC1 = (ADC_CR2_EXTSEL_3 | ADC_CR2_EXTSEL_1),
-        TriggerTim5CC2 = (ADC_CR2_EXTSEL_3 | ADC_CR2_EXTSEL_1 | ADC_CR2_EXTSEL_0),
-        TriggerTim5CC3 = (ADC_CR2_EXTSEL_3 | ADC_CR2_EXTSEL_2),
-        TriggerTim8CC1 = (ADC_CR2_EXTSEL_3 | ADC_CR2_EXTSEL_2 | ADC_CR2_EXTSEL_0),
-        TriggerTim8 = (ADC_CR2_EXTSEL_3 | ADC_CR2_EXTSEL_2 | ADC_CR2_EXTSEL_1),
-        TriggerExtIT11 = ADC_CR2_EXTSEL
-    } Trigger;
-
+        TriggerTim1CC2 = ADC_CFGR_EXTSEL_0,
+        TriggerTim1CC3 = ADC_CFGR_EXTSEL_1,
+        TriggerTim1    = (ADC_CFGR_EXTSEL_3 | ADC_CFGR_EXTSEL_0),
+        TriggerTim1_2  = (ADC_CFGR_EXTSEL_3 | ADC_CFGR_EXTSEL_1),
+        TriggerTim2CC2 = (ADC_CFGR_EXTSEL_1 | ADC_CFGR_EXTSEL_0),        
+        TriggerTim2    = (ADC_CFGR_EXTSEL_3 | ADC_CFGR_EXTSEL_1 | ADC_CFGR_EXTSEL_0),
+        TriggerTim3CC4 = ADC_CFGR_EXTSEL,
+        TriggerTim3    = ADC_CFGR_EXTSEL_2,
+        TriggerTim4CC4 = (ADC_CFGR_EXTSEL_2 | ADC_CFGR_EXTSEL_0),
+        TriggerTim4    = (ADC_CFGR_EXTSEL_3 | ADC_CFGR_EXTSEL_2),
+        TriggerTim6    = (ADC_CFGR_EXTSEL_3 | ADC_CFGR_EXTSEL_2 | ADC_CFGR_EXTSEL_0),
+        TriggerTim15   = (ADC_CFGR_EXTSEL_3 | ADC_CFGR_EXTSEL_2 | ADC_CFGR_EXTSEL_1),
+        TriggerTim8    = (ADC_CFGR_EXTSEL_2 | ADC_CFGR_EXTSEL_1 | ADC_CFGR_EXTSEL_0),
+        TriggerExtIT11 = (ADC_CFGR_EXTSEL_2 | ADC_CFGR_EXTSEL_1)
+    } Trigger;  
     typedef enum
     {
-        SampleTime_3Cycles = 0,
-        SampleTime_15Cycles = ADC_SMPR1_SMP10_0,
-        SampleTime_28Cycles = ADC_SMPR1_SMP10_1,
-        SampleTime_56Cycles = (ADC_SMPR1_SMP10_1 | ADC_SMPR1_SMP10_0),
-        SampleTime_84Cycles = ADC_SMPR1_SMP10_2,
-        SampleTime_112Cycles = (ADC_SMPR1_SMP10_2 | ADC_SMPR1_SMP10_0),
-        SampleTime_144Cycles = (ADC_SMPR1_SMP10_2 | ADC_SMPR1_SMP10_1),
-        SampleTime_480Cycles = ADC_SMPR1_SMP10,
-    } SampleTime;
+        SampleTime_1Cycles = 0,
+        SampleTime_2Cycles = ADC_SMPR2_SMP10_0,
+        SampleTime_4Cycles = ADC_SMPR2_SMP10_1,
+        SampleTime_7Cycles = (ADC_SMPR2_SMP10_1 | ADC_SMPR2_SMP10_0),
+        SampleTime_19Cycles = ADC_SMPR2_SMP10_2,
+        SampleTime_61Cycles = (ADC_SMPR2_SMP10_2 | ADC_SMPR2_SMP10_0),
+        SampleTime_181Cycles = (ADC_SMPR2_SMP10_2 | ADC_SMPR2_SMP10_1),
+        SampleTime_601Cycles = ADC_SMPR2_SMP10,
+        
+    } SampleTime;    
 
 
 private:
