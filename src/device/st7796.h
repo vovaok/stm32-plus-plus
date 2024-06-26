@@ -25,8 +25,11 @@ public:
     virtual void blendRect(int x, int y, int width, int height, const uint8_t *buffer, PixelFormat format) override;
     virtual void drawBuffer(int x, int y, const FrameBuffer *fb, int sx=0, int sy=0, int sw=-1, int sh=-1) override;
 
-    virtual void setPixel(int x, int y, uint32_t color);
-//    virtual uint16_t pixel(int x, int y); // THIS DISPLAY IMPLEMENTATION IS NOT READABLE!!!
+    virtual void setPixel(int x, int y, uint32_t color) override;
+    virtual uint32_t pixel(int x, int y) const override;
+    virtual bool isReadable() const override final {return true;}
+    
+    void readRect(int x, int y, int w, int h, uint8_t *buffer);
     
 private:
     Spi *m_spi;
@@ -107,6 +110,7 @@ private:
     void writeCmd(uint8_t cmd, int size, ...);
     
     void setArea(int xStart, int yStart, int xEnd, int yEnd);
+    
 };
 
 #endif

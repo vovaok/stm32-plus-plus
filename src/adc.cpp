@@ -1,4 +1,5 @@
 #include "adc.h"
+#include <math.h>
 
 Adc* Adc::mInstances[3] = {0L, 0L, 0L};
 

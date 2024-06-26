@@ -15,7 +15,7 @@ ST7796::ST7796(Spi *spi, Gpio::PinName cs, Gpio::PinName dc, Gpio::PinName rst) 
 
     m_spi->setMasterMode();
     m_spi->setCPOL_CPHA(0, 0);
-    m_spi->setBaudrate(40000000);
+    m_spi->setBaudrate(10000000);
     m_spi->setDataSize(16);
     m_spi->setUseDmaTx(false);
 //    m_spi->onBytesWritten = CLOSURE(m_cs, &Gpio::set);
@@ -43,7 +43,23 @@ void ST7796::setBacklight(int percent)
 void ST7796::init(Orientation ori)
 {
     hardwareReset();
+    
+    uint8_t id[4] {0};
+    
+//    m_spi->setDataSize(8);
+//    m_cs->reset();
+//    m_dc->reset();
+//    m_spi->write(0xdb);
+//    m_dc->set();
+////    for (int i=0; i<4; i++)
+//        id[0] = m_spi->read();
+//    m_cs->set();
+    
+    m_spi->setDataSize(8);
+    
     initReg();
+    
+    m_bpp = 16;
 
     setOrientation(ori);
 //    delay(200);
@@ -54,8 +70,14 @@ void ST7796::init(Orientation ori)
     writeCmd(DISPON);
     delay(10);
     
+    m_spi->setDataSize(16);
+    
     fillRect(0, 0, m_width, m_height, 0);
     delay(10);
+    
+    m_spi->close();
+//    m_spi->setUseDmaTx(true);
+    m_spi->open();
 }
 
 void ST7796::setOrientation(Orientation ori)
@@ -88,6 +110,7 @@ void ST7796::setOrientation(Orientation ori)
         m_width = LCD_HEIGHT;
         m_height = LCD_WIDTH;
     }
+    m_bpl = m_width * 2;
     
 //    static uint16_t orireg[8] =
 //        {0x2862, 0x2822, 0x2842, 0x2802, 0x0822, 0x0802, 0x0862, 0x0842};
@@ -215,7 +238,7 @@ void ST7796::initReg()
 
 void ST7796::writeCmd(uint8_t cmd)
 {
-    m_spi->setDataSize(8);
+//    m_spi->setDataSize(8);
     m_cs->reset();
     m_dc->reset();
     m_spi->write(cmd);
@@ -249,19 +272,60 @@ void ST7796::writeCmd(uint8_t cmd, int size, ...)
 
 void ST7796::setArea(int xStart, int yStart, int xEnd, int yEnd)
 {
-    //set the X coordinates
-    writeCmd(0x2A);
-    writeData(xStart >> 8);	 				//Set the horizontal starting point to the high octet
-    writeData(xStart & 0xff);	 				//Set the horizontal starting point to the low octet
-    writeData(xEnd >> 8);	//Set the horizontal end to the high octet
-    writeData(xEnd & 0xff);	//Set the horizontal end to the low octet
+//    m_spi->setDataSize(16);
+    m_cs->reset();
+    m_dc->reset();
+    m_spi->write16(0x2A);
+    m_dc->set();
+    m_spi->write16(xStart);
+    m_spi->write16(xEnd);
+    m_dc->reset();
+    m_spi->write16(0x2B);
+    m_dc->set();
+    m_spi->write16(yStart);
+    m_spi->write16(yEnd);
+    m_cs->set();
+    
+//    //set the X coordinates
+//    writeCmd(0x2A);
+//    writeData(xStart >> 8);	 				//Set the horizontal starting point to the high octet
+//    writeData(xStart & 0xff);	 				//Set the horizontal starting point to the low octet
+//    writeData(xEnd >> 8);	//Set the horizontal end to the high octet
+//    writeData(xEnd & 0xff);	//Set the horizontal end to the low octet
+//
+//    //set the Y coordinates
+//    writeCmd(0x2B);
+//    writeData(yStart >> 8);
+//    writeData(yStart & 0xff);
+//    writeData(yEnd >> 8);
+//    writeData(yEnd & 0xff);
+}
 
-    //set the Y coordinates
-    writeCmd(0x2B);
-    writeData(yStart >> 8);
-    writeData(yStart & 0xff);
-    writeData(yEnd >> 8);
-    writeData(yEnd & 0xff);
+void ST7796::readRect(int x, int y, int w, int h, uint8_t *buffer)
+{
+    setArea(x, y, x+w-1, y+h-1);
+
+//    m_spi->setDataSize(16);
+    
+    m_dc->reset();
+    m_cs->reset();
+    // Memory read start
+    m_spi->write16(RAMRD << 8);
+    m_dc->set();
+    int size = w * h;
+    
+    uint16_t *dst = reinterpret_cast<uint16_t *>(buffer);
+    while (size)
+    {
+        int sz = size;
+//        if (sz > 0xFFFF)
+//            sz = 0xFFFF;
+        sz = 1;
+        *dst++ = m_spi->read16();
+        size -= sz;
+    }
+
+    m_cs->set();
 }
 
 void ST7796::fillRect(int x, int y, int width, int height, uint32_t color)
@@ -288,7 +352,7 @@ void ST7796::fillRect(int x, int y, int width, int height, uint32_t color)
 //    while (size--)
 //        writeData(color);
 
-    m_spi->setDataSize(16);
+//    m_spi->setDataSize(16);
     m_fillColor = color;
     while (size)
     {
@@ -312,7 +376,7 @@ void ST7796::copyRect(int x, int y, int width, int height, const uint8_t *buffer
     m_cs->reset();
     int size = width * height;
 
-    m_spi->setDataSize(16);
+//    m_spi->setDataSize(16);
     while (size)
     {
         int sz = size;
@@ -336,7 +400,8 @@ void ST7796::blendRect(int x, int y, int width, int height, const uint8_t *buffe
 {
     Image fb((const char *)buffer, width, height, format);
     Image img(width, height, m_pixelFormat);
-    img.fill(backgroundColor());
+//    img.fill(backgroundColor());
+    readRect(x, y, width, height, img.data());
     img.drawImage(0, 0, fb); 
     drawBuffer(x, y, &img);
 //    THROW(Exception::BadSoBad); // not implemented
@@ -374,11 +439,17 @@ void ST7796::drawBuffer(int x, int y, const FrameBuffer *fb, int sx, int sy, int
     Color fg;
     PixelFormat format = fb->pixelFormat();
     
+    bool doCopy = (format == pixelFormat());
+    
     for (int i=0; i<sh; i++)
     {
         int yi = y + i;
         int ys = sy + i;
-        for (int j=0; j<sw; j++)
+        if (doCopy)
+        {
+            copyRect(x, yi, sw, 1, fb->scanLine(ys) + sx*(m_bpp>>3));
+        }
+        else for (int j=0; j<sw; j++)
         {
             int xj = x + j;
             int xs = sx + j;
@@ -399,14 +470,43 @@ void ST7796::drawBuffer(int x, int y, const FrameBuffer *fb, int sx, int sy, int
 }
 
 void ST7796::setPixel(int x, int y, uint32_t color)
-{
-    setArea(x, y, x, y);
-    writeCmd(0x2C);
-    writeData(color >> 8);
-    writeData(color);
+{   
+    m_cs->reset();
+    m_dc->reset();
+    m_spi->write16(0x2A);
+    m_dc->set();
+    m_spi->write16(x);
+//    m_spi->write16(x);
+    m_dc->reset();
+    m_spi->write16(0x2B);
+    m_dc->set();
+    m_spi->write16(y);
+//    m_spi->write16(y);
+    m_dc->reset();
+    m_spi->write16(0x2C);
+    m_dc->set();
+    m_spi->write16(color);
+    m_cs->set();
 }
 
-//uint16_t ST7796::pixel(int x, int y)
-//{
-//    return 0; // NE RABOTAET NA ETOM SRANOM KITE!!!
-//}
+uint32_t ST7796::pixel(int x, int y) const
+{
+    uint32_t color;
+    m_cs->reset();
+    m_dc->reset();
+    m_spi->write16(0x2A);
+    m_dc->set();
+    m_spi->write16(x);
+//    m_spi->write16(x);
+    m_dc->reset();
+    m_spi->write16(0x2B);
+    m_dc->set();
+    m_spi->write16(y);
+//    m_spi->write16(y);
+    m_dc->reset();
+    m_spi->write16(0x2E << 8);
+    m_dc->set();
+    color = m_spi->read16();
+    m_cs->set();
+    return color;
+}

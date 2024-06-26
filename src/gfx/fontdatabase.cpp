@@ -2,18 +2,28 @@
 #include "font.h"
 #include <string.h>
 #include <stdlib.h>
+#include "core/sfs.h"
 
 std::vector<const FontInfo *> FontDatabase::m_fonts;
 
-void FontDatabase::addApplicationFontFromData(const uint32_t *fontdata)
+bool FontDatabase::addApplicationFont(const char *filename)
+{
+    Sfs sfs;
+    if (sfs.open(filename))
+        return addApplicationFontFromData(reinterpret_cast<const uint32_t *>(sfs.data()));
+    return false;
+}
+
+bool FontDatabase::addApplicationFontFromData(const uint32_t *fontdata)
 {
     for (const FontInfo *fi: m_fonts)
     {
         if (fontdata == fi->fontData()) // already contains this font
-            return;
+            return false;
     }
 
     m_fonts.push_back(FontInfo::fromFontData(fontdata));
+    return true;
 }
 
 Font FontDatabase::systemFont()

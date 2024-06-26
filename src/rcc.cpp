@@ -755,6 +755,10 @@ typedef enum
     RccOTGFS    = 1 << 7,
     // AHB3
     RccFMC      = 1 << 0,
+    RccADC1     = 0,
+    RccADC2     = 0,
+    RccADC3     = 0,
+    RccADC4     = 0,
     RccDAC1     = 0,
     RccDAC2     = 0,
     RccDAC3     = 0,
@@ -862,6 +866,10 @@ typedef enum
 #endif
 } RccEnableBit;
 
+#if defined(STM32F4) || defined(STM32G4) || defined(STM32L4)
+#define AHB3PERIPH_BASE 0x60000000
+#endif
+
 void Rcc::setPeriphEnabled(void *periphBase, bool enabled)
 {
     uint32_t base = reinterpret_cast<uint32_t>(periphBase);
@@ -874,7 +882,7 @@ void Rcc::setPeriphEnabled(void *periphBase, bool enabled)
     #define AHB1ENR     AHBENR
     #define AHB2ENR     AHBENR
     #define AHB3ENR     AHBENR
-#elif defined(STM32G4)
+#elif defined(STM32G4) || defined(STM32L4)
     #define APB1ENR     APB1ENR1
 #endif
     
@@ -949,7 +957,7 @@ void Rcc::setPeriphEnabled(void *periphBase, bool enabled)
     #if defined(ADC5)
         case ADC5_BASE:     *ENR |= RccADC5; break;
     #endif
-    #if defined(DAC1)
+    #if defined(DAC1_BASE)
         case DAC1_BASE:     *ENR |= RccDAC1; break;
     #endif
     #if defined(DAC2)    
@@ -1066,8 +1074,8 @@ uint32_t Rcc::periphBusBase(void *periph)
     uint32_t periphBase = reinterpret_cast<uint32_t>(periph);
     if (periphBase >= 0xE0000000)
         return 0;
-    if (periphBase >= 0x60000000)
-        return 0x60000000;
+    if (periphBase >= AHB3PERIPH_BASE)
+        return AHB3PERIPH_BASE;
     if (periphBase >= AHB2PERIPH_BASE)
         return AHB2PERIPH_BASE;
     if (periphBase >= AHB1PERIPH_BASE)

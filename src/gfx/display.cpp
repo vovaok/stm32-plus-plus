@@ -179,6 +179,12 @@ void Display::drawImage(int x, int y, const Image &img, int sx, int sy, int sw, 
         drawBuffer(m_x+x, m_y+y, &img, sx, sy, sw, sh);
 }
 
+void Display::drawImage(int x, int y, const Image &img, Rect srect)
+{
+    if (!img.isNull())
+        drawBuffer(m_x+x, m_y+y, &img, srect.x(), srect.y(), srect.width(), srect.height());
+}
+
 void Display::drawLine(int x0, int y0, int x1, int y1)
 {
     if (x0 == x1)

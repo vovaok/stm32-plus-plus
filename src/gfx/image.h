@@ -1,13 +1,11 @@
 #pragma once
 
 /*
-    This is 16-bit depth image buffer intended to draw in memory
+    This is frame buffer intended to draw in memory allocated in the heap
 */
 
 #include "framebuffer.h"
 #include "core/bytearray.h"
-
-//! @todo Maybe inherit Image from FrameBuffer?
 
 class Image: public FrameBuffer
 {
@@ -42,12 +40,6 @@ public:
     Color pixelColor(int x, int y) const;
 
     bool valid(int x, int y);
-
-//    void fill(uint16_t color);
-
-//protected:
-//    void fillRect(int x, int y, int width, int height, uint16_t color);
-//    void copyRect(int x, int y, int width, int height, const uint16_t *buffer);
 
 private:
     ByteArray m_buffer;
