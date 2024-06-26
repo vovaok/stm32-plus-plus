@@ -16187,6 +16187,12 @@
         </excluded>
     </file>
     <file>
+        <name>$PROJ_DIR$\src\adc303.cpp</name>
+    </file>
+    <file>
+        <name>$PROJ_DIR$\src\adc303.h</name>
+    </file>
+    <file>
         <name>$PROJ_DIR$\src\analogservo.cpp</name>
         <excluded>
             <configuration>stm32l476rg</configuration>
