@@ -18,6 +18,7 @@ ST7796::ST7796(Spi *spi, Gpio::PinName cs, Gpio::PinName dc, Gpio::PinName rst) 
     m_spi->setBaudrate(10000000);
     m_spi->setDataSize(16);
     m_spi->setUseDmaTx(false);
+    m_spi->setUseDmaRx(true);
 //    m_spi->onBytesWritten = CLOSURE(m_cs, &Gpio::set);
     m_spi->open();
 }
@@ -72,11 +73,14 @@ void ST7796::init(Orientation ori)
     
     m_spi->setDataSize(16);
     
-    fillRect(0, 0, m_width, m_height, 0);
+    setBackgroundColor(White);
+    setColor(Black);
+    Display::fillRect(0, 0, m_width, m_height);
+    drawString(0, 0, m_width, m_height, AlignCenter, "Display initialized");
     delay(10);
     
     m_spi->close();
-//    m_spi->setUseDmaTx(true);
+    m_spi->setUseDmaTx(true);
     m_spi->open();
 }
 
@@ -238,7 +242,6 @@ void ST7796::initReg()
 
 void ST7796::writeCmd(uint8_t cmd)
 {
-//    m_spi->setDataSize(8);
     m_cs->reset();
     m_dc->reset();
     m_spi->write(cmd);
@@ -285,20 +288,6 @@ void ST7796::setArea(int xStart, int yStart, int xEnd, int yEnd)
     m_spi->write16(yStart);
     m_spi->write16(yEnd);
     m_cs->set();
-    
-//    //set the X coordinates
-//    writeCmd(0x2A);
-//    writeData(xStart >> 8);	 				//Set the horizontal starting point to the high octet
-//    writeData(xStart & 0xff);	 				//Set the horizontal starting point to the low octet
-//    writeData(xEnd >> 8);	//Set the horizontal end to the high octet
-//    writeData(xEnd & 0xff);	//Set the horizontal end to the low octet
-//
-//    //set the Y coordinates
-//    writeCmd(0x2B);
-//    writeData(yStart >> 8);
-//    writeData(yStart & 0xff);
-//    writeData(yEnd >> 8);
-//    writeData(yEnd & 0xff);
 }
 
 void ST7796::readRect(int x, int y, int w, int h, uint8_t *buffer)
@@ -312,16 +301,19 @@ void ST7796::readRect(int x, int y, int w, int h, uint8_t *buffer)
     // Memory read start
     m_spi->write16(RAMRD << 8);
     m_dc->set();
-    int size = w * h;
+    int size = w * h * 2;
     
-    uint16_t *dst = reinterpret_cast<uint16_t *>(buffer);
+//    uint16_t *dst = reinterpret_cast<uint16_t *>(buffer);
     while (size)
     {
         int sz = size;
-//        if (sz > 0xFFFF)
-//            sz = 0xFFFF;
-        sz = 1;
-        *dst++ = m_spi->read16();
+        if (sz > 32767*2)
+            sz = 32767*2;
+//        sz = 1;
+//        *dst++ = m_spi->read16();
+        m_spi->read(buffer, sz);
+        m_spi->waitForBytesWritten();
+        buffer += sz;
         size -= sz;
     }
 
@@ -344,9 +336,10 @@ void ST7796::fillRect(int x, int y, int width, int height, uint32_t color)
     }
     setArea(x, y, x+width-1, y+height-1);
     // Memory write start
-    writeCmd(0x2C);
-    m_dc->set();
     m_cs->reset();
+    m_dc->reset();
+    m_spi->write16(RAMWR);
+    m_dc->set();
     int size = width * height;
 
 //    while (size--)
@@ -371,9 +364,10 @@ void ST7796::copyRect(int x, int y, int width, int height, const uint8_t *buffer
 {
     setArea(x, y, x+width-1, y+height-1);
     // Memory write start
-    writeCmd(0x2C);
-    m_dc->set();
     m_cs->reset();
+    m_dc->reset();
+    m_spi->write16(RAMWR);
+    m_dc->set();
     int size = width * height;
 
 //    m_spi->setDataSize(16);
@@ -385,7 +379,7 @@ void ST7796::copyRect(int x, int y, int width, int height, const uint8_t *buffer
         m_spi->write((uint8_t*)buffer, sz*2);
         m_spi->waitForBytesWritten();
         size -= sz;
-		buffer += sz;
+		buffer += sz*2;
     }
 
     m_cs->set();
@@ -440,8 +434,11 @@ void ST7796::drawBuffer(int x, int y, const FrameBuffer *fb, int sx, int sy, int
     PixelFormat format = fb->pixelFormat();
     
     bool doCopy = (format == pixelFormat());
-    
-    for (int i=0; i<sh; i++)
+    if (doCopy && sw == fb->width())
+    {
+        copyRect(x, y, sw, sh, fb->scanLine(sy));
+    }
+    else for (int i=0; i<sh; i++)
     {
         int yi = y + i;
         int ys = sy + i;

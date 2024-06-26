@@ -27,6 +27,7 @@ public:
     Orientation orientation() const {return m_orientation;}
     inline int width() const {return m_width;}
     inline int height() const {return m_height;}
+    inline Rect rect() const {return Rect(0, 0, m_width, m_height);}
 
     PixelFormat pixelFormat() const {return m_pixelFormat;}
     bool hasAlphaChannel() const;

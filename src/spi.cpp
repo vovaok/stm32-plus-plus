@@ -335,14 +335,46 @@ uint16_t Spi::write16(uint16_t word)
     return *((__IO uint16_t *)(&mDev->DR));
 }
 
-void Spi::read(uint8_t* data, int size)
+bool Spi::read(uint8_t* data, int size)
 {
-    while (size--)
+    if (mDmaRx && mDmaTx)
     {
-        *((__IO uint8_t *)(&mDev->DR)) = 0x00;
-        while (!(mDev->SR & SPI_SR_RXNE)); // wait for RX Not Empty
-        *data++ = *((__IO uint8_t *)(&mDev->DR));
+        if (mDmaRx->isEnabled() && !mDmaRx->isComplete())
+            return false;
+        if (m_dataSize <= 8)
+        {
+            mDmaRx->setSingleBuffer(const_cast<uint8_t*>(data), size);
+            mDmaTx->setSingleBuffer(const_cast<uint8_t*>(data), size);
+        }
+        else
+        {
+            mDmaRx->setSingleBuffer(const_cast<uint8_t*>(data), size / 2);
+            mDmaTx->setSingleBuffer(const_cast<uint8_t*>(data), size / 2);
+        }
+        mDmaRx->start();
+        mDmaTx->start();
     }
+    else if (m_dataSize <= 8)
+    {
+        while (size--)
+        {
+            *((__IO uint8_t *)(&mDev->DR)) = 0x00;
+            while (!(mDev->SR & SPI_SR_RXNE)); // wait for RX Not Empty
+            *data++ = *((__IO uint8_t *)(&mDev->DR));
+        }
+    }
+    else
+    {
+        size = (size + 1) >> 1;
+        uint16_t *dst = reinterpret_cast<uint16_t *>(data);
+        while (size--)
+        {
+             *((__IO uint16_t *)(&mDev->DR)) = 0x00;
+            while (!(mDev->SR & SPI_SR_RXNE)); // wait for RX Not Empty
+            *dst++ = *((__IO uint16_t *)(&mDev->DR));
+        }
+    }
+    return true;
 }
 
 bool Spi::write(const uint8_t *data, int size)
@@ -451,7 +483,13 @@ bool Spi::writeFill16(uint16_t *pattern, int patternSize, int count)
 
 void Spi::waitForBytesWritten()
 {
-    while (mDmaTx && mDmaTx->isEnabled() && !mDmaTx->isComplete());
+    if (mDmaTx && mDmaTx->isEnabled())
+    {
+        while (!mDmaTx->isComplete());
+        while (!(mDev->SR & SPI_SR_TXE));
+        while (mDev->SR & SPI_SR_BSY);
+        (void)mDev->DR; // read data register to make it empty
+    }
 }
 //---------------------------------------------------------------------------
 

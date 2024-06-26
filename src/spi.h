@@ -137,7 +137,7 @@ public:
     uint16_t read16();
     uint16_t write16(uint16_t word);
 
-    void read(uint8_t* data, int size);
+    bool read(uint8_t* data, int size);
     bool write(const uint8_t *data, int size);
 
     void setRxBuffer(uint8_t *data, int size, bool circular);

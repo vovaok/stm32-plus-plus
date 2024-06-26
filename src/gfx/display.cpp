@@ -176,7 +176,12 @@ void Display::renderChar(char c, int &x, int &y)
 void Display::drawImage(int x, int y, const Image &img, int sx, int sy, int sw, int sh)
 {
     if (!img.isNull())
-        drawBuffer(m_x+x, m_y+y, &img, sx, sy, sw, sh);
+    {
+        if (img.m_pixelFormat == m_pixelFormat && !img.hasAlphaChannel())
+            drawBuffer(m_x+x, m_y+y, &img, sx, sy, sw, sh);
+        else //! @todo use sx, sy, sw and sh!!
+            blendRect(m_x+x, m_y+y, img.width(), img.height(), img.data(), img.pixelFormat());
+    }
 }
 
 void Display::drawImage(int x, int y, const Image &img, Rect srect)
