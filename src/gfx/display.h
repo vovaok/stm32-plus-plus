@@ -67,6 +67,7 @@ public:
     void fillRoundRect(const Rect &rect, int r);
 //    void drawImage(int x, int y, const Image &img);
     void drawImage(int x, int y, const Image &img, int sx=0, int sy=0, int sw=-1, int sh=-1);
+    void drawImage(int x, int y, const Image &img, Rect srect);
     void fillRect(int x, int y, int w, int h);
     void fillRect(const Rect &rect);
     void fillCircle(int x0, int y0, int r);

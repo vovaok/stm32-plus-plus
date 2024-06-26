@@ -21,6 +21,9 @@ public:
 
     void setOpacity(uint8_t value) {m_opacity = value;}
     uint8_t opacity() const {return m_opacity;}
+    
+    uint8_t *scanLine(int y) {return reinterpret_cast<uint8_t*>(m_data + y*m_bpl);}
+    const uint8_t *scanLine(int y) const {return reinterpret_cast<uint8_t*>(m_data + y*m_bpl);}
 
 protected:
     uint8_t *m_data;
@@ -39,6 +42,4 @@ private:
     using Display::m_width;
     using Display::m_height;
     uint8_t m_opacity = 255;
-
-    uint8_t *scanLine(int y) {return reinterpret_cast<uint8_t*>(m_data + y*m_bpl);}
 };

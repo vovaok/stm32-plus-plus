@@ -17,35 +17,38 @@ Comp::Comp(int no) :
         mDev = COMP1;        
         break;
 #endif
+#if defined (COMP2)        
       case 2:
         mDev = COMP2;      
         break;
-
+#endif
 #if defined (COMP3)
       case 3:
         mDev = COMP3;        
         break;
 #endif
-        
+#if defined (COMP4)
       case 4:
         mDev = COMP4;      
         break;
-        
+#endif
 #if defined (COMP5)
       case 5:
         mDev = COMP5;        
         break;
 #endif
-        
+#if defined (COMP6)        
       case 6:
         mDev = COMP6;      
         break;
+#endif
     }
-
+    
     if (!mDev)
         THROW(Exception::InvalidPeriph);    
   
-  RCC->APB2ENR |= RCC_APB2ENR_SYSCFGEN;
+    rcc().setPeriphEnabled(SYSCFG);
+//    RCC->APB2ENR |= RCC_APB2ENR_SYSCFGEN;
 
 }
 //---------------------------------------------------------------------------

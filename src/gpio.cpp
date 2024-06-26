@@ -4,7 +4,7 @@
 #if defined(STM32F37X)
 #define BSRRL   BSRR
 #define BSRRH   BRR
-#elif defined(STM32G4)
+#elif defined(STM32G4) || defined(STM32L4)
     #define IMR     IMR1
     #define EMR     EMR1
     #define RTSR    RTSR1
