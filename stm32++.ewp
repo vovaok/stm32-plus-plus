@@ -16188,6 +16188,9 @@
     </file>
     <file>
         <name>$PROJ_DIR$\src\adc303.cpp</name>
+        <excluded>
+            <configuration>stm32f407vg</configuration>
+        </excluded>
     </file>
     <file>
         <name>$PROJ_DIR$\src\adc303.h</name>
