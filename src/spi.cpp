@@ -31,6 +31,10 @@
 #define SPI3_DMA_CHANNEL_TX     Dma::SPI3_TX;
 #define SPI4_DMA_CHANNEL_RX     Dma::SPI4_RX;
 #define SPI4_DMA_CHANNEL_TX     Dma::SPI4_TX;
+
+#elif defined(STM32F303x8)
+#define SPI1_DMA_CHANNEL_RX     Dma::Channel2_SPI1_RX;
+#define SPI1_DMA_CHANNEL_TX     Dma::Channel3_SPI1_TX;
 #endif
 
 Spi *Spi::mSpies[6] = {0L, 0L, 0L, 0L, 0L, 0L};
@@ -63,21 +67,22 @@ Spi::Spi(Gpio::Config sck, Gpio::Config miso, Gpio::Config mosi) :
         mDmaChannelRx = SPI1_DMA_CHANNEL_RX;
         mDmaChannelTx = SPI1_DMA_CHANNEL_TX;
         break;
-
+#if defined(SPI2)
       case 2:
         mDev = SPI2;
         mIrq = SPI2_IRQn;
         mDmaChannelRx = SPI2_DMA_CHANNEL_RX;
         mDmaChannelTx = SPI2_DMA_CHANNEL_TX;
         break;
-
+#endif
+#if defined(SPI3)
       case 3:
         mDev = SPI3;
         mIrq = SPI3_IRQn;
         mDmaChannelRx = SPI3_DMA_CHANNEL_RX;
         mDmaChannelTx = SPI3_DMA_CHANNEL_TX;
         break;
-
+#endif
 #if defined(SPI4)
       case 4:
         mDev = SPI4;

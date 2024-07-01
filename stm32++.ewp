@@ -16731,7 +16731,6 @@
             <configuration>stm32f373xB</configuration>
             <configuration>stm32f373xB_no-exceptions_no-rtti</configuration>
             <configuration>stm32f303xC</configuration>
-            <configuration>stm32f303x8</configuration>
         </excluded>
     </file>
     <file>
@@ -16740,7 +16739,6 @@
             <configuration>stm32f373xB</configuration>
             <configuration>stm32f373xB_no-exceptions_no-rtti</configuration>
             <configuration>stm32f303xC</configuration>
-            <configuration>stm32f303x8</configuration>
         </excluded>
     </file>
     <file>
