@@ -721,6 +721,56 @@ bool Rcc::measureHseFreq()
     return false;
 }
 
+
+
+#elif defined(STM32F0)
+
+bool Rcc::configPll(uint32_t sysClk)
+{
+  /////////*********************
+  mSysClk  = 47923200;
+  mAPB1Clk = 47923200;         // только под кварц 14.7456
+  mAPB2Clk = 47923200;
+/////////////////*************
+      RCC->CR |= RCC_CR_HSEON;
+  while(!(RCC->CR & RCC_CR_HSERDY));
+
+  // Настройка флэш-памяти на 2 цикла ожидания, если частота SYSCLK выше 48 МГц
+  FLASH->ACR |= FLASH_ACR_LATENCY;
+
+  // Настройка коэффициентов PLL
+  RCC->CFGR &= ~RCC_CFGR_PLLMUL; // Сброс множителя PLL
+  // Для HSE 14.7456 МГц, чтобы получить SYSCLK = 72 МГц, множитель PLL должен быть 14\3 (PLLMUL x 5)
+  RCC->CFGR |= RCC_CFGR_PLLMUL13;
+
+  RCC->CFGR &= ~RCC_CFGR_PLLSRC; // Выбор HSE как источника для PLL
+  RCC->CFGR |= RCC_CFGR_PLLSRC_HSE_PREDIV;
+ 
+  
+  RCC->CFGR2 |= RCC_CFGR2_PREDIV_DIV4;
+
+  // Включение PLL и ожидание его готовности
+  RCC->CR |= RCC_CR_PLLON;
+  while(!(RCC->CR & RCC_CR_PLLRDY));
+
+  // Выбор PLL как источника SYSCLK и ожидание его выбора
+  RCC->CFGR &= ~RCC_CFGR_SW;
+  RCC->CFGR |= RCC_CFGR_SW_PLL;
+  while((RCC->CFGR & RCC_CFGR_SWS) != RCC_CFGR_SWS_PLL);
+
+  // Настройка делителей AHB, APB1 и APB2
+  RCC->CFGR &= ~RCC_CFGR_HPRE; // AHB prescaler = 1
+  RCC->CFGR &= ~RCC_CFGR_PPRE; // APB1 prescaler = 2 (36 МГц максимум для APB1)
+ 
+  
+    return true;
+}
+
+bool Rcc::measureHseFreq()
+{
+    /// @todo implement HSE measurement on TIM16 or TIM17
+    return false;
+}
 #endif
 
 typedef enum
@@ -836,7 +886,7 @@ typedef enum
     RccDAC3     = 0,
     RccDAC4     = 0,
     
-#elif defined(STM32F3)
+#elif defined(STM32F3) || defined(STM32F0)
     RccGPIOA    = 1 << 17,   
     RccGPIOB    = 1 << 18,
     RccGPIOC    = 1 << 19,
@@ -878,12 +928,21 @@ void Rcc::setPeriphEnabled(void *periphBase, bool enabled)
     uint32_t mask1 = 1 << (offset >> 10);
     uint32_t mask2 = 1 << ((offset >> 10) - 32);
     
-#if defined(STM32F3)
+#if defined(STM32F3) 
     #define AHB1ENR     AHBENR
     #define AHB2ENR     AHBENR
     #define AHB3ENR     AHBENR
 #elif defined(STM32G4) || defined(STM32L4)
     #define APB1ENR     APB1ENR1
+#elif defined(STM32F0)
+    #define AHB1ENR     AHBENR
+    #define AHB2ENR     AHBENR
+    #define AHB3ENR     AHBENR
+    
+    #define AHB1PERIPH_BASE  AHBPERIPH_BASE
+    #define AHB3PERIPH_BASE  23
+    #define APB1PERIPH_BASE  APBPERIPH_BASE
+    #define APB2PERIPH_BASE  42
 #endif
     
     volatile uint32_t *ENR = nullptr;

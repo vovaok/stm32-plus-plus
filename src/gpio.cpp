@@ -315,6 +315,7 @@ void Gpio::setAsOutputOpenDrain()
 
 void Gpio::configInterrupt(NotifyEvent event, InterruptMode mode)
 {
+  #ifndef STM32F0
     setAsInput();
     int line = mConfig.pinNumber;
     uint32_t mask = 1 << line;
@@ -367,6 +368,7 @@ void Gpio::configInterrupt(NotifyEvent event, InterruptMode mode)
     default:;
     }
     NVIC_EnableIRQ(irqn);
+#endif
 }
 //---------------------------------------------------------------------------
 
