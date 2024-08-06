@@ -121,6 +121,8 @@
     #include "misc.h" /* High level functions for NVIC and SysTick (add-on to CMSIS functions) */
 #elif defined(STM32F303x8)
     #include "stm32f3xx.h"
+#elif defined(STM32F030x6)
+    #include "stm32f0xx.h"
 #endif
 
 
