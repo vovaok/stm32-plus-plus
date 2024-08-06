@@ -58,11 +58,11 @@ void ObjnetMaster::task()
 
 void ObjnetMaster::onNak(unsigned char mac)
 {
-    if (mLocalnetDevices[mac])
-    {
-        if (mLocalnetDevices[mac]->mTimeout)
-            --mLocalnetDevices[mac]->mTimeout;
-    }
+//    if (mLocalnetDevices[mac])
+//    {
+//        if (mLocalnetDevices[mac]->mTimeout)
+//            --mLocalnetDevices[mac]->mTimeout;
+//    }
 }
 
 void ObjnetMaster::onError(unsigned char mac, ObjnetInterface::Error error)

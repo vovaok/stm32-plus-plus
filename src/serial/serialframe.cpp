@@ -10,6 +10,13 @@ SerialFrame::SerialFrame(Device *device) :
 }
 //---------------------------------------------------------------------------
 
+bool SerialFrame::open(OpenMode mode)
+{
+    if (m_device) 
+        return m_device->open();
+    return false;
+}
+
 void SerialFrame::task()
 {
     if (m_ready)

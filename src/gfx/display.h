@@ -72,6 +72,7 @@ public:
     void fillRect(int x, int y, int w, int h);
     void fillRect(const Rect &rect);
     void fillCircle(int x0, int y0, int r);
+    void fillTriangle(int x1, int y1, int x2, int y2, int x3, int y3);
 //    void fill(uint32_t color); //! @todo move it from FrameBuffer
     
     Color fromRgb(uint32_t rgb) const;

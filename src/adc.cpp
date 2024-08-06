@@ -207,7 +207,7 @@ void Adc::setEnabled(bool enable)
 //        ADC_Cmd(mAdc3, en);
 
     if (mDmaOwner)
-        mDma->setEnabled(enable);
+        mDma->start();//mDma->setEnabled(enable); //!!! setEnabled() doesn't configure DMA!!!
 }
 //---------------------------------------------------------------------------
 

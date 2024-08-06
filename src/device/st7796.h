@@ -38,6 +38,8 @@ private:
     PwmOutput *m_backlightPwm;
     uint16_t m_fillColor; // must not be in the stack!
     
+    const int m_spiBaudrate = 10000000;
+    
     void hardwareReset();
     void delay(int ms) {for (int w=ms*20000; --w;);}
     void initReg();

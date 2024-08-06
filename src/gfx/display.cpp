@@ -524,6 +524,102 @@ void Display::DrawCircle_Helper( int16_t x0, int16_t y0, int16_t r, uint8_t corn
   }
 }
 
+void Display::fillTriangle(int x0, int y0, int x1, int y1, int x2, int y2)
+{
+    uint32_t temp = m_color;
+    m_color = m_bgColor;
+    
+    int a, b, y, last;
+	int dx01, dy01, dx02, dy02, dx12, dy12;
+	long sa = 0;
+	long sb = 0;
+ 	if (y0 > y1) 
+	{
+        std::swap(y0,y1); 
+		std::swap(x0,x1);
+ 	}
+ 	if (y1 > y2) 
+	{
+        std::swap(y2,y1); 
+		std::swap(x2,x1);
+ 	}
+    if (y0 > y1) 
+	{
+        std::swap(y0,y1); 
+		std::swap(x0,x1);
+    }
+	if (y0 == y2) 
+	{ 
+		a = b = x0;
+		if(x1 < a)
+        {
+                a = x1;
+        }
+        else if(x1 > b)
+        {
+                b = x1;
+        }
+        if(x2 < a)
+        {
+                a = x2;
+        }
+            else if(x2 > b)
+        {
+                b = x2;
+        }
+        
+        Draw_FastHLine(a, y0, b-a+1);
+//		LCD_Fill(a,y0,b,y0,POINT_COLOR);
+        return;
+	}
+    
+	dx01 = x1 - x0;
+	dy01 = y1 - y0;
+	dx02 = x2 - x0;
+	dy02 = y2 - y0;
+	dx12 = x2 - x1;
+	dy12 = y2 - y1;
+	
+	if (y1 == y2)
+	{
+		last = y1; 
+	}
+    else
+	{
+		last = y1-1; 
+	}
+	for(y=y0; y<=last; y++) 
+	{
+		a = x0 + sa / dy01;
+		b = x0 + sb / dy02;
+		sa += dx01;
+        sb += dx02;
+        if(a > b)
+        {
+            std::swap(a, b);
+		}
+        Draw_FastHLine(a, y, b-a+1);
+//		LCD_Fill(a,y,b,y,POINT_COLOR);
+	}
+	sa = dx12 * (y - y1);
+	sb = dx02 * (y - y0);
+	for(; y<=y2; y++) 
+	{
+		a = x1 + sa / dy12;
+		b = x0 + sb / dy02;
+		sa += dx12;
+		sb += dx02;
+		if(a > b)
+		{
+            std::swap(a, b);
+		}
+        Draw_FastHLine(a, y, b-a+1);
+//		LCD_Fill(a,y,b,y,POINT_COLOR);
+	}
+    
+    m_color = temp;
+}
+
 
 Display::Display(int width, int height, PixelFormat pixelFormat) :
     m_width(width), m_height(height),

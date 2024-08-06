@@ -15,7 +15,8 @@ ST7796::ST7796(Spi *spi, Gpio::PinName cs, Gpio::PinName dc, Gpio::PinName rst) 
 
     m_spi->setMasterMode();
     m_spi->setCPOL_CPHA(0, 0);
-    m_spi->setBaudrate(10000000);
+    m_spi->setBaudrate(m_spiBaudrate);
+//    m_spi->setBaudrate(10000000);
     m_spi->setDataSize(16);
     m_spi->setUseDmaTx(false);
     m_spi->setUseDmaRx(true);
@@ -171,8 +172,8 @@ void ST7796::initReg()
 //    writeCmd(0xC2, 1, 0xA7);              //Power Control 3 [A?]
 //    writeCmd(0xC5, 1, 0x18);              //VCOM=0.9 [1C]
 //    //0x11, 0x80,                 //delay 150 ms
-    writeCmd(0xE0, 14, 0xF0, 0x09, 0x0B, 0x06, 0x04, 0x15, 0x2F, 0x54, 0x42, 0x3C, 0x17, 0x14, 0x18, 0x1B);     //PVGAMCTRL: Positive Voltage Gamma control
-    writeCmd(0xE1, 14, 0xE0, 0x09, 0x0B, 0x06, 0x04, 0x03, 0x2B, 0x43, 0x42, 0x3B, 0x16, 0x14, 0x17, 0x1B);     //NVGAMCTRL: Negative Voltage Gamma control
+//    writeCmd(0xE0, 14, 0xF0, 0x09, 0x0B, 0x06, 0x04, 0x15, 0x2F, 0x54, 0x42, 0x3C, 0x17, 0x14, 0x18, 0x1B);     //PVGAMCTRL: Positive Voltage Gamma control
+//    writeCmd(0xE1, 14, 0xE0, 0x09, 0x0B, 0x06, 0x04, 0x03, 0x2B, 0x43, 0x42, 0x3B, 0x16, 0x14, 0x17, 0x1B);     //NVGAMCTRL: Negative Voltage Gamma control
 //    
     writeCmd(MADCTL, (uint8_t *)"\x68", 1);
     writeCmd(PIXFMT, (uint8_t *) "\x05", 1);
@@ -206,13 +207,21 @@ void ST7796::initReg()
     // Power Control 3
     writeCmd(PWCTR3, (uint8_t *)"\xA7", 1);
 
+    // Positive gamma control
+    writeCmd(GMCTRP1,
+          (uint8_t *)"\xF0\x09\x13\x12\x12\x2B\x3C\x44\x4B\x1B\x18\x17\x1D\x21", 14);
+
+    // Negative gamma control
+    writeCmd(GMCTRN1,
+          (uint8_t *)"\xF0\x09\x13\x0C\x0D\x27\x3B\x44\x4D\x0B\x17\x17\x1D\x21", 14);
+    
 //    // Positive gamma control
 //    writeCmd(GMCTRP1,
-//          (uint8_t *)"\xF0\x09\x13\x12\x12\x2B\x3C\x44\x4B\x1B\x18\x17\x1D\x21", 14);
+//          (uint8_t *)"\xD0\x08\x0F\x06\x06\x33\x30\x33\x47\x17\x13\x13\x2B\x31", 14);
 //
 //    // Negative gamma control
 //    writeCmd(GMCTRN1,
-//          (uint8_t *)"\xF0\x09\x13\x0C\x0D\x27\x3B\x44\x4D\x0B\x17\x17\x1D\x21", 14);
+//          (uint8_t *)"\xD0\x0A\x11\x0B\x09\x07\x2F\x33\x47\x38\x15\x16\x2C\x32", 14);
 
     // writeCmd(RGB_INTERFACE, (uint8_t *)"\x00", 1); // RGB mode off (0xB0)
 
@@ -222,7 +231,7 @@ void ST7796::initReg()
     // Normal display on
     writeCmd(NORON);
     // Display inversion off
-    writeCmd(INVOFF);
+    writeCmd(INVON);
     
 //    writeCmd(0x36, 1, (1<<3)|(1<<5)); // set direction
 //    
@@ -303,6 +312,8 @@ void ST7796::readRect(int x, int y, int w, int h, uint8_t *buffer)
     m_dc->set();
     int size = w * h * 2;
     
+    m_spi->setBaudrate(10000000);
+    
 //    uint16_t *dst = reinterpret_cast<uint16_t *>(buffer);
     while (size)
     {
@@ -318,6 +329,8 @@ void ST7796::readRect(int x, int y, int w, int h, uint8_t *buffer)
     }
 
     m_cs->set();
+    
+    m_spi->setBaudrate(m_spiBaudrate);
 }
 
 void ST7796::fillRect(int x, int y, int width, int height, uint32_t color)
@@ -503,7 +516,9 @@ uint32_t ST7796::pixel(int x, int y) const
     m_dc->reset();
     m_spi->write16(0x2E << 8);
     m_dc->set();
+    m_spi->setBaudrate(10000000);
     color = m_spi->read16();
+    m_spi->setBaudrate(m_spiBaudrate);
     m_cs->set();
     return color;
 }
