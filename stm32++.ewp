@@ -16199,6 +16199,10 @@
         <name>__startup</name>
         <file>
             <name>$PROJ_DIR$\lib\CMSIS\Device\ST\STM32F0xx\Source\Templates\iar\startup_stm32f030x6.s</name>
+            <excluded>
+                <configuration>stm32f405rg_no-exceptions_no-rtti</configuration>
+                <configuration>stm32f429zi</configuration>
+            </excluded>
         </file>
         <file>
             <name>$PROJ_DIR$\lib\CMSIS\Device\ST\cmsis_device_f3\Source\Templates\iar\startup_stm32f303x8.s</name>
@@ -17742,6 +17746,8 @@
     <file>
         <name>$PROJ_DIR$\src\i2c303.cpp</name>
         <excluded>
+            <configuration>stm32f405rg_no-exceptions_no-rtti</configuration>
+            <configuration>stm32f429zi</configuration>
             <configuration>stm32f030x6</configuration>
         </excluded>
     </file>

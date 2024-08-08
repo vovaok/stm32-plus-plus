@@ -40,7 +40,7 @@ private:
 protected:
     void task();
     
-    void parseServiceMessage(const CommonMessage &msg);
+    virtual bool parseServiceMessage(const CommonMessage &msg) override;
     void parseMessage(const CommonMessage &msg);
 
     unsigned char route(unsigned char netAddress) {return netAddress<0x7F? mRouteTable[netAddress]: 0;}

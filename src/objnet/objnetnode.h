@@ -67,7 +67,7 @@ protected slots:
 
 protected:
     void acceptServiceMessage(unsigned char sender, SvcOID oid, ByteArray *ba=0L){}
-    void parseServiceMessage(const CommonMessage &msg);
+    virtual bool parseServiceMessage(const CommonMessage &msg) override;
 
     void parseMessage(const CommonMessage &msg);
 

@@ -59,6 +59,9 @@ void ObjnetCommonNode::task()
 
 //    CommonMessage msg;
     
+    if (mInterface->peekNext()) // if there is unhandled msgs
+        onNewMessage();
+    
 //    m_receiveBusy = true;
 //    while (mInterface->read(m_currentMsg))
 //    {
@@ -73,6 +76,7 @@ void ObjnetCommonNode::onNewMessage()
 {    
     if (m_receiveBusy)
         return; // already processing
+    m_receiveBusy = true;
     
     const CommonMessage *msg = mInterface->peekNext();
     
@@ -81,122 +85,136 @@ void ObjnetCommonNode::onNewMessage()
     {
         if (mBusAddress != 0xFF)
         {
-#warning message is being taken from queue BEFORE it is used
-            mInterface->discardNext();
-            handleMessage(*msg);
+//#warning message is being taken from queue BEFORE it is used
             
+            //! @todo assemble fragmented messages here
+
+            mInterface->discardNext();
+            bool success = handleMessage(*msg);
+//            if (success)
+//                mInterface->discardNext();
+            if (!success) // if no success place the message in the queue again
+                mInterface->write(*msg);
+            // now this is done after
+            // if no success try to handle msg again
         }
     }
+    m_receiveBusy = false;
 }
 
-void ObjnetCommonNode::handleMessage(const CommonMessage &msg)
+bool ObjnetCommonNode::handleMessage(const CommonMessage &msg)
 {
+    bool success = true;
+    
     if (msg.isGlobal())
+    {
+        GlobalMsgId id = msg.globalId();
+        if (id.aid & (aidPropagationDown | aidPropagationUp))
         {
-            GlobalMsgId id = msg.globalId();
-            if (id.aid & (aidPropagationDown | aidPropagationUp))
-            {
 //                if (mRetranslateEvent)
 //                    mRetranslateEvent(msg);
-                if (mAdjacentNode)
+            if (mAdjacentNode)
+            {
+                GlobalMsgId newId = id;
+                if (!id.mac) // it is the master
+                    newId.addr++;
+                else
                 {
-                    GlobalMsgId newId = id;
-                    if (!id.mac) // it is the master
-                        newId.addr++;
-                    else
-                    {
-                        newId.addr = mAdjacentNode->natRoute(id.addr);
-                        newId.mac = mAdjacentNode->route(id.addr);
-                    }
-                    CommonMessage newMsg = msg;
-                    newMsg.setId(newId);
-                    mAdjacentNode->mInterface->write(newMsg);
+                    newId.addr = mAdjacentNode->natRoute(id.addr);
+                    newId.mac = mAdjacentNode->route(id.addr);
                 }
+                CommonMessage newMsg = msg;
+                newMsg.setId(newId);
+                mAdjacentNode->mInterface->write(newMsg);
             }
+        }
 
-            if (id.svc)
-            {
-                parseServiceMessage(msg);
-            }
-            else
-            {
-//                #ifndef _MSC_VER
-//                #warning poka x3 s global messagami
-//                #endif
-                #ifndef QT_CORE_LIB
-                if (mGlobalMessageEvent)
-                    mGlobalMessageEvent(msg);
-                #endif
-                parseMessage(msg);
-            }
+        if (id.svc)
+        {
+            parseServiceMessage(msg);
         }
         else
         {
-            LocalMsgId id = msg.localId();
-            if (id.addr == mNetAddress || id.addr == 0x7F || mNetAddress == 0xFF) // logical address match OR universal address OR address is not assigned yet
+//                #ifndef _MSC_VER
+//                #warning poka x3 s global messagami
+//                #endif
+            #ifndef QT_CORE_LIB
+            if (mGlobalMessageEvent)
+                mGlobalMessageEvent(msg);
+            #endif
+            parseMessage(msg);
+        }
+    }
+    else
+    {
+        LocalMsgId id = msg.localId();
+        if (id.addr == mNetAddress || id.addr == 0x7F || mNetAddress == 0xFF) // logical address match OR universal address OR address is not assigned yet
+        {
+            if (id.frag) // if message is fragmented
             {
-                if (id.frag) // if message is fragmented
-                {
-                    LocalMsgId key = id;
-                    key.addr = msg.data()[0] & 0x70; // field "addr" of LocalId stores sequence number
-                    CommonMessageBuffer &buf = mFragmentBuffer[key];
-                    buf.setLocalId(id);
-                    buf.addPart(msg.data(), mInterface->maxFrameSize());
-                    if (buf.isReady())
-                    {
-                        if (id.svc)
-                            parseServiceMessage(buf);
-                        else
-                            parseMessage(buf);
-                        mFragmentBuffer.erase(key);
-                    }
-                }
-                else
+                LocalMsgId key = id;
+                key.addr = msg.data()[0] & 0x70; // field "addr" of LocalId stores sequence number
+                CommonMessageBuffer &buf = mFragmentBuffer[key];
+                buf.setLocalId(id);
+                buf.addPart(msg.data(), mInterface->maxFrameSize());
+                if (buf.isReady())
                 {
                     if (id.svc)
-                        parseServiceMessage(msg);
+                        success &= parseServiceMessage(buf);
                     else
-                        parseMessage(msg);
+                        parseMessage(buf);
+                    mFragmentBuffer.erase(key);
                 }
             }
-            else if (mAdjacentNode) // retranslate
+            else
             {
-                if (id.mac) // not a master
-                {
-                    id.addr = mAdjacentNode->natRoute(id.addr);
-                    id.mac = mAdjacentNode->route(id.addr);
-                    id.sender++;
-                }
-                else // this is MAASTEEEERRRRR!!
-                {
-                    id.sender = mAdjacentNode->natRoute(id.sender);
-                    --id.addr;
-                }
-
-                if (id.frag) // if message is fragmented
-                {
-                    id.frag = 0;
-                    LocalMsgId key = id;
-                    key.addr = msg.data()[0] & 0x70; // field "addr" of LocalId stores sequence number
-                    CommonMessageBuffer &buf = mFragmentBuffer[key];
-                    buf.setLocalId(id);
-                    buf.addPart(msg.data(), mInterface->maxFrameSize());
-                    if (buf.isReady())
-                    {
-                        mAdjacentNode->sendCommonMessage(buf);
-                        mFragmentBuffer.erase(key);
-                    }
-                }
+                if (id.svc)
+                    success &= parseServiceMessage(msg);
                 else
+                    parseMessage(msg);
+            }
+        }
+        else if (mAdjacentNode) // retranslate
+        {
+            if (id.mac) // not a master
+            {
+                id.addr = mAdjacentNode->natRoute(id.addr);
+                id.mac = mAdjacentNode->route(id.addr);
+                id.sender++;
+            }
+            else // this is MAASTEEEERRRRR!!
+            {
+                id.sender = mAdjacentNode->natRoute(id.sender);
+                --id.addr;
+            }
+
+            if (id.frag) // if message is fragmented
+            {
+                id.frag = 0;
+                LocalMsgId key = id;
+                key.addr = msg.data()[0] & 0x70; // field "addr" of LocalId stores sequence number
+                CommonMessageBuffer &buf = mFragmentBuffer[key];
+                buf.setLocalId(id);
+                buf.addPart(msg.data(), mInterface->maxFrameSize());
+                if (buf.isReady())
                 {
-                    CommonMessage newMsg = msg;
-                    newMsg.setLocalId(id);
-                    //mAdjacentNode->mInterface->write(newMsg);
-                    mAdjacentNode->sendCommonMessage(newMsg);
+                    //! @todo and what if buf is not sent??
+                    //             v    
+                    success &= mAdjacentNode->sendCommonMessage(buf);
+                    mFragmentBuffer.erase(key);
                 }
             }
-            
-            mFragmentBuffer.damage(25);
+            else
+            {
+                CommonMessage newMsg = msg;
+                newMsg.setLocalId(id);
+                //mAdjacentNode->mInterface->write(newMsg);
+         //! @todo check sending failure handling!!!!
+                success &= mAdjacentNode->sendCommonMessage(newMsg);
+            }
+        }
+        
+        mFragmentBuffer.damage(25);
 
 //            std::list<uint32_t> toRemove;
 //            std::map<uint32_t, CommonMessageBuffer>::iterator it;
@@ -207,7 +225,9 @@ void ObjnetCommonNode::handleMessage(const CommonMessage &msg)
 //            for (std::list<uint32_t>::iterator it=toRemove.begin(); it!=toRemove.end(); it++)
 //                mFragmentBuffer.erase(*it);
 //            toRemove.clear();
-        }
+    }
+    
+    return success;
 }
 //---------------------------------------------------------------------------
 
