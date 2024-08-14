@@ -1,4 +1,5 @@
 #include "gpio.h"
+#include "rcc.h"
 #include "core/core.h"
 
 #if defined(STM32F37X)
@@ -23,7 +24,7 @@ Gpio::Gpio(PinName pin, Flags flags/*, PinAF altFunction*/)
     if (pin != noPin)
     {
         mPort = getPortByNumber(mConfig.portNumber);
-        mPin = 1 << mConfig.pinNumber; 
+        mPin = 1 << mConfig.pinNumber;
     }
     else
     {
@@ -39,7 +40,7 @@ Gpio::Gpio(Config conf)
     if (mConfig.pin != noPin)
     {
         mPort = getPortByNumber(mConfig.portNumber);
-        mPin = 1 << mConfig.pinNumber; 
+        mPin = 1 << mConfig.pinNumber;
     }
     else
     {
@@ -239,11 +240,11 @@ GPIO_TypeDef *Gpio::getPortByNumber(int port)
 #endif
 #if defined(GPIOK)
         case 0xA: return GPIOK;
-#endif        
+#endif
         default: return 0L;
     }
 }
-        
+
 int Gpio::getPortNumber(GPIO_TypeDef *gpio)
 {
     switch (reinterpret_cast<uint32_t>(gpio))
@@ -252,23 +253,23 @@ int Gpio::getPortNumber(GPIO_TypeDef *gpio)
     case GPIOB_BASE: return 0x1;
     case GPIOC_BASE: return 0x2;
     case GPIOD_BASE: return 0x3;
-#if defined(GPIOE) 
+#if defined(GPIOE)
     case GPIOE_BASE: return 0x4;
 #endif
     case GPIOF_BASE: return 0x5;
-#if defined(GPIOG)    
+#if defined(GPIOG)
     case GPIOG_BASE: return 0x6;
 #endif
-#if defined(GPIOH)    
+#if defined(GPIOH)
     case GPIOH_BASE: return 0x7;
 #endif
 #if defined(GPIOI)
     case GPIOI_BASE: return 0x8;
 #endif
-#if defined(GPIOJ)    
+#if defined(GPIOJ)
     case GPIOJ_BASE: return 0x9;
 #endif
-#if defined(GPIOK)    
+#if defined(GPIOK)
     case GPIOK_BASE: return 0xA;
 #endif
     default: return -1;
@@ -321,23 +322,23 @@ void Gpio::configInterrupt(NotifyEvent event, InterruptMode mode)
     uint32_t mask = 1 << line;
     if (EXTI->IMR & mask)
         THROW(Exception::ResourceBusy);
-    
+
     rcc().setPeriphEnabled(SYSCFG);
     SYSCFG->EXTICR[line >> 2] = mConfig.portNumber << ((line & 3) << 2);
-    
+
     if (mode & 1)
         EXTI->RTSR |= mask;
     else
         EXTI->RTSR &= ~mask;
-    
+
     if (mode & 2)
         EXTI->FTSR |= mask;
     else
         EXTI->FTSR &= ~mask;
-    
+
     m_interruptHandlers[line] = event;
     EXTI->IMR |= mask;
-    
+
     IRQn_Type irqn;
     switch (line)
     {
@@ -350,7 +351,7 @@ void Gpio::configInterrupt(NotifyEvent event, InterruptMode mode)
 #endif
     case 3: irqn = EXTI3_IRQn; break;
     case 4: irqn = EXTI4_IRQn; break;
-    case 5: 
+    case 5:
     case 6:
     case 7:
     case 8:
@@ -476,4 +477,3 @@ void EXTI15_10_IRQHandler()
 }
 
 } // extern "C"
-     

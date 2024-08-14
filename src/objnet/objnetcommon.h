@@ -6,6 +6,7 @@
 #include <stdint.h>
 #ifndef QT_CORE_LIB
 #include "core/core.h"
+#include "core/application.h"
 #else
 #include <QtCore>
 #include "core/closure.h"
@@ -65,7 +66,7 @@ typedef enum
     svcBusAddress       = 0x0A, //!< физический адрес (можно поменять)
     svcObjectInfo       = 0x80, //!< описание объекта
 //    svcSubobjectInfo    = 0x81, //!< описание поля объекта
-    
+
     svcTimedObject      = 0x90, //!< ответ узла синхронизованным объектом
     svcGetTimedObject   = 0x91, //!< запрос синхронизованного объекта
     svcGroupedObject    = 0xA0, //!< ответ узла группированным объектом
@@ -149,7 +150,7 @@ struct LocalMsgId
 struct GlobalMsgId
 {
     unsigned char aid;      //!< action ID
-    unsigned char payload;  //!< contains data if its size is 1 
+    unsigned char payload;  //!< contains data if its size is 1
     unsigned char addr: 7;  //!< own network address (logical)
     unsigned char svc: 1;   //!< message is service
     unsigned char mac: 4;   //!< own bus address (physical)

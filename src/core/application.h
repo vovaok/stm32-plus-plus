@@ -51,7 +51,7 @@ typedef struct
     unsigned long checksum;
     char timestamp[25];
 } __appinfo_t__;
-#define APP_DECLARE_BOOT_INFO() __root static const __appinfo_t__ __appinfo__ = {"__APPINFO__", APP_CLASS, APP_VERSION, 0, 0xDeadFace, 0xBaadFeed, __TIMESTAMP__}
+#define APP_DECLARE_BOOT_INFO() __attribute__((used)) static const __appinfo_t__ __appinfo__ = {"__APPINFO__", APP_CLASS, APP_VERSION, 0, 0xDeadFace, 0xBaadFeed, __TIMESTAMP__}
 //---------------------------------------------------------------------------
 
 extern "C" void SysTick_Handler();
@@ -64,26 +64,26 @@ private:
     static Application* self;
     static const int mSysClkPeriod = SYSTEM_CLOCK_MS;
     static bool m_tickFlag;
-    
+
     std::list<TaskEvent> mTaskEvents;
     std::list<TickEvent> mTickEvents;
     typedef std::list<TaskEvent>::iterator TaskIterator;
     typedef std::list<TickEvent>::iterator TickIterator;
     bool m_tasksModified;
     bool m_sleeping;
-    
+
     static unsigned short mVersion;
     static string mBuildDate;
     static string mCpuInfo;
-    static unsigned long mBurnCount;  
+    static unsigned long mBurnCount;
     static string mName;
     static string mDescription;
     static string mCompany;
-    
+
     unsigned long mTimestamp;
-    
+
     static void sysTickHandler();
-    
+
     friend void SystemInit();
     friend void SysTick_Handler();
     friend void HardFault_Handler();
@@ -94,7 +94,7 @@ protected:
     {
         if (!rcc().sysClk())
             rcc().configPll(CpuId::maxSysClk());
-        
+
         self = this;
         mName = APP_NAME;
         mDescription = APP_DESCRIPTION;
@@ -109,57 +109,57 @@ protected:
     void setVersion(unsigned short ver) {mVersion = ver;}
     void setBurnCount(unsigned long cnt) {mBurnCount = cnt;}
     void setSleeping(bool sleep) {m_sleeping = sleep;}
-    
+
     void systemReset();
-    
+
 public:
     /*! Экземпляр приложения. */
     static Application *instance() {return self;}
 
     /*! Запуск петли задач. */
     void exec();
-    
+
     int registerTaskEvent(TaskEvent event);
     void unregisterTaskEvent(int id);
     int registerTickEvent(TickEvent event);
-    void unregisterTickEvent(int id);    
-    
+    void unregisterTickEvent(int id);
+
     static string name() {return Application::mName;}
     static string description() {return Application::mDescription;}
     static string company() {return Application::mCompany;}
-    
+
     /*! Версия приложения.
         Возвращает версию приложения, указанную в 'config.h'.
         Формат версии - число, 4 байта. Например: v.2.3.42.137 выглядит как 0x02032A89
     */
     static unsigned long version() {return Application::mVersion;}
-    
+
     /*! Дата и время сборки.
         Возвращет дату и время сборке в виде строки в формате, какой её предоставляет IAR
     */
     static string buildDate() {return Application::mBuildDate;}
-    
+
     /*! Информация о процессоре.
         Возвращает строку, содержащую информацию о процессоре: тип, ядро, частота.
     */
     static string cpuInfo() {return Application::mCpuInfo;}
-    
+
     /*! Бёрн каунт.
         Каждый раз когда попахивает ключами, бёрнКаунт++;
     */
     static unsigned long burnCount() {return Application::mBurnCount;}
-    
+
     //static int tickPeriodMs() {return Application::mSysClkPeriod;}
-    
+
     /*! Запуск обновления прошивки
         Переходит к выполнению программы обновления (если она имеется)
     */
     static bool startOnbBootloader();
-    
-    /*! Возвращает время в миллисекундах с момента запуска.    
+
+    /*! Возвращает время в миллисекундах с момента запуска.
     */
     inline unsigned long timestamp() const {return mTimestamp;}
-    
+
     static void delay(int ms);
 };
 

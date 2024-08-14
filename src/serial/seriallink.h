@@ -1,18 +1,20 @@
 #ifndef _SERIALLINK_H
 #define _SERIALLINK_H
 
-#include "serialframe.h"
 #include <vector>
 #include <string>
-#include "eeprom.h"
+#include "core/device.h"
+//#include "eeprom.h"
 
 using namespace std;
 
 #define UARTLINK_PROTOCOL_VERSION   0x0101  // v1.1
 
-class SerialLink : public SerialFrame
+class SerialLink
 {
 public:
+    explicit SerialLink(Device *device);
+
     typedef enum
     {
         pfVolatile  = 0x01,
@@ -26,7 +28,21 @@ public:
         pfConstant  = pfRead,
         pfStorage   = pfRead | pfWrite | pfPermanent,
     } ParamFlags;
-  
+
+    void setProductInfo(unsigned long productId, string productName, unsigned short productVersion);
+    void registerParam(string name, void *ptr, size_t size, ParamFlags flags=pfReadWrite);
+    void registerFunc(string name, DataEvent func);
+    void sendParam(string name);
+
+    template <typename T>
+    void registerParam(string name, T &ref, ParamFlags flags=pfReadWrite)
+    {
+        registerParam(name, &ref, sizeof(T), flags);
+    }
+
+    void storeParams();
+    void restoreParams();
+
 private: // typedefs
 #pragma pack(push,1)
     typedef enum
@@ -70,7 +86,7 @@ private: // typedefs
         unsigned char eof: 1; // end of fragments
     } Header;
 
-private:  
+private:
     typedef struct
     {
         char size;
@@ -104,11 +120,12 @@ private:
 #pragma pack(pop)
 
 private:
+    Device *m_device;
     vector<SUartParam> mParamVector;
     vector<SUartFunc> mFuncVector;
     vector<unsigned long> mParamPtrVector; // corresponds to parameter vector. protocol must be upgraded. a To roBHo KaKoe-To.
     vector<DataEvent> mEventVector; // corresponds to function vector. protocol must be upgraded. a To roBHo KaKoe-To.
-    
+
     unsigned short mUartLinkVersion;
     unsigned long mProductId;
     string mProductName;
@@ -116,19 +133,8 @@ private:
     string mCompilationDate;
     string mCompilationTime;
     bool mEepromInitialized;
-    
-    void onDataReceived(const ByteArray &ba);
-    
-public:
-    UartLink(UartInterface *iface);
-    
-    void setProductInfo(unsigned long productId, string productName, unsigned short productVersion);
-    void registerParam(string name, void *ptr, int size, ParamFlags flags=pfReadWrite);
-    void registerFunc(string name, DataEvent func);
-    void sendParam(string name);
-    
-    void storeParams();
-    void restoreParams();
+
+    void onDataReceived();
 };
 
 #endif

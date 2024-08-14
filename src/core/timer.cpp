@@ -1,4 +1,5 @@
 #include "timer.h"
+#include "application.h"
 
 Timer::Timer() :
     mInterval(0),

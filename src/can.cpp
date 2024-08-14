@@ -1,4 +1,5 @@
 #include "can.h"
+#include "rcc.h"
 
 //#define CAN_RX_PIN                 GPIO_Pin_0
 //#define CAN_TX_PIN                 GPIO_Pin_1

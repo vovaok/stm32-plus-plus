@@ -1,29 +1,34 @@
 #include "seriallink.h"
+#include "serialframe.h"
 
-UartLink::UartLink(UartInterface *iface) :
-    UartFrame(iface),
+#define NO_EEPROM
+
+SerialLink::SerialLink(Device *dev) :
+    m_device(dev),
     mUartLinkVersion(UARTLINK_PROTOCOL_VERSION),
     mProductId(0x23420000),
-    mProductName("UartLink"),
+    mProductName("SerialLink"),
     mProductVersion(0x0100),
     mCompilationDate(__DATE__),
     mCompilationTime(__TIME__),
     mEepromInitialized(false)
 {
-    setReceiveEvent(EVENT(&UartLink::onDataReceived));
+//    if (m_device->isSequential())
+//        m_device = new SerialFrame(m_device);
+    m_device->onReadyRead = EVENT(&SerialLink::onDataReceived);
 }
 
-void UartLink::setProductInfo(unsigned long productId, string productName, unsigned short productVersion)
+void SerialLink::setProductInfo(unsigned long productId, string productName, unsigned short productVersion)
 {
     mProductId = productId;
     mProductName = productName;
     mProductVersion = productVersion;
 }
 
-void UartLink::registerParam(string name, void *ptr, int size, ParamFlags flags)
+void SerialLink::registerParam(string name, void *ptr, size_t size, ParamFlags flags)
 {
     SUartParam p = {
-        .size = size,
+        .size = (uint8_t)size,
         .flags = flags,
         .virtAddr = 0
     };
@@ -38,7 +43,7 @@ void UartLink::registerParam(string name, void *ptr, int size, ParamFlags flags)
     mParamPtrVector.push_back(reinterpret_cast<unsigned long>(ptr));
 }
 
-void UartLink::registerFunc(string name, DataEvent func)
+void SerialLink::registerFunc(string name, DataEvent func)
 {
     SUartFunc f;
     int slen = name.length();
@@ -49,22 +54,24 @@ void UartLink::registerFunc(string name, DataEvent func)
 }
 //---------------------------------------------------------------------------
 
-void UartLink::onDataReceived(const ByteArray &ba)
+void SerialLink::onDataReceived()
 {
+    ByteArray ba = m_device->readAll();
+
     Header hdr = *reinterpret_cast<const Header*>(ba.data());
     const char *data = ba.data() + sizeof(Header);
     unsigned char idx = data[0];
-    
+
     ByteArray out(ba.data(), sizeof(Header));
     out[1] = 0;
     Header *outHdr = reinterpret_cast<Header*>(out.data());
-    outHdr->response = 1;    
-    
+    outHdr->response = 1;
+
     switch (hdr.cmd)
     {
       case cmdEcho:
         break;
-          
+
       case cmdInfo:
         out.append(idx);
         switch (idx)
@@ -90,11 +97,11 @@ void UartLink::onDataReceived(const ByteArray &ba)
             break;
         }
         break;
-        
+
       case cmdUartLinkVersion:
         out.append(&mUartLinkVersion, sizeof(unsigned short));
         break;
-        
+
       case cmdGetParamInfo:
         out.append(idx);
         if (idx < mParamVector.size())
@@ -102,11 +109,11 @@ void UartLink::onDataReceived(const ByteArray &ba)
         else
             outHdr->error = true;
         break;
-        
+
       case cmdGetParam:
         out.append(idx);
         if (idx < mParamVector.size())
-        { 
+        {
             const SUartParam &p = mParamVector[idx];
             if (p.flags & pfRead)
                 out.append(reinterpret_cast<const char *>(mParamPtrVector[idx]), p.size);
@@ -116,7 +123,7 @@ void UartLink::onDataReceived(const ByteArray &ba)
         else
             outHdr->error = true;
         break;
-        
+
       case cmdSetParam:
         out.append(idx);
         if (idx < mParamVector.size())
@@ -132,9 +139,7 @@ void UartLink::onDataReceived(const ByteArray &ba)
         else
             outHdr->error = true;
         break;
-        
-#warning 4227
-        
+
       case cmdGetFuncInfo:
         out.append(idx);
         if (idx < mFuncVector.size())
@@ -142,7 +147,7 @@ void UartLink::onDataReceived(const ByteArray &ba)
         else
             outHdr->error = true;
         break;
-        
+
       case cmdCallFunc:
         out.append(idx);
         if (idx < mFuncVector.size())
@@ -155,12 +160,12 @@ void UartLink::onDataReceived(const ByteArray &ba)
             outHdr->error = true;
         break;
     }
-    
-    sendData(out);
+
+    m_device->write(out);
 }
 //---------------------------------------------------------------------------
 
-void UartLink::sendParam(string name)
+void SerialLink::sendParam(string name)
 {
     int len = mParamVector.size();
     for (int i=0; i<len; i++)
@@ -178,7 +183,7 @@ void UartLink::sendParam(string name)
             if (p.flags & pfRead)
             {
                 out.append(reinterpret_cast<const char *>(mParamPtrVector[i]), p.size);
-                sendData(out);
+                m_device->write(out);
             }
             break;
         }
@@ -186,8 +191,9 @@ void UartLink::sendParam(string name)
 }
 //---------------------------------------------------------------------------
 
-void UartLink::restoreParams()
+void SerialLink::restoreParams()
 {
+#if !defined(NO_EEPROM)
     if (!mEepromInitialized)
     {
         uint16_t virtAddrCnt = mParamVector.back().virtAddr + ((mParamVector.back().size+1)>>1);
@@ -198,7 +204,7 @@ void UartLink::restoreParams()
     {
         FLASH_Unlock();
     }
-    
+
     int cnt = mParamVector.size();
     for (int i=0; i<cnt; i++)
     {
@@ -212,12 +218,13 @@ void UartLink::restoreParams()
             EE_ReadVariable(va + j, &reinterpret_cast<uint16_t*>(mParamPtrVector[i])[j]);
         }
     }
-    
     FLASH_Lock();
+#endif
 }
 
-void UartLink::storeParams()
+void SerialLink::storeParams()
 {
+#if !defined(NO_EEPROM)
     if (!mEepromInitialized)
     {
         FLASH_Unlock();
@@ -229,7 +236,7 @@ void UartLink::storeParams()
     {
         FLASH_Unlock();
     }
-    
+
     int cnt = mParamVector.size();
     for (int i=0; i<cnt; i++)
     {
@@ -243,7 +250,8 @@ void UartLink::storeParams()
             EE_WriteVariable(va + j, reinterpret_cast<uint16_t*>(mParamPtrVector[i])[j]);
         }
     }
-    
+
     FLASH_Lock();
+#endif
 }
 //---------------------------------------------------------------------------
