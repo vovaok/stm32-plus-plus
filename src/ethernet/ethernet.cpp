@@ -1,5 +1,6 @@
 #include "ethernet.h"
 #include "cpuid.h"
+#include "core/application.h"
 
 Ethernet::MacAddress_t Ethernet::defaultMacAddress = {0xF8, 0x5C, 0x4D, 0x33, 0x10, 0x00};
 int Ethernet::rxBufCount = 5;

@@ -51,9 +51,9 @@
 //#include "stm32f4xx.h"
 #include "stm32.h"
    
-//#ifndef assert_param
-//    #define assert_param(x) 
-//#endif
+#ifndef assert_param
+    #define assert_param(x) 
+#endif
 
 /* Exported types ------------------------------------------------------------*/
 /* Exported constants --------------------------------------------------------*/
