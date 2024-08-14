@@ -1,4 +1,6 @@
 #include "adc.h"
+#include "rcc.h"
+#include <math.h>
 
 Adc* Adc::mInstances[3] = {0L, 0L, 0L};
 
@@ -17,7 +19,7 @@ Adc::Adc(int adcBase) :
 
     mInstances[adcBase - 1] = this;
 #if defined(STM32F303x8)
-    
+
       switch (adcBase)
     {
       case 1:
@@ -31,7 +33,7 @@ Adc::Adc(int adcBase) :
         mAdc = ADC2;
         RCC->AHBENR |= RCC_AHBENR_ADC12EN;
         mDmaChannel = Dma::Channel4_ADC2 ; // Dma::ADC2_Stream3
-        break;     
+        break;
 
       default:
         return;
@@ -45,7 +47,7 @@ Adc::Adc(int adcBase) :
     // Scan conversion mode is enabled
     mAdc->CR1 = (mResolution & ADC_CR1_RES_Msk) | ADC_CR1_SCAN;
     mAdc->CR2 = (mResolution & ADC_CR2_ALIGN_Msk);
-    
+
 #else
     switch (adcBase)
     {
@@ -59,7 +61,7 @@ Adc::Adc(int adcBase) :
       case 2:
         mAdc = ADC2;
         RCC->APB2ENR |= RCC_APB2ENR_ADC2EN;
-        mDmaChannel = Dma::ADC2_Stream2; // Dma::ADC2_Stream3
+        mDmaChannel = Dma::ADC2_Stream3; // Dma::ADC2_Stream2
         break;
 
       case 3:
@@ -80,7 +82,7 @@ Adc::Adc(int adcBase) :
     // Scan conversion mode is enabled
     mAdc->CR1 = (mResolution & ADC_CR1_RES_Msk) | ADC_CR1_SCAN;
     mAdc->CR2 = (mResolution & ADC_CR2_ALIGN_Msk);
-    
+
 #endif
 }
 
@@ -236,7 +238,7 @@ void Adc::setEnabled(bool enable)
 //        ADC_Cmd(mAdc3, en);
 
     if (mDmaOwner)
-        mDma->setEnabled(enable);
+        mDma->start();//setEnabled(enable);
 }
 //---------------------------------------------------------------------------
 

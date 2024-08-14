@@ -1,4 +1,5 @@
 #include "spi.h"
+#include "rcc.h"
 
 #if defined(STM32F4)
 #define SPI1_DMA_CHANNEL_RX     Dma::SPI1_RX_Stream2; // Dma::SPI1_RX_Stream0;
@@ -106,7 +107,7 @@ Spi::Spi(Gpio::Config sck, Gpio::Config miso, Gpio::Config mosi) :
 
     if (!mDev)
         THROW(Exception::InvalidPeriph);
-    
+
     rcc().setPeriphEnabled(mDev);
 
     mConfig.SSI = 1;
@@ -203,7 +204,7 @@ void Spi::open()
 //            mDmaRx->setSingleBuffer(data, size);
         mConfig.RXDMAEN = 1;
     }
-    
+
 //    if (mDmaRx)
 //        mDmaRx->start();
 
@@ -221,7 +222,7 @@ void Spi::open()
     }
 
     updateConfig();
-    
+
     mConfig.enable = 1;
     mDev->CR1 = mConfig.cr1;
 }
@@ -277,7 +278,7 @@ bool Spi::transferDma(const uint8_t *data, uint8_t *buffer, int size)
 {
     if (mDmaTx->isEnabled() && !mDmaTx->isComplete())
         return false;
-    
+
     if (m_dataSize <= 8)
     {
         mDmaRx->setSingleBuffer(buffer, size);
@@ -291,9 +292,9 @@ bool Spi::transferDma(const uint8_t *data, uint8_t *buffer, int size)
     if (buffer)
         mDmaRx->start();
     mDmaTx->start();
-    
+
 //    while (!mDmaRx->isComplete());
-    
+
     return true;
 }
 

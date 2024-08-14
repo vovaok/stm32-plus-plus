@@ -3,33 +3,41 @@
 
 #include <stdint.h>
 
-class AbsoluteEncoder
+template <typename T>
+class AbsoluteEncoderT
 {
 public:
-    const uint32_t &value() const {return m_value;}
-    uint32_t read()
+    const T &value() const {return m_value;}
+    T read()
     {
-        m_value = readValue() << (32 - m_bits);
+        m_value = readValue() << (sizeof(T)*8 - m_bits);
+        m_valid = true;
         return m_value;
     }
-    
+
     int bits() const {return m_bits;}
-    uint32_t pulses() const {return (1 << m_bits);}
-    uint32_t mask() const {return (1 << m_bits) - 1;}
-  
+    T pulses() const {return (1 << m_bits);}
+    T mask() const {return (1 << m_bits) - 1;}
+
+    bool isValid() const {return m_valid;}
+
 protected:
     int m_bits;
-    
-    AbsoluteEncoder(int bits) :
+
+    AbsoluteEncoderT(int bits) :
         m_bits(bits),
         m_value(0)
     {
     }
-    
-    virtual uint32_t readValue() = 0;
-    
+
+    virtual T readValue() = 0;
+
 private:
-    uint32_t m_value;
+    T m_value;
+    bool m_valid = false;
 };
+
+typedef AbsoluteEncoderT<uint16_t> AbsoluteEncoder16;
+typedef AbsoluteEncoderT<uint32_t> AbsoluteEncoder;
 
 #endif

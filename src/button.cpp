@@ -1,4 +1,5 @@
 #include "button.h"
+#include "core/application.h"
 
 Button::Button(PinName pin, bool pullUp, bool inverted) :
     Gpio(pin, pullUp? Gpio::pullUp: Gpio::pullNone),

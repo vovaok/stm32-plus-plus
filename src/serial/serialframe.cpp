@@ -4,6 +4,7 @@
 SerialFrame::SerialFrame(Device *device) :
     m_device(device)
 {
+    m_sequential = false;
     m_buffer.resize(64);
     cmd_acc = false;
     stmApp()->registerTaskEvent(EVENT(&SerialFrame::task));

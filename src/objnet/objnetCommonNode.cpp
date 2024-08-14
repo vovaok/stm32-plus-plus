@@ -1,5 +1,4 @@
 #include "objnetCommonNode.h"
-//#include <QtConcurrent/QtConcurrent>
 
 using namespace Objnet;
 
@@ -14,7 +13,7 @@ ObjnetCommonNode::ObjnetCommonNode(ObjnetInterface *iface) :
     mConnected(false)
 {
     mInterface->onReceive = EVENT(&ObjnetCommonNode::onNewMessage);
-    
+
     #ifndef QT_CORE_LIB
     stmApp()->registerTaskEvent(EVENT(&ObjnetCommonNode::task));
     #else
@@ -50,7 +49,7 @@ void ObjnetCommonNode::task()
     // не выполняем задачу, пока физический адрес неправильный
     if (mBusAddress == 0xFF)
         return;
-    
+
 //    if (mSheduledMsg.rawId())
 //    {
 //        if (sendCommonMessage(mSheduledMsg))
@@ -58,24 +57,24 @@ void ObjnetCommonNode::task()
 //    }
 
 //    CommonMessage msg;
-    
+
 //    m_receiveBusy = true;
 //    while (mInterface->read(m_currentMsg))
 //    {
 //        handleMessage(m_currentMsg);
 //    }
 //    m_receiveBusy = false;
-    
+
 //    onbFragmentBuffers = mFragmentBuffer.count();
 }
 
 void ObjnetCommonNode::onNewMessage()
-{    
+{
     if (m_receiveBusy)
         return; // already processing
-    
+
     const CommonMessage *msg = mInterface->peekNext();
-    
+
 //    if (mInterface->read(m_currentMsg))
     if (msg)
     {
@@ -84,7 +83,7 @@ void ObjnetCommonNode::onNewMessage()
 #warning message is being taken from queue BEFORE it is used
             mInterface->discardNext();
             handleMessage(*msg);
-            
+
         }
     }
 }
@@ -195,7 +194,7 @@ void ObjnetCommonNode::handleMessage(const CommonMessage &msg)
                     mAdjacentNode->sendCommonMessage(newMsg);
                 }
             }
-            
+
             mFragmentBuffer.damage(25);
 
 //            std::list<uint32_t> toRemove;
@@ -236,7 +235,7 @@ void ObjnetCommonNode::setBusAddress(unsigned char address)
     mGlobalFilter = mInterface->addFilter(gid, gmask);
 }
 
-#if !defined(QT_CORE_LIB ) && !defined (NRF52840_XXAA) 
+#if !defined(QT_CORE_LIB ) && !defined (NRF52840_XXAA)
 void ObjnetCommonNode::setBusAddressFromPins(int bits, Gpio::PinName a0, ...)
 {
     uint32_t address = 0;
@@ -307,7 +306,7 @@ void ObjnetCommonNode::setBusAddress(unsigned char startAddress, Gpio::PinName a
 //---------------------------------------------------------------------------
 
 bool ObjnetCommonNode::sendCommonMessage(CommonMessage &msg)
-{  
+{
     int maxsize = mInterface->maxFrameSize();
     if (msg.data().size() <= maxsize)
     {
@@ -411,7 +410,7 @@ bool ObjnetCommonNode::sendServiceMessage(unsigned char receiver, SvcOID oid, un
 //    id.oid = oid;
 //    msg.setLocalId(id);
 //    msg.setData(ba);
-//    
+//
 //    bool result = sendCommonMessage(msg);
 //    if (!result)
 //    {

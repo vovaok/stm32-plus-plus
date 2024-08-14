@@ -73,7 +73,7 @@ Usart::Usart(Gpio::Config pinTx, Gpio::Config pinRx) :
     mTxBufferSize(64)
 {
     Device::m_sequential = true;
-  
+
     int no = 0;
     if (pinTx != Gpio::NoConfig)
         no = GpioConfigGetPeriphNumber(pinTx);
@@ -81,9 +81,9 @@ Usart::Usart(Gpio::Config pinTx, Gpio::Config pinRx) :
         no = GpioConfigGetPeriphNumber(pinRx);
     Gpio::config(pinRx);
     Gpio::config(pinTx);
-    
+
     commonConstructor(no);
-    
+
     // if only TX pin is given switch to half-duplex mode
     if (pinRx == Gpio::NoConfig)
     {
@@ -93,52 +93,52 @@ Usart::Usart(Gpio::Config pinTx, Gpio::Config pinRx) :
 }
 
 void Usart::commonConstructor(int number)
-{  
+{
 //    const USART_TypeDef *devs[6] = {USART1, USART2, USART3, UART4, UART5, USART6};
 //    const uint32_t rcc[6] = {};
 //    const IRQn_Type irq[6] = {USART1_IRQn, USART2_IRQn, USART3_IRQn, UART4_IRQn, UART5_IRQn, USART6_IRQn};
-  
+
     switch (number)
     {
-      case 1:  
+      case 1:
         mDev = USART1;
         mDmaChannelRx = USART1_RX_DMA;
         mDmaChannelTx = USART1_TX_DMA;
         mIrq = USART1_IRQn;
         break;
-        
-      case 2:  
+
+      case 2:
         mDev = USART2;
         mDmaChannelRx = USART2_RX_DMA;
         mDmaChannelTx = USART2_TX_DMA;
         mIrq = USART2_IRQn;
         break;
-        
-      case 3:  
+
+      case 3:
         mDev = USART3;
         mDmaChannelRx = USART3_RX_DMA;
         mDmaChannelTx = USART3_TX_DMA;
         mIrq = USART3_IRQn;
         break;
-        
-#if defined(STM32F4) || defined(STM32L4) || defined(STM32G4)  
-      case 4:  
+
+#if defined(STM32F4) || defined(STM32L4) || defined(STM32G4)
+      case 4:
         mDev = UART4;
         mDmaChannelRx = UART4_RX_DMA;
         mDmaChannelTx = UART4_TX_DMA;
         mIrq = UART4_IRQn;
         break;
-        
-      case 5:  
+
+      case 5:
         mDev = UART5;
         mDmaChannelRx = UART5_RX_DMA;
         mDmaChannelTx = UART5_TX_DMA;
         mIrq = UART5_IRQn;
         break;
-        
+
 #endif
 #if defined(STM32F4)
-      case 6:  
+      case 6:
         mDev = USART6;
         mDmaChannelRx = USART6_RX_DMA;
         mDmaChannelTx = USART6_TX_DMA;
@@ -146,7 +146,7 @@ void Usart::commonConstructor(int number)
         break;
 #endif
     }
-    
+
 #if defined(STM32F3)
     switch(number)
     {
@@ -156,9 +156,9 @@ void Usart::commonConstructor(int number)
     }
 #else
     rcc().setPeriphEnabled(mDev);
-#endif   
+#endif
     mUsarts[number - 1] = this;
-    
+
     setConfig(Mode8N1);
     setBaudrate(57600);
 }
@@ -192,7 +192,7 @@ bool Usart::open(OpenMode mode)
 {
     if (isOpen())
         return false;
-    
+
     bool enableIrq = false;
     uint32_t cr1 = 0;
     if (mode & ReadOnly)
@@ -207,7 +207,7 @@ bool Usart::open(OpenMode mode)
             mDmaRx->setSource((void*)&mDev->RDR, 1);
         }
         if (!mUseDmaRx || onReadyRead || m_characterMatch)
-        {         
+        {
             cr1 |= USART_CR1_RXNEIE;
             enableIrq = true;
         }
@@ -225,19 +225,19 @@ bool Usart::open(OpenMode mode)
             enableIrq = true; // TCIE interrupt will be enabled later on transfer complete event
         }
     }
-    
+
     // enable interrupt if necessary
     if (enableIrq)
     {
         NVIC_SetPriority(mIrq, 1);
         NVIC_EnableIRQ(mIrq);
     }
-    
+
     // enable receiver and transmitter if necessary
     mDev->CR1 = mDev->CR1 & ~(USART_CR1_RE | USART_CR1_TE) | cr1;
-    
+
 //    init();
-    
+
     if (mDmaRx && mUseDmaRx)
     {
         mDev->CR3 |= USART_CR3_DMAR;
@@ -249,10 +249,10 @@ bool Usart::open(OpenMode mode)
         mDev->CR3 |= USART_CR3_DMAT;
         (unsigned int&)mode |= WriteOnly;
     }
-    
+
     // enable UART
     mDev->CR1 |= USART_CR1_UE;
-    
+
     Device::open(mode);
     return true;
 }
@@ -273,10 +273,10 @@ void Usart::close()
         delete mDmaTx;
         mDmaTx = 0L;
     }
-    
+
     // disable UART
     mDev->CR1 &= ~USART_CR1_UE;
-    
+
     Device::close();
 }
 //---------------------------------------------------------------------------
@@ -299,7 +299,7 @@ int Usart::writeBuffer(const char *data, int size)
 {
     if (size <= 0)
         return 0;
-    
+
     int mask = mTxBuffer.size() - 1;
 //    int curPos = (mTxReadPos - mDmaTx->dataCounter()) & mask;
 //    int maxsize = (curPos - mTxPos - 1) & mask;
@@ -309,9 +309,9 @@ int Usart::writeBuffer(const char *data, int size)
         return -1;
 //        sz = maxsize;
     }
-    
+
     char *begin = mTxBuffer.data();
-    char *dst = begin + mTxPos;  
+    char *dst = begin + mTxPos;
     char *end = begin + mTxBuffer.size();
     int sz = size;
     while (sz--)
@@ -340,7 +340,7 @@ int Usart::bytesAvailable() const
 }
 
 int Usart::writeData(const char *data, int size)
-{      
+{
     if (!mDmaTx)
     {
         if (m_halfDuplex)
@@ -349,36 +349,36 @@ int Usart::writeData(const char *data, int size)
             if (m_pinDE)
                 m_pinDE->set();
         }
-        
+
         for (int i=0; i<size; i++)
         {
             while (!(mDev->SR & USART_SR_TC));
             mDev->TDR = data[i];
         }
         while (!(mDev->SR & USART_SR_TC));
-        
+
         if (m_halfDuplex)
         {
             if (m_pinDE)
                 m_pinDE->reset();
             mDev->CR1 |= USART_CR1_RE;
         }
-        
+
         return size;
     }
-    
+
     int sz = writeBuffer(data, size);
     if (sz < 0)
         return -1;
     if(sz ==0)
         return 0;
-    
+
 //    sz = (mTxPos - curPos) & mask;
-    
+
 //    if (mDmaTx->dataCounter() > 0) // if transmission in progress...
     if (mDmaTx->isEnabled() || !(mDev->SR & USART_SR_TC))
         return sz; // dma restarts in irq handler
-    
+
     // otherwise start new dma transfer
     int mask = mTxBuffer.size() - 1;
     mDmaTx->stop(true);
@@ -386,23 +386,23 @@ int Usart::writeData(const char *data, int size)
         sz = mTxBufferSize - mTxReadPos;
     mDmaTx->setSingleBuffer(mTxBuffer.data() + mTxReadPos, sz);
     mTxReadPos = (mTxReadPos + sz) & mask;
-    
+
     if (m_halfDuplex)
     {
         mDev->CR1 &= ~USART_CR1_RE;
         if (m_pinDE)
             m_pinDE->set();
     }
-    
+
 //    if (mHalfDuplex)
 //        mDev->CR1 |= USART_CR1_RWU;
-    
+
 //    if (mHalfDuplex)
 //    {
 //        // wait for line idle:
 //        while (!(mDev->SR & USART_SR_IDLE));
 //    }
-    
+
     mDmaTx->start();
     return sz;
 }
@@ -411,7 +411,7 @@ int Usart::readData(char *data, int size)
 {
     int cnt = bytesAvailable();
     int mask = mRxBuffer.size() - 1;
-    
+
     if (cnt > size)
         cnt = size;
     if (m7bits)
@@ -424,7 +424,7 @@ int Usart::readData(char *data, int size)
         for (int i=mRxPos; i<mRxPos+cnt; i++)
             *data++ = (mRxBuffer[i & mask]);
     }
-       
+
     mRxPos = (mRxPos + cnt) & mask;
     return cnt;
 }
@@ -458,7 +458,7 @@ bool Usart::canReadLine() const
 //        else
 //            endi = 0;
 //    }
-//       
+//
 //    read = (i - mRxPos) & mask;
 //    mRxPos = i & mask;
 //    return read;
@@ -489,7 +489,7 @@ void Usart::dmaTxComplete()
 //---------------------------------------------------------------------------
 
 void Usart::setBaudrate(int baudrate)
-{    
+{
     #if defined(STM32F37X)
     int apbclock = (mDev == USART1)? rcc().pClk2(): rcc().pClk1();
     #elif defined(STM32F4)
@@ -502,11 +502,11 @@ void Usart::setBaudrate(int baudrate)
 
     uint32_t tmpreg = apbclock / baudrate;
     mBaudrate = apbclock / tmpreg;
-    
+
 #if defined(STM32F37X)
 //    mBaudrate = apbclock / tmpreg;
 #else
-    
+
     if (tmpreg < 8)
         THROW(Exception::OutOfRange);
     if (tmpreg < 16)
@@ -519,7 +519,7 @@ void Usart::setBaudrate(int baudrate)
         mDev->CR1 &= ~USART_CR1_OVER8;
     }
 #endif
-    
+
     mDev->BRR = (uint16_t)tmpreg;
 }
 
@@ -530,10 +530,10 @@ void Usart::setConfig(Config config)
       case Mode7E1:
         m7bits = true;
         break;
-      default: 
+      default:
         m7bits = false;
     }
-    
+
     mDev->CR2 = mDev->CR2 & ~((uint32_t)USART_CR2_STOP) | (config >> 16);
     mDev->CR1 = mDev->CR1 & ~((uint32_t)(USART_CR1_M | USART_CR1_PCE | USART_CR1_PS)) | (config & 0xFFFF);
     mDev->CR3 = mDev->CR3 & ~((uint32_t)(USART_CR3_RTSE | USART_CR3_CTSE));
@@ -589,23 +589,25 @@ void Usart::handleInterrupt()
         mDev->ICR = USART_ICR_ORECF;
     }
 #endif
-    
+
     uint32_t sr = mDev->SR;
-    
+
+    bool rxenabled = (mDev->CR1 & USART_CR1_RE);
+
     if (sr & USART_SR_TC)
     {
         mDev->CR1 &= ~USART_CR1_TCIE;
         if (mDmaTx && m_halfDuplex)
-        {            
+        {
             if (m_pinDE)
                 m_pinDE->reset();
             mDev->CR1 |= USART_CR1_RE;
-            
+
             if (onBytesWritten)
                 onBytesWritten();
         }
     }
-    
+
     // read from USART_SR register followed by a read from USART_DR.
     // if DMA is used for RX, the flag is not set
     if (sr & USART_SR_RXNE)
@@ -614,28 +616,31 @@ void Usart::handleInterrupt()
         if (mRxIrqDataCounter >= mRxBuffer.size())
             mRxIrqDataCounter = 0;
     }
-    
-    if (m_characterMatch && (mDev->CR1 & USART_CR1_RE))
+
+    if (rxenabled)
     {
-        if (mDev->RDR == m_characterMatch)
+        if (m_characterMatch)
         {
-//            GPIOA->BSRR = 1; // this is for performance tests only!
-            if (m_characterMatchEvent)
-                m_characterMatchEvent();
-            else if (onReadyRead)
-                onReadyRead();
-//            GPIOA->BSRR = 1 << 16;
+            if (mDev->RDR == m_characterMatch)
+            {
+    //            GPIOA->BSRR = 1; // this is for performance tests only!
+                if (m_characterMatchEvent)
+                    m_characterMatchEvent();
+                else if (onReadyRead)
+                    onReadyRead();
+    //            GPIOA->BSRR = 1 << 16;
+            }
         }
+        else if (onReadyRead)
+            onReadyRead();
     }
-    else if (onReadyRead)
-        onReadyRead();
 }
 //---------------------------------------------------------------------------
 
 #ifdef __cplusplus
  extern "C" {
-#endif 
-     
+#endif
+
 void USART1_IRQHandler()
 {
     if (Usart::mUsarts[0])
@@ -673,7 +678,7 @@ void USART6_IRQHandler()
         Usart::mUsarts[5]->handleInterrupt();
 }
 #endif
-   
+
 #ifdef __cplusplus
 }
 #endif

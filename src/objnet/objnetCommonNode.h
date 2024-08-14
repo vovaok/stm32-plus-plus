@@ -49,7 +49,7 @@ private:
     bool m_receiveBusy = false;
     CommonMessage m_currentMsg;
 //    CommonMessage mSheduledMsg; // to be sent later
-    
+
     // fragmented receive buffers
 //    std::map<uint32_t, CommonMessageBuffer> mFragmentBuffer;
     CommonMessageBufferList mFragmentBuffer;
@@ -94,7 +94,7 @@ protected:
     friend class ObjnetMaster;
 
 //    virtual void acceptServiceMessage(unsigned char sender, SvcOID oid, ByteArray *ba=0L) = 0;
-    
+
     virtual void adjacentConnected() {} // called by adjacent interface
 
 #ifndef QT_CORE_LIB
@@ -126,7 +126,7 @@ public:
     */
     unsigned char busAddress() const {return mBusAddress;}
 
-#if !defined(QT_CORE_LIB ) && !defined (NRF52840_XXAA) 
+#if !defined(QT_CORE_LIB ) && !defined (NRF52840_XXAA)
     /*! Установка физического адреса по сигналам на ногах.
         В функцию передаётся разрядность адреса и имена ножек
         в порядке от младшего бита к старшему.
