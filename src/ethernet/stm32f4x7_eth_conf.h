@@ -48,7 +48,8 @@
 #endif
 
 /* Includes ------------------------------------------------------------------*/
-#include "stm32f4xx.h"
+//#include "stm32f4xx.h"
+#include "stm32.h"
    
 //#ifndef assert_param
 //    #define assert_param(x) 

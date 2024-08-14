@@ -1,6 +1,10 @@
 #include "rcc.h"
 #include "core/core.h"
 
+#if defined(STM32F7)
+    #define DCKCFGR DCKCFGR1
+#endif
+
 Rcc *Rcc::m_self = nullptr;
 
 Rcc *Rcc::instance()
@@ -28,7 +32,7 @@ Rcc::Rcc() :
     mAPB1Clk(0),
     mAPB2Clk(0)
 {
-    #if defined(STM32F4) // noKa 4To only for F4
+    #if defined(STM32F4) || defined(STM32F7) // noKa 4To only for F4
     measureHseFreq();
     #endif
 }
@@ -126,7 +130,7 @@ bool Rcc::configPll(uint32_t hseValue, uint32_t sysClk)
     return configPll(sysClk);
 }
 
-#if defined(STM32F4)
+#if defined(STM32F4) || defined(STM32F7)
 bool Rcc::configPll(uint32_t sysClk)
 {
     uint32_t inputClk = mHseValue;
@@ -140,53 +144,57 @@ bool Rcc::configPll(uint32_t sysClk)
         setEnabled(PLL, false);
     }
 
-#if defined(STM32F37X)
-        // calc pllM, pllN, etc...
-        int mul = sysClk / inputClk;
-        if (mul * inputClk == sysClk)
-        {
-            mPllM = 1; // divisor
-            mPllN = mul;
-        }
-        else
-        {
-            // влом пока продумывать расчЄт коэффициентов PLL
-            // если надо, придумайте сами
-            // с USB ваще борода, там только 1/1 (sysClk=48 ћ√ц) или 1/1.5 (sysClk=72 ћгц)
-            THROW(Exception::BadSoBad);
-        }
+    // calc pllM, pllN, etc...
+    unsigned long pllvco = sysClk << 1;
+    mPllM = inputClk / 1000000;
+    if (mPllM > 0x3F)
+        THROW(Exception::BadSoBad);
+    mPllN = pllvco / 1000000;
+    if (mPllN > 0x1FF)
+        THROW(Exception::BadSoBad);
+    mPllP = 2;
+    mPllQ = pllvco / 48000000;
 
-        if (mPllN > 16)
-            THROW(Exception::BadSoBad);
+    mSysClk = inputClk / mPllM * mPllN / mPllP;
+    //end of calc
 
-        mSysClk = inputClk / mPllM * mPllN;
-        //end of calc
-#else
-        // calc pllM, pllN, etc...
-        unsigned long pllvco = sysClk << 1;
-        mPllM = inputClk / 1000000;
-        if (mPllM > 0x3F)
-            THROW(Exception::BadSoBad);
-        mPllN = pllvco / 1000000;
-        if (mPllN > 0x1FF)
-            THROW(Exception::BadSoBad);
-        mPllP = 2;
-        mPllQ = pllvco / 48000000;
-
-        mSysClk = inputClk / mPllM * mPllN / mPllP;
-        //end of calc
+    // Select regulator voltage output scale mode        
+    uint32_t vos;
+    bool overdrive = false;
+#if defined (STM32F427_437xx) || defined (STM32F429xx)
+    vos = 3;
+    if (sysClk <= 120000000)
+        vos = 1;
+    else if (sysClk <= 144000000)
+        vos = 2;
+    else if (sysClk > 168000000)
+        overdrive = true;
+#elif defined(STM32F4)
+    vos = 1;
+    if (sysClk <= 144000000)
+        vos = 0;
+#elif defined(STM32F7)        
+    vos = 3;
+    if (sysClk <= 144000000)
+        vos = 1;
+    else if (sysClk <= 168000000)
+        vos = 2;
+    else if (sysClk > 180000000)
+        overdrive = true;
 #endif
 
+#if defined(STM32F7)
+    #define CR      CR1
+    #define CSR     CSR1
+#endif    
+    
+    RCC->APB1ENR |= RCC_APB1ENR_PWREN;
+    // apply voltage output scale mode, can be modified when the PLL is OFF only!
+    PWR->CR = PWR->CR & ~GLUE3(PWR_,CR,_VOS) | (vos << GLUE3(PWR_,CR,_VOS_Pos));
 
-        /* Select regulator voltage output Scale 1 mode */
-        RCC->APB1ENR |= RCC_APB1ENR_PWREN;
-#if !defined(STM32F37X)
-        PWR->CR |= PWR_CR_VOS;
-#endif
-
-        /* HCLK = SYSCLK / 1*/
-        RCC->CFGR |= RCC_CFGR_HPRE_DIV1;
-        mAHBClk = mSysClk >> 0;
+    /* HCLK = SYSCLK / 1*/
+    RCC->CFGR |= RCC_CFGR_HPRE_DIV1;
+    mAHBClk = mSysClk >> 0;
 
     #if defined (STM32F401xx) || defined (STM32F37X)
         /* PCLK2 = HCLK / 2*/
@@ -206,50 +214,43 @@ bool Rcc::configPll(uint32_t sysClk)
         mAPB1Clk = mAHBClk >> 2;
     #endif /* STM32F401xx */
 
-    #if defined(STM32F37X)
-        RCC->CFGR2 = mPllM - 1;
-        RCC->CFGR &= ~(RCC_CFGR_PLLMULL);
-        RCC->CFGR |= RCC_CFGR_PLLSRC; //
-        RCC->CFGR |= (mPllN - 2) << 18;
-    #else
+    //! @todo implement uniform configuring of all PLLs and use it to configure main PLL
+    
         /* Configure the main PLL */
-        RCC->PLLCFGR = mPllM | (mPllN << 6) | (((mPllP >> 1) -1) << 16) | (mPllQ << 24);
+    RCC->PLLCFGR = mPllM | (mPllN << 6) | (((mPllP >> 1) -1) << 16) | (mPllQ << 24);
 
-        if (mHseValue) // if HSE is present make it the clock source of PLL
-            RCC->PLLCFGR |= RCC_PLLCFGR_PLLSRC_HSE;
+    if (mHseValue) // if HSE is present make it the clock source of PLL
+        RCC->PLLCFGR |= RCC_PLLCFGR_PLLSRC_HSE;
+
+    setEnabled(PLL, true);
+        
+    #if defined (STM32F427_437xx) || defined (STM32F429xx) || defined(STM32F7)
+    if (overdrive)
+    {
+        PWR->CR |= GLUE3(PWR_,CR,_ODEN);
+        while (!(PWR->CSR & GLUE3(PWR_,CSR,_ODRDY)));
+        PWR->CR |= GLUE3(PWR_,CR,_ODSWEN);
+        while(!(PWR->CSR & GLUE3(PWR_,CSR,_ODSWRDY)));
+    }
     #endif
+    
+#undef CR
+#undef CSR
+    
+    // calculate latency assuming maximum voltage range (2.7 V - 3.6 V)!
+    uint32_t latency = (sysClk - 1) / 30000000;
+       
+    // configure Flash prefetch, Instruction cache, Data cache and wait state
+#if defined (STM32F401xx)
+    //! @todo check the need of separate settings for STM32F401xx
+    FLASH->ACR = FLASH_ACR_PRFTEN | FLASH_ACR_ICEN | FLASH_ACR_DCEN | FLASH_ACR_LATENCY_2WS;
+#elif defined(STM32F7)
+    FLASH->ACR = FLASH_ACR_ARTEN | latency;
+#else
+    FLASH->ACR = FLASH_ACR_PRFTEN | FLASH_ACR_ICEN | FLASH_ACR_DCEN | latency;
+#endif
 
-
-        setEnabled(PLL, true);
-
-    #if defined (STM32F427_437xx) || defined (STM32F429xx)
-        /* Enable the Over-drive to extend the clock frequency to 180 Mhz */
-        PWR->CR |= PWR_CR_ODEN;
-        while((PWR->CSR & PWR_CSR_ODRDY) == 0)
-        {
-        }
-        PWR->CR |= PWR_CR_ODSWEN;
-        while((PWR->CSR & PWR_CSR_ODSWRDY) == 0)
-        {
-        }
-        /* Configure Flash prefetch, Instruction cache, Data cache and wait state */
-        FLASH->ACR = FLASH_ACR_PRFTEN | FLASH_ACR_ICEN |FLASH_ACR_DCEN |FLASH_ACR_LATENCY_5WS;
-    #elif defined (STM32F401xx)
-        FLASH->ACR = FLASH_ACR_PRFTEN | FLASH_ACR_ICEN |FLASH_ACR_DCEN |FLASH_ACR_LATENCY_2WS;
-    #else
-        FLASH->ACR = FLASH_ACR_PRFTEN | FLASH_ACR_ICEN |FLASH_ACR_DCEN |FLASH_ACR_LATENCY_5WS;
-    #endif /* STM32F401xx */
-
-    #if defined (STM32F37X)
-        // set SDADC clock prescaler
-        unsigned long clkSDADC = mAHBClk / 6000000;
-        RCC->CFGR &= ~(RCC_CFGR_SDADCPRE);
-        RCC->CFGR |= (0x10 | ((clkSDADC>>1) - 1)) << 27;
-        /* Enable Prefetch Buffer and set Flash Latency */
-        FLASH->ACR = FLASH_ACR_PRFTBE | (uint32_t)FLASH_ACR_LATENCY_1;
-    #endif
-
-        return setSystemClockSource(PLL);
+    return setSystemClockSource(PLL);
 
         /*     The original configuration procedure     *\
         |  Use it for reference if something goes wrong  |
@@ -435,8 +436,8 @@ int Rcc::configLtdcClock(int frequency)
     case 16: plldivr = 3; break;
     default: THROW(Exception::OutOfRange);
     }
-    RCC->DCKCFGR = (RCC->DCKCFGR & ~RCC_DCKCFGR_PLLSAIDIVR_Msk) |
-                   (plldivr << RCC_DCKCFGR_PLLSAIDIVR_Pos);
+    RCC->DCKCFGR = (RCC->DCKCFGR & ~GLUE3(RCC_,DCKCFGR,_PLLSAIDIVR_Msk)) |
+                   (plldivr << GLUE3(RCC_,DCKCFGR,_PLLSAIDIVR_Pos));
 
     setEnabled(PLLSAI, true);
 
@@ -611,7 +612,36 @@ bool Rcc::measureHseFreq()
 
 bool Rcc::configPll(uint32_t sysClk)
 {
-  
+  /**** something old ****/
+//#if defined(STM32F37X)
+//        // calc pllM, pllN, etc...
+//        int mul = sysClk / inputClk;
+//        if (mul * inputClk == sysClk)
+//        {
+//            mPllM = 1; // divisor
+//            mPllN = mul;
+//        }
+//        else
+//        {
+//            // влом пока продумывать расчЄт коэффициентов PLL
+//            // если надо, придумайте сами
+//            // с USB ваще борода, там только 1/1 (sysClk=48 ћ√ц) или 1/1.5 (sysClk=72 ћгц)
+//            THROW(Exception::BadSoBad);
+//        }
+//
+//        if (mPllN > 16)
+//            THROW(Exception::BadSoBad);
+//
+//        mSysClk = inputClk / mPllM * mPllN;
+//        //end of calc
+//#endif
+//    #if defined(STM32F37X)
+//        RCC->CFGR2 = mPllM - 1;
+//        RCC->CFGR &= ~(RCC_CFGR_PLLMULL);
+//        RCC->CFGR |= RCC_CFGR_PLLSRC; //
+//        RCC->CFGR |= (mPllN - 2) << 18;
+//    #endif
+    
 //    uint32_t inputClk = mHseValue;
 //    if (!inputClk)
 //        inputClk = hsiValue();
@@ -661,6 +691,16 @@ bool Rcc::configPll(uint32_t sysClk)
 //        acr |= FLASH_ACR_PRFTEN | FLASH_ACR_ICEN | FLASH_ACR_DCEN;
 //        acr = (acr & ~FLASH_ACR_LATENCY_Msk) | FLASH_ACR_LATENCY_4WS;
 //        FLASH->ACR = acr;
+    
+//   #if defined (STM32F37X)
+//        // set SDADC clock prescaler
+//        unsigned long clkSDADC = mAHBClk / 6000000;
+//        RCC->CFGR &= ~(RCC_CFGR_SDADCPRE);
+//        RCC->CFGR |= (0x10 | ((clkSDADC>>1) - 1)) << 27;
+//        /* Enable Prefetch Buffer and set Flash Latency */
+//        FLASH->ACR = FLASH_ACR_PRFTBE | (uint32_t)FLASH_ACR_LATENCY_1;
+//    #endif    
+    
 //
 //        if (setSystemClockSource(PLL))
 //        {
@@ -775,7 +815,7 @@ bool Rcc::measureHseFreq()
 
 typedef enum
 {
-#if defined(STM32F4)
+#if defined(STM32F4) || defined(STM32F7)
     // AHB1
     RccGPIOA    = 1 << 0,   
     RccGPIOB    = 1 << 1,
@@ -916,7 +956,7 @@ typedef enum
 #endif
 } RccEnableBit;
 
-#if defined(STM32F4) || defined(STM32G4) || defined(STM32L4)
+#if defined(STM32F4) || defined(STM32G4) || defined(STM32L4) || defined(STM32F7)
 #define AHB3PERIPH_BASE 0x60000000
 #endif
 
@@ -926,7 +966,9 @@ void Rcc::setPeriphEnabled(void *periphBase, bool enabled)
     uint32_t bus = periphBusBase(periphBase);
     uint32_t offset = periphBusOffset(periphBase);
     uint32_t mask1 = 1 << (offset >> 10);
+#if defined(STM32G4) || defined(STM32L4)
     uint32_t mask2 = 1 << ((offset >> 10) - 32);
+#endif
     
 #if defined(STM32F3) 
     #define AHB1ENR     AHBENR
@@ -1060,7 +1102,7 @@ void Rcc::setPeriphEnabled(void *periphBase, bool enabled)
     default:
         if (bus == APB1PERIPH_BASE)
         {
-#if defined(STM32F4)
+#if defined(STM32F4) || defined(STM32F7)
             RCC->APB1ENR |= mask1;
 #elif defined(STM32G4) || defined(STM32L4)
             RCC->APB1ENR1 |= mask1;
@@ -1082,7 +1124,9 @@ void Rcc::resetPeriph(void *periphBase)
     uint32_t bus = periphBusBase(periphBase);
     uint32_t offset = periphBusOffset(periphBase);
     uint32_t mask1 = 1 << (offset >> 10);
+#if defined(STM32G4) || defined(STM32L4)
     uint32_t mask2 = 1 << ((offset >> 10) - 32);
+#endif
     
     switch (base)
     {
@@ -1100,7 +1144,7 @@ void Rcc::resetPeriph(void *periphBase)
     default:
         if (bus == APB1PERIPH_BASE)
         {
-#if defined(STM32F4)
+#if defined(STM32F4) || defined(STM32F7)
             RCC->APB1RSTR |= mask1;
             RCC->APB1RSTR &= ~mask1;
 #elif defined(STM32G4) || defined(STM32L4)

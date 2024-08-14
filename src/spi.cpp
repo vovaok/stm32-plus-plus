@@ -1,6 +1,6 @@
 #include "spi.h"
 
-#if defined(STM32F4)
+#if defined(STM32F4) || defined(STM32F7)
 #define SPI1_DMA_CHANNEL_RX     Dma::SPI1_RX_Stream2; // Dma::SPI1_RX_Stream0;
 #define SPI1_DMA_CHANNEL_TX     Dma::SPI1_TX_Stream3; // Dma::SPI1_TX_Stream5;
 #define SPI2_DMA_CHANNEL_RX     Dma::SPI2_RX_Stream3;

@@ -193,6 +193,8 @@ public:
     #include "gpioconfig3.h"
     #elif defined(STM32F0)
     #include "gpioconfig0.h"
+    #elif defined(STM32F7)
+    #include "gpioconfig4.h" //! @todo implement configurations of another pins for F7
     #endif
 
 public:
