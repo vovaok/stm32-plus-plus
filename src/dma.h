@@ -3,7 +3,7 @@
 
 #if defined(STM32F37X)
     #include "dma37x.h"
-#elif defined(STM32F303x8)
+#elif defined(STM32F3)
     #include "dma303x8.h"
 #elif defined(STM32F4)
     #include "dma4xx.h"

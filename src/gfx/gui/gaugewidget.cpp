@@ -118,7 +118,7 @@ void GaugeWidget::paintEvent(Display *d)
 
     d->setColor(m_color);
     d->setBackgroundColor(m_color);
-//    d->drawFillTriangle();
+//    d->fillTriangle(cx-3*ry/r, cy-3*rx/r, x, y, cx+3*ry/r, cy+3*rx/r);
     for (int i=-3; i<=3; i++)
         d->drawLine(cx + i*ry/r, cy + i*rx/r, x, y);
     d->setColor(m_backgroundColor);

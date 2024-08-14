@@ -10,6 +10,8 @@ public:
     Device *getInterface() {return m_device;}
 
     virtual int bytesAvailable() const override;
+    
+    bool open(OpenMode mode = ReadWrite) override;
 
 protected:
     virtual int writeData(const char *data, int size) override;

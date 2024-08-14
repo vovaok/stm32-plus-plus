@@ -9,7 +9,7 @@ class Rcc
 public:
     static Rcc *instance();
 
-#if defined(STM32F4) || defined(STM32G4) || defined(STM32F3)
+#if defined(STM32F4) || defined(STM32G4) || defined(STM32F3) || defined(STM32F0)
     enum ClockSource
     {
         HSI = 0x0,
@@ -37,7 +37,7 @@ public:
     
 #if defined(STM32F4) || defined(STM32G4) || defined(STM32L4)
     constexpr uint32_t hsiValue() const {return 16000000;}
-#elif defined(STM32F3)
+#elif defined(STM32F3) || defined(STM32F0)
     constexpr uint32_t hsiValue() const {return 8000000;}
 #endif
 
@@ -110,21 +110,5 @@ private:
 };
 
 extern Rcc &rcc();
-
-#if defined(STM32L4) || defined (STM32G4)
-//    #define APB1ENR                 APB1ENR1
-//    #define RCC_APB1ENR_SPI2EN      RCC_APB1ENR1_SPI2EN
-//    #define RCC_APB1ENR_SPI3EN      RCC_APB1ENR1_SPI3EN
-//    #define RCC_APB1ENR_USART2EN    RCC_APB1ENR1_USART2EN
-//    #define RCC_APB1ENR_USART3EN    RCC_APB1ENR1_USART3EN
-//    #define RCC_APB1ENR_UART4EN     RCC_APB1ENR1_UART4EN
-//    #define RCC_APB1ENR_UART5EN     RCC_APB1ENR1_UART5EN
-//    #define RCC_APB1ENR_TIM2EN      RCC_APB1ENR1_TIM2EN
-//    #define RCC_APB1ENR_TIM3EN      RCC_APB1ENR1_TIM3EN
-//    #define RCC_APB1ENR_TIM4EN      RCC_APB1ENR1_TIM4EN
-//    #define RCC_APB1ENR_TIM5EN      RCC_APB1ENR1_TIM5EN
-//    #define RCC_APB1ENR_TIM6EN      RCC_APB1ENR1_TIM2EN
-//    #define RCC_APB1ENR_TIM7EN      RCC_APB1ENR1_TIM7EN
-#endif
 
 #endif

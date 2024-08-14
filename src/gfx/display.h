@@ -27,6 +27,7 @@ public:
     Orientation orientation() const {return m_orientation;}
     inline int width() const {return m_width;}
     inline int height() const {return m_height;}
+    inline Rect rect() const {return Rect(0, 0, m_width, m_height);}
 
     PixelFormat pixelFormat() const {return m_pixelFormat;}
     bool hasAlphaChannel() const;
@@ -67,9 +68,11 @@ public:
     void fillRoundRect(const Rect &rect, int r);
 //    void drawImage(int x, int y, const Image &img);
     void drawImage(int x, int y, const Image &img, int sx=0, int sy=0, int sw=-1, int sh=-1);
+    void drawImage(int x, int y, const Image &img, Rect srect);
     void fillRect(int x, int y, int w, int h);
     void fillRect(const Rect &rect);
     void fillCircle(int x0, int y0, int r);
+    void fillTriangle(int x1, int y1, int x2, int y2, int x3, int y3);
 //    void fill(uint32_t color); //! @todo move it from FrameBuffer
     
     Color fromRgb(uint32_t rgb) const;

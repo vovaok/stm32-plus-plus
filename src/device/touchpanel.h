@@ -16,13 +16,13 @@ public:
 
 protected:
     int m_rawX, m_rawY, m_rawZ;
+    int m_sensibility = 2;
     bool m_pen;
     virtual bool read() = 0;
 
 private:
     int m_xOffset, m_yOffset;
     int m_xFactor, m_yFactor;
-    int m_sensibility = 2;
     bool m_xySwap = false;
 //    ScreenOrientation m_orientation;
 

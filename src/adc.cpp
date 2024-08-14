@@ -18,6 +18,7 @@ Adc::Adc(int adcBase) :
         mChannelResultMap[i] = -1;
 
     mInstances[adcBase - 1] = this;
+	
 #if defined(STM32F303x8)
 
       switch (adcBase)
@@ -49,6 +50,7 @@ Adc::Adc(int adcBase) :
     mAdc->CR2 = (mResolution & ADC_CR2_ALIGN_Msk);
 
 #else
+
     switch (adcBase)
     {
       case 1:
@@ -238,7 +240,7 @@ void Adc::setEnabled(bool enable)
 //        ADC_Cmd(mAdc3, en);
 
     if (mDmaOwner)
-        mDma->start();//setEnabled(enable);
+        mDma->start();//mDma->setEnabled(enable); //!!! setEnabled() doesn't configure DMA!!!
 }
 //---------------------------------------------------------------------------
 

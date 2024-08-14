@@ -26,7 +26,7 @@ float PreciseTimer::delta()
 {
     uint32_t value = s_tim->counter();
     uint32_t dt = value - m_value;
-    if (s_tim->tim() != TIM2 && s_tim->tim() != TIM5)
+    if (!s_tim->hasCapability(HardwareTimer::Res32bit))
         dt = (uint16_t)dt;
     m_value = value;
     return (float)dt / PRECISE_TIMER_FREQ;

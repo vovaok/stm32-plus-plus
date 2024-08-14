@@ -25,7 +25,7 @@
     #define TIM1_TRG_COM_IRQ    TIM1_TRG_COM_TIM17_IRQ
     #endif
 #define TIM1_BRK_IRQ        TIM1_BRK_TIM15_IRQ
-#define TIM8_UP_IRQ         TIM8_UP_IRQ
+#define TIM8_UP_IRQ         TIM8_UP_IRQ             // TODO: wut?
 #define TIM8_TRG_COM_IRQ    TIM8_TRG_COM_IRQ
 #define TIM8_BRK_IRQ        TIM8_BRK_IRQ
 #define TIM15_IRQ           TIM1_BRK_TIM15_IRQ
@@ -111,6 +111,27 @@ public:
         TrgOC3Ref   = 0x0060,
         TrgOC4Ref   = 0x0070
     } TrgSource;
+#if defined (STM32F303x8) 
+    typedef enum
+    {
+        TRGO2_RESET                          = 0x000000,                  
+        TRGO2_ENABLE                         = 0x100000,
+        TRGO2_UPDATE                         = 0x200000,
+        TRGO2_OC1                            = 0x300000,
+        TRGO2_OC1REF                         = 0x400000,
+        TRGO2_OC2REF                         = 0x500000,
+        TRGO2_OC3REF                         = 0x600000,
+        TRGO2_OC4REF                         = 0x700000,
+        TRGO2_OC5REF                         = 0x800000,
+        TRGO2_OC6REF                         = 0x900000,
+        TRGO2_OC4REF_RISINGFALLING           = 0xA00000,
+        TRGO2_OC6REF_RISINGFALLING           = 0xB00000,
+        TRGO2_OC4REF_RISING_OC6REF_RISING    = 0xC00000,
+        TRGO2_OC4REF_RISING_OC6REF_FALLING   = 0xD00000,
+        TRGO2_OC5REF_RISING_OC6REF_RISING    = 0xE00000,
+        TRGO2_OC5REF_RISING_OC6REF_FALLING   = 0xF00000
+    } TrgSource2;
+#endif
     
     typedef enum
     {
@@ -142,6 +163,28 @@ public:
         BothEdge = 0xA
     } Polarity;
     
+    typedef enum
+    {
+        isrcUpdate  = 0,
+        isrcCC1     = 1,
+        isrcCC2     = 2,
+        isrcCC3     = 3,
+        isrcCC4     = 4,
+        isrcCom     = 5,
+        isrcTrigger = 6,
+        isrcBreak   = 7
+    } InterruptSource;
+    
+    typedef enum
+    {
+        PwmMode_Timing   = 0x0000,
+        PwmMode_Active   = 0x0010,
+        PwmMode_Inactive = 0x0020,
+        PwmMode_Toggle   = 0x0030,
+        PwmMode_PWM1     = 0x0060,
+        PwmMode_PWM2     = 0x0070
+    } PwmMode;
+    
     /*! Инициализация аппаратного таймера.
     \param timerNumber Номер аппаратного таймера.
     \param frequency_Hz Частота таймера в герцах. Для красоты можно использовать макросы _Hz, _kHz, _MHz.
@@ -159,6 +202,9 @@ public:
     void selectInputTrigger(InputTrigger trgi);
     void setSlaveMode(SlaveMode sms);
     void selectOutputTrigger(TrgSource source);
+#if defined (STM32F303x8)
+    void HardwareTimer::selectOutputTrigger2(TrgSource2 source);
+#endif
     void setFrequency(int frequency_Hz);
     int frequency() const; // current programmed frequency
     int clockFrequency() const; // current clock frequency
@@ -212,46 +258,6 @@ public:
     inline void generateUpdateEvent() {mTim->EGR = TIM_EGR_UG;}
     inline void generateComEvent() {mTim->EGR = TIM_EGR_COMG;}
     
-protected:
-    typedef enum
-    {
-        isrcUpdate  = 0,
-        isrcCC1     = 1,
-        isrcCC2     = 2,
-        isrcCC3     = 3,
-        isrcCC4     = 4,
-        isrcCom     = 5,
-        isrcTrigger = 6,
-        isrcBreak   = 7
-    } InterruptSource;
-    
-    typedef enum
-    {
-        PwmMode_Timing   = 0x0000,
-        PwmMode_Active   = 0x0010,
-        PwmMode_Inactive = 0x0020,
-        PwmMode_Toggle   = 0x0030,
-        PwmMode_PWM1     = 0x0060,
-        PwmMode_PWM2     = 0x0070
-    } PwmMode;
-    
-//    unsigned long inputClk() const {return mInputClk;}
-    
-    void configPwm(ChannelNumber ch, PwmMode pwmMode=PwmMode_PWM2, bool inverted=false);
-      
-private:  
-    TIM_TypeDef* mTim;  
-    IRQn_Type mIrq;
-    NotifyEvent emitEvent[8];
-    bool mEnabledIrq[8];
-    
-    unsigned long mInputClk;
-    
-    static HardwareTimer* mTimers[20];
-    
-    void enableInterrupt(InterruptSource source);
-    void handleInterrupt();
-    
     enum Capability
     {
         NoCaps          = 0x00,
@@ -269,6 +275,25 @@ private:
     } m_caps = NoCaps;
     
     inline bool hasCapability(Capability cap) {return m_caps & cap;}
+    
+protected:
+    
+//    unsigned long inputClk() const {return mInputClk;}
+    
+    void configPwm(ChannelNumber ch, PwmMode pwmMode=PwmMode_PWM2, bool inverted=false);
+      
+private:  
+    TIM_TypeDef* mTim;  
+    IRQn_Type mIrq;
+    NotifyEvent emitEvent[8];
+    bool mEnabledIrq[8];
+    
+    unsigned long mInputClk;
+    
+    static HardwareTimer* mTimers[20];
+    
+    void enableInterrupt(InterruptSource source);
+    void handleInterrupt();
     
     FOREACH_TIM_IRQ(DECLARE_TIM_FRIEND)
 };

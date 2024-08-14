@@ -32,6 +32,10 @@
 #define SPI3_DMA_CHANNEL_TX     Dma::SPI3_TX;
 #define SPI4_DMA_CHANNEL_RX     Dma::SPI4_RX;
 #define SPI4_DMA_CHANNEL_TX     Dma::SPI4_TX;
+
+#elif defined(STM32F303x8)
+#define SPI1_DMA_CHANNEL_RX     Dma::Channel2_SPI1_RX;
+#define SPI1_DMA_CHANNEL_TX     Dma::Channel3_SPI1_TX;
 #endif
 
 Spi *Spi::mSpies[6] = {0L, 0L, 0L, 0L, 0L, 0L};
@@ -64,21 +68,22 @@ Spi::Spi(Gpio::Config sck, Gpio::Config miso, Gpio::Config mosi) :
         mDmaChannelRx = SPI1_DMA_CHANNEL_RX;
         mDmaChannelTx = SPI1_DMA_CHANNEL_TX;
         break;
-
+#if defined(SPI2)
       case 2:
         mDev = SPI2;
         mIrq = SPI2_IRQn;
         mDmaChannelRx = SPI2_DMA_CHANNEL_RX;
         mDmaChannelTx = SPI2_DMA_CHANNEL_TX;
         break;
-
+#endif
+#if defined(SPI3)
       case 3:
         mDev = SPI3;
         mIrq = SPI3_IRQn;
         mDmaChannelRx = SPI3_DMA_CHANNEL_RX;
         mDmaChannelTx = SPI3_DMA_CHANNEL_TX;
         break;
-
+#endif
 #if defined(SPI4)
       case 4:
         mDev = SPI4;
@@ -336,14 +341,46 @@ uint16_t Spi::write16(uint16_t word)
     return *((__IO uint16_t *)(&mDev->DR));
 }
 
-void Spi::read(uint8_t* data, int size)
+bool Spi::read(uint8_t* data, int size)
 {
-    while (size--)
+    if (mDmaRx && mDmaTx)
     {
-        *((__IO uint8_t *)(&mDev->DR)) = 0x00;
-        while (!(mDev->SR & SPI_SR_RXNE)); // wait for RX Not Empty
-        *data++ = *((__IO uint8_t *)(&mDev->DR));
+        if (mDmaRx->isEnabled() && !mDmaRx->isComplete())
+            return false;
+        if (m_dataSize <= 8)
+        {
+            mDmaRx->setSingleBuffer(const_cast<uint8_t*>(data), size);
+            mDmaTx->setSingleBuffer(const_cast<uint8_t*>(data), size);
+        }
+        else
+        {
+            mDmaRx->setSingleBuffer(const_cast<uint8_t*>(data), size / 2);
+            mDmaTx->setSingleBuffer(const_cast<uint8_t*>(data), size / 2);
+        }
+        mDmaRx->start();
+        mDmaTx->start();
     }
+    else if (m_dataSize <= 8)
+    {
+        while (size--)
+        {
+            *((__IO uint8_t *)(&mDev->DR)) = 0x00;
+            while (!(mDev->SR & SPI_SR_RXNE)); // wait for RX Not Empty
+            *data++ = *((__IO uint8_t *)(&mDev->DR));
+        }
+    }
+    else
+    {
+        size = (size + 1) >> 1;
+        uint16_t *dst = reinterpret_cast<uint16_t *>(data);
+        while (size--)
+        {
+             *((__IO uint16_t *)(&mDev->DR)) = 0x00;
+            while (!(mDev->SR & SPI_SR_RXNE)); // wait for RX Not Empty
+            *dst++ = *((__IO uint16_t *)(&mDev->DR));
+        }
+    }
+    return true;
 }
 
 bool Spi::write(const uint8_t *data, int size)
@@ -452,7 +489,13 @@ bool Spi::writeFill16(uint16_t *pattern, int patternSize, int count)
 
 void Spi::waitForBytesWritten()
 {
-    while (mDmaTx && mDmaTx->isEnabled() && !mDmaTx->isComplete());
+    if (mDmaTx && mDmaTx->isEnabled())
+    {
+        while (!mDmaTx->isComplete());
+        while (!(mDev->SR & SPI_SR_TXE));
+        while (mDev->SR & SPI_SR_BSY);
+        (void)mDev->DR; // read data register to make it empty
+    }
 }
 //---------------------------------------------------------------------------
 

@@ -4577,7 +4577,7 @@
                 <option>
                     <name>CCAllowList</name>
                     <version>1</version>
-                    <state>11111110</state>
+                    <state>00000000</state>
                 </option>
                 <option>
                     <name>CCDebugInfo</name>
@@ -4659,7 +4659,7 @@
                 </option>
                 <option>
                     <name>CCOptLevel</name>
-                    <state>3</state>
+                    <state>0</state>
                 </option>
                 <option>
                     <name>CCOptStrategy</name>
@@ -4668,7 +4668,7 @@
                 </option>
                 <option>
                     <name>CCOptLevelSlave</name>
-                    <state>3</state>
+                    <state>0</state>
                 </option>
                 <option>
                     <name>CCPosIndRopi</name>
@@ -12925,16 +12925,16 @@
                 <option>
                     <name>GRuntimeLibSelect</name>
                     <version>0</version>
-                    <state>2</state>
+                    <state>4</state>
                 </option>
                 <option>
                     <name>GRuntimeLibSelectSlave</name>
                     <version>0</version>
-                    <state>2</state>
+                    <state>4</state>
                 </option>
                 <option>
                     <name>RTDescription</name>
-                    <state>To be used with a complete configuration of the C/C++14 runtime library. Full locale interface, C locale, file descriptor support, multibytes in printf and scanf, and hex floats in strtod.</state>
+                    <state>To be used with a complete C/C++17 runtime library. Full locale interface, C locale, file descriptor support, multibytes in printf and scanf, and hex floats in strtod.</state>
                 </option>
                 <option>
                     <name>OGProductVersion</name>
@@ -12966,7 +12966,7 @@
                 </option>
                 <option>
                     <name>RTConfigPath2</name>
-                    <state>$TOOLKIT_DIR$\inc\c\DLib_Config_Full.h</state>
+                    <state></state>
                 </option>
                 <option>
                     <name>GBECoreSlave</name>
@@ -12979,7 +12979,7 @@
                 </option>
                 <option>
                     <name>OGUseCmsisDspLib</name>
-                    <state>1</state>
+                    <state>0</state>
                 </option>
                 <option>
                     <name>GRuntimeLibThreads</name>
@@ -13545,7 +13545,7 @@
             <archiveVersion>1</archiveVersion>
             <data>
                 <prebuild></prebuild>
-                <postbuild>cmd /C rem start /D "$PROJ_DIR$\doxygen" doxygen Doxyfile</postbuild>
+                <postbuild></postbuild>
             </data>
         </settings>
         <settings>
@@ -15123,6 +15123,12 @@
         </group>
     </group>
     <group>
+        <name>__startup</name>
+        <file>
+            <name>$PROJ_DIR$\lib\CMSIS\Device\ST\cmsis_device_f3\Source\Templates\iar\startup_stm32f303xc.s</name>
+        </file>
+    </group>
+    <group>
         <name>_doxygen</name>
         <file>
             <name>$PROJ_DIR$\doxygen\Doxyfile</name>
@@ -15362,6 +15368,12 @@
         </file>
         <file>
             <name>$PROJ_DIR$\src\device\shiftregister.h</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\device\st7796.cpp</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\device\st7796.h</name>
         </file>
         <file>
             <name>$PROJ_DIR$\src\device\stmpe811.cpp</name>
@@ -15676,6 +15688,7 @@
             <name>$PROJ_DIR$\src\modbus\modbustcp.cpp</name>
             <excluded>
                 <configuration>stm32f405rg_no-exceptions_no-rtti</configuration>
+                <configuration>stm32f303xC</configuration>
                 <configuration>stm32f303x8</configuration>
             </excluded>
         </file>
@@ -16104,6 +16117,7 @@
             <configuration>stm32f373xB_no-exceptions_no-rtti</configuration>
             <configuration>stm32l476rg</configuration>
             <configuration>stm32g474</configuration>
+            <configuration>stm32f303xC</configuration>
             <configuration>stm32f303x8</configuration>
         </excluded>
     </file>
@@ -16113,6 +16127,12 @@
             <configuration>stm32f373xB</configuration>
             <configuration>stm32f373xB_no-exceptions_no-rtti</configuration>
         </excluded>
+    </file>
+    <file>
+        <name>$PROJ_DIR$\src\adc303.cpp</name>
+    </file>
+    <file>
+        <name>$PROJ_DIR$\src\adc303.h</name>
     </file>
     <file>
         <name>$PROJ_DIR$\src\analogservo.cpp</name>
@@ -16131,6 +16151,7 @@
             <configuration>stm32f373xB_no-exceptions_no-rtti</configuration>
             <configuration>stm32l476rg</configuration>
             <configuration>stm32g474</configuration>
+            <configuration>stm32f303xC</configuration>
         </excluded>
     </file>
     <file>
@@ -16193,6 +16214,12 @@
         <name>$PROJ_DIR$\src\can_old.h</name>
     </file>
     <file>
+        <name>$PROJ_DIR$\src\compf3.cpp</name>
+    </file>
+    <file>
+        <name>$PROJ_DIR$\src\compf3.h</name>
+    </file>
+    <file>
         <name>$PROJ_DIR$\src\cpuid.cpp</name>
     </file>
     <file>
@@ -16205,6 +16232,7 @@
             <configuration>stm32f373xB_no-exceptions_no-rtti</configuration>
             <configuration>stm32l476rg</configuration>
             <configuration>stm32g474</configuration>
+            <configuration>stm32f303xC</configuration>
             <configuration>stm32f303x8</configuration>
         </excluded>
     </file>
@@ -16256,6 +16284,7 @@
     <file>
         <name>$PROJ_DIR$\src\dma303x8.cpp</name>
         <excluded>
+            <configuration>stm32f407vg</configuration>
             <configuration>stm32f405rg</configuration>
             <configuration>stm32f405rg_no-exceptions_no-rtti</configuration>
             <configuration>stm32f429zi</configuration>
@@ -16279,6 +16308,7 @@
             <configuration>stm32f446</configuration>
             <configuration>stm32l476rg</configuration>
             <configuration>stm32g474</configuration>
+            <configuration>stm32f303xC</configuration>
             <configuration>stm32f303x8</configuration>
         </excluded>
     </file>
@@ -16472,6 +16502,7 @@
             <configuration>stm32f373xB_no-exceptions_no-rtti</configuration>
             <configuration>stm32l476rg</configuration>
             <configuration>stm32g474</configuration>
+            <configuration>stm32f303xC</configuration>
             <configuration>stm32f303x8</configuration>
         </excluded>
     </file>
@@ -16555,6 +16586,7 @@
             <configuration>stm32f373xB_no-exceptions_no-rtti</configuration>
             <configuration>stm32l476rg</configuration>
             <configuration>stm32g474</configuration>
+            <configuration>stm32f303xC</configuration>
             <configuration>stm32f303x8</configuration>
         </excluded>
     </file>
@@ -16588,9 +16620,6 @@
     </file>
     <file>
         <name>$PROJ_DIR$\src\pwmout.cpp</name>
-        <excluded>
-            <configuration>stm32f303x8</configuration>
-        </excluded>
     </file>
     <file>
         <name>$PROJ_DIR$\src\pwmout.h</name>
@@ -16649,9 +16678,6 @@
     </file>
     <file>
         <name>$PROJ_DIR$\src\usart.cpp</name>
-        <excluded>
-            <configuration>stm32f303xC</configuration>
-        </excluded>
     </file>
     <file>
         <name>$PROJ_DIR$\src\usart.h</name>

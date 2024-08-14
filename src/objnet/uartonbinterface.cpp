@@ -47,6 +47,9 @@ void UartOnbInterface::task()
     }
 
     m_busy = false;
+    
+    if (mHdBusyTimeout < 0)
+        mHdBusyTimeout = 0;
 
     if (mCurTxMac && !mHdBusyTimeout)
     {

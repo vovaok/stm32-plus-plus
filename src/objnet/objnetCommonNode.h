@@ -58,7 +58,7 @@ private:
     std::map<unsigned char, unsigned char> mNatTable;
 
     void onNewMessage();
-    void handleMessage(const CommonMessage &msg);
+    bool handleMessage(const CommonMessage &msg);
     bool sendCommonMessage(CommonMessage &msg);
 
 protected:
@@ -83,7 +83,7 @@ protected:
     bool sendServiceMessageToMac(unsigned char mac, SvcOID oid, const ByteArray &ba = ByteArray());
     bool sendGlobalServiceMessage(StdAID aid, unsigned char payload=0);
     bool sendGlobalServiceMessage(StdAID aid, const ByteArray &ba);
-    virtual void parseServiceMessage(const CommonMessage &msg) = 0;
+    virtual bool parseServiceMessage(const CommonMessage &msg) = 0;
 
     virtual unsigned char route(unsigned char netAddress) = 0;
     virtual unsigned char natRoute(unsigned char addr) {return mNatTable.count(addr)? mNatTable[addr]: 0x7F;}
@@ -92,8 +92,6 @@ protected:
 
     friend class ObjnetNode;
     friend class ObjnetMaster;
-
-//    virtual void acceptServiceMessage(unsigned char sender, SvcOID oid, ByteArray *ba=0L) = 0;
 
     virtual void adjacentConnected() {} // called by adjacent interface
 

@@ -191,6 +191,8 @@ public:
     #include "gpioconfig_g4.h"
     #elif defined(STM32F3)
     #include "gpioconfig3.h"
+    #elif defined(STM32F0)
+    #include "gpioconfig0.h"
     #endif
 
 public:

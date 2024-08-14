@@ -234,6 +234,14 @@ void HardwareTimer::setSlaveMode(SlaveMode sms)
     mTim->SMCR = (mTim->SMCR & ~TIM_SMCR_SMS) | (sms & TIM_SMCR_SMS);
 }
 
+#if defined (STM32F303x8)
+void HardwareTimer::selectOutputTrigger2(TrgSource2 source)
+{
+    mTim->CR2 = mTim->CR2 & ~TIM_CR2_MMS2 | (uint32_t)source;
+}
+
+#endif
+
 void HardwareTimer::selectOutputTrigger(TrgSource source)
 {
     mTim->CR2 = mTim->CR2 & ~TIM_CR2_MMS | (uint16_t)source;
@@ -551,7 +559,7 @@ void HardwareTimer::handleInterrupt()
 
 #elif defined(STM32L4) || defined(STM32G4) || defined(STM32F3)
 #define FOREACH_SIMPLEX_TIM_IRQ(f) \
-    f(2) f(3) f(4) f(5) f(6) f(7) f(9) f(10) f(11) f(12) f(13) f(14)
+    f(2) f(3) f(4) f(5) f(6) f(7) f(9) f(10) f(11) // f(12) f(13) f(14)
 #define FOREACH_COMPLEX_TIM_IRQ(f) \
     f(1_BRK, 1, 15) f(1_UP, 1, 16) f(1_TRG_COM, 1, 17) f(1_CC, 1, 0) \
     f(8_BRK, 8, 0)  f(8_UP, 8, 0)  f(8_TRG_COM, 8, 0)  f(8_CC, 8, 0) \

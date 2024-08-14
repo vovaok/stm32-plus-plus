@@ -206,8 +206,10 @@ void ObjnetNode::task()
 //    }
 //}
 
-void ObjnetNode::parseServiceMessage(const CommonMessage &msg)
+bool ObjnetNode::parseServiceMessage(const CommonMessage &msg)
 {
+    bool success = true;
+    
     if (msg.isGlobal())
     {
         StdAID aid = static_cast<StdAID>(msg.globalId().aid & 0x3F);
@@ -269,7 +271,7 @@ void ObjnetNode::parseServiceMessage(const CommonMessage &msg)
 
           default:;
         }
-        return;
+        return true;
     }
 
     SvcOID oid = (SvcOID)msg.localId().oid;
@@ -282,7 +284,7 @@ void ObjnetNode::parseServiceMessage(const CommonMessage &msg)
     switch (oid)
     {
       case svcEcho:
-        sendServiceMessage(remoteAddr, svcEcho);
+        success &= sendServiceMessage(remoteAddr, svcEcho);
         break;
 
       case svcHello:
@@ -296,14 +298,14 @@ void ObjnetNode::parseServiceMessage(const CommonMessage &msg)
             }
             if (isConnected() && !reset)
             {
-                sendServiceMessage(remoteAddr, svcEcho);
+                success &= sendServiceMessage(remoteAddr, svcEcho);
             }
             else
             {
                 mNetState = netnConnecting;
                 ByteArray ba;
                 ba.append(mBusAddress);
-                sendServiceMessage(svcHello, ba);
+                success &= sendServiceMessage(svcHello, ba);
             }
         }
         else
@@ -322,7 +324,7 @@ void ObjnetNode::parseServiceMessage(const CommonMessage &msg)
             {
                 mNetAddress = msg.data()[0];
                 mNetState = netnAccepted;
-                sendServiceMessage(remoteAddr, svcEcho);
+                success &= sendServiceMessage(remoteAddr, svcEcho);
             }
             else
             {
@@ -339,9 +341,9 @@ void ObjnetNode::parseServiceMessage(const CommonMessage &msg)
                 if (len > 8)
                     len = 8;
                 // send different info
-                sendServiceMessage(remoteAddr, svcClass, ByteArray(reinterpret_cast<const char*>(&mClass), sizeof(mClass)));
-                sendServiceMessage(remoteAddr, svcName, ByteArray(_fromString(mName).c_str(), len));
-                sendServiceMessage(remoteAddr, svcEcho); // echo at the end of info
+                success &= sendServiceMessage(remoteAddr, svcClass, ByteArray(reinterpret_cast<const char*>(&mClass), sizeof(mClass)));
+                success &= sendServiceMessage(remoteAddr, svcName, ByteArray(_fromString(mName).c_str(), len));
+                success &= sendServiceMessage(remoteAddr, svcEcho); // echo at the end of info
             }
         }
         if (mAdjacentNode)
@@ -371,7 +373,7 @@ void ObjnetNode::parseServiceMessage(const CommonMessage &msg)
         }
         else
         {
-            sendServiceMessage(remoteAddr, svcFail, oid);
+            success &= sendServiceMessage(remoteAddr, svcFail, oid);
         }
       } break;
 
@@ -392,31 +394,31 @@ void ObjnetNode::parseServiceMessage(const CommonMessage &msg)
             #ifndef QT_CORE_LIB
                     GPIOA->BSRR = 1;
                     #endif
-            sendServiceMessage(remoteAddr, svcTimedObject, std::move(ba));
+            success &= sendServiceMessage(remoteAddr, svcTimedObject, std::move(ba));
         }
         else
         {
-            sendServiceMessage(remoteAddr, svcFail, oid);
+            success &= sendServiceMessage(remoteAddr, svcFail, oid);
         }
       } break;
 
       case svcRequestAllInfo:
         if (mBusType == BusSwonb)// || mBusType == BusRadio)
         {
-            sendServiceMessage(remoteAddr, svcFail, oid);
+            success &= sendServiceMessage(remoteAddr, svcFail, oid);
             //sendServiceMessage(remoteAddr, svcBusType, mSvcObjects[svcBusType].read());
         }
         else if (isConnected())
         {
             for (size_t i=2; i<mSvcObjects.size(); i++)
-                sendServiceMessage(remoteAddr, (SvcOID)i, mSvcObjects[i].read());
+                success &= sendServiceMessage(remoteAddr, (SvcOID)i, mSvcObjects[i].read());
         }
         break;
 
       case svcRequestObjInfo:
         if (mBusType == BusSwonb)
         {
-            sendServiceMessage(remoteAddr, svcFail, oid);
+            success &= sendServiceMessage(remoteAddr, svcFail, oid);
         }
         else if (mBusType == BusRadio)
         {
@@ -440,7 +442,7 @@ void ObjnetNode::parseServiceMessage(const CommonMessage &msg)
       case svcTimedRequest:
         if (mBusType == BusSwonb || mBusType == BusRadio)
         {
-            sendServiceMessage(remoteAddr, svcFail, oid);
+            success &= sendServiceMessage(remoteAddr, svcFail, oid);
         }
         else if (isConnected())
         {
@@ -461,14 +463,14 @@ void ObjnetNode::parseServiceMessage(const CommonMessage &msg)
 //                    else
 //                    {
                         *reinterpret_cast<int*>(ba.data()) = mObjects[_oid].mAutoPeriod;
-                        sendServiceMessage(remoteAddr, oid, std::move(ba));
+                        success &= sendServiceMessage(remoteAddr, oid, std::move(ba));
 //                    }
                 }
             }
         }
         else
         {
-            sendServiceMessage(remoteAddr, svcFail, oid);
+            success &= sendServiceMessage(remoteAddr, svcFail, oid);
         }
         break;
 
@@ -485,7 +487,7 @@ void ObjnetNode::parseServiceMessage(const CommonMessage &msg)
             ba.append(local_oid);
             ba.append(obj.read());
         }
-        sendServiceMessage(remoteAddr, svcGroupedObject, std::move(ba));
+        success &= sendServiceMessage(remoteAddr, svcGroupedObject, std::move(ba));
         break;
       }
 
@@ -528,14 +530,16 @@ void ObjnetNode::parseServiceMessage(const CommonMessage &msg)
             }
             else
             {
-                sendServiceMessage(remoteAddr, oid, obj.read());
+                success &= sendServiceMessage(remoteAddr, oid, obj.read());
             }
         }
         else
         {
-            sendServiceMessage(remoteAddr, svcFail, oid);
+            success &= sendServiceMessage(remoteAddr, svcFail, oid);
         }
     }
+    
+    return success;
 }
 //---------------------------------------------------------------------------
 

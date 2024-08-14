@@ -19,7 +19,7 @@ extern "C" void SPI6_IRQHandler(void);
 #if defined(STM32F4)
     #define SPI_CR1_DFF_BIT     DFF     // data frame format (8/16 bit)
     #define SPI_CR2_NSSP_BIT
-#elif defined(STM32L4) || defined(STM32G4)
+#elif defined(STM32L4) || defined(STM32G4) || defined (STM32F3)
     #define SPI_FIFO_IMPL   1
     #define SPI_CR1_DFF_BIT     CRCL    // CRC length
     #define SPI_CR2_NSSP_BIT    NSSP
@@ -137,7 +137,7 @@ public:
     uint16_t read16();
     uint16_t write16(uint16_t word);
 
-    void read(uint8_t* data, int size);
+    bool read(uint8_t* data, int size);
     bool write(const uint8_t *data, int size);
 
     void setRxBuffer(uint8_t *data, int size, bool circular);

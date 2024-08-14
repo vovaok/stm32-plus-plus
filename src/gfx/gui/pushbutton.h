@@ -12,7 +12,7 @@ public:
     void setText(const ByteArray &text);
     const ByteArray &text() const {return m_text;}
 
-    NotifyEvent onClick;
+    std::function<void(void)> onClick;
     void click();
 
     bool isDown() const {return m_down;}

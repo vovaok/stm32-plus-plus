@@ -3,7 +3,7 @@
 
 #include "tcpserver.h"
 #include "tcpsocket.h"
-#include "sfs.h"
+#include "core/sfs.h"
 #include <map>
 
 class HttpServer;

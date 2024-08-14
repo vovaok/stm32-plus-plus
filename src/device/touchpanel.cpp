@@ -4,7 +4,7 @@
 TouchPanel::TouchPanel() :
     m_rawX(0), m_rawY(0), m_rawZ(0),
     m_xOffset(0), m_yOffset(0),
-    m_xFactor(0), m_yFactor(0)
+    m_xFactor(32768), m_yFactor(32768)
 {
     stmApp()->registerTaskEvent(EVENT(&TouchPanel::task));
 }
