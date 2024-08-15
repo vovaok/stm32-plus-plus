@@ -16753,7 +16753,7 @@
             <data>
                 <extensions></extensions>
                 <cmdline></cmdline>
-                <hasPrio>80</hasPrio>
+                <hasPrio>1</hasPrio>
                 <buildSequence>inputOutputBased</buildSequence>
             </data>
         </settings>
@@ -17330,6 +17330,9 @@
         </file>
         <file>
             <name>$PROJ_DIR$\lib\CMSIS\Device\ST\cmsis_device_f7\Source\Templates\iar\startup_stm32f767xx.s</name>
+            <excluded>
+                <configuration>stm32f429zi</configuration>
+            </excluded>
         </file>
         <file>
             <name>$PROJ_DIR$\lib\CMSIS\Device\ST\STM32G4xx\Source\Templates\iar\startup_stm32g474xx.s</name>
