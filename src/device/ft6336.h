@@ -11,6 +11,7 @@ public:
     
 private:
     I2c *m_i2c;
+    I2c::Device *m_dev;
     Gpio *m_rst, *m_int;
     uint8_t m_address = 0x70;
     Timer m_timer;
