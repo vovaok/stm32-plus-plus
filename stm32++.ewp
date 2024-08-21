@@ -18848,7 +18848,6 @@
             <configuration>stm32f303xC</configuration>
             <configuration>stm32f303x8</configuration>
             <configuration>stm32f030x6</configuration>
-            <configuration>stm32f767</configuration>
         </excluded>
     </file>
     <file>
@@ -18861,16 +18860,7 @@
         </excluded>
     </file>
     <file>
-        <name>$PROJ_DIR$\src\i2c303.cpp</name>
-        <excluded>
-            <configuration>stm32f405rg_no-exceptions_no-rtti</configuration>
-            <configuration>stm32f429zi</configuration>
-            <configuration>stm32f030x6</configuration>
-            <configuration>stm32f767</configuration>
-        </excluded>
-    </file>
-    <file>
-        <name>$PROJ_DIR$\src\i2c303.h</name>
+        <name>$PROJ_DIR$\src\i2c_rev03.cpp</name>
     </file>
     <file>
         <name>$PROJ_DIR$\src\i2s.cpp</name>

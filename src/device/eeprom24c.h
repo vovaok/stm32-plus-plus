@@ -123,35 +123,14 @@ protected:
         bool r;
         // сначала пишем в микросхему адрес, с которого хотим считать
         uint8_t deviceAddress = m_chipAddress | (page << 1);
-        r = m_i2c->startTransmission(I2c::DirectionTransmitter, deviceAddress);
-        if (r)
-        {
-            m_i2c->setAcknowledge(false);
-            if (sizeof(AddrType) == 2)
-                r &= m_i2c->writeData(wordAddress >> 8);
-            r &= m_i2c->writeData(wordAddress & 0xFF);
-        }
+        r = m_i2c->writeRegAddr(deviceAddress, wordAddress, sizeof(AddrType));
         if (!r) // если запись адреса прошла неудачно, возвращаем ошибку
             return -1;
         
         // читаем (size) байт из EEPROM
-        r = m_i2c->startTransmission(I2c::DirectionReceiver, deviceAddress);
+        r = m_i2c->read(deviceAddress, reinterpret_cast<uint8_t*>(dst), size);
         if (r)
-        {
-            m_i2c->setAcknowledge(true);
-            while (--size)
-            {
-                r &= m_i2c->readData((unsigned char*)dst);
-                if (!r)     // если во время чтения произошла ошибка
-                    break;  // прекращаем читать
-                dst++;
-                m_ptr++;
-            }
-            m_i2c->setAcknowledge(false);
-                r &= m_i2c->readData((unsigned char*)dst);
-        }
-//        if (r)
-            r = m_i2c->stopTransmission();
+            m_ptr += size; // НО ЭТО НЕ ТОЧНО! если во время чтения будет ошибка, то не факт, не факт
         
         if (!r)        // если во время чтения что-то пошло не так
             return -1; // возвращаем ошибку
@@ -219,21 +198,9 @@ private:
     {
         bool r;
         uint8_t deviceAddress = m_chipAddress | (page << 1);
-        r = m_i2c->startTransmission(I2c::DirectionTransmitter, deviceAddress);
+        r = m_i2c->writeRegAddr(deviceAddress, wordAddress, sizeof(AddrType));
         if (r)
-        {
-            m_i2c->setAcknowledge(false);
-            if (sizeof(AddrType) == 2)
-                r &= m_i2c->writeData(wordAddress >> 8);
-            r &= m_i2c->writeData(wordAddress & 0xFF);
-            do
-            {
-                r &= m_i2c->writeData(*data++);
-            }
-            while (--size);
-        }
-//        if (r)
-            r = m_i2c->stopTransmission();
+            r = m_i2c->write(deviceAddress, reinterpret_cast<const uint8_t *>(data), size);
         return r;
     }
 };

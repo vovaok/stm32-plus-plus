@@ -6,6 +6,8 @@ FT6336::FT6336(I2c *i2c, Gpio::PinName pinRst, Gpio::PinName pinInt) :
     m_i2c->setBusClock(100000);
     m_i2c->open();
     
+    m_dev = m_i2c->createDevice(m_address);
+    
     m_rst = new Gpio(pinRst, Gpio::Output);
     m_int = new Gpio(pinInt, Gpio::pullUp);
     
@@ -30,13 +32,13 @@ bool FT6336::read()
     m_timerFlag = 0;
     
     // read number of active touch count
-    if (m_i2c->readReg(m_address, TD_STATUS, buf, 1))
+    if (m_dev->readReg(TD_STATUS, buf, 1))
     {
         m_pen = (buf[0] & 3) > 0;
         if (m_pen)
         {
             // first touch: P1_XH, second touch: P2_XH
-            m_i2c->readReg(m_address, P1_XH, buf, 6);
+            m_dev->readReg(P1_XH, buf, 6);
             {
                 m_rawX = ((buf[0] & 0x0F) << 8) | buf[1];
                 m_rawY = ((buf[2] & 0x0F) << 8) | buf[3];
@@ -55,15 +57,15 @@ bool FT6336::configure()
     m_rst->write(1);
     
     uint8_t buf[4];
-    m_i2c->readReg(m_address, ID_G_FOCALTECH_ID, buf, 1);
+    m_dev->readReg(ID_G_FOCALTECH_ID, buf, 1);
     if (buf[0] != 0x11)
         return false;
     
-    m_i2c->readReg(m_address, ID_G_CIPHER_MID, buf, 2);
+    m_dev->readReg(ID_G_CIPHER_MID, buf, 2);
     if (buf[0] != 0x26 || buf[1] > 2)
         return false;
     
-    m_i2c->readReg(m_address, ID_G_CIPHER_HIGH, buf, 1);
+    m_dev->readReg(ID_G_CIPHER_HIGH, buf, 1);
     if (buf[0] != 0x64)
         return false;
     
