@@ -113,7 +113,7 @@ bool I2c::writeRegAddr(uint8_t address, uint32_t regAddr, int regSize)
     return r;
 }
 
-bool I2c::write(uint8_t address, const uint8_t *data, uint16_t size)
+bool I2c::write(uint8_t address, const uint8_t *data, int size)
 {
     if (!size)
         return false;
@@ -132,7 +132,7 @@ bool I2c::write(uint8_t address, const uint8_t *data, uint16_t size)
     return r;
 }
 
-bool I2c::read(uint8_t address, uint8_t *data, uint16_t size)
+bool I2c::read(uint8_t address, uint8_t *data, int size)
 {
     if (!size)
         return false;

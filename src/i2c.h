@@ -57,7 +57,7 @@ public:
         
     private:
         friend class I2c;
-        Device(uint8_t address);
+        Device(uint8_t address) : m_addr(address) {}
         I2c *m_i2c;
         uint8_t m_addr;
         // int m_busClock = 100000;
