@@ -103,6 +103,8 @@ ExceptionCode GenericDevice::writeSingleCoil(uint16_t addr, uint16_t data)
                 break;
             }
         }
+        if(onWriteCoilRegs)
+           onWriteCoilRegs(addr,1);
         return eNone;
     }
     return eIllegalDataAddress;
@@ -124,6 +126,8 @@ ExceptionCode GenericDevice::writeSingleRegister(uint16_t addr, uint16_t data)
                 break;
             }
         }
+        if(onWriteHoldRegs)
+           onWriteHoldRegs(addr,1);
         return eNone;
     }
     return eIllegalDataAddress;
@@ -155,7 +159,8 @@ ExceptionCode GenericDevice::writeMultipleCoils(uint16_t addr, uint16_t cnt, con
             break;
         }
     }
-    
+    if(onWriteCoilRegs)
+       onWriteCoilRegs(addr,cnt);
     return eNone;
 }
 
@@ -184,6 +189,9 @@ ExceptionCode GenericDevice::writeMultipleRegisters(uint16_t addr, uint16_t cnt,
             break;
         }
     }
+    
+    if(onWriteHoldRegs)
+       onWriteHoldRegs(addr,cnt);
     
     return eNone;
 }

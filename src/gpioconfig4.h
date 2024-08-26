@@ -157,6 +157,8 @@ enum Config
     // UART5
     UART5_TX_PC12 =     PINCONFIG(PC12, modeAF | outPushPull | pullNone | speed50MHz, afUart5, 0x50), //!<.
     UART5_RX_PD2 =      PINCONFIG(PD2,  modeAF | outPushPull | pullNone | speed50MHz, afUart5, 0x50), //!<.
+    UART5_TX_PB9 =      PINCONFIG(PB9,  modeAF | outPushPull | pullUp | speed50MHz, afUart5_1, 0x50), //!<.
+    UART5_RX_PB8 =      PINCONFIG(PB8,  modeAF | outPushPull | pullUp | speed50MHz, afUart5_1, 0x50), //!<.
     // USART6
     USART6_TX_PC6 =     PINCONFIG(PC6,  modeAF | outPushPull | pullNone | speed50MHz, afUsart6, 0x60), //!<.
     USART6_RX_PC7 =     PINCONFIG(PC7,  modeAF | outPushPull | pullNone | speed50MHz, afUsart6, 0x60), //!<.
@@ -201,6 +203,8 @@ enum Config
     I2C1_SDA_PB7  =     PINCONFIG(PB7,  modeAF | outOpenDrain| pullNone | speed50MHz, afI2C1, 0x10), //!<.
     I2C1_SCL_PB8  =     PINCONFIG(PB8,  modeAF | outOpenDrain| pullUp | speed50MHz, afI2C1, 0x10), //!<.
     I2C1_SDA_PB9  =     PINCONFIG(PB9,  modeAF | outOpenDrain| pullUp | speed50MHz, afI2C1, 0x10), //!<.
+    I2C4_SDA_PF15  =    PINCONFIG(PF15,  modeAF | outOpenDrain| pullUp | speed50MHz, afI2C1, 0x40), //!<.  // от ф767
+    I2C4_SCL_PD12  =    PINCONFIG(PD12,  modeAF | outOpenDrain| pullUp | speed50MHz, afI2C1, 0x40), //!<.
 
     // DAC
     DAC_OUT1_PA4  =     PINCONFIG(PA4,  modeAnalog, afNone, 0x11), //!<.

@@ -17,6 +17,9 @@ public:
     void bindCoil(uint16_t, uint8_t *reg);   
     void bindHoldingRegister(uint16_t addr, uint16_t *reg);
     void bindInputRegister(uint16_t addr, const uint16_t *reg);
+    
+    std::function<void(short,short)> onWriteHoldRegs;
+    std::function<void(short,short)> onWriteCoilRegs;    
 
 protected:
     virtual ExceptionCode readCoils(uint16_t addr, uint16_t cnt, uint8_t *data) override;    

@@ -4959,7 +4959,7 @@
             <data>
                 <extensions></extensions>
                 <cmdline></cmdline>
-                <hasPrio>80</hasPrio>
+                <hasPrio>1</hasPrio>
                 <buildSequence>inputOutputBased</buildSequence>
             </data>
         </settings>
@@ -17543,6 +17543,12 @@
         </file>
         <file>
             <name>$PROJ_DIR$\src\device\bmx055.h</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\device\dac124s085.cpp</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\device\dac124s085.h</name>
         </file>
         <file>
             <name>$PROJ_DIR$\src\device\drv8320.cpp</name>
