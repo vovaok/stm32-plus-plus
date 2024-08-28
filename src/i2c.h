@@ -9,8 +9,8 @@
 #define I2C_REV03
 #endif
 
-// Master only implementation
-
+//! I2C master only implementation
+//! 
 class I2c
 {    
 public:
@@ -72,9 +72,16 @@ public:
     
 protected: //! @todo reimplement dependent classes to high-level interface (using I2c::Device)
 public:
-    // common interface:
+    //! writeRegAddr() writes START, 7-bit chip address, R/W=0,
+    //! then <regSize> bytes of <regAddr> with big endian order
     bool writeRegAddr(uint8_t address, uint32_t regAddr, int regSize);
+    
+    //! write() writes START, 7-bit chip address, R/W=0,
+    //! then <size> bytes of <data>
     bool write(uint8_t address, const uint8_t *data, int size);
+    
+    //! read() writes START, 7-bit chip address, R/W=1,
+    //! then reads <size> bytes of <data>
     bool read(uint8_t address, uint8_t *data, int size);
     
 private:

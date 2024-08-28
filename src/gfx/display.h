@@ -52,6 +52,7 @@ public:
 	void drawString(int x, int y, const char *s);
     void drawString(int x, int y, int w, int h, int flags, const char *s);
     void drawString(const Rect &rect, int flags, const char *s);
+    void drawPixel(int x, int y);
     void drawLine(int x0, int y0, int x1, int y1);
     void drawTriangle(int x1, int y1, int x2, int y2, int x3, int y3);
     void drawRect(int x, int y, int w, int h);
@@ -104,7 +105,6 @@ private:
 
     void renderChar(char c, int &x, int &y);
 
-    void drawPixel(int x, int y);
     void Draw_FastHLine(int x, int y, int length);
     void Draw_FastVLine(int x, int y, int length);
     void FillCircle_Helper(int16_t x0, int16_t y0, int16_t r, uint8_t corner, int16_t delta);

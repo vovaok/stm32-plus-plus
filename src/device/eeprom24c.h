@@ -154,11 +154,12 @@ protected:
         {
             page = m_ptr >> m_addrSize; // рассчитываем текущую страницу
             addr = m_ptr;// & m_addrMask; // рассчитываем адрес внутри этой страницы
-            if (size < m_chunkSize) // рассчитываем размер блока...
+            // рассчитываем размер блока...
+            uint32_t maxsz = m_chunkSize - (addr & (m_chunkSize - 1));
+            if (size < maxsz)
                 sz = size; 
             else
-                sz = m_chunkSize;
-            sz -= (addr & (m_chunkSize - 1)); // выравниваем размер записи
+                sz = maxsz;
             
             // пишем блок...
             // при этом стоит подождать, пока данные реально запишутся.
