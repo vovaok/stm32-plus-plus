@@ -19,7 +19,7 @@ public:
 public:
     Device();
     
-    virtual bool open(OpenMode mode=ReadWrite) ;
+    virtual bool open(OpenMode mode=ReadWrite);
     virtual void close();
     
     int read(char *data, int maxsize);

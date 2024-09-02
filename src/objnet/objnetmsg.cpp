@@ -45,6 +45,7 @@ CommonMessageBuffer &CommonMessageBufferList::operator[](uint32_t key)
             return *b;
     }
     b->m_key = key;
+    
 #ifdef __ICCARM__
     __istate_t interrupt_state = __get_interrupt_state();
     __disable_interrupt();
@@ -58,10 +59,13 @@ CommonMessageBuffer &CommonMessageBufferList::operator[](uint32_t key)
 
 void CommonMessageBufferList::erase(uint32_t key)
 {
-    CommonMessageBufferList *b;
+    CommonMessageBufferList *b = this;
     if (m_key == key)
-        m_key = 0; // don't delete this
-    for (b=this; b->m_next; b=b->m_next)
+    {
+        m_key = 0; // don't delete "this" (root)
+        b = new (b) CommonMessageBufferList(); // just reset, not allocating
+    }
+    for (; b->m_next; b=b->m_next)
     {
         if (b->m_next->m_key == key)
         {
