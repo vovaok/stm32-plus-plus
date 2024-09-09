@@ -16,7 +16,7 @@ OnbUpgrader::OnbUpgrader(ObjnetMaster *master) :
 #ifdef QT_CORE_LIB
     QObject::connect(mTimer, SIGNAL(timeout()), this, SLOT(onTimer()));
 #else
-    mTimer->setTimeoutEvent(EVENT(&OnbUpgrader::onTimer));
+    mTimer->onTimeout = EVENT(&OnbUpgrader::onTimer);
 #endif
 
     mMaster->onServiceMessage = EVENT(&OnbUpgrader::onMessage);

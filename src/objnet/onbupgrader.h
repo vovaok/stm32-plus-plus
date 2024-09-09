@@ -3,7 +3,7 @@
 
 #include "objnetmaster.h"
 #ifndef QT_CORE_LIB
-#include "application.h"
+#include "core/application.h"
 #endif
 
 namespace Objnet
