@@ -36,7 +36,7 @@ public:
         Sector23 = 0x00D8,
         InvalidSector = 0xFFFF
     } Sector;
-  
+
     typedef enum
     {
         sCompleted          = 0,
@@ -48,13 +48,13 @@ public:
         sErrorWriteProtect  = 0x00000010,
         StatusMask          = 0x000101F0
     } Status;
-    
+
 private:
     static const int mAddresses[25];
-    
+
     static Status status();
     static Status wait();
-  
+
 public:
     static Sector getSectorByIdx(unsigned char index);
     static unsigned char getIdxOfSector(Sector sector);
@@ -63,11 +63,12 @@ public:
     static unsigned long getSizeOfSector(Sector sector);
     static bool isSectorValid(Sector sector);
     static Sector lastSector();
-    
+
     static void unlock();
     static void lock();
-    
+
     static Status eraseSector(Sector sector);
+    static uint32_t readWord(uint32_t address) {return *reinterpret_cast<uint32_t*>(address);}
     static Status programWord(unsigned long address, unsigned long value);
     static Status programData(unsigned long address, const void *data, unsigned long size);
     static Status programDataInverted(unsigned long address, const void *data, unsigned long size);

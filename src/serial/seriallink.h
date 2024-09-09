@@ -4,11 +4,16 @@
 #include <vector>
 #include <string>
 #include "core/device.h"
-//#include "eeprom.h"
+
+#define USE_EEPROM
+
+#if defined(USE_EEPROM)
+#include "fakeeeprom.h"
+#endif
 
 using namespace std;
 
-#define UARTLINK_PROTOCOL_VERSION   0x0101  // v1.1
+#define UARTLINK_PROTOCOL_VERSION   0x0102  // v1.1
 
 class SerialLink
 {
@@ -29,10 +34,13 @@ public:
         pfStorage   = pfRead | pfWrite | pfPermanent,
     } ParamFlags;
 
-    void setProductInfo(unsigned long productId, string productName, unsigned short productVersion);
+    void setAddress(uint8_t addr);
+    uint8_t address() const {return mAddress;}
+    void setProductInfo(unsigned long productId, string productName, unsigned short productVersion, string productSerial);
     void registerParam(string name, void *ptr, size_t size, ParamFlags flags=pfReadWrite);
     void registerFunc(string name, DataEvent func);
     void sendParam(string name);
+    void saveParam(string name);
 
     template <typename T>
     void registerParam(string name, T &ref, ParamFlags flags=pfReadWrite)
@@ -42,6 +50,7 @@ public:
 
     void storeParams();
     void restoreParams();
+    bool enableSaving = true;
 
 private: // typedefs
 #pragma pack(push,1)
@@ -69,6 +78,7 @@ private: // typedefs
         icmdProductId       = 0x01,
         icmdProductName     = 0x02,
         icmdProductVersion  = 0x03,
+        icmdProductSerial   = 0x04,
         icmdCompilationDate = 0x05,
         icmdCompilationTime = 0x06,
         icmdResources       = 0x07
@@ -125,16 +135,20 @@ private:
     vector<SUartFunc> mFuncVector;
     vector<unsigned long> mParamPtrVector; // corresponds to parameter vector. protocol must be upgraded. a To roBHo KaKoe-To.
     vector<DataEvent> mEventVector; // corresponds to function vector. protocol must be upgraded. a To roBHo KaKoe-To.
+    vector<bool> mParamChanged;
 
     unsigned short mUartLinkVersion;
     unsigned long mProductId;
     string mProductName;
     unsigned short mProductVersion;
+    string mProductSerial;
     string mCompilationDate;
     string mCompilationTime;
     bool mEepromInitialized;
+    unsigned char mAddress;
 
     void onDataReceived();
+    void saveParam(unsigned char idx);
 };
 
 #endif

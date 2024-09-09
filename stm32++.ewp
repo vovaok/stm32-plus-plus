@@ -4286,7 +4286,7 @@
                 </option>
                 <option>
                     <name>IarchiveOutput</name>
-                    <state>D:\projects\iar\components\stm32++\bin\stm32f407zg\stm32++_IAR_9.a</state>
+                    <state>D:\projects\iar\components\stm32++\bin\stm32f407zg\stm32++.a</state>
                 </option>
             </data>
         </settings>
@@ -16200,6 +16200,7 @@
         <file>
             <name>$PROJ_DIR$\lib\CMSIS\Device\ST\STM32F0xx\Source\Templates\iar\startup_stm32f030x6.s</name>
             <excluded>
+                <configuration>stm32f407vg</configuration>
                 <configuration>stm32f405rg_no-exceptions_no-rtti</configuration>
                 <configuration>stm32f429zi</configuration>
             </excluded>
@@ -17088,7 +17089,6 @@
                 <configuration>stm32f373xB</configuration>
                 <configuration>stm32f373xB_no-exceptions_no-rtti</configuration>
                 <configuration>stm32f407zg</configuration>
-                <configuration>stm32f407vg</configuration>
                 <configuration>stm32f405rg</configuration>
                 <configuration>stm32f405rg_no-exceptions_no-rtti</configuration>
                 <configuration>stm32f429zi</configuration>
@@ -17598,6 +17598,12 @@
         </excluded>
     </file>
     <file>
+        <name>$PROJ_DIR$\src\fakeeeprom.cpp</name>
+    </file>
+    <file>
+        <name>$PROJ_DIR$\src\fakeeeprom.h</name>
+    </file>
+    <file>
         <name>$PROJ_DIR$\src\fdcan.cpp</name>
         <excluded>
             <configuration>stm32f407vg</configuration>
@@ -17746,6 +17752,7 @@
     <file>
         <name>$PROJ_DIR$\src\i2c303.cpp</name>
         <excluded>
+            <configuration>stm32f407vg</configuration>
             <configuration>stm32f405rg_no-exceptions_no-rtti</configuration>
             <configuration>stm32f429zi</configuration>
             <configuration>stm32f030x6</configuration>
@@ -17856,7 +17863,6 @@
     <file>
         <name>$PROJ_DIR$\src\pwminput.cpp</name>
         <excluded>
-            <configuration>stm32f405rg_no-exceptions_no-rtti</configuration>
             <configuration>stm32f446</configuration>
             <configuration>stm32l476rg</configuration>
             <configuration>stm32g474</configuration>
