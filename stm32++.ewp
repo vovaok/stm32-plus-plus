@@ -17574,6 +17574,12 @@
             <name>$PROJ_DIR$\src\device\gpioexpander.h</name>
         </file>
         <file>
+            <name>$PROJ_DIR$\src\device\hd44780.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\device\hd44780.h</name>
+        </file>
+        <file>
             <name>$PROJ_DIR$\src\device\ili9341.cpp</name>
             <excluded>
                 <configuration>stm32f407zg</configuration>
