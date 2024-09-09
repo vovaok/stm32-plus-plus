@@ -379,9 +379,6 @@ bool ObjnetNode::parseServiceMessage(const CommonMessage &msg)
 
       case svcGetTimedObject:
       {
-          #ifndef QT_CORE_LIB
-                    GPIOA->BSRR = 1<<16;
-                    #endif
         uint8_t _oid = msg.data()[0];
         if (_oid < mObjects.size())
         {
@@ -391,9 +388,6 @@ bool ObjnetNode::parseServiceMessage(const CommonMessage &msg)
             ba.append('\0'); // reserved byte
             ba.append(reinterpret_cast<const char*>(&mTimestamp), sizeof(uint32_t));
             ba.append(obj.read());
-            #ifndef QT_CORE_LIB
-                    GPIOA->BSRR = 1;
-                    #endif
             success &= sendServiceMessage(remoteAddr, svcTimedObject, std::move(ba));
         }
         else

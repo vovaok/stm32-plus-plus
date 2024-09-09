@@ -1,7 +1,7 @@
 #ifndef _DAC37X_H
 #define _DAC37X_H
 
-#include "stm32_conf.h"
+#include "stm32.h"
 #include "gpio.h"
 #include "dma.h"
 

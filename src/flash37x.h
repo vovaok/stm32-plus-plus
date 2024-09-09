@@ -2,7 +2,7 @@
 #define _FLASH37X_H
 #if defined(STM32F37X)
 
-#include "stm32_conf.h"
+#include "stm32.h"
 
 // Sector is Page
 
