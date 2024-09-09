@@ -2,101 +2,34 @@
 
 using namespace Objnet;
 
-CanOnbInterface::CanOnbInterface(Can *can, int fifoNumber) :
-    mCan(can),
-    mCurFilterFifo(fifoNumber)
+CanOnbInterface::CanOnbInterface(CanInterface *can)
 { 
-    mMaxFrameSize = 8;
+    m_can = new CanSocket(can, CanInterface::ExtId);
+    mMaxFrameSize = 8; // 64 if CAN FD
     setTxQueueSize(128);
     mBusType = BusCan;
-    mCan->setReceiveEvent(EVENT(&CanOnbInterface::receiveHandler));
+    m_can->onReadyRead = EVENT(&CanOnbInterface::receiveHandler);
 //    mCan->setTransmitReadyEvent(EVENT(&CanOnbInterface::transmitHandler));
+    m_can->open();
+    can->open();
 }
 //---------------------------------------------------------------------------
 
-//bool CanOnbInterface::readRx(CanRxMsg &msg)
-//{
-//    bool result = false;
-//    
-//    mCan->setRxInterruptEnabled(false);
-//    
-//    if (!mRxQueue.empty())
-//    {
-//        msg = mRxQueue.front();
-//        mRxQueue.pop();
-//        result = true;
-//    }
-//    else if (mCan->receive(0, msg))
-//    {
-//        result = true;
-//    }
-//    else if (mCan->receive(1, msg))
-//    {
-//        result = true; 
-//    }
-//    
-//    mCan->setRxInterruptEnabled(true);   
-//    
-//    return result;
-//}
-//
-//bool CanOnbInterface::writeRx(CanRxMsg &msg)
-//{      
-//    if (mRxQueue.size() < mRxQueueSize) 
-//    {
-//        mRxQueue.push(msg);
-//        return true;
-//    }
-//    return false;
-//}
-//
-//bool CanOnbInterface::readTx(CanTxMsg &msg)
-//{
-//    if (!mTxQueue.empty())
-//    {
-//        msg = mTxQueue.front();
-//        mTxQueue.pop();
-//        return true;
-//    }
-//    return false;
-//}
-//
-//bool CanOnbInterface::writeTx(CanTxMsg &msg)
-//{
-//    msg.IDE = CAN_ID_EXT;
-//    if (mTxQueue.empty())
-//    {
-//        if (mCan->send(msg))
-//        {
-//            return true;
-//        }
-//    }
-//    if (mTxQueue.size() < mTxQueueSize) 
-//    {
-//        mTxQueue.push(msg);
-//        return true;
-//    }
-//    return false;
-//}
-//---------------------------------------------------------------------------
-
-void CanOnbInterface::receiveHandler(int fifoNumber, CanRxMsg &canmsg)
-{
-    if (fifoNumber != mCurFilterFifo)
-        return;
+void CanOnbInterface::receiveHandler()
+{   
+//    CommonMessage msg(m_can->readAll());
     
-//    CommonMessage msg;
 //    msg.setId(canmsg.ExtId);
 //    ByteArray ba(canmsg.Data, canmsg.DLC);
 //    msg.setData(std::move(ba));
 //    receive(std::move(msg));
     
-    receive(CommonMessage(canmsg.ExtId, ByteArray(canmsg.Data, canmsg.DLC)));
+    receive(CommonMessage(m_can->readAll()));
 }
 
 void CanOnbInterface::setReceiveEnabled(bool enabled)
 {
-    mCan->setRxInterruptEnabled(enabled);
+    m_can->interface()->setRxInterruptEnabled(m_can->fifoChannel(), enabled);
 }
 
 //void CanOnbInterface::transmitHandler()
@@ -109,9 +42,9 @@ void CanOnbInterface::setReceiveEnabled(bool enabled)
 
 bool CanOnbInterface::read(CommonMessage &msg)
 {
-    CanRxMsg canmsg;
-    if (mCan->receive(mCurFilterFifo, canmsg))
-        receiveHandler(mCurFilterFifo, canmsg);
+    ByteArray ba(m_can->read(mMaxFrameSize + 4));
+    if (ba.size())
+        receive(CommonMessage(ba));
       
     return ObjnetInterface::read(msg);
 }
@@ -120,34 +53,30 @@ bool CanOnbInterface::send(const CommonMessage &msg)
 {
     if (msg.data().size() > mMaxFrameSize)
         return false;
-    CanTxMsg outMsg;
-    outMsg.IDE = CAN_ID_EXT;
-    outMsg.RTR = 0;//CAN_RTR_Data;
-    outMsg.ExtId = msg.rawId();
-    outMsg.DLC = msg.data().size();
-    for (int i=0; i<outMsg.DLC; i++)
-        outMsg.Data[i] = msg.data()[i];
-    return mCan->send(outMsg);
+    
+    ByteArray ba(4 + msg.size(), '\0');
+    ba.resize(4);
+    *reinterpret_cast<uint32_t *>(ba.data()) = msg.rawId();
+    ba.append(msg.data());
+    
+    return m_can->write(ba) == ba.size();
 }
 //---------------------------------------------------------------------------
 
 void CanOnbInterface::flush()
 {
     ObjnetInterface::flush();
-    mCan->flush(); 
+//    m_can->flush(); 
 }
 //---------------------------------------------------------------------------
 
 int CanOnbInterface::addFilter(uint32_t id, uint32_t mask)
 {
-    int filter = mCan->addFilterB(id, mask, mCurFilterFifo);
-//    if (mCurFilterFifo >= 2)
-//        mCurFilterFifo = 0;
-    return filter;
+    return m_can->addFilter(id, mask);
 }
 
 void CanOnbInterface::removeFilter(int number)
 {
-    mCan->removeFilter(number);
+    m_can->removeFilter(number);
 }
 //---------------------------------------------------------------------------

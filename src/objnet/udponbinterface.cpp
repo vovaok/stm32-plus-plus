@@ -3,10 +3,10 @@
 using namespace Objnet;
 
 UdpOnbInterface::UdpOnbInterface() :
-    GenericOnbInterface(m_socket = new UdpSocket),
+    GenericOnbInterface(m_socket = new UdpSocket, 1024, BusEthernet),
     m_broadcastCnt(0)
 {
-    mBusType = BusEthernet;
+//    mBusType = BusEthernet;
     prefix = reinterpret_cast<const uint32_t*>("ONB1");
     
     m_socket->bind(51967);

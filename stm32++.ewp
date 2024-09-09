@@ -4638,7 +4638,6 @@
                 <option>
                     <name>CCIncludePath2</name>
                     <state>$PROJ_DIR$\lib\CMSIS\Device\ST\STM32F4xx\Include</state>
-                    <state>$PROJ_DIR$\lib\STM32F407_StdPeriph_Driver\inc</state>
                     <state>$PROJ_DIR$\lib\STM32F4x7_ETH_Driver\inc</state>
                     <state>$PROJ_DIR$\lib\stm32_mw_lwip\src\include</state>
                     <state>$PROJ_DIR$\lib\stm32_mw_lwip\system</state>
@@ -8932,7 +8931,6 @@
                 <option>
                     <name>CCIncludePath2</name>
                     <state>$PROJ_DIR$\lib\CMSIS\Device\ST\STM32F4xx\Include</state>
-                    <state>$PROJ_DIR$\lib\STM32F407_StdPeriph_Driver\inc</state>
                     <state>$PROJ_DIR$\lib\STM32F4x7_ETH_Driver\inc</state>
                     <state>$PROJ_DIR$\lib\stm32_mw_lwip\src\include</state>
                     <state>$PROJ_DIR$\lib\stm32_mw_lwip\system</state>
@@ -17278,6 +17276,7 @@
                 <configuration>stm32f407vg</configuration>
                 <configuration>stm32f405rg_no-exceptions_no-rtti</configuration>
                 <configuration>stm32f429zi</configuration>
+                <configuration>stm32g474</configuration>
                 <configuration>stm32f767</configuration>
             </excluded>
         </file>
@@ -17287,6 +17286,7 @@
                 <configuration>stm32f407vg</configuration>
                 <configuration>stm32f405rg_no-exceptions_no-rtti</configuration>
                 <configuration>stm32f429zi</configuration>
+                <configuration>stm32g474</configuration>
                 <configuration>stm32f303xC</configuration>
                 <configuration>stm32f030x6</configuration>
                 <configuration>stm32f767</configuration>
@@ -17324,6 +17324,7 @@
             <excluded>
                 <configuration>stm32f407vg</configuration>
                 <configuration>stm32f405rg_no-exceptions_no-rtti</configuration>
+                <configuration>stm32g474</configuration>
                 <configuration>stm32f303xC</configuration>
                 <configuration>stm32f303x8</configuration>
                 <configuration>stm32f030x6</configuration>
@@ -17334,6 +17335,7 @@
             <name>$PROJ_DIR$\lib\CMSIS\Device\ST\cmsis_device_f7\Source\Templates\iar\startup_stm32f767xx.s</name>
             <excluded>
                 <configuration>stm32f429zi</configuration>
+                <configuration>stm32g474</configuration>
             </excluded>
         </file>
         <file>
@@ -18418,6 +18420,7 @@
             <configuration>stm32f407vg</configuration>
             <configuration>stm32f405rg_no-exceptions_no-rtti</configuration>
             <configuration>stm32f429zi</configuration>
+            <configuration>stm32g474</configuration>
             <configuration>stm32f030x6</configuration>
             <configuration>stm32f767</configuration>
         </excluded>
@@ -18487,28 +18490,16 @@
         </excluded>
     </file>
     <file>
-        <name>$PROJ_DIR$\src\can_old.cpp</name>
-        <excluded>
-            <configuration>stm32f207</configuration>
-            <configuration>stm32f373xB</configuration>
-            <configuration>stm32f373xB_no-exceptions_no-rtti</configuration>
-            <configuration>stm32f407zg</configuration>
-            <configuration>stm32f407vg</configuration>
-            <configuration>stm32f405rg</configuration>
-            <configuration>stm32f405rg_no-exceptions_no-rtti</configuration>
-            <configuration>stm32f427ii</configuration>
-            <configuration>stm32f429zi</configuration>
-            <configuration>stm32f446</configuration>
-            <configuration>stm32l476rg</configuration>
-            <configuration>stm32g474</configuration>
-            <configuration>stm32f303xC</configuration>
-            <configuration>stm32f303x8</configuration>
-            <configuration>stm32f030x6</configuration>
-            <configuration>stm32f767</configuration>
-        </excluded>
+        <name>$PROJ_DIR$\src\caninterface.cpp</name>
     </file>
     <file>
-        <name>$PROJ_DIR$\src\can_old.h</name>
+        <name>$PROJ_DIR$\src\caninterface.h</name>
+    </file>
+    <file>
+        <name>$PROJ_DIR$\src\cansocket.cpp</name>
+    </file>
+    <file>
+        <name>$PROJ_DIR$\src\cansocket.h</name>
     </file>
     <file>
         <name>$PROJ_DIR$\src\compf3.cpp</name>
