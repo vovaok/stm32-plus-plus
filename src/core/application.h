@@ -7,7 +7,7 @@
 #include "rcc.h"
 #include "cpuid.h"
 #include "core.h"
-#include "stm32_conf.h"
+#include "stm32.h"
 //---------------------------------------------------------------------------
 
 using namespace std;

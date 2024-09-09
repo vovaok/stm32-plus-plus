@@ -9,7 +9,7 @@ class Rcc
 public:
     static Rcc *instance();
 
-#if defined(STM32F4) || defined(STM32G4) || defined(STM32F3) || defined(STM32F0)
+#if defined(STM32F4) || defined(STM32G4) || defined(STM32F3) || defined(STM32F0) || defined(STM32F7)
     enum ClockSource
     {
         HSI = 0x0,
@@ -35,7 +35,7 @@ public:
     };
 #endif
     
-#if defined(STM32F4) || defined(STM32G4) || defined(STM32L4)
+#if defined(STM32F4) || defined(STM32G4) || defined(STM32L4) || defined(STM32F7)
     constexpr uint32_t hsiValue() const {return 16000000;}
 #elif defined(STM32F3) || defined(STM32F0)
     constexpr uint32_t hsiValue() const {return 8000000;}
@@ -64,7 +64,7 @@ public:
     int configLtdcClock(int frequency); //!< return real programmed frequency
 #endif
     
-#if defined(STM32F4)
+#if defined(STM32F4) || defined(STM32F7)
     struct PllCfgr
     {
         uint32_t M: 6; // only for main PLL

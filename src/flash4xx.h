@@ -1,7 +1,7 @@
 #ifndef _FLASH4XX_H
 #define _FLASH4XX_H
 
-#include "stm32_conf.h"
+#include "stm32.h"
 #include "cpuid.h"
 #include "core/coreexception.h"
 

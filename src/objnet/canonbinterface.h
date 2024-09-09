@@ -2,23 +2,15 @@
 #define _CANONBINTERFACE_H
 
 #include "objnetInterface.h"
-#include "can.h"
+#include "cansocket.h"
 
 namespace Objnet
 {
 
 class CanOnbInterface : public ObjnetInterface
-{
-private:
-    Can *mCan;
-    int mCurFilterFifo;
-    
-    void receiveHandler(int fifoNumber, CanRxMsg &canmsg);
-    virtual void setReceiveEnabled(bool enabled);
-//    void transmitHandler();
-  
+{  
 public:
-    CanOnbInterface(Can *can, int fifoNumber=0);
+    CanOnbInterface(CanInterface *can);
   
     bool read(CommonMessage &msg);
     void flush();
@@ -30,6 +22,13 @@ public:
     
 protected:
     bool send(const CommonMessage &msg);
+    
+private:
+    CanSocket *m_can;
+    
+    void receiveHandler();
+    virtual void setReceiveEnabled(bool enabled);
+//    void transmitHandler();
 };
 
 };

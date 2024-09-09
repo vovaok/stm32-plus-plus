@@ -5,7 +5,7 @@
 #include "gpio.h"
 #include "rcc.h"
 
-#if defined(STM32F4)
+#if defined(STM32F4) || defined(STM32F7)
 #define TIM1_UP_IRQ         TIM1_UP_TIM10_IRQ
 #define TIM1_TRG_COM_IRQ    TIM1_TRG_COM_TIM11_IRQ
 #define TIM1_BRK_IRQ        TIM1_BRK_TIM9_IRQ

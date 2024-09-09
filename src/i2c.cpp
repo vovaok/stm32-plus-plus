@@ -1,6 +1,7 @@
 #include "i2c.h"
-#include <stdio.h>
 #include "core/coreexception.h"
+
+#if !defined(I2C_REV03)
 
 #define I2C_TIMEOUT 5000
 
@@ -74,10 +75,10 @@ void I2c::setBusClock(int clk_Hz)
 
 }
 
-void I2c::setAddress(uint8_t address)
-{
-    m_dev->OAR1 = address;
-}
+//void I2c::setAddress(uint8_t address)
+//{
+//    m_dev->OAR1 = address;
+//}
 
 void I2c::open()
 {
@@ -89,9 +90,49 @@ void I2c::close()
 {
     m_dev->CR1 &= ~I2C_CR1_PE;
 }
+
+I2c::Device *I2c::createDevice(uint8_t address)
+{
+    I2c::Device *dev = new I2c::Device(address);
+    dev->m_i2c = this;
+    return dev;
+}
 //---------------------------------------------------------------------------
 
-bool I2c::read(uint8_t address, uint8_t *data, uint16_t size)
+bool I2c::writeRegAddr(uint8_t address, uint32_t regAddr, int regSize)
+{
+    bool r;
+    r = startTransmission(DirectionTransmitter, address);
+    if (r)
+    {
+        setAcknowledge(false);
+        uint8_t *data = reinterpret_cast<uint8_t *>(&regAddr) + regSize;
+        while (regSize--)
+            r &= writeData(*--data);
+    }
+    return r;
+}
+
+bool I2c::write(uint8_t address, const uint8_t *data, int size)
+{
+    if (!size)
+        return false;
+
+    bool r;
+    r = startTransmission(DirectionTransmitter, address);
+    if (r)
+    {
+        setAcknowledge(false);
+        do
+            r &= writeData(*data++);
+        while (--size);
+    }
+    if (r)
+        r = stopTransmission();
+    return r;
+}
+
+bool I2c::read(uint8_t address, uint8_t *data, int size)
 {
     if (!size)
         return false;
@@ -114,101 +155,51 @@ bool I2c::read(uint8_t address, uint8_t *data, uint16_t size)
     return r;
 }
 
-bool I2c::write(uint8_t address, uint8_t *data, uint16_t size)
-{
-    if (!size)
-        return false;
-
-    bool r;
-    r = startTransmission(DirectionTransmitter, address);
-    if (r)
-    {
-        setAcknowledge(false);
-        do
-            r &= writeData(*data++);
-        while (--size);
-    }
-    if (r)
-        r = stopTransmission();
-    return r;
-}
-
-//bool I2c::regRead(unsigned char address, unsigned char index, unsigned char *buffer)
+//
+//
+//bool I2c::readReg(uint8_t hw_addr, uint8_t reg_addr, uint8_t *buffer, uint8_t size)
 //{
 //    bool success;
-//    success = startTransmission(DirectionTransmitter, address);
+//    if (!size)
+//        return false;
+//
+//    success = startTransmission(DirectionTransmitter, hw_addr);
 //    if (success)
-//        success = writeData(index);
+//        success = writeData(reg_addr);
 //    if (success)
-//        success = startTransmission(DirectionReceiver, address);
-//    if (success)
-//    {
-//        setAcknowledge(false);
-//        success = readData(buffer);
-//    }
-//    success = stopTransmission();
-//    return success;
-//}
-
-bool I2c::readReg(uint8_t hw_addr, uint8_t reg_addr, uint8_t *buffer, uint8_t size)
-{
-    bool success;
-    if (!size)
-        return false;
-
-    success = startTransmission(DirectionTransmitter, hw_addr);
-    if (success)
-        success = writeData(reg_addr);
-    if (success)
-        success = startTransmission(DirectionReceiver, hw_addr);
-    if (success)
-    {
-        setAcknowledge(true);
-        while (size--)
-        {
-            if (!size)
-                setAcknowledge(false);
-            success = success && readData(buffer);
-            buffer++;
-        }
-    }
-    if (success)
-        success = stopTransmission();
-    return success;
-}
-
-//bool I2c::regWrite(unsigned char address, unsigned char index, unsigned char byte)
-//{
-//    bool success;
-//    success = startTransmission(DirectionTransmitter, address);
-//    if (success)
-//        success = writeData(index);
+//        success = startTransmission(DirectionReceiver, hw_addr);
 //    if (success)
 //    {
-//        setAcknowledge(false);
-//        success = writeData(byte);
+//        setAcknowledge(true);
+//        while (size--)
+//        {
+//            if (!size)
+//                setAcknowledge(false);
+//            success = success && readData(buffer);
+//            buffer++;
+//        }
 //    }
 //    if (success)
 //        success = stopTransmission();
 //    return success;
 //}
-
-bool I2c::writeReg(uint8_t hw_addr, uint8_t reg_addr, const uint8_t *buffer, uint8_t size)
-{
-    bool success;
-    success = startTransmission(DirectionTransmitter, hw_addr);
-    if (success)
-        success = writeData(reg_addr);
-    if (success)
-    {
-        setAcknowledge(false);
-        while (size--)
-            success = success && writeData(*buffer++);
-    }
-    if (success)
-        success = stopTransmission();
-    return success;
-}
+//
+//bool I2c::writeReg(uint8_t hw_addr, uint8_t reg_addr, const uint8_t *buffer, uint8_t size)
+//{
+//    bool success;
+//    success = startTransmission(DirectionTransmitter, hw_addr);
+//    if (success)
+//        success = writeData(reg_addr);
+//    if (success)
+//    {
+//        setAcknowledge(false);
+//        while (size--)
+//            success = success && writeData(*buffer++);
+//    }
+//    if (success)
+//        success = stopTransmission();
+//    return success;
+//}
 //---------------------------------------------------------------------------
 
 bool I2c::checkEvent(Event e)
@@ -226,8 +217,6 @@ bool I2c::checkEvent(Event e)
 
 bool I2c::startTransmission(Direction dir, uint8_t slaveAddress)
 {
-    lastAddress = slaveAddress;
-
     int timeout = I2C_TIMEOUT;
 
     // если не мастер:
@@ -251,7 +240,6 @@ bool I2c::startTransmission(Direction dir, uint8_t slaveAddress)
     if (!timeout)
     {
         m_dev->CR1 &= ~I2C_CR1_START;
-        printf("i2c START failed\n");
     }
     else
     {
@@ -284,9 +272,6 @@ bool I2c::stopTransmission()
     if (!timeout)
     {
         m_dev->CR1 &= ~I2C_CR1_STOP;
-//        failAddress = lastAddress;
-        printf("i2c STOP failed\n");
-//        init();
         close();
         open();
         setAcknowledge(false);
@@ -303,7 +288,7 @@ bool I2c::writeData(uint8_t data)
         --timeout;
     if (!timeout)
     {
-        printf("i2c WRITE failed\n");
+        // "i2c WRITE failed"
     }
     return timeout;
 }
@@ -318,7 +303,7 @@ bool I2c::readData(uint8_t *buf)
         *buf = m_dev->DR;
     if (!timeout)
     {
-        printf("i2c READ failed\n");
+        // "i2c READ failed"
     }
     return timeout;
 }
@@ -330,3 +315,5 @@ void I2c::setAcknowledge(bool state)
     else
         m_dev->CR1 &= ~I2C_CR1_ACK;
 }
+
+#endif

@@ -233,6 +233,12 @@ void ST7796::initReg()
     // Display inversion off
     writeCmd(INVON);
     
+//    // lock something...
+//    // Command Set Control - disable command 2 part I
+    writeCmd(0xF0, (uint8_t *)"\x3Ñ", 1);
+//    // Command Set Control - disable command 2 part II
+    writeCmd(0xF0, (uint8_t *)"\x69", 1);
+    
 //    writeCmd(0x36, 1, (1<<3)|(1<<5)); // set direction
 //    
 //    setArea(0, 0, 200, 200);
@@ -337,6 +343,11 @@ void ST7796::fillRect(int x, int y, int width, int height, uint32_t color)
 {
     if (width == 0 || height == 0)
         return;
+    if (width == 1 && height == 1)
+    {
+        setPixel(x, y, color);
+        return;
+    }
     if (width < 0)
     {
         x += width;

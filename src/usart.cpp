@@ -1,6 +1,6 @@
 #include "usart.h"
 
-#if defined(STM32F4)
+#if defined(STM32F4) || defined(STM32F7)
 #define USART1_RX_DMA   Dma::USART1_RX_Stream2; // Dma::USART1_RX_Stream5
 #define USART1_TX_DMA   Dma::USART1_TX_Stream7;
 #define USART2_RX_DMA   Dma::USART2_RX_Stream5;
@@ -121,7 +121,7 @@ void Usart::commonConstructor(int number)
         mIrq = USART3_IRQn;
         break;
 
-#if defined(STM32F4) || defined(STM32L4) || defined(STM32G4)
+#if defined(STM32F4) || defined(STM32L4) || defined(STM32G4) || defined(STM32F7)
       case 4:
         mDev = UART4;
         mDmaChannelRx = UART4_RX_DMA;

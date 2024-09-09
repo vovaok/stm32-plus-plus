@@ -5,11 +5,11 @@ using namespace Objnet;
 static char buf[1024];
 static char txBuf[1024];
 
-GenericOnbInterface::GenericOnbInterface(Device *dev) :
+GenericOnbInterface::GenericOnbInterface(Device *dev, int framesize, BusType bus) :
     m_device(dev)
 {
-    mMaxFrameSize = 1024;
-    mBusType = BusUnknown;
+    mMaxFrameSize = framesize;//1024;
+    mBusType = bus;//BusUnknown;
     
     m_device->onReadyRead = EVENT(&GenericOnbInterface::receiveHandler);
     m_device->open();

@@ -112,6 +112,7 @@ private:
     unsigned short mParts;
     unsigned short mPartsMask;
     unsigned char mHealthPoints;
+    friend class CommonMessageBufferList;
 
 public:
     CommonMessageBuffer();
@@ -133,6 +134,7 @@ public:
 private:
     uint32_t m_key = 0;
     CommonMessageBufferList *m_next = nullptr;
+    void eraseNext(CommonMessageBufferList *b);
 };
 //---------------------------------------------------------------------------
 

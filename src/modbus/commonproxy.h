@@ -73,6 +73,10 @@ public:
     int holdingCount() const {return m_holdingCount;}
     int inputCount() const {return m_inputCount;}
     int coilsCount() const {return m_coilsCount;}
+    
+    int holdingBase() const {return m_holdingBase;}
+    int inputBase() const {return m_inputBase;}
+    int coilsBase() const {return m_coilsBase;}
 
 protected:
     virtual void errorEvent(Modbus::ExceptionCode e) override;

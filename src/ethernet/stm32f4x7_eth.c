@@ -1170,6 +1170,8 @@ uint32_t ETH_Prepare_Transmit_Descriptors(uint16_t FrameLength)
      }
     DMATxDescToSet = DMATxNextDesc ;
   }
+  
+  __DSB();
     
   /* When Tx Buffer unavailable flag is set: clear it and resume transmission */
   if ((ETH->DMASR & ETH_DMASR_TBUS) != (uint32_t)RESET)

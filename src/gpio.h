@@ -143,7 +143,7 @@ public:
         afI2C1 = 4,/*!<.*/ afI2C2 = 4,/*!<.*/ afI2C3 = 4,/*!<.*/
         afSpi1 = 5,/*!<.*/ afSpi2 = 5,/*!<.*/ afSpi4 = 5, afSpi5 = 5, afSpi6 = 5,
         afSpi3 = 6,/*!<.*/
-        afUsart1 = 7,/*!<.*/ afUsart2 = 7,/*!<.*/ afUsart3 = 7,/*!<.*/ afI2S3ext = 7,/*!<.*/
+        afUsart1 = 7,/*!<.*/ afUsart2 = 7,/*!<.*/ afUsart3 = 7,/*!<.*/ afI2S3ext = 7,afUart5_1 = 7,/*!<.*/
         afUart4 = 8,/*!<.*/ afUart5 = 8,/*!<.*/ afUsart6 = 8,/*!<.*/
         afCan1 = 9,/*!<.*/ afCan2 = 9,/*!<.*/ afTim12 = 9,/*!<.*/ afTim13 = 9,/*!<.*/ afTim14 = 9,/*!<.*/
         afOtgFs = 10,/*!<.*/ afOtgHs = 10,/*!<.*/
@@ -193,6 +193,8 @@ public:
     #include "gpioconfig3.h"
     #elif defined(STM32F0)
     #include "gpioconfig0.h"
+    #elif defined(STM32F7)
+    #include "gpioconfig4.h" //! @todo implement configurations of another pins for F7
     #endif
 
 public:
