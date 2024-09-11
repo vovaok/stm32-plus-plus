@@ -17891,7 +17891,6 @@
             <configuration>stm32g474</configuration>
             <configuration>stm32f303x8</configuration>
             <configuration>stm32f030x6</configuration>
-            <configuration>stm32f405xx</configuration>
         </excluded>
     </file>
     <file>

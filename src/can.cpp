@@ -18,28 +18,28 @@ Can::Can(Gpio::Config pinRx, Gpio::Config pinTx, int baudrate) :
         case 2: m_can = CAN2; break;
         default: THROW(Exception::InvalidPeriph);
     }
-          
+
     m_instances[canNumber-1] = this;
-    
+
     // CAN2 take SRAM access through CAN1 memory bus, so it must be enabled always
     rcc().setPeriphEnabled(CAN1);
     if (m_can == CAN2)
         rcc().setPeriphEnabled(CAN2);
-    
+
     Gpio::config(pinRx);
     Gpio::config(pinTx);
-    
+
     /// @todo Maybe implement timeout check
-    
+
     // request Initialization mode
     close();
 //    m_can->MCR |= CAN_MCR_INRQ;
 //    while (!(m_can->MSR & CAN_MSR_INAK));
-    
+
     // exit sleep mode
     m_can->MCR &= ~CAN_MCR_SLEEP;
     while (m_can->MSR & CAN_MSR_SLAK);
-    
+
     // these bits should be 0 after reset
 //    m_can->MCR &= ~(CAN_MCR_TTCM | CAN_MCR_ABOM | CAN_MCR_AWUM | CAN_MCR_NART | CAN_MCR_RFLM | CAN_MCR_TXFP);
     m_can->MCR |= CAN_MCR_ABOM | CAN_MCR_TXFP;
@@ -60,18 +60,18 @@ Can::Can(Gpio::Config pinRx, Gpio::Config pinTx, int baudrate) :
 
     int t2 = btq<=17? ((btq-1)>>1): 8; // length of T2 segment
     int t1 = btq - 1 - t2; // length of T1 segment
-    
+
     --t1; --t2;
     // sync jump width = 1tq
     m_can->BTR = (t1 << CAN_BTR_TS1_Pos) | (t2 << CAN_BTR_TS2_Pos) | (psc - 1);
-    
+
     if (m_can == CAN2)
     {
         m_firstFilterIdx = 14;
         // in theory, this is already done after reset:
         m_can->FMR = m_firstFilterIdx << 8; // allocate 14 filters for CAN2 core
     }
-    
+
     open();
 }
 //---------------------------------------------------------------------------
@@ -80,14 +80,14 @@ bool Can::open(Device::OpenMode mode)
 {
     // if already opened...
     if (!(m_can->MSR & CAN_MSR_INAK))
-        return false;        
-        
+        return false;
+
     // choose Silent mode if no write allowed
     if (mode & Device::WriteOnly)
         m_can->BTR &= ~CAN_BTR_SILM;
     else
         m_can->BTR |= CAN_BTR_SILM;
-    
+
     // enter Normal mode
     m_can->MCR &= ~CAN_MCR_INRQ;
     while (m_can->MSR & CAN_MSR_INAK);
@@ -101,52 +101,54 @@ bool Can::close()
     while (!(m_can->MSR & CAN_MSR_INAK));
     return true;
 }
-    
+
 int Can::configureFilter(Flags flags, uint32_t id, uint32_t mask, int fifoChannel)
 {
-    // this function configures filter in 32-bit Identifier Mask mode 
-    
+    // this function configures filter in 32-bit Identifier Mask mode
+    CAN_TypeDef *can = CAN1;
+
     if (fifoChannel < 0 || fifoChannel > 1)
         return -1; // ERROR: invalid FIFO channel provided
-    
+
     // find free filter
     uint32_t filterBit = 1 << m_firstFilterIdx;
     int idx;
     for (idx=0; idx<14; idx++, filterBit<<=1)
     {
-        if (!(m_can->FA1R & filterBit))
+        if (!(can->FA1R & filterBit))
             break;
     }
-    
+
     // if no more filters available:
     if (idx == 14)
         return -1;
-    
+    idx += m_firstFilterIdx;
+
     // enter filter initialization mode
-    m_can->FMR |= CAN_FMR_FINIT;
+    can->FMR |= CAN_FMR_FINIT;
     // select Identifier Mask mode
-    m_can->FM1R &= ~filterBit;
+    can->FM1R &= ~filterBit;
     // select Single 32-bit scale configuration
-    m_can->FS1R |= filterBit;
+    can->FS1R |= filterBit;
     // select FIFO channel
     if (fifoChannel)
-        m_can->FFA1R |= filterBit;
+        can->FFA1R |= filterBit;
     else
-        m_can->FFA1R &= ~filterBit;
+        can->FFA1R &= ~filterBit;
     // set ID and mask
     uint32_t IDE = 0;
     if (flags & ExtId)
         IDE = 1 << 2;
-    m_can->sFilterRegister[idx].FR1 = (id << 3) | IDE;
-    m_can->sFilterRegister[idx].FR2 = (mask << 3) | (1 << 2);
+    can->sFilterRegister[idx].FR1 = (id << 3) | IDE;
+    can->sFilterRegister[idx].FR2 = (mask << 3) | (1 << 2);
     // activate the filter
-    m_can->FA1R |= filterBit;
-    
+    can->FA1R |= filterBit;
+
     // exit filter initialization mode
-    m_can->FMR &= ~CAN_FMR_FINIT;  
-    
+    can->FMR &= ~CAN_FMR_FINIT;
+
     setRxInterruptEnabled(fifoChannel, true);
-    
+
     return idx;
 }
 
@@ -154,9 +156,11 @@ bool Can::removeFilter(int index)
 {
     if (index < 0 || index >= 14)
         return false;
-    m_can->FMR |= CAN_FMR_FINIT;
-    m_can->FA1R &= ~(1 << (index + m_firstFilterIdx));
-    m_can->FMR &= ~CAN_FMR_FINIT;
+    CAN_TypeDef *can = CAN1;
+
+    can->FMR |= CAN_FMR_FINIT;
+    can->FA1R &= ~(1 << (index + m_firstFilterIdx));
+    can->FMR &= ~CAN_FMR_FINIT;
     return true;
 }
 
@@ -196,9 +200,9 @@ int Can::receiveMessage(uint32_t *id, uint8_t *data, uint8_t maxsize, int fifoCh
 {
     if (!isRxMessagePending(fifoChannel))
         return -1;
-    
+
     CAN_FIFOMailBox_TypeDef *fifo = m_can->sFIFOMailBox + fifoChannel;
-    
+
     // read data from the FIFO
     bool ext_id = fifo->RIR & CAN_RI0R_IDE;
     if (ext_id)
@@ -208,7 +212,7 @@ int Can::receiveMessage(uint32_t *id, uint8_t *data, uint8_t maxsize, int fifoCh
     int size = fifo->RDTR & CAN_RDT0R_DLC;
     if (size > maxsize)
         size = maxsize;
-   
+
     uint32_t w[2];
     w[0] = fifo->RDLR;
     w[1] = fifo->RDHR;
@@ -216,13 +220,13 @@ int Can::receiveMessage(uint32_t *id, uint8_t *data, uint8_t maxsize, int fifoCh
     int cnt = size;
     while (cnt--)
         *data++ = *src++;
-    
+
     // release the FIFO
     if (fifoChannel == 0)
         m_can->RF0R |= CAN_RF0R_RFOM0;
     else if (fifoChannel == 1)
         m_can->RF1R |= CAN_RF1R_RFOM1;
-    
+
     return size;
 }
 
@@ -240,16 +244,16 @@ bool Can::transmitMessage(Flags flags, uint32_t id, const uint8_t *data, uint8_t
     // check maximum size
     if (size > 8)
         return false;
-    
+
     uint32_t tsr = m_can->TSR;
     // check free transmit mailboxes
     if (!(tsr & CAN_TSR_TME))
         return false;
-    
+
     // get index of the next free mailbox
     int idx = (tsr & CAN_TSR_CODE) >> CAN_TSR_CODE_Pos;
     CAN_TxMailBox_TypeDef *mb = m_can->sTxMailBox + idx;
-    
+
     // fill the mailbox
     if (flags & ExtId)
         mb->TIR = (id << CAN_TI0R_EXID_Pos) | CAN_TI0R_IDE;
@@ -258,7 +262,7 @@ bool Can::transmitMessage(Flags flags, uint32_t id, const uint8_t *data, uint8_t
     mb->TDTR = size;
     mb->TDLR = reinterpret_cast<const uint32_t*>(data)[0];
     mb->TDHR = reinterpret_cast<const uint32_t*>(data)[1];
-    
+
     // request transmission;
     mb->TIR |= CAN_TI0R_TXRQ;
     return true;
