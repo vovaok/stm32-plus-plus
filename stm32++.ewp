@@ -4286,7 +4286,7 @@
                 </option>
                 <option>
                     <name>IarchiveOutput</name>
-                    <state>D:\projects\iar\components\stm32++\bin\stm32f407zg\stm32++_IAR_9.a</state>
+                    <state>D:\projects\iar\components\stm32++\bin\stm32f407zg\stm32++.a</state>
                 </option>
             </data>
         </settings>
@@ -17627,6 +17627,12 @@
         </excluded>
     </file>
     <file>
+        <name>$PROJ_DIR$\src\fakeeeprom.cpp</name>
+    </file>
+    <file>
+        <name>$PROJ_DIR$\src\fakeeeprom.h</name>
+    </file>
+    <file>
         <name>$PROJ_DIR$\src\fdcan.cpp</name>
         <excluded>
             <configuration>stm32f407vg</configuration>
@@ -17885,7 +17891,6 @@
             <configuration>stm32g474</configuration>
             <configuration>stm32f303x8</configuration>
             <configuration>stm32f030x6</configuration>
-            <configuration>stm32f405xx</configuration>
         </excluded>
     </file>
     <file>

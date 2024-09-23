@@ -10,11 +10,13 @@ private:
     static const unsigned short * const mFlashSize;
     static const unsigned short * const mPackage;
     static const unsigned long * const mCpuId;
-    
+
 public:
     static unsigned long signature(int part);
     static unsigned long serial();
     static unsigned short flashSizeK();
+    static constexpr uint32_t flashBase() {return FLASH_BASE;}
+    static uint32_t flashEnd();
     static unsigned short packageId();
     static unsigned short deviceId();
     static unsigned short revId();

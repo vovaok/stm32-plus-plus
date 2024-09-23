@@ -33,6 +33,11 @@ unsigned short CpuId::flashSizeK()
     return *mFlashSize;
 }
 
+uint32_t CpuId::flashEnd()
+{
+    return flashBase() + (flashSizeK() << 10) - 1;
+}
+
 unsigned short CpuId::packageId()
 {
     return (*mPackage) >> 8;
@@ -110,7 +115,7 @@ unsigned long CpuId::maxSysClk()
 #elif defined(STM32F3)
         default:    return 72000000;
 #elif defined(STM32F7)
-        default:    return 216000000;        
+        default:    return 216000000;
 #endif
     }
 }

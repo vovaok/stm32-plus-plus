@@ -36,15 +36,15 @@ Ethernet *Ethernet::instance(const RMII &rmii)
 }
 
 Ethernet::Ethernet(const RMII &rmii)
-{    
+{
     if (!s_llInitCompleted)
     {
         if (!m_self)
             m_self = this;
-        
+
         rcc().setPeriphEnabled(SYSCFG);
         SYSCFG->PMC |= SYSCFG_PMC_MII_RMII_SEL;
-        
+
         Gpio::config(rmii.pinMDC);
         Gpio::config(rmii.pinMDIO);
         Gpio::config(rmii.pinREF_CLK);
@@ -59,11 +59,11 @@ Ethernet::Ethernet(const RMII &rmii)
         for (int w=20000; --w;);
         pinReset->write(1);
         for (int w=20000; --w;);
-        
+
         bool result = ethConfig(rmii.phyAddress);
         if (!result)
             return;
-        
+
         m_DMARxDscrTab = new ETH_DMADESCTypeDef[rxBufCount];
         m_DMATxDscrTab = new ETH_DMADESCTypeDef[txBufCount];
         m_rxBuff = new uint8_t[rxBufSize * rxBufCount];
@@ -73,21 +73,21 @@ Ethernet::Ethernet(const RMII &rmii)
         mem_init();
 
         /* Initializes the memory pools defined by MEMP_NUM_x.*/
-        memp_init();  
-        
+        memp_init();
+
         lwip_init();
-        
+
         m_tcpTimer.onTimeout = tcp_tmr;
         m_tcpTimer.start(250);
 
         m_arpTimer.onTimeout = etharp_tmr;
         m_arpTimer.start(5000);
-        
+
         m_igmpTmr.onTimeout = igmp_tmr;
         m_igmpTmr.start(IGMP_TMR_INTERVAL);
-        
+
         stmApp()->registerTaskEvent(EVENT(&Ethernet::task));
-        
+
         s_llInitCompleted = true;
     }
 }
@@ -101,8 +101,8 @@ void Ethernet::setMacAddress(const MacAddress_t &mac)
     for (int i=0; i<ETHARP_HWADDR_LEN; i++)
         m_netif.hwaddr[i] = mac.b[i];
 
-    /* initialize MAC address in ethernet MAC */ 
-    ETH_MACAddressConfig(ETH_MAC_Address0, m_netif.hwaddr); 
+    /* initialize MAC address in ethernet MAC */
+    ETH_MACAddressConfig(ETH_MAC_Address0, m_netif.hwaddr);
 }
 
 const Ethernet::MacAddress_t &Ethernet::macAddress()
@@ -116,7 +116,7 @@ void Ethernet::setupNetworkInterface(const char *ipaddr, const char *netmask, co
     addr = ipFromString(ipaddr);
     mask = ipFromString(netmask);
     gw = ipFromString(gateway);
-    
+
     /* - netif_add(struct netif *netif, struct ip_addr *ipaddr,
         struct ip_addr *netmask, struct ip_addr *gw,
         void *state, err_t (* init)(struct netif *netif),
@@ -136,7 +136,7 @@ void Ethernet::setupNetworkInterface(const char *ipaddr, const char *netmask, co
 
     /*  When the netif is fully configured this function must be called.*/
     netif_set_up(&m_netif);
-    
+
     m_netif.flags |= NETIF_FLAG_IGMP;
 //    igmp_start(&m_netif);
 }
@@ -187,9 +187,9 @@ void Ethernet::task()
     err_t err;
     /* check if any packet received */
     while (ETH_CheckFrameReceived())
-    { 
+    {
         /* Read a received packet from the Ethernet buffers and send it to the lwIP for handling */
-        
+
         /* move received packet into a new pbuf */
         struct pbuf *p = low_level_input();
 
@@ -227,19 +227,19 @@ struct pbuf * Ethernet::low_level_input()
   uint8_t *buffer;
   uint32_t i=0;
   __IO ETH_DMADESCTypeDef *DMARxNextDesc;
-  
+
   p = NULL;
-  
+
   /* get received frame */
   frame = ETH_Get_Received_Frame();
-  
+
   /* Obtain the size of the packet and put it into the "len" variable. */
   len = frame.length;
   buffer = (uint8_t *)frame.buffer;
-  
+
   /* We allocate a pbuf chain of pbufs from the Lwip buffer pool */
   p = pbuf_alloc(PBUF_RAW, len, PBUF_POOL);
-  
+
   /* copy received frame to pbuf chain */
   if (p != NULL)
   {
@@ -247,9 +247,9 @@ struct pbuf * Ethernet::low_level_input()
     {
       memcpy((u8_t*)q->payload, (u8_t*)&buffer[l], q->len);
       l = l + q->len;
-    }    
+    }
   }
-  
+
   /* Release descriptors to DMA */
   /* Check if frame with multiple DMA buffer segments */
   if (DMA_RX_FRAME_infos->Seg_Count > 1)
@@ -260,19 +260,19 @@ struct pbuf * Ethernet::low_level_input()
   {
     DMARxNextDesc = frame.descriptor;
   }
-  
+
   /* Set Own bit in Rx descriptors: gives the buffers back to DMA */
   for (i=0; i<DMA_RX_FRAME_infos->Seg_Count; i++)
-  {  
+  {
     DMARxNextDesc->Status = ETH_DMARxDesc_OWN;
     DMARxNextDesc = (ETH_DMADESCTypeDef *)(DMARxNextDesc->Buffer2NextDescAddr);
   }
-  
+
   /* Clear Segment_Count */
   DMA_RX_FRAME_infos->Seg_Count =0;
-  
+
   /* When Rx Buffer unavailable flag is set: clear it and resume reception */
-  if ((ETH->DMASR & ETH_DMASR_RBUS) != (uint32_t)RESET)  
+  if ((ETH->DMASR & ETH_DMASR_RBUS) != (uint32_t)RESET)
   {
     /* Clear RBUS ETHERNET DMA flag */
     ETH->DMASR = ETH_DMASR_RBUS;
@@ -302,18 +302,18 @@ err_t Ethernet::low_level_output(struct netif *netif, struct pbuf *p)
   struct pbuf *q;
   int framelength = 0;
   uint8_t *buffer =  (uint8_t *)(DMATxDescToSet->Buffer1Addr);
-  
+
   /* copy frame from pbufs to driver buffers */
-  for(q = p; q != NULL; q = q->next) 
+  for(q = p; q != NULL; q = q->next)
   {
     memcpy((u8_t*)&buffer[framelength], q->payload, q->len);
 	framelength = framelength + q->len;
   }
-  
-  /* Note: padding and CRC for transmitted frame 
+
+  /* Note: padding and CRC for transmitted frame
      are automatically inserted by DMA */
 
-  /* Prepare transmit descriptors to give to DMA*/ 
+  /* Prepare transmit descriptors to give to DMA*/
   ETH_Prepare_Transmit_Descriptors(framelength);
 
   return ERR_OK;
@@ -323,7 +323,7 @@ err_t Ethernet::low_level_output(struct netif *netif, struct pbuf *p)
 err_t Ethernet::ethernetif_init(struct netif *netif)
 {
     LWIP_ASSERT("netif != NULL", (netif != NULL));
-  
+
 #if LWIP_NETIF_HOSTNAME
     /* Initialize interface hostname */
     netif->hostname = "lwip";
@@ -356,7 +356,7 @@ err_t Ethernet::ethernetif_init(struct netif *netif)
     ETH_DMATxDescChainInit(m_self->m_DMATxDscrTab, m_self->m_txBuff, txBufCount);
     /* Initialize Rx Descriptors list: Chain Mode  */
     ETH_DMARxDescChainInit(m_self->m_DMARxDscrTab, m_self->m_rxBuff, rxBufCount);
-  
+
 #ifdef CHECKSUM_BY_HARDWARE
     /* Enable the TCP, UDP and ICMP checksum insertion for the Tx frames */
     for(int i=0; i<txBufCount; i++)
@@ -384,7 +384,7 @@ bool Ethernet::ethConfig(uint16_t phyAddress)
 
     /* Enable ETHERNET clock  */
     rcc().setPeriphEnabled(ETH);
-                        
+
     /* Reset ETHERNET on AHB Bus */
     ETH_DeInit();
 
@@ -409,9 +409,9 @@ bool Ethernet::ethConfig(uint16_t phyAddress)
     /* Fill ETH_InitStructure parametrs */
     /*------------------------   MAC   -----------------------------------*/
     ETH_InitStructure.ETH_AutoNegotiation = ETH_AutoNegotiation_Enable;
-    //ETH_InitStructure.ETH_AutoNegotiation = ETH_AutoNegotiation_Disable; 
+    //ETH_InitStructure.ETH_AutoNegotiation = ETH_AutoNegotiation_Disable;
     //  ETH_InitStructure.ETH_Speed = ETH_Speed_10M;
-    //  ETH_InitStructure.ETH_Mode = ETH_Mode_FullDuplex;   
+    //  ETH_InitStructure.ETH_Mode = ETH_Mode_FullDuplex;
 
     ETH_InitStructure.ETH_LoopbackMode = ETH_LoopbackMode_Disable;
     ETH_InitStructure.ETH_RetryTransmission = ETH_RetryTransmission_Disable;
@@ -425,21 +425,21 @@ bool Ethernet::ethConfig(uint16_t phyAddress)
     ETH_InitStructure.ETH_ChecksumOffload = ETH_ChecksumOffload_Enable;
     #endif
 
-    /*------------------------   DMA   -----------------------------------*/  
+    /*------------------------   DMA   -----------------------------------*/
 
-    /* When we use the Checksum offload feature, we need to enable the Store and Forward mode: 
-    the store and forward guarantee that a whole frame is stored in the FIFO, so the MAC can insert/verify the checksum, 
+    /* When we use the Checksum offload feature, we need to enable the Store and Forward mode:
+    the store and forward guarantee that a whole frame is stored in the FIFO, so the MAC can insert/verify the checksum,
     if the checksum is OK the DMA can handle the frame otherwise the frame is dropped */
-    ETH_InitStructure.ETH_DropTCPIPChecksumErrorFrame = ETH_DropTCPIPChecksumErrorFrame_Enable; 
-    ETH_InitStructure.ETH_ReceiveStoreForward = ETH_ReceiveStoreForward_Enable;         
-    ETH_InitStructure.ETH_TransmitStoreForward = ETH_TransmitStoreForward_Enable;     
+    ETH_InitStructure.ETH_DropTCPIPChecksumErrorFrame = ETH_DropTCPIPChecksumErrorFrame_Enable;
+    ETH_InitStructure.ETH_ReceiveStoreForward = ETH_ReceiveStoreForward_Enable;
+    ETH_InitStructure.ETH_TransmitStoreForward = ETH_TransmitStoreForward_Enable;
 
-    ETH_InitStructure.ETH_ForwardErrorFrames = ETH_ForwardErrorFrames_Disable;       
-    ETH_InitStructure.ETH_ForwardUndersizedGoodFrames = ETH_ForwardUndersizedGoodFrames_Disable;   
+    ETH_InitStructure.ETH_ForwardErrorFrames = ETH_ForwardErrorFrames_Disable;
+    ETH_InitStructure.ETH_ForwardUndersizedGoodFrames = ETH_ForwardUndersizedGoodFrames_Disable;
     ETH_InitStructure.ETH_SecondFrameOperate = ETH_SecondFrameOperate_Enable;
-    ETH_InitStructure.ETH_AddressAlignedBeats = ETH_AddressAlignedBeats_Enable;      
-    ETH_InitStructure.ETH_FixedBurst = ETH_FixedBurst_Enable;                
-    ETH_InitStructure.ETH_RxDMABurstLength = ETH_RxDMABurstLength_32Beat;          
+    ETH_InitStructure.ETH_AddressAlignedBeats = ETH_AddressAlignedBeats_Enable;
+    ETH_InitStructure.ETH_FixedBurst = ETH_FixedBurst_Enable;
+    ETH_InitStructure.ETH_RxDMABurstLength = ETH_RxDMABurstLength_32Beat;
     ETH_InitStructure.ETH_TxDMABurstLength = ETH_TxDMABurstLength_32Beat;
     ETH_InitStructure.ETH_DMAArbitration = ETH_DMAArbitration_RoundRobin_RxTx_2_1;
 
