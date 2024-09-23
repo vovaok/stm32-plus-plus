@@ -605,6 +605,24 @@ void SPI3_IRQHandler(void)
         Spi::mSpies[2]->handleInterrupt();
 }
 
+void SPI4_IRQHandler(void)
+{
+    if (Spi::mSpies[3])
+        Spi::mSpies[3]->handleInterrupt();
+}
+
+void SPI5_IRQHandler(void)
+{
+    if (Spi::mSpies[4])
+        Spi::mSpies[4]->handleInterrupt();
+}
+
+void SPI6_IRQHandler(void)
+{
+    if (Spi::mSpies[5])
+        Spi::mSpies[5]->handleInterrupt();
+}
+
 #ifdef __cplusplus
 }
 #endif

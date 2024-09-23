@@ -69,7 +69,7 @@ Can::Can(Gpio::Config pinRx, Gpio::Config pinTx, int baudrate) :
     {
         m_firstFilterIdx = 14;
         // in theory, this is already done after reset:
-        m_can->FMR = m_firstFilterIdx << 8; // allocate 14 filters for CAN2 core
+        CAN1->FMR = m_firstFilterIdx << 8; // allocate 14 filters for CAN2 core
     }
     
     open();
@@ -104,7 +104,7 @@ bool Can::close()
     
 int Can::configureFilter(Flags flags, uint32_t id, uint32_t mask, int fifoChannel)
 {
-    // this function configures filter in 32-bit Identifier Mask mode 
+    // this function configures filter in 32-bit Identifier Mask mode
     
     if (fifoChannel < 0 || fifoChannel > 1)
         return -1; // ERROR: invalid FIFO channel provided
@@ -114,7 +114,7 @@ int Can::configureFilter(Flags flags, uint32_t id, uint32_t mask, int fifoChanne
     int idx;
     for (idx=0; idx<14; idx++, filterBit<<=1)
     {
-        if (!(m_can->FA1R & filterBit))
+        if (!(CAN1->FA1R & filterBit))
             break;
     }
     
@@ -122,41 +122,43 @@ int Can::configureFilter(Flags flags, uint32_t id, uint32_t mask, int fifoChanne
     if (idx == 14)
         return -1;
     
+    idx += m_firstFilterIdx;
+    
     // enter filter initialization mode
-    m_can->FMR |= CAN_FMR_FINIT;
+    CAN1->FMR |= CAN_FMR_FINIT;
     // select Identifier Mask mode
-    m_can->FM1R &= ~filterBit;
+    CAN1->FM1R &= ~filterBit;
     // select Single 32-bit scale configuration
-    m_can->FS1R |= filterBit;
+    CAN1->FS1R |= filterBit;
     // select FIFO channel
     if (fifoChannel)
-        m_can->FFA1R |= filterBit;
+        CAN1->FFA1R |= filterBit;
     else
-        m_can->FFA1R &= ~filterBit;
+        CAN1->FFA1R &= ~filterBit;
     // set ID and mask
     uint32_t IDE = 0;
     if (flags & ExtId)
         IDE = 1 << 2;
-    m_can->sFilterRegister[idx].FR1 = (id << 3) | IDE;
-    m_can->sFilterRegister[idx].FR2 = (mask << 3) | (1 << 2);
+    CAN1->sFilterRegister[idx].FR1 = (id << 3) | IDE;
+    CAN1->sFilterRegister[idx].FR2 = (mask << 3) | (1 << 2);
     // activate the filter
-    m_can->FA1R |= filterBit;
+    CAN1->FA1R |= filterBit;
     
     // exit filter initialization mode
-    m_can->FMR &= ~CAN_FMR_FINIT;  
+    CAN1->FMR &= ~CAN_FMR_FINIT;  
     
     setRxInterruptEnabled(fifoChannel, true);
     
-    return idx;
+    return idx - m_firstFilterIdx;
 }
 
 bool Can::removeFilter(int index)
 {
     if (index < 0 || index >= 14)
         return false;
-    m_can->FMR |= CAN_FMR_FINIT;
-    m_can->FA1R &= ~(1 << (index + m_firstFilterIdx));
-    m_can->FMR &= ~CAN_FMR_FINIT;
+    CAN1->FMR |= CAN_FMR_FINIT;
+    CAN1->FA1R &= ~(1 << (index + m_firstFilterIdx));
+    CAN1->FMR &= ~CAN_FMR_FINIT;
     return true;
 }
 
