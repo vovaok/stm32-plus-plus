@@ -86,7 +86,16 @@ Gpio::Gpio(GPIO_TypeDef *gpio, int pin)
 
 Gpio::~Gpio()
 {
-    config(NoConfig);
+    mConfig.flags = 0;
+    mConfig.af = 0;
+    mConfig.periph = 0;
+    updateConfig();
+    for (int i=0; i<16; i++)
+    {
+        int idx = (mConfig.portNumber << 4) + i;
+        if (mPin & (1 << i))
+            mPinsUsed[idx] = 0;
+    }
 }
 //---------------------------------------------------------------------------
 

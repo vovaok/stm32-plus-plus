@@ -72,7 +72,11 @@ void I2c::setBusClock(int clk_Hz)
         m_dev->TRISE = freqrange * 300 / 1000 + 1;
     }
     m_dev->CCR = ccr;
+}
 
+void I2c::setSMBusHostMode()
+{
+    m_dev->CR1 |= I2C_CR1_SMBUS | I2C_CR1_SMBTYPE | I2C_CR1_ENPEC;
 }
 
 //void I2c::setAddress(uint8_t address)
@@ -115,17 +119,13 @@ bool I2c::writeRegAddr(uint8_t address, uint32_t regAddr, int regSize)
 
 bool I2c::write(uint8_t address, const uint8_t *data, int size)
 {
-    if (!size)
-        return false;
-
     bool r;
     r = startTransmission(DirectionTransmitter, address);
     if (r)
     {
         setAcknowledge(false);
-        do
+        while (size--)
             r &= writeData(*data++);
-        while (--size);
     }
     if (r)
         r = stopTransmission();
@@ -134,21 +134,21 @@ bool I2c::write(uint8_t address, const uint8_t *data, int size)
 
 bool I2c::read(uint8_t address, uint8_t *data, int size)
 {
-    if (!size)
-        return false;
-
     bool r;
     r = startTransmission(DirectionReceiver, address);
     if (r)
     {
-        setAcknowledge(true);
-        while (--size)
+        if (size)
         {
-            r &= readData(data);
-            data++;
+            setAcknowledge(true);
+            while (--size)
+            {
+                r &= readData(data);
+                data++;
+            }
+            setAcknowledge(false);
+                r &= readData(data);
         }
-        setAcknowledge(false);
-            r &= readData(data);
     }
     if (r)
         r = stopTransmission();

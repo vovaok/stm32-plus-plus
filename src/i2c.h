@@ -18,6 +18,7 @@ public:
     
     void setBusClock(int clk_Hz);
 //    void setAddress(uint8_t address);
+    void setSMBusHostMode();
     
     void open();
     void close();
