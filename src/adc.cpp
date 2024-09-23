@@ -218,29 +218,39 @@ int Adc::maxValue() const
 
 void Adc::setEnabled(bool enable)
 {
-    if (!mDma && enable)
+    if (!mDma)
     {
         mDma = new Dma(mDmaChannel);
-        mDma->setCircularBuffer(mBuffer.data(), mChannelCount*mSampleCount);
-        if (mCompleteEvent)
-            mDma->setTransferCompleteEvent(mCompleteEvent);
-        configDma(mDma);
         mDmaOwner = true;
     }
 
     mEnabled = enable;
+    
     if (enable)
+    {        
         mAdc->CR2 |= ADC_CR2_ADON;
+        if (mDmaOwner)
+        {
+            mDma->setCircularBuffer(mBuffer.data(), mChannelCount*mSampleCount);
+            if (mCompleteEvent)
+                mDma->setTransferCompleteEvent(mCompleteEvent);
+            configDma(mDma);
+            mDma->start();
+        }
+    }
     else
+    {
         mAdc->CR2 &= ~ADC_CR2_ADON;
+        if (mDmaOwner)
+            mDma->stop(true);
+    }
 
 //    if (mAdc2)
 //        ADC_Cmd(mAdc2, en);
 //    if (mAdc3)
 //        ADC_Cmd(mAdc3, en);
 
-    if (mDmaOwner)
-        mDma->start();//mDma->setEnabled(enable); //!!! setEnabled() doesn't configure DMA!!!
+    //mDma->setEnabled(enable); //!!! setEnabled() doesn't configure DMA!!!
 }
 //---------------------------------------------------------------------------
 
@@ -250,7 +260,7 @@ void Adc::configDma(Dma *dma)
     int dataSize = mResolution==Res8bit? 1: 2;
 
     dma->setSource(address, dataSize);
-    if (mDma && mDmaOwner)
+    if (mDma != dma && mDmaOwner)
     {
         mDmaOwner = false;
         delete mDma;

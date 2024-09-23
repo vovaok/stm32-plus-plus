@@ -267,7 +267,7 @@ ObjectInfo *ObjnetDevice::prepareObject(const ObjectInfo::Description &desc)
         else if (rIsBuffer)
             sz = sizeof(RingBuffer<float>);
 
-        if (desc.flags & ObjectInfo::Dual)
+        if ((desc.flags & ObjectInfo::Dual) || desc.wType != desc.rType)
         {
             int osz = mObjBuffers[id].size();
             mObjBuffers[id].resize(osz + sz);

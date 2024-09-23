@@ -15378,7 +15378,7 @@
                 </option>
                 <option>
                     <name>CCOptLevel</name>
-                    <state>1</state>
+                    <state>0</state>
                 </option>
                 <option>
                     <name>CCOptStrategy</name>
@@ -15387,7 +15387,7 @@
                 </option>
                 <option>
                     <name>CCOptLevelSlave</name>
-                    <state>1</state>
+                    <state>0</state>
                 </option>
                 <option>
                     <name>CCPosIndRopi</name>
@@ -16905,7 +16905,6 @@
         <name>objnet</name>
         <excluded>
             <configuration>stm32l476rg</configuration>
-            <configuration>stm32g474</configuration>
             <configuration>stm32f303xC</configuration>
             <configuration>stm32f303x8</configuration>
             <configuration>stm32f030x6</configuration>
@@ -17019,6 +17018,7 @@
             <name>$PROJ_DIR$\src\objnet\udponbinterface.cpp</name>
             <excluded>
                 <configuration>stm32f446</configuration>
+                <configuration>stm32g474</configuration>
                 <configuration>stm32f303xC</configuration>
                 <configuration>stm32f303x8</configuration>
                 <configuration>stm32f030x6</configuration>
