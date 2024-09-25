@@ -98,6 +98,7 @@ private:
     void enableInterrupt();
     void handleInterrupt();
     void handleDmaInterrupt();
+    void handleRxDmaInterrupt();
 
     void updateConfig();
 
@@ -128,6 +129,8 @@ public:
     void transfer(const uint8_t *data, uint8_t *buffer, int size);
     bool transferDma(const uint8_t *data, uint8_t *buffer, int size);
     void setDataSize(int size);
+    
+    void writeAsync(const uint8_t *data, int size);
 
     Dma *dmaTx() {return mDmaTx;}
     Dma *dmaRx() {return mDmaRx;}

@@ -303,10 +303,10 @@ enum Config
     SPI3_MOSI_PC12 =    PINCONFIG(PC12, modeAF | speed50MHz, afSpi3, 0x30), //!.
     I2S3_SD_PC12 =      PINCONFIG(PC12, modeAF | speed50MHz, afSpi3, 0x30), //!.
     // nedodelano I2S3ext
-    SPI4_NSS_PE4 =     PINCONFIG(PE11, modeAF | speed50MHz, afSpi4, 0x40),
-    SPI4_SCK_PE2 =     PINCONFIG(PE12, modeAF | speed50MHz, afSpi4, 0x40),
-    SPI4_MISO_PE5 =    PINCONFIG(PE13, modeAF | speed50MHz | pullUp, afSpi4, 0x40),
-    SPI4_MOSI_PE6 =    PINCONFIG(PE14, modeAF | speed50MHz, afSpi4, 0x40),
+    SPI4_NSS_PE4 =     PINCONFIG(PE4, modeAF | speed50MHz, afSpi4, 0x40),
+    SPI4_SCK_PE2 =     PINCONFIG(PE2, modeAF | speed50MHz, afSpi4, 0x40),
+    SPI4_MISO_PE5 =    PINCONFIG(PE5, modeAF | speed50MHz | pullUp, afSpi4, 0x40),
+    SPI4_MOSI_PE6 =    PINCONFIG(PE6, modeAF | speed50MHz, afSpi4, 0x40),
     SPI4_NSS_PE11 =     PINCONFIG(PE11, modeAF | speed50MHz, afSpi4, 0x40),
     SPI4_SCK_PE12 =     PINCONFIG(PE12, modeAF | speed50MHz, afSpi4, 0x40),
     SPI4_MISO_PE13 =    PINCONFIG(PE13, modeAF | speed50MHz | pullUp, afSpi4, 0x40),

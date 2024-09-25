@@ -11,10 +11,10 @@ Dma *Dma::mStreams[16] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 Dma::Dma(Channel channelName)
 {
     int dma_num = channelName >> 8;
-    mStreamNum  = (channelName >> 4) & 7;
-    mChannelNum = channelName & 7;
+    int stream_num  = (channelName >> 4) & 7;
+    int channel_num = channelName & 7;
 
-    int idx = mStreamNum + 8*(dma_num - 1);
+    int idx = stream_num + 8 * (dma_num - 1);
     if (mStreams[idx])
         THROW(Exception::ResourceBusy);
     mStreams[idx] = this;
@@ -22,20 +22,44 @@ Dma::Dma(Channel channelName)
     if (dma_num == 1)
     {
         mDma = DMA1;
-        mStream = DMA1_Stream0 + mStreamNum;
+        mStream = DMA1_Stream0 + stream_num;
         RCC->AHB1ENR |= RCC_AHB1ENR_DMA1EN;
     }
     if (dma_num == 2)
     {
         mDma = DMA2;
-        mStream = DMA2_Stream0 + mStreamNum;
+        mStream = DMA2_Stream0 + stream_num;
         RCC->AHB1ENR |= RCC_AHB1ENR_DMA2EN;
     }
 
-    const IRQn_Type irq[16] = {FOR_EACH_DMA(DMA_IRQn)};
+    static const IRQn_Type irq[16] = {FOR_EACH_DMA(DMA_IRQn)};
     mIrq = irq[idx];
+    
+    if (stream_num & 1)
+        mFlagsOffset += 6;
+    if (stream_num & 2)
+        mFlagsOffset += 16;
+    if (stream_num & 4)
+    {
+        mISR = &mDma->HISR;
+        mIFCR = &mDma->HIFCR;
+    }
+    else
+    {
+        mISR = &mDma->LISR;
+        mIFCR = &mDma->LIFCR;
+    }
 
     mConfig.all = 0;
+    
+    mConfig.CHSEL = channel_num;
+    mConfig.MBURST = 0;
+    mConfig.PBURST = 0;
+    mConfig.CT = 0;
+    mConfig.PL = 2; // priority level high
+    mConfig.PINCOS = 0;
+
+    mStream->CR = mConfig.all;
 }
 
 Dma::~Dma()
@@ -49,30 +73,32 @@ Dma::~Dma()
     mStream->FCR = 0x00000021;
     clearFlag(AllFlags);
 }
+
+Dma *Dma::instance(Channel channelName)
+{
+    int dma_num = channelName >> 8;
+    int stream_num  = (channelName >> 4) & 7;
+    int channel_num = channelName & 7;
+
+    int idx = stream_num + 8 * (dma_num - 1);
+    Dma *dma = mStreams[idx];
+    if (!dma)
+        dma = new Dma(channelName); // this updates mStream[idx]
+    
+    // override channel for this instance
+    dma->mConfig.CHSEL = channel_num;
+    return dma;
+}
 //---------------------------------------------------------------------------
 
 bool Dma::testFlag(uint32_t flag) const
 {
-    if (mStreamNum & 1)
-        flag <<= 6;
-    if (mStreamNum & 2)
-        flag <<= 16;
-    if (mStreamNum & 4)
-        return mDma->HISR & flag;
-    else
-        return mDma->LISR & flag;
+    return *mISR & (flag << mFlagsOffset);
 }
 
 void Dma::clearFlag(uint32_t flag)
 {
-    if (mStreamNum & 1)
-        flag <<= 6;
-    if (mStreamNum & 2)
-        flag <<= 16;
-    if (mStreamNum & 4)
-        mDma->HIFCR = flag;
-    else
-        mDma->LIFCR = flag;
+    *mIFCR = flag << mFlagsOffset;
 }
 //---------------------------------------------------------------------------
 
@@ -167,19 +193,9 @@ void Dma::setSink(volatile void *periph, int dataSize)
 
 void Dma::start(int size)
 {
-    mConfig.CHSEL = mChannelNum;
-    mConfig.MBURST = 0;
-    mConfig.PBURST = 0;
-    mConfig.CT = 0;
-    mConfig.PL = 2; // priority level high
-    mConfig.PINCOS = 0;
-
-    mStream->CR = mConfig.all;
-
-    if (size)
-        mStream->NDTR = size;
-    // clearing flags is necessary for enabling dma streaming
-    clearFlag(AllFlags);
+    mStream->NDTR = size;
+//    // clearing flags is necessary for enabling dma streaming
+//    clearFlag(AllFlags);
     // enable the stream
     mStream->CR |= DMA_SxCR_EN;
 }
@@ -247,11 +263,16 @@ int Dma::currentPage() const
 
 void Dma::handleInterrupt()
 {
+    GPIOE->BSRR = (1<<12);
+    
     bool sts = testFlag(TCIF);
     clearFlag(AllFlags);
 
     if (sts && mOnTransferComplete)
+    {
+        GPIOE->BSRR = (1<<12)<<16;
         mOnTransferComplete();
+    }
 }
 //---------------------------------------------------------------------------
 

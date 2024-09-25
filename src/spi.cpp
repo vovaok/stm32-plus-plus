@@ -11,9 +11,9 @@
 #define SPI4_DMA_CHANNEL_RX     Dma::SPI4_RX_Stream0; // Dma::SPI4_RX_Stream3;
 #define SPI4_DMA_CHANNEL_TX     Dma::SPI4_TX_Stream1; // Dma::SPI4_TX_Stream4;
 #define SPI5_DMA_CHANNEL_RX     Dma::SPI5_RX_Stream5; // Dma::SPI5_RX_Stream3;
-#define SPI5_DMA_CHANNEL_TX     Dma::SPI5_TX_Stream4; // Dma::SPI5_TX_Stream6;
-#define SPI6_DMA_CHANNEL_RX     Dma::SPI6_TX_Stream5; // CONFLICT with SPI5_DMA_CHANNEL_RX!
-#define SPI6_DMA_CHANNEL_TX     Dma::SPI6_RX_Stream6;
+#define SPI5_DMA_CHANNEL_TX     Dma::SPI5_TX_Stream6; // Dma::SPI5_TX_Stream4;
+#define SPI6_DMA_CHANNEL_RX     Dma::SPI6_RX_Stream6; // SHARE with SPI5_DMA_CHANNEL_TX!
+#define SPI6_DMA_CHANNEL_TX     Dma::SPI6_TX_Stream5; // SHARE with SPI5_DMA_CHANNEL_RX!
 
 #elif defined(STM32L4)
 #define SPI1_DMA_CHANNEL_RX     Dma::SPI1_RX_Channel2; // Dma::SPI1_RX_Channel3;
@@ -198,11 +198,11 @@ void Spi::open()
 
     if (mUseDmaRx)
     {
-        if (!mDmaRx)
-        mDmaRx = new Dma(mDmaChannelRx);
+        mDmaRx = Dma::instance(mDmaChannelRx);
         int dataSize = (m_dataSize > 8)? 2: 1;
 //        size /= dataSize;
         mDmaRx->setSource(&mDev->DR, dataSize);
+        
 //        if (circular)
 //            mDmaRx->setCircularBuffer(data, size);
 //        else
@@ -215,8 +215,7 @@ void Spi::open()
 
     if (mUseDmaTx)
     {
-        if (!mDmaTx)
-            mDmaTx = new Dma(mDmaChannelTx);
+        mDmaTx = Dma::instance(mDmaChannelTx);
         if (onBytesWritten)
             mDmaTx->setTransferCompleteEvent(EVENT(&Spi::handleDmaInterrupt));
         if (m_dataSize <= 8)
@@ -234,20 +233,21 @@ void Spi::open()
 
 void Spi::close()
 {
-//    if (mDmaRx)
-//    {
-//        mDev->CR2 &= ~SPI_CR2_RXDMAEN;
-//        mDmaRx->stop(true);
+    if (mUseDmaRx)
+    {
+        mConfig.RXDMAEN = 0;
+        updateConfig();
+        mDmaRx->stop(true);
 //        delete mDmaRx;
 //        mDmaRx = 0L;
-//    }
-    if (mDmaTx)
+    }
+    if (mUseDmaTx)
     {
         mConfig.TXDMAEN = 0;
         updateConfig();
         mDmaTx->stop(true);
-        delete mDmaTx;
-        mDmaTx = 0L;
+//        delete mDmaTx;
+//        mDmaTx = 0L;
     }
 
     mConfig.enable = 0;
@@ -281,26 +281,49 @@ void Spi::transfer(uint8_t* data, int size)
 
 bool Spi::transferDma(const uint8_t *data, uint8_t *buffer, int size)
 {
+    if (!data && buffer)
+    {
+        if (m_dataSize <= 8)
+            mDmaRx->setSingleBuffer(buffer, size);
+        else
+            mDmaRx->setSingleBuffer(buffer, size / 2);
+
+        mDmaRx->setTransferCompleteEvent(EVENT(&Spi::handleRxDmaInterrupt));
+        mDmaRx->start();
+        mDev->CR1 |= SPI_CR1_RXONLY; // enable CLK generation
+        
+        return true;
+    }
+    
     if (mDmaTx->isEnabled() && !mDmaTx->isComplete())
         return false;
 
     if (m_dataSize <= 8)
     {
-        mDmaRx->setSingleBuffer(buffer, size);
+        if (buffer)
+            mDmaRx->setSingleBuffer(buffer, size);
         mDmaTx->setSingleBuffer(const_cast<uint8_t*>(data), size);
     }
     else
     {
-        mDmaRx->setSingleBuffer(buffer, size / 2);
+        if (buffer)
+            mDmaRx->setSingleBuffer(buffer, size / 2);
         mDmaTx->setSingleBuffer(const_cast<uint8_t*>(data), size / 2);
     }
     if (buffer)
         mDmaRx->start();
+    
     mDmaTx->start();
 
 //    while (!mDmaRx->isComplete());
 
     return true;
+}
+
+void Spi::writeAsync(const uint8_t *data, int size)
+{
+    mDmaTx->setSingleBuffer(const_cast<uint8_t*>(data), size);
+    mDmaTx->start();
 }
 
 void Spi::transfer(const uint8_t *data, uint8_t *buffer, int size)
@@ -571,15 +594,24 @@ void Spi::handleInterrupt()
 
 void Spi::handleDmaInterrupt()
 {
-    if (mDmaTx)
-    {
-        mDmaTx->stop();
-        // clear RX FIFO
+//    if (mDmaTx)
+//    {
+//        mDmaTx->stop();
+//#warning SPI: RX shadow register is not cleared! maybe it's bad
+//         clear RX FIFO
         while (mDev->SR & SPI_SR_RXNE)
             (void)mDev->DR;
         if (onBytesWritten)
             onBytesWritten();
-    }
+//    }
+}
+
+void Spi::handleRxDmaInterrupt()
+{
+    mDev->CR1 &= ~SPI_CR1_RXONLY;
+    /// @todo make this crutch less wretched
+    if (onBytesWritten)
+        onBytesWritten();
 }
 //---------------------------------------------------------------------------
 

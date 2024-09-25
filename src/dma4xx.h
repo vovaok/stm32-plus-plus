@@ -151,8 +151,11 @@ private:
     static Dma *mStreams[16];
     DMA_TypeDef *mDma;
     DMA_Stream_TypeDef *mStream;
-    uint8_t mStreamNum;
-    uint8_t mChannelNum;
+//    uint8_t mStreamNum; // not used now, replaced with flags offset
+//    uint8_t mChannelNum; // commented because of it is given in the mConfig.CHSEL
+    volatile uint32_t *mISR = nullptr; // LISR or HISR depending on stream number
+    volatile uint32_t *mIFCR = nullptr; // LIFCR or HIFCR depending on stream number
+    int mFlagsOffset = 0;
 
 #pragma pack(push,1)
     union
@@ -211,6 +214,11 @@ private:
 public:
     Dma(Channel channelName);
     ~Dma();
+    
+    //! Get DMA instance
+    //! Use it to obtain the instance of the DMA stream for desired channel
+    //! in case of several periperals share the same stream
+    static Dma *instance(Channel channelName);
 
     void setSingleBuffer(void *buffer, int size);
     void setCircularBuffer(void *buffer, int size);
@@ -222,7 +230,8 @@ public:
     void setSource(volatile void *periph, int dataSize);
     void setSink(volatile void *periph, int dataSize);
 
-    void start(int size=0);
+    inline void start() {mStream->CR |= DMA_SxCR_EN;}
+    void start(int size);
     void stop(bool wait=false);
     void setEnabled(bool enabled);
     bool isEnabled() const;
