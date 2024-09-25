@@ -597,10 +597,11 @@ void Spi::handleDmaInterrupt()
 //    if (mDmaTx)
 //    {
 //        mDmaTx->stop();
-//#warning SPI: RX shadow register is not cleared! maybe it's bad
+    
 //         clear RX FIFO
         while (mDev->SR & SPI_SR_RXNE)
             (void)mDev->DR;
+        
         if (onBytesWritten)
             onBytesWritten();
 //    }
@@ -608,7 +609,18 @@ void Spi::handleDmaInterrupt()
 
 void Spi::handleRxDmaInterrupt()
 {
-    mDev->CR1 &= ~SPI_CR1_RXONLY;
+//    1. Wait for the second to last occurrence of RXNE=1 (n–1)
+//    2. Then wait for one SPI clock cycle (using a software loop) before disabling the SPI
+//    (SPE=0)
+//    3. Then wait for the last RXNE=1 before entering the Halt mode (or disabling the
+//    peripheral clock)
+    
+    while (!(mDev->SR & SPI_SR_RXNE));
+    mDev->DR; // dummy read
+    mDev->CR1 &= ~(SPI_CR1_RXONLY);
+    while (!(mDev->SR & SPI_SR_RXNE));
+    mDev->DR; // dummy read
+    
     /// @todo make this crutch less wretched
     if (onBytesWritten)
         onBytesWritten();
