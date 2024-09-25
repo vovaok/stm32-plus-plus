@@ -263,16 +263,11 @@ int Dma::currentPage() const
 
 void Dma::handleInterrupt()
 {
-    GPIOE->BSRR = (1<<12);
-    
     bool sts = testFlag(TCIF);
     clearFlag(AllFlags);
 
     if (sts && mOnTransferComplete)
-    {
-        GPIOE->BSRR = (1<<12)<<16;
         mOnTransferComplete();
-    }
 }
 //---------------------------------------------------------------------------
 
