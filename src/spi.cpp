@@ -600,8 +600,10 @@ void Spi::handleDmaInterrupt()
     
 //         clear RX FIFO
     //! @todo check validity of this:
-        while (mDev->SR & SPI_SR_RXNE)
-            (void)mDev->DR;
+    
+    while (!(mDev->SR & SPI_SR_RXNE)); // wait for RX Not Empty
+    for (int i=0; i<10; i++)
+        (void)mDev->DR; // dummy read
         
         if (onBytesWritten)
             onBytesWritten();
