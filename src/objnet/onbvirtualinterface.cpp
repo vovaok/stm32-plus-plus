@@ -37,12 +37,13 @@ int OnbVirtualInterface::addFilter(uint32_t id, uint32_t mask)
     if (id & 0x10000000)
     {
         m_busaddr = (id >> 24) & 0xF;
-        m_pool->bindInterface(m_busaddr, this);
+        if (m_pool->bindInterface(m_busaddr, this))
+            return m_busaddr; // filter number = bus address
     }
-    return 1; // x3
+    return -1; // invalid filter number
 }
 
 void OnbVirtualInterface::removeFilter(int number)
 {
-    m_pool->unbindInterface(m_busaddr);
+    m_pool->unbindInterface(number);
 }

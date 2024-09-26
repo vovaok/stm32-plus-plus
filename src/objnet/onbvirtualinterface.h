@@ -31,24 +31,26 @@ class OnbVirtualInterfacePool
 private:
     friend class OnbVirtualInterface;
     
-    void bindInterface(uint8_t busaddr, OnbVirtualInterface *iface)
+    bool bindInterface(uint8_t busaddr, OnbVirtualInterface *iface)
     {
-        if (busaddr < 16)
+        if (busaddr < 16 && !m_interfaces[busaddr])
         {
-            if (!m_interfaces[busaddr])
-                m_activeCount++;
+            m_activeCount++;
             m_interfaces[busaddr] = iface;
+            return true;
         }
+        return false;
     }
     
-    void unbindInterface(uint8_t busaddr)
+    bool unbindInterface(uint8_t busaddr)
     {
-        if (busaddr < 16)
+        if (busaddr < 16 && m_interfaces[busaddr])
         {
-            if (m_interfaces[busaddr])
-                --m_activeCount;
+            --m_activeCount;
             m_interfaces[busaddr] = nullptr;
+            return true;
         }
+        return false;
     }
     
     OnbVirtualInterface *m_interfaces[16] = {0};
