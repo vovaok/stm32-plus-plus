@@ -3,6 +3,7 @@
 #include "widget.h"
 #include "../image.h"
 #include "core/coretypes.h"
+#include <functional>
 
 class PushButton: public Widget
 {
