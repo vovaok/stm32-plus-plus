@@ -19,7 +19,7 @@ ST7796::ST7796(Spi *spi, Gpio::PinName cs, Gpio::PinName dc, Gpio::PinName rst) 
 //    m_spi->setBaudrate(10000000);
     m_spi->setDataSize(16);
     m_spi->setUseDmaTx(false);
-    m_spi->setUseDmaRx(true);
+    m_spi->setUseDmaRx(false);
 //    m_spi->onBytesWritten = CLOSURE(m_cs, &Gpio::set);
     m_spi->open();
 }
@@ -80,9 +80,9 @@ void ST7796::init(Orientation ori)
     drawString(0, 0, m_width, m_height, AlignCenter, "Display initialized");
     delay(10);
     
-    m_spi->close();
-    m_spi->setUseDmaTx(true);
-    m_spi->open();
+//    m_spi->close();
+//    m_spi->setUseDmaTx(true);
+//    m_spi->open();
 }
 
 void ST7796::setOrientation(Orientation ori)
