@@ -16744,6 +16744,12 @@
                 <name>$PROJ_DIR$\src\gfx\gui\spinbox.h</name>
             </file>
             <file>
+                <name>$PROJ_DIR$\src\gfx\gui\switchbutton.cpp</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\src\gfx\gui\switchbutton.h</name>
+            </file>
+            <file>
                 <name>$PROJ_DIR$\src\gfx\gui\translator.cpp</name>
             </file>
             <file>

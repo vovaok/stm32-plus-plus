@@ -42,8 +42,9 @@ ObjnetNode::ObjnetNode(ObjnetInterface *iface) :
 //    if (mBusType == BusSwonb || mBusType == BusRadio)
 //        mSendTimer.stop();
 
-    if (mNodesCount)
-        mSerial ^= rand();
+//    if (mNodesCount)
+//        mSerial ^= rand();
+    mSerial += mNodesCount;
 
     bindSvcObject(svcClass,       ObjectInfo("class", mClass, ObjectInfo::ReadOnly));
     bindSvcObject(svcName,        ObjectInfo("name", mName));

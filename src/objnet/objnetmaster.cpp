@@ -251,7 +251,7 @@ void ObjnetMaster::connectDevice(unsigned char netaddr)
         return;
     ObjnetDevice *dev = mDevices[netaddr];
     dev->mPresent = true;
-    dev->mTimeout = 10;
+    dev->mTimeout = 5;
     
     if (mAdjacentNode)
     {
@@ -376,7 +376,7 @@ bool ObjnetMaster::parseServiceMessage(const CommonMessage &msg)
         }
         else
         {
-            dev->mTimeout = 10;
+            dev->mTimeout = 5;
         }
         break;
         

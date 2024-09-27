@@ -24,10 +24,19 @@ protected:
 private:
     uint8_t m_busaddr = 0xFF; // invalid
     OnbVirtualInterfacePool *m_pool = nullptr;
+    bool m_enabled = true;
+    friend class OnbVirtualInterfacePool;
 };
 
 class OnbVirtualInterfacePool
 {
+public:
+    void setInterfaceEnabled(uint8_t busaddr, bool enabled)
+    {
+        if (busaddr < 16 && m_interfaces[busaddr])
+            m_interfaces[busaddr]->m_enabled = enabled;
+    }
+    
 private:
     friend class OnbVirtualInterface;
     

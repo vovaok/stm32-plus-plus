@@ -16,11 +16,13 @@ bool OnbVirtualInterface::isBusPresent() const
 
 bool OnbVirtualInterface::send(const CommonMessage &msg)
 {
+    if (!m_enabled)
+        return false;
     bool result = true;
     for (int i=0; i<16; i++)
     {
         OnbVirtualInterface *iface = m_pool->m_interfaces[i];
-        if (!iface || iface == this)
+        if (!iface || iface == this || !iface->m_enabled)
             continue;
         
         if (msg.isGlobal() || (msg.isLocal() && msg.localId().mac == iface->m_busaddr))

@@ -617,19 +617,18 @@ void Spi::handleRxDmaInterrupt()
 //    (SPE=0)
 //    3. Then wait for the last RXNE=1 before entering the Halt mode (or disabling the
 //    peripheral clock)
-    GPIOE->BSRR = (1<<12);
+
     while (!(mDev->SR & SPI_SR_RXNE));
     mDev->DR; // dummy read
-    GPIOE->BSRR = (1<<12) << 16;
+    
     mDev->CR1 &= ~(SPI_CR1_RXONLY);
     for (int i=0; i<10; i++)
         mDev->DR;
 //    while (mDev->SR & SPI_SR_BSY) // wait for last cycle completion
 //        mDev->DR; // dummy read
-    GPIOE->BSRR = (1<<12);
+    
 //    while (!(mDev->SR & SPI_SR_RXNE));
     mDev->DR; // dummy read
-    GPIOE->BSRR = (1<<12)<<16;
     
     /// @todo make this crutch less wretched
     if (onBytesWritten)
