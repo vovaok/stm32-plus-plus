@@ -28,7 +28,7 @@ Dac124s085::Dac124s085(Spi *spi, Gpio::PinName csPin) :
 void Dac124s085::writeRegistr(Message cmd)
 {
     select();
-    mSpi->write(cmd.cmdDac);
+    mSpi->write16(cmd.cmdDac);
     deselect();
 }
 
@@ -39,7 +39,7 @@ void Dac124s085::writeRegistr(char ch,char cmd, unsigned short value)
   mMessage.cmd = cmd;
   mMessage.value = value;
   select();
-  mSpi->write(mMessage.cmdDac);
+  mSpi->write16(mMessage.cmdDac);
   deselect();
   
 }
