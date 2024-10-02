@@ -3,6 +3,7 @@
 
 #include "i2c.h"
 #include "core/device.h"
+#include "core/application.h"
 
 //! Класс для работы с внешней памятью EEPROM типа AT24Cxxx.
 //! Данный класс является шаблонным, для создания объекта
@@ -155,7 +156,7 @@ protected:
             page = m_ptr >> m_addrSize; // рассчитываем текущую страницу
             addr = m_ptr;// & m_addrMask; // рассчитываем адрес внутри этой страницы
             // рассчитываем размер блока...
-            uint32_t maxsz = m_chunkSize - (addr & (m_chunkSize - 1));
+            uint32_t maxsz =  16; //m_chunkSize - (addr & (m_chunkSize - 1));   !!!фикс костыль!!
             if (size < maxsz)
                 sz = size; 
             else
@@ -168,12 +169,12 @@ protected:
             {
                 if (writeChunk(page, addr, src, sz))
                     break;
-                stmApp()->delay(1);
+                stmApp()->delay(10);
             }
             // если не записалось за 10 мс, значит действительно всё плохо...
             if (!retries)
                 break;
-            
+            stmApp()->delay(10);
             m_ptr += sz; // текущий адрес увеличивается на размер записанных данных
             src += sz;   // также двигаем буфер
             size -= sz;  // и уменьшаем оставшийся размер
@@ -197,13 +198,30 @@ private:
     // При этом номер страницы задаётся в младших битах адреса устройства.
     bool writeChunk(uint8_t page, AddrType wordAddress, const char *data, int size)
     {
-        bool r;
+         bool r;
         uint8_t deviceAddress = m_chipAddress | (page << 1);
-        r = m_i2c->writeRegAddr(deviceAddress, wordAddress, sizeof(AddrType));
+        r = m_i2c->startTransmission(I2c::DirectionTransmitter, deviceAddress);
         if (r)
-            r = m_i2c->write(deviceAddress, reinterpret_cast<const uint8_t *>(data), size);
+        {
+            m_i2c->setAcknowledge(false);
+            if (sizeof(AddrType) == 2)
+                r &= m_i2c->writeData(wordAddress >> 8);
+             stmApp()->delay(1);
+          
+            r &= m_i2c->writeData(wordAddress & 0xFF);
+            do
+            {
+                r &= m_i2c->writeData(*data++);
+                 stmApp()->delay(1);
+              
+            }
+            while (--size);
+        }
+//        if (r)
+            r = m_i2c->stopTransmission();
         return r;
     }
+    
 };
 
 // Реализация шаблонов для различных вариантов микросхем
