@@ -85,11 +85,7 @@ public:
     //! then reads <size> bytes of <data>
     bool read(uint8_t address, uint8_t *data, int size);
     
-private:
-    I2C_TypeDef *m_dev;
-    
-    // low-level interface:
-    typedef enum
+        typedef enum
     {
         DirectionTransmitter    = 0x00,
         DirectionReceiver       = 0x01
@@ -100,6 +96,14 @@ private:
     bool writeData(uint8_t data);
     bool readData(uint8_t *buf);
     void setAcknowledge(bool state);
+    
+private:
+    I2C_TypeDef *m_dev;
+    
+    // low-level interface:
+
+    
+ 
     
     // the legacy of the SPL:
     typedef enum

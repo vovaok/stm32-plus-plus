@@ -80,7 +80,7 @@ private:
     static string mDescription;
     static string mCompany;
 
-    volatile uint32_t mTimestamp;
+    volatile unsigned long mTimestamp;
 
     static void sysTickHandler();
 

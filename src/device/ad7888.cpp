@@ -8,7 +8,7 @@ AD7888::AD7888(Spi *spi, Gpio::PinName cs) :
 
     m_spi->setCPOL_CPHA(1, 1);
     m_spi->setDataSize(16);
-    m_spi->setBaudrate(2000000);
+    m_spi->setBaudrate(1000000);
     m_spi->setMasterMode();
     m_spi->setTransferCompleteEvent(EVENT(&AD7888::sampleReady));
 }

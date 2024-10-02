@@ -25,7 +25,7 @@ void ListSpinBox::setItems(const ByteArray &list)
             m_items.push_back(list.mid(idx));
         idx = next_idx + 1;
     } while (idx > 0);
-    setRange(0, m_items.size());
+    setRange(0, m_items.size()-1);
     updateText();
 }
 
@@ -37,6 +37,7 @@ ByteArray ListSpinBox::items() const
         list.append(ba);
         list.append('\n');
     }
+    list.remove(list.size()-1,1);
     return list;
 }
 
