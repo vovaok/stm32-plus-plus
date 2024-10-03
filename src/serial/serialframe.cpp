@@ -13,7 +13,7 @@ SerialFrame::SerialFrame(Device *device) :
 
 bool SerialFrame::open(OpenMode mode)
 {
-    if (m_device) 
+    if (m_device)
         return m_device->open();
     return false;
 }
@@ -22,6 +22,8 @@ void SerialFrame::task()
 {
     if (m_ready)
         return;
+
+    if (!m_device || !isOpen())
 
 //    char buferok[16];
 //    int sz = m_device->read(buferok, 16);
