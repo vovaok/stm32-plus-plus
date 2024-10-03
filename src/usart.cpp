@@ -263,15 +263,15 @@ void Usart::close()
 {
     if (mDmaRx)
     {
-        mDev->CR3 &= ~USART_CR3_DMAR;
         mDmaRx->stop(true);
+        mDev->CR3 &= ~USART_CR3_DMAR;
 //        delete mDmaRx;
 //        mDmaRx = 0L;
     }
     if (mDmaTx)
     {
-        mDev->CR3 &= ~USART_CR3_DMAT;
         mDmaTx->stop(true);
+        mDev->CR3 &= ~USART_CR3_DMAT;
 //        delete mDmaTx;
 //        mDmaTx = 0L;
     }
