@@ -16,6 +16,7 @@ SerialLink::SerialLink(Device *dev) :
 //    if (m_device->isSequential())
 //        m_device = new SerialFrame(m_device);
     m_device->onReadyRead = EVENT(&SerialLink::onDataReceived);
+    m_device->open();
 }
 
 void SerialLink::setAddress(uint8_t addr)

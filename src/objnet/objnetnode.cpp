@@ -168,8 +168,9 @@ void ObjnetNode::task()
             {
                 /// @todo todo todotodotodo tododododooooooooo
                 ByteArray ba;
-                mObjects[mObjInfoSendCount].mDesc.read(ba);
-                bool success = sendServiceMessage(mCurrentRemoteAddress, svcObjectInfo, std::move(ba));
+//                mObjects[mObjInfoSendCount].mDesc.read(ba);
+//                bool success = sendServiceMessage(mCurrentRemoteAddress, svcObjectInfo, std::move(ba));
+                bool success = sendObjectInfo(mCurrentRemoteAddress, &mObjects[mObjInfoSendCount]);
                 if (success)
                     mObjInfoSendCount++;
                 else
@@ -673,10 +674,13 @@ bool ObjnetNode::sendObjectInfo(uint8_t remoteAddr, ObjectInfo *obj, const ByteA
     for (uint8_t idx = 0; idx < obj->subobjectCount(); idx++)
     {
         ByteArray ba = loc;
+        if (loc.isEmpty())
+            ba.append(obj->id());
         ba.append(idx);
-        sendObjectInfo(remoteAddr, &obj->subobject(idx), ba);
+        result = sendObjectInfo(remoteAddr, &obj->subobject(idx), ba);
+        if (!result)
+            return false;
     }
-
     return true;
 }
 

@@ -62,7 +62,7 @@ CommonMessageBuffer &CommonMessageBufferList::operator[](uint32_t key)
 void CommonMessageBufferList::erase(uint32_t key)
 {
     CommonMessageBufferList *b;
-    for (b=this; b->m_next; b=b->m_next)
+    for (b=this; b && b->m_next; b=b->m_next)
     {
         if (b->m_next->m_key == key)
             eraseNext(b);
@@ -72,7 +72,7 @@ void CommonMessageBufferList::erase(uint32_t key)
 void CommonMessageBufferList::damage(int pts)
 { 
     CommonMessageBufferList *b;
-    for (b=this; b->m_next; b=b->m_next)
+    for (b=this; b && b->m_next; b=b->m_next)
     {
         if (0 == b->m_next->CommonMessageBuffer::damage(pts))
             eraseNext(b);

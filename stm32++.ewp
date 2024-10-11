@@ -17130,7 +17130,6 @@
                 <configuration>stm32f373xB</configuration>
                 <configuration>stm32f373xB_no-exceptions_no-rtti</configuration>
                 <configuration>stm32f407zg</configuration>
-                <configuration>stm32f407vg</configuration>
                 <configuration>stm32f429zi</configuration>
                 <configuration>stm32f446</configuration>
                 <configuration>stm32l476rg</configuration>

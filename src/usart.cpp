@@ -201,8 +201,9 @@ bool Usart::open(OpenMode mode)
         mRxBuffer.resize(mRxBufferSize); ///////////////////////////////!!!!!! power of two only!!!!
         if (mUseDmaRx)
         {
-            if (!mDmaRx)
-                mDmaRx = new Dma(mDmaChannelRx);
+            mDmaRx = Dma::instance(mDmaChannelRx);
+//            if (!mDmaRx)
+//                mDmaRx = new Dma(mDmaChannelRx);
             mDmaRx->setCircularBuffer(mRxBuffer.data(), mRxBuffer.size());
             mDmaRx->setSource((void*)&mDev->RDR, 1);
         }
@@ -218,8 +219,9 @@ bool Usart::open(OpenMode mode)
         mTxBuffer.resize(mTxBufferSize);
         if (mUseDmaTx)
         {
-            if (!mDmaTx)
-                mDmaTx = new Dma(mDmaChannelTx);
+            mDmaTx = Dma::instance(mDmaChannelTx);
+//            if (!mDmaTx)
+//                mDmaTx = new Dma(mDmaChannelTx);
             mDmaTx->setSink((void*)&mDev->TDR, 1);
             mDmaTx->setTransferCompleteEvent(EVENT(&Usart::dmaTxComplete));
             enableIrq = true; // TCIE interrupt will be enabled later on transfer complete event
@@ -261,17 +263,17 @@ void Usart::close()
 {
     if (mDmaRx)
     {
-        mDev->CR3 &= ~USART_CR3_DMAR;
         mDmaRx->stop(true);
-        delete mDmaRx;
-        mDmaRx = 0L;
+        mDev->CR3 &= ~USART_CR3_DMAR;
+//        delete mDmaRx;
+//        mDmaRx = 0L;
     }
     if (mDmaTx)
     {
-        mDev->CR3 &= ~USART_CR3_DMAT;
         mDmaTx->stop(true);
-        delete mDmaTx;
-        mDmaTx = 0L;
+        mDev->CR3 &= ~USART_CR3_DMAT;
+//        delete mDmaTx;
+//        mDmaTx = 0L;
     }
 
     // disable UART
@@ -489,12 +491,12 @@ void Usart::dmaTxComplete()
 //---------------------------------------------------------------------------
 
 void Usart::setBaudrate(int baudrate)
-{    
+{
     int apbclock = rcc().getPeriphClk(mDev);
 
     uint32_t tmpreg = apbclock / baudrate;
     mBaudrate = apbclock / tmpreg;
-    
+
     if (tmpreg < 8)
         THROW(Exception::OutOfRange);
     if (tmpreg < 16)

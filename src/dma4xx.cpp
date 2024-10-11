@@ -34,7 +34,7 @@ Dma::Dma(Channel channelName)
 
     static const IRQn_Type irq[16] = {FOR_EACH_DMA(DMA_IRQn)};
     mIrq = irq[idx];
-    
+
     if (stream_num & 1)
         mFlagsOffset += 6;
     if (stream_num & 2)
@@ -51,7 +51,7 @@ Dma::Dma(Channel channelName)
     }
 
     mConfig.all = 0;
-    
+
     mConfig.CHSEL = channel_num;
     mConfig.MBURST = 0;
     mConfig.PBURST = 0;
@@ -84,7 +84,7 @@ Dma *Dma::instance(Channel channelName)
     Dma *dma = mStreams[idx];
     if (!dma)
         dma = new Dma(channelName); // this updates mStream[idx]
-    
+
     // override channel for this instance
     dma->mConfig.CHSEL = channel_num;
     return dma;
@@ -205,13 +205,14 @@ void Dma::stop(bool wait)
     // if stream is enabled
     if (mStream->CR & DMA_SxCR_EN)
     {
+        while (wait && !mConfig.CIRC && mStream->NDTR);
         // disable the stream
         mStream->CR &= ~DMA_SxCR_EN;
         // wait for transfer complete
-        while (wait && mStream->NDTR && !testFlag(TCIF));
+//        while (wait && mStream->NDTR && !testFlag(TCIF));
+        // this is more right way probably:
+        while (mStream->CR & DMA_SxCR_EN);
     }
-//    if (mStream == DMA1_Stream5) // WUT??
-//        DMA_ClearFlag(mStream, DMA_FLAG_FEIF5); // ???
 }
 
 void Dma::setEnabled(bool enabled)
