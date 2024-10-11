@@ -17783,7 +17783,6 @@
         <excluded>
             <configuration>stm32f373xB</configuration>
             <configuration>stm32f373xB_no-exceptions_no-rtti</configuration>
-            <configuration>stm32f303x8</configuration>
             <configuration>stm32f030x6</configuration>
         </excluded>
     </file>
