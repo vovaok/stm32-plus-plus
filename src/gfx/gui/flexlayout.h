@@ -205,6 +205,7 @@ protected:
                 setWidgetGeometry(widget, x+off2, coord, size2, sz);
             
             g = space / cnt--;
+            space -= g;
             coord += sz + g + m_gap;
         }
     }
