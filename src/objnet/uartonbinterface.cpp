@@ -127,10 +127,13 @@ bool UartOnbInterface::send(const CommonMessage &msg)
 
     if (m_device->write(m_sendBuffer, size + 4) > 0)
     {
-        if (!isMaster)
-            mHdBusyTimeout = SWONB_BUSY_TIMEOUT;
-        else if (m_device->isHalfDuplex() && (id & 0x10000000)) // in half-duplex mode: if message is local => wait response
-            mHdBusyTimeout = SWONB_BUSY_TIMEOUT;
+        if (mBusType == BusSwonb)
+        {
+            if (!isMaster)
+                mHdBusyTimeout = SWONB_BUSY_TIMEOUT;
+            else if (m_device->isHalfDuplex() && (id & 0x10000000)) // in half-duplex mode: if message is local => wait response
+                mHdBusyTimeout = SWONB_BUSY_TIMEOUT;
+        }
         return true;
     }
 

@@ -67,6 +67,10 @@ void SerialFrame::task()
                         onReadyRead();
 //                    dataReceived(m_buffer);
                 }
+                else
+                {
+                    setErrorString("Checksum failed");
+                }
                 cmd_acc = false;
             }
             break;
@@ -135,6 +139,6 @@ int SerialFrame::readData(char *data, int size)
 
         m_ready = false;
     }
-    task();
+//    task();
     return sz;
 }

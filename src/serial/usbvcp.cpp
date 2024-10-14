@@ -50,7 +50,7 @@ void UsbVcp::initDevice()
 //    mDev->setManufacturer(Application::company());
 //    mDev->setProduct(Application::name());
     
-    mBufSize = 1024;
+    mBufSize = 4095;
     mBuffer.resize(mBufSize);
     mBufHead = mBufTail = 0;
   
@@ -91,7 +91,7 @@ void UsbVcp::onReceive(const ByteArray &ba)
             mBufHead = 0;
         if (mBufHead == mBufTail)
         {
-            printf("[USB VCP] RX buffer overflow!\n");
+            setErrorString("[USB VCP] RX buffer overflow!\n");
             return;
         }
     }
