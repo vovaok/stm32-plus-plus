@@ -26,7 +26,7 @@ void ILI9486::setBacklightPin(Gpio::Config pin)
     m_pwmPin = pin;
     m_backlightPwm = new PwmOutput(pin);
     m_backlightPwm->setFrequency(60000);
-    m_backlightPwm->setChannelInverted(pin, true);
+//    m_backlightPwm->setChannelInverted(pin, true);
     m_backlightPwm->setChannelEnabled(pin, true);
     m_backlightPwm->start();
 }
@@ -235,7 +235,7 @@ void ILI9486::setArea(int xStart, int yStart, int xEnd, int yEnd)
     LCD_WriteData(yEnd & 0xff);
 }
 
-void ILI9486::fillRect(int x, int y, int width, int height, uint16_t color)
+void ILI9486::fillRect(int x, int y, int width, int height, uint32_t color)
 {
     if (width == 0 || height == 0)
         return;
@@ -264,7 +264,7 @@ void ILI9486::fillRect(int x, int y, int width, int height, uint16_t color)
         int sz = size;
         if (sz > 0xFFFF)
             sz = 0xFFFF;
-        m_spi->writeFill16(&color, sz);
+        m_spi->writeFill16(reinterpret_cast<uint16_t*>(&color), sz);
         m_spi->waitForBytesWritten();
         size -= sz;
     }
@@ -272,7 +272,7 @@ void ILI9486::fillRect(int x, int y, int width, int height, uint16_t color)
     m_cs->set();
 }
 
-void ILI9486::copyRect(int x, int y, int width, int height, const uint16_t *buffer)
+void ILI9486::copyRect(int x, int y, int width, int height, const uint8_t *buffer)
 {
     setArea(x, y, x+width-1, y+height-1);
     // Memory write start
@@ -295,7 +295,22 @@ void ILI9486::copyRect(int x, int y, int width, int height, const uint16_t *buff
     m_cs->set();
 }
 
-void ILI9486::setPixel(int x, int y, uint16_t color)
+void ILI9486::overlayRect(int x, int y, int width, int height, uint32_t color)
+{
+    fillRect(x, y, width, height, color); // no blending
+}
+
+void ILI9486::blendRect(int x, int y, int width, int height, const uint8_t *buffer, PixelFormat format)
+{
+    THROW(Exception::BadSoBad); // not implemented
+}
+
+void ILI9486::drawBuffer(int x, int y, const FrameBuffer *fb, int sx, int sy, int sw, int sh)
+{
+    THROW(Exception::BadSoBad); // not implemented
+}
+
+void ILI9486::setPixel(int x, int y, uint32_t color)
 {
     setArea(x, y, x, y);
     LCD_WriteReg(0x2C);

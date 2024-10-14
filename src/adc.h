@@ -2,6 +2,11 @@
 #define _ADC_H
 
 #include "stm32.h"
+
+#if defined(STM32G4)
+
+#else
+
 #include "dma.h"
 #include "core/bytearray.h"
 #include "gpio.h"
@@ -17,10 +22,11 @@ public:
         Channel12, Channel13, Channel14, Channel15,
         TempSensor=16, VrefInt=17, Vbat=18
     } Channel;
-    
+
     typedef enum {ModeSingle, ModeDual, ModeTriple} Mode;
-    
-    typedef enum
+
+
+        typedef enum
     {
         Res6bit = ADC_CR1_RES,
         Res8bit = ADC_CR1_RES_1,
@@ -28,15 +34,15 @@ public:
         Res12bit = 0,
         Res16bit = ADC_CR2_ALIGN
     } Resolution;
-    
+
     typedef enum
     {
         EdgeNone = 0,
         EdgeRising = ADC_CR2_EXTEN_0,
-        EdgeFalling = ADC_CR2_EXTEN_1, 
+        EdgeFalling = ADC_CR2_EXTEN_1,
         EdgeBoth = ADC_CR2_EXTEN_0 | ADC_CR2_EXTEN_1
     } Edge;
-    
+
     typedef enum
     {
         TriggerTim1CC1 = 0,
@@ -56,7 +62,7 @@ public:
         TriggerTim8 = (ADC_CR2_EXTSEL_3 | ADC_CR2_EXTSEL_2 | ADC_CR2_EXTSEL_1),
         TriggerExtIT11 = ADC_CR2_EXTSEL
     } Trigger;
-    
+
     typedef enum
     {
         SampleTime_3Cycles = 0,
@@ -68,7 +74,8 @@ public:
         SampleTime_144Cycles = (ADC_SMPR1_SMP10_2 | ADC_SMPR1_SMP10_1),
         SampleTime_480Cycles = ADC_SMPR1_SMP10,
     } SampleTime;
-  
+
+
 private:
     static Adc *mInstances[3];
     ADC_TypeDef *mAdc;//, *mAdc2, *mAdc3;
@@ -78,51 +85,58 @@ private:
     Dma::Channel mDmaChannel;
     ByteArray mBuffer;
     unsigned char mChannelResultMap[19];
-  
+
     Mode mMode;
     bool mEnabled;
     Resolution mResolution;
     int mChannelCount;
     int mSampleCount;
-    
+
     NotifyEvent mCompleteEvent;
-    
+
     void regularChannelConfig(Channel channel, uint8_t rank, SampleTime sampleTime);
-    
+
 public:
     Adc(int adcBase = 1); // for single mode
 //    Adc(int adcBase1, int adcBase2); // for dual mode
 //    Adc(int adcBase1, int adcBase2, int adcBase3); // for triple mode
     ~Adc();
-    
+
     static Adc *instance(int periphNumber);
-    
+
     void setResolution(Resolution resolution);
     void selectTrigger(Trigger trigger, Edge edge);
-    
-    void addChannel(Channel channel, SampleTime sampleTime = SampleTime_3Cycles);
-    Channel addChannel(Gpio::Config pin, SampleTime sampleTime = SampleTime_3Cycles);
+
+    void addChannel(Channel channel, SampleTime sampleTime = (SampleTime)0);
+    Channel addChannel(Gpio::Config pin, SampleTime sampleTime = (SampleTime)0);
     void setMultisample(int sampleCount);
-    
+
     int maxValue() const;
-    
+
     void setEnabled(bool enable);
     bool isEnabled() const {return mEnabled;}
     void start() {setEnabled(true);}
     void stop() {setEnabled(false);}
-    
+
     void startConversion();
     bool isComplete() const;
     void setContinuousMode(bool enabled);
-    
+
     void configDma(Dma *dma);
-    
+
     int result(unsigned char channel);
     int resultByIndex(unsigned char index);
+    float averageByIndex(uint8_t index);
+    int lastResultByIndex(unsigned char index);
+    const ByteArray &buffer() const {return mBuffer;}
+    const uint16_t *samples() const {return reinterpret_cast<const uint16_t*>(mBuffer.data());}
+    int sampleCount() const {return mBuffer.size() / 2;}
     const unsigned short &buffer(unsigned char channel) const;
     const unsigned short &bufferByIndex(unsigned char index) const;
-    
+    int currentSampleIndex() const {return sampleCount() - mDma->dataCounter();}
+
     void setCompleteEvent(NotifyEvent e);
 };
+#endif
 
 #endif

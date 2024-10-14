@@ -1,27 +1,52 @@
 #include "gpio.h"
+#include "rcc.h"
+#include "core/core.h"
 
 #if defined(STM32F37X)
 #define BSRRL   BSRR
 #define BSRRH   BRR
+#elif defined(STM32G4) || defined(STM32L4)
+    #define IMR     IMR1
+    #define EMR     EMR1
+    #define RTSR    RTSR1
+    #define FTSR    FTSR1
+    #define PR      PR1
 #endif
 
-uint8_t Gpio::mPinsUsed[140]; // assuming all items = 0 at startup
+uint8_t Gpio::mPinsUsed[176]; // assuming all items = 0 at startup
+NotifyEvent Gpio::m_interruptHandlers[16];
 
 Gpio::Gpio(PinName pin, Flags flags/*, PinAF altFunction*/)
 {
     mConfig.pin = pin;
     mConfig.flags = flags;
     mConfig.af = afNone;//altFunction;
-    mPort = getPortByNumber(mConfig.portNumber);
-    mPin = pin==noPin? 0: (1 << mConfig.pinNumber);
+    if (pin != noPin)
+    {
+        mPort = getPortByNumber(mConfig.portNumber);
+        mPin = 1 << mConfig.pinNumber;
+    }
+    else
+    {
+        mPort = 0L;
+        mPin = 0;
+    }
     config(mConfig.config);
 }
 
 Gpio::Gpio(Config conf)
 {
     mConfig.config = conf;
-    mPin = mConfig.pin==noPin? 0: (1 << mConfig.pinNumber);
-    mPort = getPortByNumber(mConfig.portNumber);
+    if (mConfig.pin != noPin)
+    {
+        mPort = getPortByNumber(mConfig.portNumber);
+        mPin = 1 << mConfig.pinNumber;
+    }
+    else
+    {
+        mPort = 0L;
+        mPin = 0;
+    }
     config(mConfig.config);
 }
 
@@ -36,9 +61,41 @@ Gpio::Gpio(PortName port, uint16_t mask, Flags flags)
     config(mConfig.config);
 }
 
+Gpio::Gpio(GPIO_TypeDef *gpio, int pin)
+{
+    int port = getPortNumber(gpio);
+    mPin = 1 << pin;
+    mPort = gpio;
+    if (port >= 0) // hardware GPIO
+    {
+        mConfig.portNumber = port;
+        mConfig.pinNumber = pin;
+        mConfig.flags = flagsDefault;
+        mConfig.af = afNone;
+        mConfig.periph = 0;
+        config(mConfig.config);
+    }
+    else
+    {
+        mConfig.pin = noPin;
+        mConfig.flags = flagsDefault;
+        mConfig.af = afNone;
+        mConfig.periph = 0;
+    }
+}
+
 Gpio::~Gpio()
 {
-    config(NoConfig);
+    mConfig.flags = 0;
+    mConfig.af = 0;
+    mConfig.periph = 0;
+    updateConfig();
+    for (int i=0; i<16; i++)
+    {
+        int idx = (mConfig.portNumber << 4) + i;
+        if (mPin & (1 << i))
+            mPinsUsed[idx] = 0;
+    }
 }
 //---------------------------------------------------------------------------
 
@@ -51,6 +108,20 @@ void Gpio::config(PinName pin, Flags flags, PinAF altFunction)
     config(c.config);
 }
 
+void Gpio::config(PinName pin, bool value)
+{
+    ConfigStruct c;
+    c.pin = pin;
+    c.flags = Output;
+    c.af = afNone;
+    config(c.config);
+    GPIO_TypeDef *port = getPortByNumber(c.portNumber);
+    if (value)
+        port->BSRR = 1 << c.pinNumber;
+    else
+        port->BSRR = 0x10000 << c.pinNumber;
+}
+
 void Gpio::config(const Config &conf)
 {
     const ConfigStruct &c = reinterpret_cast<const ConfigStruct&>(conf);
@@ -61,12 +132,8 @@ void Gpio::config(const Config &conf)
     if (!port)
         return;
 
-#if defined(STM32F4)
-    RCC->AHB1ENR |= (1 << c.portNumber); // enable port clocks
-#elif defined(STM32L4) || defined(STM32G4)
-    RCC->AHB2ENR |= (1 << c.portNumber); // enable port clocks
-#endif
-
+    rcc().setPeriphEnabled(port);
+    
     uint16_t mask;
     if (c.manyPins)
         mask = c.mask;
@@ -164,7 +231,9 @@ GPIO_TypeDef *Gpio::getPortByNumber(int port)
         case 0x1: return GPIOB;
         case 0x2: return GPIOC;
         case 0x3: return GPIOD;
+#if defined(GPIOE)
         case 0x4: return GPIOE;
+#endif
         case 0x5: return GPIOF;
 #if defined(GPIOG)
         case 0x6: return GPIOG;
@@ -180,8 +249,39 @@ GPIO_TypeDef *Gpio::getPortByNumber(int port)
 #endif
 #if defined(GPIOK)
         case 0xA: return GPIOK;
-#endif        
+#endif
         default: return 0L;
+    }
+}
+
+int Gpio::getPortNumber(GPIO_TypeDef *gpio)
+{
+    switch (reinterpret_cast<uint32_t>(gpio))
+    {
+    case GPIOA_BASE: return 0x0;
+    case GPIOB_BASE: return 0x1;
+    case GPIOC_BASE: return 0x2;
+    case GPIOD_BASE: return 0x3;
+#if defined(GPIOE)
+    case GPIOE_BASE: return 0x4;
+#endif
+    case GPIOF_BASE: return 0x5;
+#if defined(GPIOG)
+    case GPIOG_BASE: return 0x6;
+#endif
+#if defined(GPIOH)
+    case GPIOH_BASE: return 0x7;
+#endif
+#if defined(GPIOI)
+    case GPIOI_BASE: return 0x8;
+#endif
+#if defined(GPIOJ)
+    case GPIOJ_BASE: return 0x9;
+#endif
+#if defined(GPIOK)
+    case GPIOK_BASE: return 0xA;
+#endif
+    default: return -1;
     }
 }
 //---------------------------------------------------------------------------
@@ -222,11 +322,69 @@ void Gpio::setAsOutputOpenDrain()
     mConfig.pull = pullNone >> 3;
     updateConfig();
 }
+
+void Gpio::configInterrupt(NotifyEvent event, InterruptMode mode)
+{
+  #ifndef STM32F0
+    setAsInput();
+    int line = mConfig.pinNumber;
+    uint32_t mask = 1 << line;
+    if (EXTI->IMR & mask)
+        THROW(Exception::ResourceBusy);
+
+    rcc().setPeriphEnabled(SYSCFG);
+    SYSCFG->EXTICR[line >> 2] = mConfig.portNumber << ((line & 3) << 2);
+
+    if (mode & 1)
+        EXTI->RTSR |= mask;
+    else
+        EXTI->RTSR &= ~mask;
+
+    if (mode & 2)
+        EXTI->FTSR |= mask;
+    else
+        EXTI->FTSR &= ~mask;
+
+    m_interruptHandlers[line] = event;
+    EXTI->IMR |= mask;
+
+    IRQn_Type irqn;
+    switch (line)
+    {
+    case 0: irqn = EXTI0_IRQn; break;
+    case 1: irqn = EXTI1_IRQn; break;
+#if defined(STM32F3)
+    case 2: irqn = EXTI2_TSC_IRQn; break;
+#else
+    case 2: irqn = EXTI2_IRQn; break;
+#endif
+    case 3: irqn = EXTI3_IRQn; break;
+    case 4: irqn = EXTI4_IRQn; break;
+    case 5:
+    case 6:
+    case 7:
+    case 8:
+    case 9:
+        irqn = EXTI9_5_IRQn;
+        break;
+    case 10:
+    case 11:
+    case 12:
+    case 13:
+    case 14:
+    case 15:
+        irqn = EXTI15_10_IRQn;
+        break;
+    default:;
+    }
+    NVIC_EnableIRQ(irqn);
+#endif
+}
 //---------------------------------------------------------------------------
 
 bool Gpio::read() const
 {
-    if (mConfig.pin == noPin)
+    if (!mPort)
         return false;
     if (mConfig.mode == modeOut)
         return mPort->ODR & mPin;
@@ -236,22 +394,27 @@ bool Gpio::read() const
 
 void Gpio::write(bool value)
 {
-    if (mConfig.pin == noPin)
+    if (!mPort)
         return;
 //    if (value)
 //        mPort->BSRRL = mPin;
 //    else
 //        mPort->BSRRH = mPin;
+//    if (value)
+//        mPort->BSRR = mPin;
+//    else
+//        mPort->BSRR = mPin << 16;
     if (value)
-        mPort->BSRR = mPin;
+        mPort->ODR |= mPin;
     else
-        mPort->BSRR = mPin << 16;
+        mPort->ODR &= ~mPin;
 }
 //---------------------------------------------------------------------------
 
 void Gpio::writePort(uint16_t value)
 {
-    mPort->ODR = (mPort->ODR & (~mPin)) | (value & mPin);
+    if (mPort)
+        mPort->ODR = (mPort->ODR & (~mPin)) | (value & mPin);
 }
 
 uint16_t Gpio::readPort()
@@ -262,3 +425,64 @@ uint16_t Gpio::readPort()
         return mPort->IDR & mPin;
 }
 //---------------------------------------------------------------------------
+
+extern "C"
+{
+
+void EXTI0_IRQHandler()
+{
+    EXTI->PR = 1 << 0;
+    Gpio::m_interruptHandlers[0]();
+}
+
+void EXTI1_IRQHandler()
+{
+    EXTI->PR = 1 << 1;
+    Gpio::m_interruptHandlers[1]();
+}
+
+void EXTI2_IRQHandler()
+{
+    EXTI->PR = 1 << 2;
+    Gpio::m_interruptHandlers[2]();
+}
+
+void EXTI3_IRQHandler()
+{
+    EXTI->PR = 1 << 3;
+    Gpio::m_interruptHandlers[3]();
+}
+
+void EXTI4_IRQHandler()
+{
+    EXTI->PR = 1 << 4;
+    Gpio::m_interruptHandlers[4]();
+}
+
+void EXTI9_5_IRQHandler()
+{
+    for (int i=5; i<9; i++)
+    {
+        uint32_t mask = 1 << i;
+        if (EXTI->PR & mask)
+        {
+            EXTI->PR = mask;
+            Gpio::m_interruptHandlers[i]();
+        }
+    }
+}
+
+void EXTI15_10_IRQHandler()
+{
+    for (int i=10; i<15; i++)
+    {
+        uint32_t mask = 1 << i;
+        if (EXTI->PR & mask)
+        {
+            EXTI->PR = mask;
+            Gpio::m_interruptHandlers[i]();
+        }
+    }
+}
+
+} // extern "C"

@@ -37,7 +37,7 @@ void TcpServer::close()
     m_connections.clear();
 }
 
-void TcpServer::incomingConnection(struct tcp_pcb *pcb)
+void TcpServer::incomingConnection(tcp_pcb *pcb)
 {
     TcpSocket *socket = new TcpSocket(pcb);
     m_connections.push_back(socket);

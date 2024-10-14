@@ -45,7 +45,7 @@ void LedWidget::update()
 //    if (wid)
 //        bgcolor = wid->backgroundColor();
     
-    m_img.fill(bgcolor.rgb565());
+    m_img.fill(bgcolor);
     m_img.setColor(Gray);
     Color back = m_color;
     if (!m_state)

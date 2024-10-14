@@ -19,7 +19,7 @@ extern "C" void SPI6_IRQHandler(void);
 #if defined(STM32F4)
     #define SPI_CR1_DFF_BIT     DFF     // data frame format (8/16 bit)
     #define SPI_CR2_NSSP_BIT
-#elif defined(STM32L4) || defined(STM32G4)
+#elif defined(STM32L4) || defined(STM32G4) || defined (STM32F3) || defined(STM32F7)
     #define SPI_FIFO_IMPL   1
     #define SPI_CR1_DFF_BIT     CRCL    // CRC length
     #define SPI_CR2_NSSP_BIT    NSSP
@@ -79,6 +79,7 @@ private:
     Config mConfig;
     IRQn_Type mIrq;
     SpiDataEvent onTransferComplete;
+    NotifyEvent onTxEnd;
 
     Dma::Channel mDmaChannelRx;
     Dma::Channel mDmaChannelTx;
@@ -97,6 +98,7 @@ private:
     void enableInterrupt();
     void handleInterrupt();
     void handleDmaInterrupt();
+    void handleRxDmaInterrupt();
 
     void updateConfig();
 
@@ -108,6 +110,8 @@ public:
     void setMasterMode();
     void setCPOL_CPHA(bool CPOL, bool CPHA);
     void setBaudratePrescaler(int psc);
+    void setBaudrate(int value); // try to set nearest baudrate (less or equal)
+    int baudrate() const; // real baudrate
 
     void setUseDmaRx(bool useDma);
     void setUseDmaTx(bool useDma);
@@ -120,19 +124,26 @@ public:
     void transferWordAsync(uint16_t word=0xFFFF);
 
     void setTransferCompleteEvent(SpiDataEvent e);
+    void setTransferCompleteEvent(NotifyEvent e);
     void transfer(uint8_t* data, int size);
     void transfer(const uint8_t *data, uint8_t *buffer, int size);
+    bool transferDma(const uint8_t *data, uint8_t *buffer, int size);
     void setDataSize(int size);
+    
+    void writeAsync(const uint8_t *data, int size);
 
     Dma *dmaTx() {return mDmaTx;}
+    Dma *dmaRx() {return mDmaRx;}
 
     uint8_t read();
     uint8_t write(uint8_t word);
     uint16_t read16();
     uint16_t write16(uint16_t word);
 
-    void read(uint8_t* data, int size);
+    bool read(uint8_t* data, int size);
     bool write(const uint8_t *data, int size);
+
+    void setRxBuffer(uint8_t *data, int size, bool circular);
 
     // write (count) words of the same values (*value)
     bool writeFill16(uint16_t *value, int count);

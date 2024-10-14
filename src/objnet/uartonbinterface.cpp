@@ -1,16 +1,19 @@
 #include "uartonbinterface.h"
+#include "serial/serialframe.h"
 
 #define SWONB_BUSY_TIMEOUT  2
 
 using namespace Objnet;
 
 UartOnbInterface::UartOnbInterface(Device *serialInterface) :
-    m_device(serialInterface),
-//    mWriteTimer(30),
     mCurTxMac(0),
-//    cs(0), esc(0), cmd_acc(0), noSOF(0),
     mHdBusyTimeout(0)
-{ 
+{
+    if (serialInterface->isSequential())
+        m_device = new SerialFrame(serialInterface);
+    else
+        m_device = serialInterface;
+
     mMaxFrameSize = 64;
     mBuffer.resize(mMaxFrameSize + 4 - 1);
     m_sendBuffer = new char[mMaxFrameSize + 4];
@@ -33,75 +36,32 @@ void UartOnbInterface::task()
 {
     if (m_busy)
         return;
-    
+
     m_busy = true;
-    
+
     int sz = m_device->read(mBuffer.data(), mBuffer.capacity());
     if (sz > 0)
     {
         mBuffer.resize(sz);
         msgReceived(mBuffer);
     }
-    
+
     m_busy = false;
     
+    if (mHdBusyTimeout < 0)
+        mHdBusyTimeout = 0;
+
     if (mCurTxMac && !mHdBusyTimeout)
     {
 //        if (m_device->getErrorCode() && errorEvent && !noSOF)
 //        {
 //            errorEvent(mCurTxMac, ErrorInterface);
 //        }
-        
+
         if (nakEvent)
             nakEvent(mCurTxMac);
         mCurTxMac = 0;
     }
-    
-//    if (!mHdBusyTimeout)
-//    {
-//        if (mUnsendBuffer.size())
-//        {
-//            if (m_device->write(mUnsendBuffer.data(), mUnsendBuffer.size()) > 0)
-//            {
-//                mUnsendBuffer.resize(0);
-//                if (m_device->isHalfDuplex())
-//                    mHdBusyTimeout = SWONB_BUSY_TIMEOUT;
-//            }
-//        }
-//        
-//        if (m_device->isHalfDuplex())
-//            mWriteTimer = 30;
-//        
-//#warning something wrong!!!
-////        if (mWriteTimer >= 30)
-//        {
-//            mWriteTimer = 0;
-//            while (readTx(mCurTxMsg))
-//            {
-//                ByteArray ba;
-//                unsigned long id = mCurTxMsg.id;
-//                if (id & 0x10000000) // if msg is local
-//                    mCurTxMac = (id >> 24) & 0xF;
-//                else
-//                    mCurTxMac = 0;
-//                ba.append(reinterpret_cast<const char*>(&id), 4);
-//                ba.append(mCurTxMsg.data, mCurTxMsg.size);
-//                mUnsendBuffer = encode(ba);
-//                
-//                if (m_device->write(mUnsendBuffer.data(), mUnsendBuffer.size()) > 0)
-//                {
-//                    mUnsendBuffer.resize(0);
-//                    if (m_device->isHalfDuplex() && (id & 0x10000000)) // in half-duplex mode: if message is local => wait response
-//                    {
-//                        mHdBusyTimeout = SWONB_BUSY_TIMEOUT;
-//                        break;
-//                    }
-//                }
-//                else
-//                    break;
-//            }
-//        }
-//    }
 }
 
 void UartOnbInterface::tick(int dt)
@@ -118,10 +78,10 @@ static uint8_t ids_idx = 0;
 void UartOnbInterface::msgReceived(const ByteArray &ba)
 {
     mCurTxMac = 0;
-  
+
     mHdBusyTimeout = 0;
-    
-    uint32_t id = *reinterpret_cast<const uint32_t*>(ba.data());  
+
+    uint32_t id = *reinterpret_cast<const uint32_t*>(ba.data());
     bool accept = false;
     if (!m_filterCount)
         accept = true;
@@ -134,11 +94,11 @@ void UartOnbInterface::msgReceived(const ByteArray &ba)
             break;
         }
     }
-    
+
     if (accept)
-    {    
+    {
         ids[ids_idx++] = *reinterpret_cast<uint32_t *>(mBuffer.data());
-        
+
         CommonMessage msg(ba);
         receive(std::move(msg));
     }
@@ -154,9 +114,9 @@ bool UartOnbInterface::send(const CommonMessage &msg)
         mCurTxMac = (id >> 24) & 0xF;
     else
         mCurTxMac = 0;
-    
+
     ids[ids_idx++] = id | 0x80000000;
-    
+
     uint32_t *dst = reinterpret_cast<uint32_t*>(m_sendBuffer);
     *dst++ = id;
     int size = msg.data().size();
@@ -164,16 +124,19 @@ bool UartOnbInterface::send(const CommonMessage &msg)
     const uint32_t *src = reinterpret_cast<const uint32_t*>(msg.data().data());
     while (cnt--)
         *dst++ = *src++;
-    
+
     if (m_device->write(m_sendBuffer, size + 4) > 0)
     {
-        if (!isMaster)
-            mHdBusyTimeout = SWONB_BUSY_TIMEOUT;
-        else if (m_device->isHalfDuplex() && (id & 0x10000000)) // in half-duplex mode: if message is local => wait response
-            mHdBusyTimeout = SWONB_BUSY_TIMEOUT;
+        if (mBusType == BusSwonb)
+        {
+            if (!isMaster)
+                mHdBusyTimeout = SWONB_BUSY_TIMEOUT;
+            else if (m_device->isHalfDuplex() && (id & 0x10000000)) // in half-duplex mode: if message is local => wait response
+                mHdBusyTimeout = SWONB_BUSY_TIMEOUT;
+        }
         return true;
     }
-    
+
     return false;
 }
 

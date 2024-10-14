@@ -17,19 +17,28 @@ public:
     inline float value() const {return m_value;}
 
     void setTextVisible(bool visible);
-    void setFormat(const ByteArray &fmt, int decimals=0);
+    void setFormat(const ByteArray &fmt);
+    const ByteArray &format() const {return m_format;}
+//    void setFormat(const ByteArray &fmt, int decimals); // DEPRECATED! use separately setFormat and setDecimals instead
     void setDecimals(int value);
+    int decimals() const {return m_decimals;}
 
-    void update();
+    void setFont(Font font);
 
 protected:
     void paintEvent(Display *d) override;
+    void doPaint(Display *d);
 
-private:
     float m_value = 0;
     float m_minimum = 0;
     float m_maximum = 100;
     int m_decimals = 0;
     bool m_textVisible = true;
     ByteArray m_format = "%p %";
+
+    //! @return x-coord of value in px;
+    int map(float value);
+
+//private:
+
 };

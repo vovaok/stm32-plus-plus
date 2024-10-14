@@ -1,13 +1,15 @@
 #include "timer.h"
+#include "application.h"
 
 Timer::Timer() :
     mInterval(0),
     mTime(0L),
     mEnabled(false),
-    mUpdated(false)
+    mUpdated(false),
+    mSingleShot(false)
 {
     m_taskid = stmApp()->registerTaskEvent(EVENT(&Timer::task));
-    m_tickid = stmApp()->registerTickEvent(EVENT(&Timer::tick));   
+    m_tickid = stmApp()->registerTickEvent(EVENT(&Timer::tick));
 }
 
 Timer::~Timer()
@@ -21,7 +23,7 @@ void Timer::tick(int period)
 {
     if (!mEnabled)
         return;
-    
+
     mTime += period;
     if (mInterval)
     {
@@ -29,6 +31,8 @@ void Timer::tick(int period)
         {
             mTime -= mInterval;
             mUpdated = true;
+            if (mSingleShot)
+                mEnabled = false;
         }
     }
 }
@@ -39,18 +43,13 @@ void Timer::task()
     if (mUpdated)
     {
         mUpdated = false;
-        if (callback)
-            callback();
+//        if (callback)
+//            callback();
         if (onTimeout)
             onTimeout();
     }
 }
 //---------------------------------------------------------------------------
-
-//void Timer::reset()
-//{
-//    mTime = 0;
-//}
 
 void Timer::start(int interval)
 {
@@ -60,14 +59,8 @@ void Timer::start(int interval)
     mEnabled = true;
 }
 
-//void Timer::pause()
-//{
-//    mEnabled = false; 
-//}
-
 void Timer::stop()
 {
     mEnabled = false;
-//    mTime = 0;
 }
 //---------------------------------------------------------------------------

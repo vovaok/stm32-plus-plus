@@ -13,7 +13,7 @@
 
 FOR_EACH_DMA(DECLARE_DMA_IRQ_HANDLER)
 //---------------------------------------------------------------------------
-      
+
 class Dma
 {
 public:
@@ -83,7 +83,7 @@ public:
         UART5_TX_Stream7    = 0x174,
         TIM3_CH3_Stream7    = 0x175,
         I2C2_TX_Stream7     = 0x177,
-        
+
         // DMA2
         ADC1_Stream0        = 0x200,
         ADC3_Stream0        = 0x202,
@@ -144,16 +144,19 @@ public:
         USART6_TX_Stream7   = 0x275,
         TIM8_CH4_Stream7    = 0x277,
         TIM8_TRIG_Stream7   = 0x277,
-        TIM8_COM_Stream7    = 0x277        
+        TIM8_COM_Stream7    = 0x277
     } Channel;
-  
+
 private:
     static Dma *mStreams[16];
     DMA_TypeDef *mDma;
     DMA_Stream_TypeDef *mStream;
-    uint8_t mStreamNum;
-    uint8_t mChannelNum;
-    
+//    uint8_t mStreamNum; // not used now, replaced with flags offset
+//    uint8_t mChannelNum; // commented because of it is given in the mConfig.CHSEL
+    volatile uint32_t *mISR = nullptr; // LISR or HISR depending on stream number
+    volatile uint32_t *mIFCR = nullptr; // LIFCR or HIFCR depending on stream number
+    int mFlagsOffset = 0;
+
 #pragma pack(push,1)
     union
     {
@@ -183,10 +186,10 @@ private:
         };
     } mConfig;
 #pragma pack(pop)
-    
+
     IRQn_Type mIrq;
     NotifyEvent mOnTransferComplete;
-    
+
     typedef enum
     {
         FEIF    = 0x01, // FIFO error interrupt flag
@@ -196,22 +199,27 @@ private:
         TCIF    = 0x20, // transfer complete interrupt flag
         AllFlags= 0x3d
     } Flag;
-    
+
     bool testFlag(uint32_t flag) const;
     void clearFlag(uint32_t flag);
-    
+
 //    void tryInit();
-    
+
     FOR_EACH_DMA(DECLARE_FRIEND)
-    
+
     void handleInterrupt();
-    
-    void setPeriph(void *periph, int dataSize, bool isSource);
-  
+
+    void setPeriph(volatile void *periph, int dataSize, bool isSource);
+
 public:
     Dma(Channel channelName);
     ~Dma();
     
+    //! Get DMA instance
+    //! Use it to obtain the instance of the DMA stream for desired channel
+    //! in case of several periperals share the same stream
+    static Dma *instance(Channel channelName);
+
     void setSingleBuffer(void *buffer, int size);
     void setCircularBuffer(void *buffer, int size);
     void setDoubleBuffer(void *buffer, void *buffer2, int size);
@@ -219,19 +227,20 @@ public:
     void setMemorySource(uint8_t *ptr);
     void setMemorySource(uint16_t *ptr);
     void setMemorySource(uint32_t *ptr);
-    void setSource(void *periph, int dataSize);
-    void setSink(void *periph, int dataSize);
-    
-    void start(int size=0);
+    void setSource(volatile void *periph, int dataSize);
+    void setSink(volatile void *periph, int dataSize);
+
+    inline void start() {mStream->CR |= DMA_SxCR_EN;}
+    void start(int size);
     void stop(bool wait=false);
     void setEnabled(bool enabled);
     bool isEnabled() const;
-    
+
     bool isComplete();
-    
+
     int currentPage() const;
     inline int dataCounter() const {return mStream->NDTR;}
-    
+
     void setTransferCompleteEvent(NotifyEvent event);
 };
 

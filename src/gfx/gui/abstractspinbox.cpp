@@ -42,6 +42,34 @@ void AbstractSpinBox::setButtonSymbols(ButtonSymbols bs)
     btnUp->setVisible(bs != NoButtons);
 }
 
+void AbstractSpinBox::setDirection(Direction direction)
+{
+    PushButton *btnDown = static_cast<PushButton*>(m_children[0]);
+    PushButton *btnUp = static_cast<PushButton*>(m_children[2]);
+    FlexLayout *lay = static_cast<FlexLayout *>(m_layout);
+    
+    const FontInfo &fi = font().info();
+    int h = fi.height();
+    int bw = fi.width('<') * 2;
+    
+    if (direction == Vertical)
+    {
+        lay->setDirection(VerticalReversed);
+        btnUp->setFixedHeight(h*2/3);
+        btnDown->setFixedHeight(h*2/3);
+        btnUp->setMaximumWidth(9999);
+        btnDown->setMaximumWidth(9999);        
+        setFixedHeight(h*7/3  + 4);
+    }
+    else if (direction == Horizontal)
+    {
+        lay->setDirection(Horizontal);
+        setFixedHeight(h + 4);
+        btnUp->setFixedWidth(bw);
+        btnDown->setFixedWidth(bw);
+    }
+}
+
 void AbstractSpinBox::stepUp()
 {
     if (m_enabled)
@@ -52,4 +80,9 @@ void AbstractSpinBox::stepDown()
 {
     if (m_enabled)
         stepBy(-1);
+}
+
+void AbstractSpinBox::setWrapping(bool wrapping)
+{
+    m_wrapping = wrapping;
 }

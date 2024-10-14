@@ -1,6 +1,6 @@
 #include "httpserver.h"
 
-std::map<ByteArray, ByteArray> HttpServerTask::m_mimeMap = 
+std::map<ByteArray, ByteArray> HttpServerTask::m_mimeMap =
 {
     {"txt", "text/plain"},
     {"html", "text/html"},
@@ -45,17 +45,17 @@ void HttpServerTask::task()
     if (m_busy)
     {
         ByteArray resp;
-    
+
         if (url == "/")
             url = "/index.html";
-        
+
         ByteArray mime = "text/html";
-        
-        if (m_sfs.open(url.toStdString()))
+
+        if (m_sfs.open(url))
         {
             const Sfs::Entry *e = m_sfs.entry();
             body = ByteArray::fromRawData(e->data(), e->size());
-            
+
             ByteArray ext;
             int dot_idx = url.lastIndexOf('.');
             if (dot_idx >= 0)
@@ -73,7 +73,7 @@ void HttpServerTask::task()
             resp = "HTTP/1.1 404 Not found\r\n";
             body = "<h1>File not found</h1>";
         }
-        
+
         char buf[32];
         resp.append("Server: ControlBoard\r\n");
         sprintf(buf, "Content-Length: %d\r\n", body.size());
@@ -84,7 +84,7 @@ void HttpServerTask::task()
         m_socket->write(resp);
         m_socket->write(body);
         body.clear();
-        
+
         m_busy = false;
     }
 }
@@ -98,9 +98,9 @@ void HttpServerTask::onReadyRead()
                         "\r\n");
         return;
     }
-        
+
 //    headers.clear();
-    
+
     while (!m_socket->atEnd() && m_socket->canReadLine())
     {
         ByteArray header = m_socket->readLine();
@@ -129,9 +129,9 @@ void HttpServerTask::onReadyRead()
         }
 //        printf("%s\n", header.toStdString().c_str());
     }
-    
+
     /*ByteArray body =*/ m_socket->readAll();
-    
+
     m_busy = true;
     task();
 }

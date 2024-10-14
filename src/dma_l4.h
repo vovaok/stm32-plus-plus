@@ -46,8 +46,8 @@ public:
     void setMemorySource(uint16_t *ptr);
     void setMemorySource(uint32_t *ptr);
 //    void setDoubleBuffer(void *buffer, void *buffer2, int size); // not available in L4 and G4 families
-    void setSource(void *periph, int dataSize);
-    void setSink(void *periph, int dataSize);
+    void setSource(volatile void *periph, int dataSize);
+    void setSink(volatile void *periph, int dataSize);
     
     void start(int size=0);
     void stop(bool wait=false);
@@ -109,7 +109,7 @@ private:
     
     void handleInterrupt();
     
-    void setPeriph(void *periph, int dataSize, bool isSource);
+    void setPeriph(volatile void *periph, int dataSize, bool isSource);
 };
 
 #if defined(STM32L4)

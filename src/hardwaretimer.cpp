@@ -1,9 +1,8 @@
 #include "hardwaretimer.h"
 
-HardwareTimer* HardwareTimer::mTimers[19] = {0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L};
+HardwareTimer* HardwareTimer::mTimers[20] {0};
 
-HardwareTimer::HardwareTimer(TimerNumber timerNumber, unsigned int frequency_Hz) :
-  mEnabled(false)
+HardwareTimer::HardwareTimer(TimerNumber timerNumber, unsigned int frequency_Hz)
 {
     unsigned int hclk = rcc().hClk();
     unsigned int pclk1 = rcc().pClk1();
@@ -22,181 +21,200 @@ HardwareTimer::HardwareTimer(TimerNumber timerNumber, unsigned int frequency_Hz)
         if (RCC->CFGR & RCC_CFGR_PPRE2_Msk)
             pclk2 *= 2;
     }
-    
+
     mInputClk = pclk2;
     switch (timerNumber)
     {
-#if !defined(STM32F37X)
+#if defined(TIM1)
       case 1:
-        RCC->APB2ENR |= RCC_APB2ENR_TIM1EN;
         mTim = TIM1;
+        m_caps = AdvancedControl;
         mIrq = TIM_IRQn(1_UP); // у этого таймера 4 прерывания, задаётся позже, когда нужно
         break;
 #endif
-        
+#if defined(TIM2)
       case 2:
-        RCC->APB1ENR |= RCC_APB1ENR_TIM2EN;
         mTim = TIM2;
+        m_caps = static_cast<Capability>(GeneralPurpose1 | Res32bit);
         mIrq = TIM_IRQn(2);
         mInputClk = pclk1;
         break;
-        
+#endif
+#if defined(TIM3)
       case 3:
-        RCC->APB1ENR |= RCC_APB1ENR_TIM3EN;
         mTim = TIM3;
+        m_caps = GeneralPurpose1;
         mIrq = TIM_IRQn(3);
         mInputClk = pclk1;
         break;
-        
+#endif
+#if defined(TIM4)        
       case 4:
-        RCC->APB1ENR |= RCC_APB1ENR_TIM4EN;
         mTim = TIM4;
+        m_caps = GeneralPurpose1;
         mIrq = TIM_IRQn(4);
         mInputClk = pclk1;
         break;
-        
+#endif
+#if defined(TIM5)
       case 5:
-        RCC->APB1ENR |= RCC_APB1ENR_TIM5EN;
         mTim = TIM5;
+        m_caps = static_cast<Capability>(GeneralPurpose1 | Res32bit);
         mIrq = TIM_IRQn(5);
         mInputClk = pclk1;
         break;
-        
+#endif
+#if defined(TIM6)
       case 6:
-        RCC->APB1ENR |= RCC_APB1ENR_TIM6EN;
         mTim = TIM6;
+        m_caps = Basic;
         mInputClk = pclk1;
         mIrq = TIM_IRQn(6);
         break;
-        
+#endif
+#if defined(TIM7)
       case 7:
-        RCC->APB1ENR |= RCC_APB1ENR_TIM7EN;
         mTim = TIM7;
+        m_caps = Basic;
         mIrq = TIM_IRQn(7);
         mInputClk = pclk1;
         break;
-        
-#if defined(TIM8_UP_IRQ)     
+#endif		
+#if defined(TIM8)     
       case 8:
-        RCC->APB2ENR |= RCC_APB2ENR_TIM8EN;
         mTim = TIM8;
+        m_caps = AdvancedControl;
         mIrq = TIM_IRQn(8_UP); // у этого таймера 4 прерывания, задаётся позже, когда нужно
         break;
 #endif
-#if defined(TIM9_IRQ)
+#if defined(TIM9)
       case 9:
-        RCC->APB2ENR |= RCC_APB2ENR_TIM9EN;
         mTim = TIM9;
+        m_caps = GeneralPurpose2;
         mIrq = TIM_IRQn(9);
         break;
 #endif
-#if defined(TIM10_IRQ)      
+#if defined(TIM10)      
       case 10:
-        RCC->APB2ENR |= RCC_APB2ENR_TIM10EN;
         mTim = TIM10;
+        m_caps = GeneralPurpose2;
         mIrq = TIM_IRQn(10);
-        mInputClk = pclk1; // or pclk2 ??? 
+        mInputClk = pclk1; // or pclk2 ???
         break;
 #endif
-#if defined(TIM11_IRQ)     
+#if defined(TIM11)
       case 11:
-        RCC->APB2ENR |= RCC_APB2ENR_TIM11EN;
         mTim = TIM11;
+        m_caps = GeneralPurpose2;
         mIrq = TIM_IRQn(11);
         break;
 #endif
-#if defined(TIM12_IRQ)        
+#if defined(TIM12)
       case 12:
-        RCC->APB1ENR |= RCC_APB1ENR_TIM12EN;
         mTim = TIM12;
+        m_caps = GeneralPurpose2;
         mInputClk = pclk1;
         mIrq = TIM_IRQn(12);
         break;
 #endif
-#if defined(TIM13_IRQ)         
+#if defined(TIM13)
       case 13:
-        RCC->APB1ENR |= RCC_APB1ENR_TIM13EN;
         mTim = TIM13;
+        m_caps = GeneralPurpose2;
         mInputClk = pclk1;
         mIrq = TIM_IRQn(13);
         break;
 #endif
-#if defined(TIM14_IRQ)         
+#if defined(TIM14)         
       case 14:
-        RCC->APB1ENR |= RCC_APB1ENR_TIM14EN;
         mTim = TIM14;
+        m_caps = GeneralPurpose2;
         mInputClk = pclk1;
         mIrq = TIM_IRQn(14);
         break;
 #endif
-#if defined(TIM15_IRQ)         
+#if defined(TIM15)
       case 15:
-        RCC->APB2ENR |= RCC_APB2ENR_TIM15EN;
         mTim = TIM15;
+        m_caps = GeneralPurpose3;
         mIrq = TIM_IRQn(15);
         break;
 #endif
-#if defined(TIM16_IRQ)         
+#if defined(TIM16)         
       case 16:
-        RCC->APB2ENR |= RCC_APB2ENR_TIM16EN;
         mTim = TIM16;
+        m_caps = GeneralPurpose3;
         mIrq = TIM_IRQn(16);
         break;
 #endif
-#if defined(TIM17_IRQ)         
+#if defined(TIM17)
       case 17:
-        RCC->APB2ENR |= RCC_APB2ENR_TIM17EN;
         mTim = TIM17;
+        m_caps = GeneralPurpose3;
         mIrq = TIM_IRQn(17);
         break;
 #endif
-#if defined(TIM18_IRQ)         
+#if defined(TIM18)
       case 18:
-        RCC->APB1ENR |= RCC_APB1ENR_TIM18EN;
         mTim = TIM18;
+        m_caps = GeneralPurpose3;
         mIrq = TIM_IRQn(18);
         mInputClk = pclk1;
         break;
 #endif
-#if defined(TIM19_IRQ)         
+#if defined(TIM19)
       case 19:
-        RCC->APB2ENR |= RCC_APB2ENR_TIM19EN;
         mTim = TIM19;
+        m_caps = GeneralPurpose3;
         mIrq = TIM_IRQn(19);
+        break;
+#endif
+#if defined(TIM20)         
+      case 20:
+        mTim = TIM20;
+        m_caps = AdvancedControl;
+        mIrq = TIM_IRQn(20_UP);
         break;
 #endif
         
       default:
         return;
     }
-    
+
+    rcc().setPeriphEnabled(mTim);
+
     if (mTimers[timerNumber-1])
         THROW(Exception::ResourceBusy); // ALARM!! this timer already in use!
-    
+
     mTimers[timerNumber-1] = this;
-    
+
     for (int i=0; i<8; i++)
         mEnabledIrq[i] = false;
-    
-    // инициализация тут:    
+
+    // инициализация тут:
     uint32_t tmp = mTim->CR1;
-    if (mTim == TIM1 || mTim == TIM8 || mTim == TIM2 || mTim == TIM3 || mTim == TIM4 || mTim == TIM5)
+    if (hasCapability(UpDown))
         tmp = tmp & ~(TIM_CR1_DIR | TIM_CR1_CMS) | 0; // counter mode up
-    if (mTim != TIM6 && mTim != TIM7)
+    if (hasCapability(InputOutput))
         tmp = tmp & ~TIM_CR1_CKD | 0; // clock division = 0
     mTim->CR1 = tmp;
-    
+
     setFrequency(frequency_Hz);
-    
-    if (mTim == TIM1 || mTim == TIM8)
-        mTim->RCR = 0; // repetition counter
+
+    if (hasCapability(Repetition))
+        mTim->RCR = 0; // reset repetition counter
     generateUpdateEvent();
 }
 //---------------------------------------------------------------------------
 
 HardwareTimer::TimerNumber HardwareTimer::getTimerByPin(Gpio::Config pinConfig)
 {
-    return static_cast<TimerNumber>(GpioConfigGetPeriphNumber(pinConfig));
+    int num = GpioConfigGetPeriphNumber(pinConfig);
+#if defined(STM32G4)
+    if (GpioConfigGetPeriphChannel(pinConfig) & 0x40) // TIMx >= TIM16
+        num += 16;    
+#endif
+    return static_cast<TimerNumber>(num);
 }
 
 HardwareTimer::ChannelNumber HardwareTimer::getChannelByPin(Gpio::Config pinConfig)
@@ -216,6 +234,14 @@ void HardwareTimer::setSlaveMode(SlaveMode sms)
     mTim->SMCR = (mTim->SMCR & ~TIM_SMCR_SMS) | (sms & TIM_SMCR_SMS);
 }
 
+#if defined (STM32F303x8)
+void HardwareTimer::selectOutputTrigger2(TrgSource2 source)
+{
+    mTim->CR2 = mTim->CR2 & ~TIM_CR2_MMS2 | (uint32_t)source;
+}
+
+#endif
+
 void HardwareTimer::selectOutputTrigger(TrgSource source)
 {
     mTim->CR2 = mTim->CR2 & ~TIM_CR2_MMS | (uint16_t)source;
@@ -223,11 +249,11 @@ void HardwareTimer::selectOutputTrigger(TrgSource source)
 
 void HardwareTimer::setFrequency(int frequency_Hz)
 {
-    unsigned int period = 0;  
+    unsigned int period = 0;
     unsigned int psc = 0;
     if (frequency_Hz)
     {
-        period = mInputClk / frequency_Hz;  
+        period = mInputClk / frequency_Hz;
         psc = period >> 16;
     }
     period = (period / (psc + 1)) - 1;
@@ -264,7 +290,6 @@ bool HardwareTimer::isReady() const
 
 void HardwareTimer::setEnabled(bool enable)
 {
-    mEnabled = enable;
     if (enable)
         mTim->CR1 |= TIM_CR1_CEN;
     else
@@ -273,7 +298,7 @@ void HardwareTimer::setEnabled(bool enable)
 
 void HardwareTimer::start()
 {
-    setEnabled(true); 
+    setEnabled(true);
 }
 
 void HardwareTimer::stop()
@@ -322,21 +347,21 @@ void HardwareTimer::configCapture(ChannelNumber ch, Polarity polarity)
     {
         if (!(chmask & 1))
             continue;
-        
+
         __IO uint32_t &CCR = (&mTim->CCR1)[i];
         __IO uint32_t &CCMR = (&mTim->CCMR1)[i>>1];
-          
+
         int ccr_shift = i * 4;
         int ccmr_shift = (i & 1) * 8;
-    
-        uint8_t filter = 15;
-        
+
+        uint8_t filter = 0;//15;
+
         CCMR &= ~(0xFF << ccmr_shift);
         CCMR |= (TIM_CCMR1_CC1S_0 << ccmr_shift) | (filter << (4 + ccmr_shift)); // channel configuret as input, ICn mapped on TIn
 
         CCR = 0;
         mTim->ARR = -1;
-        
+
         // input capture become active after this init
         mTim->CCER = mTim->CCER & ~(0xF << ccr_shift);
         mTim->CCER |= (polarity | 0x0) << ccr_shift; // 0x1 = capture enabled
@@ -348,7 +373,8 @@ void HardwareTimer::configCapture(Gpio::Config pin, Polarity polarity, NotifyEve
     Gpio::config(pin);
     ChannelNumber chan = getChannelByPin(pin);
     configCapture(chan, polarity);
-    setCaptureEvent(chan, event);
+    if (event)
+        setCaptureEvent(chan, event);
 //    return chan;
 }
 
@@ -371,30 +397,30 @@ void HardwareTimer::configPwm(ChannelNumber ch, PwmMode pwmMode, bool inverted)
     {
         if (!(chmask & 1))
             continue;
-        
+
         __IO uint32_t &CCR = (&mTim->CCR1)[i];
         __IO uint32_t &CCMR = (&mTim->CCMR1)[i>>1];
-          
+
         int cr2_shift = i * 2;
         int ccr_shift = i * 4;
         int ccmr_shift = (i & 1) * 8;
-    
+
         // outputs are disabled after this init
         mTim->CCER = mTim->CCER & ~(0xF << ccr_shift);
         if (inverted)
             mTim->CCER |= (inverted? 0xA: 0x0) << ccr_shift;
-    
+
         // preload enable HARDCODED!!
         CCMR = CCMR & ~((TIM_CCMR1_OC1M | TIM_CCMR1_CC1S | TIM_CCMR1_OC1PE) << ccmr_shift)
                     | ((pwmMode | TIM_CCMR1_OC1PE) << ccmr_shift);
 
-        if (mTim == TIM1 || mTim == TIM8)
+        if (hasCapability(Complementary))
         {
             // Reset the Output Compare and Output Compare N IDLE State
             mTim->CR2 = mTim->CR2 & ~(0x0300 << cr2_shift);
         }
 
-        CCR = 0;        
+        CCR = 0;
     }
 }
 
@@ -442,7 +468,7 @@ void HardwareTimer::setComplementaryChannelInverted(ChannelNumber ch, bool inver
 void HardwareTimer::enableInterrupt(InterruptSource source)
 {
     mEnabledIrq[source] = true;
-  
+
     if (mTim == TIM1)
     {
         switch (source)
@@ -453,6 +479,7 @@ void HardwareTimer::enableInterrupt(InterruptSource source)
           case isrcBreak: mIrq = TIM_IRQn(1_BRK); break;
         }
     }
+#if defined(TIM8)
     else if (mTim == TIM8)
     {
         switch (source)
@@ -463,16 +490,30 @@ void HardwareTimer::enableInterrupt(InterruptSource source)
           case isrcBreak: mIrq = TIM_IRQn(8_BRK); break;
         }
     }
+#endif
+
+#if defined(TIM20)
+    else if (mTim == TIM20)
+    {
+        switch (source)
+        {
+          case isrcUpdate: mIrq = TIM_IRQn(20_UP); break;
+          case isrcCC1: case isrcCC2: case isrcCC3: case isrcCC4: mIrq = TIM_IRQn(20_CC); break;
+          case isrcCom: case isrcTrigger: mIrq = TIM_IRQn(20_TRG_COM); break;
+          case isrcBreak: mIrq = TIM_IRQn(20_BRK); break;
+        }
+    }
+#endif
     
 //#warning priority for PWM generation must be 0!!!
     NVIC_SetPriority(mIrq, 0);
     NVIC_EnableIRQ(mIrq);
-    
+
     mTim->DIER |= (1 << source);
 }
 
 void HardwareTimer::handleInterrupt()
-{  
+{
     for (int i=0; i<8; i++)
     {
         if (mEnabledIrq[i])
@@ -491,15 +532,15 @@ void HardwareTimer::handleInterrupt()
 
 #ifdef __cplusplus
  extern "C" {
-#endif 
-        
+#endif
+
 #define TIM_SIMPLEX_IRQ_HANDLER(x) \
     void TIM_IRQHandler(x)() \
     { \
     if (HardwareTimer::mTimers[x-1]) \
         HardwareTimer::mTimers[x-1]->handleInterrupt(); \
     }
-    
+
 #define TIM_COMPLEX_IRQ_HANDLER(tim, t1, t2) \
     void TIM_IRQHandler(tim)() \
     { \
@@ -507,22 +548,23 @@ void HardwareTimer::handleInterrupt()
         HardwareTimer::mTimers[t1-1]->handleInterrupt(); \
     if (t2 && HardwareTimer::mTimers[t2-1]) \
         HardwareTimer::mTimers[t2-1]->handleInterrupt(); \
-    }    
-    
-#if defined(STM32F4)
+    }
+
+#if defined(STM32F4) || defined(STM32F7)
 #define FOREACH_SIMPLEX_TIM_IRQ(f) \
-    f(2) f(3) f(4) f(5) f(6) f(7)    
+    f(2) f(3) f(4) f(5) f(6) f(7)
 #define FOREACH_COMPLEX_TIM_IRQ(f) \
     f(1_BRK, 1, 9)  f(1_UP, 1, 10) f(1_TRG_COM, 1, 11) f(1_CC, 1, 0) \
-    f(8_BRK, 8, 12) f(8_UP, 8, 13) f(8_TRG_COM, 8, 14) f(8_CC, 8, 0)   
-    
-#elif defined(STM32L4) || defined(STM32G4)
+    f(8_BRK, 8, 12) f(8_UP, 8, 13) f(8_TRG_COM, 8, 14) f(8_CC, 8, 0)
+
+#elif defined(STM32L4) || defined(STM32G4) || defined(STM32F3)
 #define FOREACH_SIMPLEX_TIM_IRQ(f) \
-    f(2) f(3) f(4) f(5) f(6) f(7) f(9) f(10) f(11) f(12) f(13) f(14)
+    f(2) f(3) f(4) f(5) f(6) f(7) f(9) f(10) f(11) // f(12) f(13) f(14)
 #define FOREACH_COMPLEX_TIM_IRQ(f) \
     f(1_BRK, 1, 15) f(1_UP, 1, 16) f(1_TRG_COM, 1, 17) f(1_CC, 1, 0) \
-    f(8_BRK, 8, 0)  f(8_UP, 8, 0)  f(8_TRG_COM, 8, 0)  f(8_CC, 8, 0)       
-    
+    f(8_BRK, 8, 0)  f(8_UP, 8, 0)  f(8_TRG_COM, 8, 0)  f(8_CC, 8, 0) \
+    f(20_BRK, 20, 0) f(20_UP, 20, 0) f(20_TRG_COM, 20, 0)  f(20_CC, 20, 0)    
+        
 #endif
 
 // definition of simplex timer handlers (one irq handler per timer)

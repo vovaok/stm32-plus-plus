@@ -9,7 +9,7 @@ GuiApplication::GuiApplication() : Application()
     m_widget = new Widget(nullptr);
     m_widget->setBackgroundColor(m_palette->window());
     m_paintTimer = new Timer;
-    m_paintTimer->onTimeout = EVENT(&GuiApplication::paintTask);
+    m_paintTimer->onTimeout = EVENT(&GuiApplication::repaint);
     m_paintTimer->setInterval(16);
 }
 
@@ -17,6 +17,9 @@ GuiApplication::~GuiApplication()
 {
     m_paintTimer->stop();
     delete m_paintTimer;
+    delete m_widget;
+    delete m_palette;
+    delete m_translator;
 }
 
 GuiApplication *GuiApplication::instance()
@@ -37,6 +40,14 @@ Widget *GuiApplication::focusWidget()
 Palette* GuiApplication::palette()
 {
     return instance()->m_palette;
+}
+
+Translator *GuiApplication::translator()
+{
+    GuiApplication *app = instance();
+    if (!app->m_translator)
+        app->m_translator = new Translator;
+    return app->m_translator;
 }
 
 void GuiApplication::setFocusWidget(Widget *w)
@@ -61,12 +72,30 @@ void GuiApplication::setDisplay(Display *d)
 {
     m_display = d;
     m_widget->resize(d->width(), d->height());
+    m_widget->update();
     m_paintTimer->start();
 }
 
 void GuiApplication::addTouchScreen(TouchScreen *ts)
 {
     ts->onTouch = EVENT(&GuiApplication::touchEvent);
+}
+
+void GuiApplication::setGuiAutoRepaint(bool enable)
+{
+    if (enable)
+        m_paintTimer->start();
+    else
+        m_paintTimer->stop();
+}
+
+void GuiApplication::repaint()
+{
+    if (m_display)// && m_autoRepaint)
+    {
+        m_widget->paint(m_display);
+        m_paintDone = true;
+    }
 }
 
 void GuiApplication::touchEvent(TouchEvent *event)
@@ -117,14 +146,5 @@ void GuiApplication::touchEvent(TouchEvent *event)
             m_touchedWidget = nullptr;
             break;
         };
-    }
-}
-
-void GuiApplication::paintTask()
-{
-    if (m_display && m_autoRepaint)
-    {
-        m_widget->paint(m_display);
-        m_paintDone = true;
     }
 }

@@ -1,6 +1,5 @@
 #include "progressbar.h"
 #include "../image.h"
-#include <math.h>
 #include "core/macros.h"
 
 ProgressBar::ProgressBar(Widget *parent) :
@@ -8,6 +7,7 @@ ProgressBar::ProgressBar(Widget *parent) :
 {
     m_color = palette()->accent();
     m_backgroundColor = palette()->base();
+    setFixedHeight(font().info().height() + 4);
     update();
 }
 
@@ -55,13 +55,23 @@ void ProgressBar::setTextVisible(bool visible)
     }
 }
 
-void ProgressBar::setFormat(const ByteArray &fmt, int decimals)
+void ProgressBar::setFormat(const ByteArray &fmt)
 {
-    m_format = fmt;
-    setDecimals(decimals);
-    if (m_textVisible)
-        update();
+    if (m_format != fmt)
+    {
+        m_format = fmt;
+        if (m_textVisible)
+            update();
+    }
 }
+
+//void ProgressBar::setFormat(const ByteArray &fmt, int decimals)
+//{
+//    m_format = fmt;
+//    setDecimals(decimals);
+//    if (m_textVisible)
+//        update();
+//}
 
 void ProgressBar::setDecimals(int value)
 {
@@ -73,14 +83,29 @@ void ProgressBar::setDecimals(int value)
     }
 }
 
-void ProgressBar::update()
+void ProgressBar::setFont(Font font)
 {
-    setFixedHeight(font().info().height() + 4);
+    Widget::setFont(font);
+    setFixedHeight(font.info().height() + 4);
     updateGeometry();
-    Widget::update();
 }
 
 void ProgressBar::paintEvent(Display *d)
+{
+    if (d->isReadable())
+    {
+        doPaint(d);
+    }
+    else
+    {
+        Image img(width(), height());
+        img.fill(m_parent->backgroundColor());
+        doPaint(&img);
+        d->drawImage(0, 0, img);
+    }
+}
+
+void ProgressBar::doPaint(Display *d)
 {
     int w = width();
     int h = height();
@@ -88,26 +113,35 @@ void ProgressBar::paintEvent(Display *d)
     float percent = 0;
     if (m_maximum > m_minimum)
     {
-        x = lrintf((m_value - m_minimum) * (w - 2) / (m_maximum - m_minimum));
+        x = map(m_value);//lrintf((m_value - m_minimum) * (w - 2) / (m_maximum - m_minimum));
         percent = (m_value - m_minimum) * 100 / (m_maximum - m_minimum);
     }
 
-    Image img(w, h);
-    img.fill(m_parent->backgroundColor().rgb565());
-    img.setColor(m_borderColor);
-    img.setBackgroundColor(m_backgroundColor);
-    img.drawFillRoundRect(0, 0, w, h, 3);
-    img.setBackgroundColor(m_color);
-    img.fillRoundRect(1, 1, x, h-2, 2);
+    d->setColor(m_borderColor);
+    d->setBackgroundColor(m_backgroundColor);
+    d->drawFillRoundRect(0, 0, w, h, 3);
+    d->setBackgroundColor(m_color);
+    d->fillRoundRect(1, 1, x-1, h-2, 2);
     if (m_textVisible)
     {
         ByteArray s = m_format;
         s.replace("%p", ByteArray::number(percent, 'f', m_decimals));
         s.replace("%v", ByteArray::number(m_value, 'f', m_decimals));
-        img.setColor(m_enabled? palette()->text(): palette()->disabledText());
-        img.setFont(font());
-        img.drawString(0, 0, w, h, AlignCenter, s.data());
+        d->setColor(m_enabled? palette()->text(): palette()->disabledText());
+        d->setFont(font());
+        d->drawString(0, 0, w, h, AlignCenter, s.data());
     }
+}
 
-    d->drawImage(0, 0, img);
+int ProgressBar::map(float value)
+{
+    if (m_maximum == m_minimum)
+        return 0;
+    int w = m_width - 2;
+    int x = static_cast<int>((value - m_minimum) * w / (m_maximum - m_minimum)) + 1;
+    if (x < 1)
+        return 1;
+    else if (x > w)
+        return w;
+    return x;
 }

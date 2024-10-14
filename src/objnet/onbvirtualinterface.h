@@ -2,38 +2,68 @@
 #define _ONBVIRTUALINTERFACE_H
 
 #include "objnetInterface.h"
-#include <queue>
 
 namespace Objnet
 {
+    
+class OnbVirtualInterfacePool;
 
 class OnbVirtualInterface : public ObjnetInterface
 {
-private:
-    typedef struct
-    {
-        unsigned long id;
-        unsigned long mask;
-    } Filter;
-    std::vector<Filter> mFilters;
-    std::vector<OnbVirtualInterface*> mInterfaces;
-    std::queue<CommonMessage> mBuffer;
-    
-    bool testFilter(unsigned long id);
-  
 public:
-    OnbVirtualInterface();
+    OnbVirtualInterface(OnbVirtualInterfacePool *pool);
     
-    bool write(const CommonMessage &msg);
-    bool read(CommonMessage &msg);
-    void flush();
-    
-    int availableWriteCount();
+    virtual bool isBusPresent() const override;
     
     int addFilter(uint32_t id, uint32_t mask=0xFFFFFFFF);
     void removeFilter(int number);
     
-    void join(OnbVirtualInterface* iface);
+protected:
+    virtual bool send(const CommonMessage &msg) override;    
+    
+private:
+    uint8_t m_busaddr = 0xFF; // invalid
+    OnbVirtualInterfacePool *m_pool = nullptr;
+    bool m_enabled = true;
+    friend class OnbVirtualInterfacePool;
+};
+
+class OnbVirtualInterfacePool
+{
+public:
+    void setInterfaceEnabled(uint8_t busaddr, bool enabled)
+    {
+        if (busaddr < 16 && m_interfaces[busaddr])
+            m_interfaces[busaddr]->m_enabled = enabled;
+    }
+    
+private:
+    friend class OnbVirtualInterface;
+    
+    bool bindInterface(uint8_t busaddr, OnbVirtualInterface *iface)
+    {
+        if (busaddr < 16 && !m_interfaces[busaddr])
+        {
+            m_activeCount++;
+            m_interfaces[busaddr] = iface;
+            return true;
+        }
+        return false;
+    }
+    
+    bool unbindInterface(uint8_t busaddr)
+    {
+        if (busaddr < 16 && m_interfaces[busaddr])
+        {
+            --m_activeCount;
+            m_interfaces[busaddr] = nullptr;
+            return true;
+        }
+        return false;
+    }
+    
+    OnbVirtualInterface *m_interfaces[16] = {0};
+    int m_activeCount = 0;
 };
 
 }

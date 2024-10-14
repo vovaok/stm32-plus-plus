@@ -115,7 +115,7 @@ enum Config
     TIM13_CH1_PF8 =     PINCONFIG(PF8,  modeAF | outPushPull | pullNone | speed50MHz, afTim13, 0xD1), //!<.
     // TIM14
     TIM14_CH1_PA7 =     PINCONFIG(PA7,  modeAF | outPushPull | pullNone | speed50MHz, afTim14, 0xE1), //!<.
-    TIM14_CH1_PF9 =     PINCONFIG(PF9,  modeAF | outPushPull | pullNone | speed50MHz, afTim14, 0xE1), //!<.        
+    TIM14_CH1_PF9 =     PINCONFIG(PF9,  modeAF | outPushPull | pullNone | speed50MHz, afTim14, 0xE1), //!<.
     // USART1
     USART1_CK_PA8 =     PINCONFIG(PA8,  modeAF | outPushPull | pullNone | speed50MHz, afUsart1, 0x10), //!<.
     USART1_TX_PA9 =     PINCONFIG(PA9,  modeAF | outPushPull | pullUp   | speed50MHz, afUsart1, 0x10), //!<.
@@ -157,6 +157,8 @@ enum Config
     // UART5
     UART5_TX_PC12 =     PINCONFIG(PC12, modeAF | outPushPull | pullNone | speed50MHz, afUart5, 0x50), //!<.
     UART5_RX_PD2 =      PINCONFIG(PD2,  modeAF | outPushPull | pullNone | speed50MHz, afUart5, 0x50), //!<.
+    UART5_TX_PB9 =      PINCONFIG(PB9,  modeAF | outPushPull | pullUp | speed50MHz, afUart5_1, 0x50), //!<.
+    UART5_RX_PB8 =      PINCONFIG(PB8,  modeAF | outPushPull | pullUp | speed50MHz, afUart5_1, 0x50), //!<.
     // USART6
     USART6_TX_PC6 =     PINCONFIG(PC6,  modeAF | outPushPull | pullNone | speed50MHz, afUsart6, 0x60), //!<.
     USART6_RX_PC7 =     PINCONFIG(PC7,  modeAF | outPushPull | pullNone | speed50MHz, afUsart6, 0x60), //!<.
@@ -182,7 +184,7 @@ enum Config
     CAN2_TX_PB6 =       PINCONFIG(PB6,  modeAF | outPushPull | pullUp | speed50MHz, afCan2, 0x20), //!<.
     CAN2_RX_PB12 =      PINCONFIG(PB12, modeAF | outPushPull | pullUp | speed50MHz, afCan2, 0x20), //!<.
     CAN2_TX_PB13 =      PINCONFIG(PB13, modeAF | outPushPull | pullUp | speed50MHz, afCan2, 0x20), //!<.
-    
+
     //I2C
     I2C2_SCL_PH4 =      PINCONFIG(PH4,  modeAF | outOpenDrain| pullUp | speed50MHz, afI2C2, 0x20), //!<.
     I2C2_SDA_PH5 =      PINCONFIG(PH5,  modeAF | outOpenDrain| pullUp | speed50MHz, afI2C2, 0x20), //!<.
@@ -201,11 +203,13 @@ enum Config
     I2C1_SDA_PB7  =     PINCONFIG(PB7,  modeAF | outOpenDrain| pullNone | speed50MHz, afI2C1, 0x10), //!<.
     I2C1_SCL_PB8  =     PINCONFIG(PB8,  modeAF | outOpenDrain| pullUp | speed50MHz, afI2C1, 0x10), //!<.
     I2C1_SDA_PB9  =     PINCONFIG(PB9,  modeAF | outOpenDrain| pullUp | speed50MHz, afI2C1, 0x10), //!<.
-      
+    I2C4_SDA_PF15  =    PINCONFIG(PF15,  modeAF | outOpenDrain| pullUp | speed50MHz, afI2C1, 0x40), //!<.  // от ф767
+    I2C4_SCL_PD12  =    PINCONFIG(PD12,  modeAF | outOpenDrain| pullUp | speed50MHz, afI2C1, 0x40), //!<.
+
     // DAC
     DAC_OUT1_PA4  =     PINCONFIG(PA4,  modeAnalog, afNone, 0x11), //!<.
     DAC_OUT2_PA5  =     PINCONFIG(PA5,  modeAnalog, afNone, 0x12), //!<.
-      
+
     // ADC
     ADC1_IN0_PA0 =      PINCONFIG(PA0, modeAnalog, afNone, 0x10), //!<.
     ADC1_IN1_PA1 =      PINCONFIG(PA1, modeAnalog, afNone, 0x11), //!<.
@@ -223,7 +227,7 @@ enum Config
     ADC1_IN13_PC3 =     PINCONFIG(PC3, modeAnalog, afNone, 0x1D), //!<.
     ADC1_IN14_PC4 =     PINCONFIG(PC4, modeAnalog, afNone, 0x1E), //!<.
     ADC1_IN15_PC5 =     PINCONFIG(PC5, modeAnalog, afNone, 0x1F), //!<.
-      
+
     ADC2_IN0_PA0 =      PINCONFIG(PA0, modeAnalog, afNone, 0x20), //!<.
     ADC2_IN1_PA1 =      PINCONFIG(PA1, modeAnalog, afNone, 0x21), //!<.
     ADC2_IN2_PA2 =      PINCONFIG(PA2, modeAnalog, afNone, 0x22), //!<.
@@ -233,14 +237,14 @@ enum Config
     ADC2_IN6_PA6 =      PINCONFIG(PA6, modeAnalog, afNone, 0x26), //!<.
     ADC2_IN7_PA7 =      PINCONFIG(PA7, modeAnalog, afNone, 0x27), //!<.
     ADC2_IN8_PB0 =      PINCONFIG(PB0, modeAnalog, afNone, 0x28), //!<.
-    ADC2_IN9_PB1 =      PINCONFIG(PB1, modeAnalog, afNone, 0x29), //!<.  
+    ADC2_IN9_PB1 =      PINCONFIG(PB1, modeAnalog, afNone, 0x29), //!<.
     ADC2_IN10_PC0 =     PINCONFIG(PC0, modeAnalog, afNone, 0x2A), //!<.
     ADC2_IN11_PC1 =     PINCONFIG(PC1, modeAnalog, afNone, 0x2B), //!<.
     ADC2_IN12_PC2 =     PINCONFIG(PC2, modeAnalog, afNone, 0x2C), //!<.
     ADC2_IN13_PC3 =     PINCONFIG(PC3, modeAnalog, afNone, 0x2D), //!<.
     ADC2_IN14_PC4 =     PINCONFIG(PC4, modeAnalog, afNone, 0x2E), //!<.
     ADC2_IN15_PC5 =     PINCONFIG(PC5, modeAnalog, afNone, 0x2F), //!<.
-    
+
     ADC3_IN0_PA0 =      PINCONFIG(PA0, modeAnalog, afNone, 0x30), //!<.
     ADC3_IN1_PA1 =      PINCONFIG(PA1, modeAnalog, afNone, 0x31), //!<.
     ADC3_IN2_PA2 =      PINCONFIG(PA2, modeAnalog, afNone, 0x32), //!<.
@@ -249,7 +253,7 @@ enum Config
     ADC3_IN11_PC1 =     PINCONFIG(PC1, modeAnalog, afNone, 0x3B), //!<.
     ADC3_IN12_PC2 =     PINCONFIG(PC2, modeAnalog, afNone, 0x3C), //!<.
     ADC3_IN13_PC3 =     PINCONFIG(PC3, modeAnalog, afNone, 0x3D), //!<.
-    
+
     // SPI (I2S)
     SPI1_NSS_PA4 =      PINCONFIG(PA4,  modeAF | speed50MHz, afSpi1, 0x10), //!.
     SPI1_SCK_PA5 =      PINCONFIG(PA5,  modeAF | speed100MHz, afSpi1, 0x10), //!.
@@ -299,6 +303,10 @@ enum Config
     SPI3_MOSI_PC12 =    PINCONFIG(PC12, modeAF | speed50MHz, afSpi3, 0x30), //!.
     I2S3_SD_PC12 =      PINCONFIG(PC12, modeAF | speed50MHz, afSpi3, 0x30), //!.
     // nedodelano I2S3ext
+    SPI4_NSS_PE4 =     PINCONFIG(PE4, modeAF | speed50MHz, afSpi4, 0x40),
+    SPI4_SCK_PE2 =     PINCONFIG(PE2, modeAF | speed50MHz, afSpi4, 0x40),
+    SPI4_MISO_PE5 =    PINCONFIG(PE5, modeAF | speed50MHz | pullUp, afSpi4, 0x40),
+    SPI4_MOSI_PE6 =    PINCONFIG(PE6, modeAF | speed50MHz, afSpi4, 0x40),
     SPI4_NSS_PE11 =     PINCONFIG(PE11, modeAF | speed50MHz, afSpi4, 0x40),
     SPI4_SCK_PE12 =     PINCONFIG(PE12, modeAF | speed50MHz, afSpi4, 0x40),
     SPI4_MISO_PE13 =    PINCONFIG(PE13, modeAF | speed50MHz | pullUp, afSpi4, 0x40),
@@ -339,9 +347,51 @@ enum Config
     OTG_HS_ULPI_NXT_PH4=PINCONFIG(PH4,  modeAF | speed100MHz, afOtgHs, 0x21), //!<.
     OTG_HS_ULPI_DIR_PI11=PINCONFIG(PI11,modeAF | speed100MHz, afOtgHs, 0x21), //!<.\n to be continued....
 
-    MCO1            =   PINCONFIG(PA8,  modeAF | speed100MHz, afMco, 0x10),
-    MCO2            =   PINCONFIG(PC9,  modeAF | speed100MHz, afMco, 0x20),
+    MCO1_PA8        =   PINCONFIG(PA8,  modeAF | speed100MHz, afMco, 0x10),
+    MCO2_PC9        =   PINCONFIG(PC9,  modeAF | speed100MHz, afMco, 0x20),
+
+    // ETH common
+    ETH_MDC_PC1     =   PINCONFIG(PC1,  modeAF | speed100MHz, afEth, 0x10),
+    ETH_MDIO_PA2    =   PINCONFIG(PA2,  modeAF | speed100MHz, afEth, 0x10),
+    // ETH MII
+    ETH_MII_CRS_PA0 =   PINCONFIG(PA0,  modeAF | speed100MHz, afEth, 0x11),
+    ETH_MII_CRS_PH2 =   PINCONFIG(PH2,  modeAF | speed100MHz, afEth, 0x11),
+    ETH_MII_COL_PA3 =   PINCONFIG(PA3,  modeAF | speed100MHz, afEth, 0x11),
+    ETH_MII_COL_PH3 =   PINCONFIG(PH3,  modeAF | speed100MHz, afEth, 0x11),
+    ETH_MII_RX_DV_PA7 = PINCONFIG(PA7,  modeAF | speed100MHz, afEth, 0x11),
+    ETH_MII_RX_CLK_PA1 =PINCONFIG(PA1,  modeAF | speed100MHz, afEth, 0x11),
+    ETH_MII_RXD0_PC4 =  PINCONFIG(PC4,  modeAF | speed100MHz, afEth, 0x11),
+    ETH_MII_RXD1_PC5 =  PINCONFIG(PC5,  modeAF | speed100MHz, afEth, 0x11),
+    ETH_MII_RXD2_PB0 =  PINCONFIG(PB0,  modeAF | speed100MHz, afEth, 0x11),
+    ETH_MII_RXD3_PB1 =  PINCONFIG(PB1,  modeAF | speed100MHz, afEth, 0x11),
+    ETH_MII_RXD3_PH7 =  PINCONFIG(PH7,  modeAF | speed100MHz, afEth, 0x11),
+    ETH_MII_RX_ER_PB10 =PINCONFIG(PB10, modeAF | speed100MHz, afEth, 0x11),
+    ETH_MII_RX_ER_PI10 =PINCONFIG(PI10, modeAF | speed100MHz, afEth, 0x11),
+    ETH_MII_TX_EN_PB11 =PINCONFIG(PB11, modeAF | speed100MHz, afEth, 0x11),
+    ETH_MII_TX_EN_PG11 =PINCONFIG(PG11, modeAF | speed100MHz, afEth, 0x11),
+    ETH_MII_TX_CLK_PC3 =PINCONFIG(PC3,  modeAF | speed100MHz, afEth, 0x11),
+    ETH_MII_TXD0_PB12 = PINCONFIG(PB12, modeAF | speed100MHz, afEth, 0x11),
+    ETH_MII_TXD0_PG13 = PINCONFIG(PG13, modeAF | speed100MHz, afEth, 0x11),
+    ETH_MII_TXD1_PB13 = PINCONFIG(PB13, modeAF | speed100MHz, afEth, 0x11),  
+    ETH_MII_TXD1_PG14 = PINCONFIG(PG14, modeAF | speed100MHz, afEth, 0x11),
+    ETH_MII_TXD2_PC2 =  PINCONFIG(PC2,  modeAF | speed100MHz, afEth, 0x11),
+    ETH_MII_TXD3_PE2 =  PINCONFIG(PE2,  modeAF | speed100MHz, afEth, 0x11),
+    ETH_MII_TXD3_PB8 =  PINCONFIG(PB8,  modeAF | speed100MHz, afEth, 0x11),
+    ETH_PPS_OUT_PB5  =  PINCONFIG(PB5,  modeAF | speed100MHz, afEth, 0x11),
+    ETH_PPS_OUT_PG8 =   PINCONFIG(PG8,  modeAF | speed100MHz, afEth, 0x11),
+    // ETH RMII
+    ETH_RMII_REF_CLK_PA1 = PINCONFIG(PA1,  modeAF | speed100MHz, afEth, 0x12),
+    ETH_RMII_CRS_DV_PA7 =  PINCONFIG(PA7,  modeAF | speed100MHz, afEth, 0x12),
+    ETH_RMII_RXD0_PC4 =    PINCONFIG(PC4,  modeAF | speed100MHz, afEth, 0x12),
+    ETH_RMII_RXD1_PC5 =    PINCONFIG(PC5,  modeAF | speed100MHz, afEth, 0x12),
+    ETH_RMII_TX_EN_PB11 =  PINCONFIG(PB11, modeAF | speed100MHz, afEth, 0x12),
+    ETH_RMII_TXD0_PB12 =   PINCONFIG(PB12, modeAF | speed100MHz, afEth, 0x12),
+    ETH_RMII_TXD1_PB13 =   PINCONFIG(PB13, modeAF | speed100MHz, afEth, 0x12),
+    ETH_RMII_TX_EN_PG11 =  PINCONFIG(PG11, modeAF | speed100MHz, afEth, 0x12),
+    ETH_RMII_TXD0_PG13 =   PINCONFIG(PG13, modeAF | speed100MHz, afEth, 0x12),
+    ETH_RMII_TXD1_PG14 =   PINCONFIG(PG14, modeAF | speed100MHz, afEth, 0x12),
     
+    // FMC - Flexible Memory Controller
     FMC_A0          =   PINCONFIG(PF0,  modeAF | speed50MHz, afFmc, 0x10),
     FMC_A1          =   PINCONFIG(PF1,  modeAF | speed50MHz, afFmc, 0x10),
     FMC_A2          =   PINCONFIG(PF2,  modeAF | speed50MHz, afFmc, 0x10),
@@ -441,4 +491,87 @@ enum Config
     FMC_SDRAM_BA1   =   FMC_A15,
     FMC_NAND16_CLE  =   FMC_A16,
     FMC_NAND16_ALE  =   FMC_A17,
+
+    // LCD (LTDC)
+    LCD_B5_PA3      =   PINCONFIG(PA3,  modeAF | speed50MHz, afLcd, 0x10),
+    LCD_VSYNC_PA4   =   PINCONFIG(PA4,  modeAF | speed50MHz, afLcd, 0x10),
+    LCD_G2_PA6      =   PINCONFIG(PA6,  modeAF | speed50MHz, afLcd, 0x10),
+    LCD_R6_PA8      =   PINCONFIG(PA8,  modeAF | speed50MHz, afLcd, 0x10),
+    LCD_R4_PA11     =   PINCONFIG(PA11, modeAF | speed50MHz, afLcd, 0x10),
+    LCD_R5_PA12     =   PINCONFIG(PA12, modeAF | speed50MHz, afLcd, 0x10),
+    LCD_R3_PB0      =   PINCONFIG(PB0,  modeAF | speed50MHz, 0x09,  0x10),
+    LCD_R6_PB1      =   PINCONFIG(PB1,  modeAF | speed50MHz, 0x09,  0x10),
+    LCD_B6_PB8      =   PINCONFIG(PB8,  modeAF | speed50MHz, afLcd, 0x10),
+    LCD_B7_PB9      =   PINCONFIG(PB9,  modeAF | speed50MHz, afLcd, 0x10),
+    LCD_G4_PB10     =   PINCONFIG(PB10, modeAF | speed50MHz, afLcd, 0x10),
+    LCD_G5_PB11     =   PINCONFIG(PB11, modeAF | speed50MHz, afLcd, 0x10),
+    LCD_HSYNC_PC6   =   PINCONFIG(PC6,  modeAF | speed50MHz, afLcd, 0x10),
+    LCD_G6_PC7      =   PINCONFIG(PC7,  modeAF | speed50MHz, afLcd, 0x10),
+    LCD_R2_PC10     =   PINCONFIG(PC10, modeAF | speed50MHz, afLcd, 0x10),
+    LCD_G7_PD3      =   PINCONFIG(PD3,  modeAF | speed50MHz, afLcd, 0x10),
+    LCD_B2_PD6      =   PINCONFIG(PD6,  modeAF | speed50MHz, afLcd, 0x10),
+    LCD_B3_PD10     =   PINCONFIG(PD10, modeAF | speed50MHz, afLcd, 0x10),
+    LCD_B0_PE4      =   PINCONFIG(PE4,  modeAF | speed50MHz, afLcd, 0x10),
+    LCD_G0_PE5      =   PINCONFIG(PE5,  modeAF | speed50MHz, afLcd, 0x10),
+    LCD_G1_PE6      =   PINCONFIG(PE6,  modeAF | speed50MHz, afLcd, 0x10),
+    LCD_G3_PE11     =   PINCONFIG(PE11, modeAF | speed50MHz, afLcd, 0x10),
+    LCD_B4_PE12     =   PINCONFIG(PE12, modeAF | speed50MHz, afLcd, 0x10),
+    LCD_DE_PE13     =   PINCONFIG(PE13, modeAF | speed50MHz, afLcd, 0x10),
+    LCD_CLK_PE14    =   PINCONFIG(PE14, modeAF | speed50MHz, afLcd, 0x10),
+    LCD_R7_PE15     =   PINCONFIG(PE15, modeAF | speed50MHz, afLcd, 0x10),
+    LCD_DE_PF10     =   PINCONFIG(PF10, modeAF | speed50MHz, afLcd, 0x10),
+    LCD_R7_PG6      =   PINCONFIG(PG6,  modeAF | speed50MHz, afLcd, 0x10),
+    LCD_CLK_PG7     =   PINCONFIG(PG7,  modeAF | speed50MHz, afLcd, 0x10),
+    LCD_B2_PG10     =   PINCONFIG(PG10, modeAF | speed50MHz, afLcd, 0x10),
+    LCD_G3_PG10     =   PINCONFIG(PG10, modeAF | speed50MHz, 0x09,  0x10),
+    LCD_B3_PG11     =   PINCONFIG(PG11, modeAF | speed50MHz, afLcd, 0x10),
+    LCD_B1_PG12     =   PINCONFIG(PG12, modeAF | speed50MHz, afLcd, 0x10),
+    LCD_B4_PG12     =   PINCONFIG(PG12, modeAF | speed50MHz, 0x09,  0x10),
+    LCD_R0_PH2      =   PINCONFIG(PH2,  modeAF | speed50MHz, afLcd, 0x10),
+    LCD_R1_PH3      =   PINCONFIG(PH3,  modeAF | speed50MHz, afLcd, 0x10),
+    LCD_R2_PH8      =   PINCONFIG(PH8,  modeAF | speed50MHz, afLcd, 0x10),
+    LCD_R3_PH9      =   PINCONFIG(PH9,  modeAF | speed50MHz, afLcd, 0x10),
+    LCD_R4_PH10     =   PINCONFIG(PH10, modeAF | speed50MHz, afLcd, 0x10),
+    LCD_R5_PH11     =   PINCONFIG(PH11, modeAF | speed50MHz, afLcd, 0x10),
+    LCD_R6_PH12     =   PINCONFIG(PH12, modeAF | speed50MHz, afLcd, 0x10),
+    LCD_G2_PH13     =   PINCONFIG(PH13, modeAF | speed50MHz, afLcd, 0x10),
+    LCD_G3_PH14     =   PINCONFIG(PH14, modeAF | speed50MHz, afLcd, 0x10),
+    LCD_G4_PH15     =   PINCONFIG(PH15, modeAF | speed50MHz, afLcd, 0x10),
+    LCD_G5_PI0      =   PINCONFIG(PI0,  modeAF | speed50MHz, afLcd, 0x10),
+    LCD_G6_PI1      =   PINCONFIG(PI1,  modeAF | speed50MHz, afLcd, 0x10),
+    LCD_G7_PI2      =   PINCONFIG(PI2,  modeAF | speed50MHz, afLcd, 0x10),
+    LCD_B4_PI4      =   PINCONFIG(PI4,  modeAF | speed50MHz, afLcd, 0x10),
+    LCD_B5_PI5      =   PINCONFIG(PI5,  modeAF | speed50MHz, afLcd, 0x10),
+    LCD_B6_PI6      =   PINCONFIG(PI6,  modeAF | speed50MHz, afLcd, 0x10),
+    LCD_B7_PI7      =   PINCONFIG(PI7,  modeAF | speed50MHz, afLcd, 0x10),
+    LCD_VSYNC_PI9   =   PINCONFIG(PI9,  modeAF | speed50MHz, afLcd, 0x10),
+    LCD_HSYNC_PI10  =   PINCONFIG(PI10, modeAF | speed50MHz, afLcd, 0x10),
+    LCD_HSYNC_PI12  =   PINCONFIG(PI12, modeAF | speed50MHz, afLcd, 0x10),
+    LCD_VSYNC_PI13  =   PINCONFIG(PI13, modeAF | speed50MHz, afLcd, 0x10),
+    LCD_CLK_PI14    =   PINCONFIG(PI14, modeAF | speed50MHz, afLcd, 0x10),
+    LCD_R0_PI15     =   PINCONFIG(PI15, modeAF | speed50MHz, afLcd, 0x10),
+    LCD_R1_PJ0      =   PINCONFIG(PJ0,  modeAF | speed50MHz, afLcd, 0x10),
+    LCD_R2_PJ1      =   PINCONFIG(PJ1,  modeAF | speed50MHz, afLcd, 0x10),
+    LCD_R3_PJ2      =   PINCONFIG(PJ2,  modeAF | speed50MHz, afLcd, 0x10),
+    LCD_R4_PJ3      =   PINCONFIG(PJ3,  modeAF | speed50MHz, afLcd, 0x10),
+    LCD_R5_PJ4      =   PINCONFIG(PJ4,  modeAF | speed50MHz, afLcd, 0x10),
+    LCD_R6_PJ5      =   PINCONFIG(PJ5,  modeAF | speed50MHz, afLcd, 0x10),
+    LCD_R7_PJ6      =   PINCONFIG(PJ6,  modeAF | speed50MHz, afLcd, 0x10),
+    LCD_G0_PJ7      =   PINCONFIG(PJ7,  modeAF | speed50MHz, afLcd, 0x10),
+    LCD_G1_PJ8      =   PINCONFIG(PJ8,  modeAF | speed50MHz, afLcd, 0x10),
+    LCD_G2_PJ9      =   PINCONFIG(PJ9,  modeAF | speed50MHz, afLcd, 0x10),
+    LCD_G3_PJ10     =   PINCONFIG(PJ10, modeAF | speed50MHz, afLcd, 0x10),
+    LCD_G4_PJ11     =   PINCONFIG(PJ11, modeAF | speed50MHz, afLcd, 0x10),
+    LCD_B0_PJ12     =   PINCONFIG(PJ12, modeAF | speed50MHz, afLcd, 0x10),
+    LCD_B1_PJ13     =   PINCONFIG(PJ13, modeAF | speed50MHz, afLcd, 0x10),
+    LCD_B2_PJ14     =   PINCONFIG(PJ14, modeAF | speed50MHz, afLcd, 0x10),
+    LCD_B3_PJ15     =   PINCONFIG(PJ15, modeAF | speed50MHz, afLcd, 0x10),
+    LCD_G5_PK0      =   PINCONFIG(PK0,  modeAF | speed50MHz, afLcd, 0x10),
+    LCD_G6_PK1      =   PINCONFIG(PK1,  modeAF | speed50MHz, afLcd, 0x10),
+    LCD_G7_PK2      =   PINCONFIG(PK2,  modeAF | speed50MHz, afLcd, 0x10),
+    LCD_B4_PK3      =   PINCONFIG(PK3,  modeAF | speed50MHz, afLcd, 0x10),
+    LCD_B5_PK4      =   PINCONFIG(PK4,  modeAF | speed50MHz, afLcd, 0x10),
+    LCD_B6_PK5      =   PINCONFIG(PK5,  modeAF | speed50MHz, afLcd, 0x10),
+    LCD_B7_PK6      =   PINCONFIG(PK6,  modeAF | speed50MHz, afLcd, 0x10),
+    LCD_DE_PK7      =   PINCONFIG(PK7,  modeAF | speed50MHz, afLcd, 0x10),
 };

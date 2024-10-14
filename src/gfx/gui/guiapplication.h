@@ -10,6 +10,7 @@
 #include "../display.h"
 #include "../touchscreen.h"
 #include "palette.h"
+#include "translator.h"
 #include "widget.h"
 #include "font_Tahoma_13.cpp"
 
@@ -22,7 +23,8 @@ public:
 
     static Widget *widget();
     static Widget *focusWidget();
-    static Palette* palette();
+    static Palette *palette();
+    static Translator *translator();
     static Display *display();
     static Font font() {return instance()->m_widget? instance()->m_widget->font(): FontDatabase::systemFont();}
     static void setFont(const Font &font);
@@ -33,7 +35,9 @@ protected:
 
     Widget *rootWidget() {return m_widget;}
     bool paintDone() const {return m_paintDone;} // first time painted
-    void setGuiAutoRepaint(bool enable) {m_autoRepaint = enable;}
+    void setGuiAutoRepaint(bool enable);
+
+    void repaint();
 
     static void setFocusWidget(Widget *w);
     friend class Widget;
@@ -44,11 +48,11 @@ private:
     Widget *m_focusWidget = nullptr;
     Display *m_display = nullptr;
     Palette *m_palette = nullptr;
+    Translator *m_translator = nullptr;
     Timer *m_paintTimer;
     bool m_paintDone = false;
-    bool m_autoRepaint = true;
+//    bool m_autoRepaint = true;
     char m_decimalPoint = '.';
 
-    void paintTask();
     void touchEvent(TouchEvent *event);
 };

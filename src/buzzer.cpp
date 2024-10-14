@@ -1,4 +1,5 @@
 #include "buzzer.h"
+#include "core/application.h"
 
 unsigned short Buzzer::mNoteFreqs[12] = {8372, 8870, 9397, 9956, 10548, 11175, 11840, 12544, 13290, 14080, 14917, 15804};
 
@@ -12,18 +13,18 @@ Buzzer::Buzzer(Gpio::Config pin) :
 {
     HardwareTimer::TimerNumber tim = HardwareTimer::getTimerByPin(pin);
     mChan = HardwareTimer::getChannelByPin(pin);
-    
+
     if (tim == HardwareTimer::TimNone)
         THROW(Exception::InvalidPeriph);
     if (mChan == HardwareTimer::ChNone)
         THROW(Exception::InvalidPin);
-    
-    mPwm = new PwmOutput(tim, 1 _kHz);
+
+    mPwm = new PwmOutput(tim, 1000);
     //mPwm->configChannel(mChan, pin);
     mPwm->configChannelToggleMode(pin);
 //    mPwm->setDutyCycle(mChan, 32768);
     mPwm->start();
-    
+
     stmApp()->registerTaskEvent(EVENT(&Buzzer::task));
     stmApp()->registerTickEvent(EVENT(&Buzzer::tick));
 }

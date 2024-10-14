@@ -1,17 +1,23 @@
 #ifndef _SERIALFRAME_H
 #define _SERIALFRAME_H
 
-#include "core/core.h"
 #include "core/device.h"
-//#include "core/bytearray.h"
-//#include "core/coretypes.h"
-//#include "application.h"
 
-namespace Serial
+class SerialFrame : public Device
 {
-  
-class SerialFrame
-{
+public:
+    explicit SerialFrame(Device *device);
+    Device *getInterface() {return m_device;}
+
+    virtual int bytesAvailable() const override;
+
+    bool open(OpenMode mode = ReadWrite) override;
+    void close() override;
+
+protected:
+    virtual int writeData(const char *data, int size) override;
+    virtual int readData(char *data, int size) override;
+
 private:
     Device *m_device;
     ByteArray m_buffer;
@@ -21,26 +27,9 @@ private:
 
     char cs;
     bool esc, cmd_acc;
-    unsigned long mFramesSent;
+    bool m_ready = false;
 
     void task();
-    
-protected:
-    virtual void dataReceived(const ByteArray &ba);
-
-public:
-    explicit SerialFrame(Device *iface);
-    unsigned long framesSent() {return mFramesSent;}
-    
-    ConstDataEvent onDataReceived;
-    
-//    void attach(SerialInterface *iface);
-
-    void sendData(const ByteArray &data);
-    
-    Device *getInterface() {return m_device;}
 };
 
-}
-
-#endif 
+#endif

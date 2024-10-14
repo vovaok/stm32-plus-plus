@@ -29,13 +29,11 @@ private:
 };
 #pragma pack(pop)
 
-// base class for touch-screen devices
+//! Base class for touch-screen devices
 class TouchScreen
 {
 public:
     TouchScreen();
-    void setCalibration(int xOffset, int yOffset, int xFactor, int yFactor);
-//    void setOrientation(ScreenOrientation ori) {m_orientation = ori;}
 
     bool isTouched() const {return m_pressure > 0;}
     int x() const {return m_x;}
@@ -47,9 +45,6 @@ public:
 protected:
     int m_x, m_y;
     int m_pressure;
-    int m_xOffset, m_yOffset;
-    int m_xFactor, m_yFactor;
-//    ScreenOrientation m_orientation;
 
     void touchEvent(TouchEvent::Type type);
 };

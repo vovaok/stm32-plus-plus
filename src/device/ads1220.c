@@ -1,4 +1,5 @@
 #include "ads1220.h"
+#include "core/application.h"
 
 Ads1220::Ads1220(Spi *spi, Gpio::PinName csPin) :
     mSpi(spi),
@@ -8,12 +9,12 @@ Ads1220::Ads1220(Spi *spi, Gpio::PinName csPin) :
 {
     mTempChannel.offset = 0;
     mTempChannel.factor = 1.0f / 32.0f;
-  
+
     mCsPin = new Gpio(csPin);
     mCsPin->setAsOutput();
-  
+
     deselect();
-//    Spi::Config conf; 
+//    Spi::Config conf;
 //    conf.CPHA = 1;
 //    conf.CPOL = 0;
 //    conf.master = 1;
@@ -23,8 +24,8 @@ Ads1220::Ads1220(Spi *spi, Gpio::PinName csPin) :
     mSpi->setCPOL_CPHA(0, 1);
     mSpi->setBaudratePrescaler(5);
     mSpi->setDataSize(8);
-    mSpi->open();    
-    
+    mSpi->open();
+
     mConf.word = 0;
     mConf.PGA_BYPASS = Ads1220_PGA_Enabled;
     mConf.GAIN   = Ads1220_Gain_128;
@@ -41,7 +42,7 @@ Ads1220::Ads1220(Spi *spi, Gpio::PinName csPin) :
     mConf.DRDYM  = Ads1220_DRDYM_DRDY;
     mConf.I2MUX  = Ads1220_IDAC_Disabled;
     mConf.I1MUX  = Ads1220_IDAC_Disabled;
-    
+
     //    writeConfig(mConf);
     for (int i=0; i<4; i++)
     {
@@ -52,7 +53,7 @@ Ads1220::Ads1220(Spi *spi, Gpio::PinName csPin) :
 //            throw Exception::badSoBad;
         }
     }
-    
+
     stmApp()->registerTaskEvent(EVENT(&Ads1220::task));
 }
 
@@ -63,11 +64,11 @@ void Ads1220::setDrdyPin(Gpio::PinName pin)
 }
 
 void Ads1220::start()
-{    
+{
     //mConf.CM = Ads1220_CM_Continuous;
     for (int i=0; i<4; i++)
         writeReg(i, mConf.reg[i]);
-  
+
     sendOpcode(ADS1220_START);
     mEnabled = true;
 }
@@ -102,13 +103,13 @@ void Ads1220::measureTemp()
 }
 
 void Ads1220::task()
-{    
+{
     if (mEnabled)
     {
         if (isDataReady())
         {
             int value = readValue();
-            
+
             Channel *ch;
             if (mConf.TS)
             {

@@ -22,7 +22,7 @@ ObjnetDevice::ObjnetDevice(unsigned char netaddr) :
 {
     //mTimer.start();
     #ifndef QT_CORE_LIB
-    mSendTimer.setTimeoutEvent(EVENT(&ObjnetDevice::onSendTimer));
+    mSendTimer.onTimeout = EVENT(&ObjnetDevice::onSendTimer);
     #else
     QObject::connect(&mSendTimer, SIGNAL(timeout()), this, SLOT(onSendTimer()));
     #endif
@@ -33,7 +33,7 @@ ObjnetDevice::ObjnetDevice(unsigned char netaddr) :
 void ObjnetDevice::parseObjectInfo(const ByteArray &ba)
 {
 //    return;
-    
+
     ObjectInfo *obj = 0L;
     ByteArray idba;
     if ((uint8_t)ba[0] != 0xFF)
@@ -94,9 +94,10 @@ void ObjnetDevice::parseObjectInfo(const ByteArray &ba)
             obj = &sub;
         }
     }
-    
-    if (isReady())
+
+    if (!mAlreadyReady && isReady())
     {
+        mAlreadyReady = true;
         readyEvent();
 #ifdef QT_CORE_LIB
         emit ready();
@@ -224,23 +225,25 @@ ObjectInfo *ObjnetDevice::prepareObject(const ObjectInfo::Description &desc)
 //                    reinterpret_cast<unsigned char*>(obj->mWritePtr)[i] = reinterpret_cast<unsigned char*>(&x3)[i];
             
         }
+        else if (desc.wType == ObjectInfo::StringList)
+        {
+            mObjBuffers[id].resize(sizeof(vector<string>));
+            obj->mWritePtr = mObjBuffers[id].data();
+            new (obj->mWritePtr) vector<string>;
+        }
         else if (wIsCommonType && desc.writeSize == 0)
         {
             mObjBuffers[id].resize(sizeof(ByteArray));
             obj->mWritePtr = mObjBuffers[id].data();
-            ByteArray x3;
-            for (size_t i=0; i<sizeof(ByteArray); i++)
-                reinterpret_cast<unsigned char*>(obj->mWritePtr)[i] = reinterpret_cast<unsigned char*>(&x3)[i];
+            new (obj->mWritePtr) ByteArray;
         }
         else if (wIsBuffer)
         {
             if (desc.wType == ObjectInfo::Float)
             {
-//                RingBuffer<float> ring(20);
                 mObjBuffers[id].resize(sizeof(RingBuffer<float>));
                 obj->mWritePtr = mObjBuffers[id].data();
                 new (obj->mWritePtr) RingBuffer<float>(20);
-//                *reinterpret_cast<RingBuffer<float>*>(obj->mWritePtr) = ring;
             }
         }
         else
@@ -265,7 +268,7 @@ ObjectInfo *ObjnetDevice::prepareObject(const ObjectInfo::Description &desc)
         else if (rIsBuffer)
             sz = sizeof(RingBuffer<float>);
 
-        if (desc.flags & ObjectInfo::Dual)
+        if ((desc.flags & ObjectInfo::Dual) || desc.wType != desc.rType)
         {
             int osz = mObjBuffers[id].size();
             mObjBuffers[id].resize(osz + sz);
@@ -281,29 +284,34 @@ ObjectInfo *ObjnetDevice::prepareObject(const ObjectInfo::Description &desc)
             mObjBuffers[id].resize(sz);
             obj->mReadPtr = mObjBuffers[id].data();
         }
+        
+        void *readptr = const_cast<void *>(obj->mReadPtr);
       
         if (desc.rType == ObjectInfo::String)
         {
             if (isArray)
-                new ((void*)obj->mReadPtr) _String[desc.readSize];
+                new (readptr) _String[desc.readSize];
             else
-                new ((void*)obj->mReadPtr) _String;
-//            _String x3;
-//            for (size_t i=0; i<sizeof(_String); i++)
-//                const_cast<unsigned char*>(reinterpret_cast<const unsigned char*>(obj->mReadPtr))[i] = reinterpret_cast<unsigned char*>(&x3)[i];
+                new (readptr) _String;
+        }
+        else if (desc.rType == ObjectInfo::StringList)
+        {
+            new (readptr) ObjectInfo::StringList_t;
         }
         else if (rIsCommonType && desc.readSize == 0)
         {
-            ByteArray x3;
-            for (size_t i=0; i<sizeof(ByteArray); i++)
-                const_cast<unsigned char*>(reinterpret_cast<const unsigned char*>(obj->mReadPtr))[i] = reinterpret_cast<unsigned char*>(&x3)[i];
+            new (readptr) ByteArray;
+//            ByteArray x3;
+//            for (size_t i=0; i<sizeof(ByteArray); i++)
+//                const_cast<unsigned char*>(reinterpret_cast<const unsigned char*>(obj->mReadPtr))[i] = reinterpret_cast<unsigned char*>(&x3)[i];
         }
         else if (rIsBuffer)
         {
             if (desc.rType == ObjectInfo::Float)
             {
-                RingBuffer<float> ring(20);
-                *reinterpret_cast<RingBuffer<float>*>(const_cast<void *>(obj->mReadPtr)) = ring;
+                new (readptr) RingBuffer<float>(20);
+//                RingBuffer<float> ring(20);
+//                *reinterpret_cast<RingBuffer<float>*>(const_cast<void *>(obj->mReadPtr)) = ring;
             }
         }
     }

@@ -7,6 +7,8 @@
 #include "objnetstorage.h"
 #endif
 
+#include <array>
+
 namespace Objnet
 {
 
@@ -48,7 +50,7 @@ private:
     static unsigned char mNodesCount;
 
     // словарь сервисных объектов:
-    std::vector<ObjectInfo> mSvcObjects;
+    std::array<ObjectInfo, 11> mSvcObjects;
     // словарь объектов
     std::vector<ObjectInfo> mObjects;
     
@@ -65,7 +67,7 @@ protected slots:
 
 protected:
     void acceptServiceMessage(unsigned char sender, SvcOID oid, ByteArray *ba=0L){}
-    void parseServiceMessage(const CommonMessage &msg);
+    virtual bool parseServiceMessage(const CommonMessage &msg) override;
 
     void parseMessage(const CommonMessage &msg);
 
@@ -73,7 +75,7 @@ protected:
 
     void setSerial(uint32_t serial) {mSerial = serial;}
 
-    void registerSvcObject(const ObjectInfo &info) {mSvcObjects.push_back(info);}
+    void bindSvcObject(SvcOID oid, const ObjectInfo &obj);
 
 #ifdef QT_CORE_LIB
 protected slots:

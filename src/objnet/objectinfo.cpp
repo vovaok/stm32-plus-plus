@@ -196,6 +196,22 @@ ByteArray ObjectInfo::read()
         }
         return ByteArray();
     }
+    else if (mDesc.rType == StringList)
+    {
+        ByteArray ba;
+        const vector<string> *v = reinterpret_cast<const vector<string> *>(mReadPtr);
+        if (v)
+        {
+            
+            for (const string &s: *v)
+            {
+                ba.append(s.c_str());
+                ba.append('\0');
+            }
+            ba.chop(1);
+        }
+        return ba;
+    }
     else if (mDesc.rType == Common && mDesc.readSize == 0) // pure (Q)ByteArray
     {
         return *reinterpret_cast<const ByteArray*>(mReadPtr);
@@ -275,6 +291,25 @@ bool ObjectInfo::write(const ByteArray &ba)
                 str[i] = newstr;
                 src += newstr.length() + 1;
             }
+        }
+    }
+    else if (mDesc.wType == StringList)
+    {
+        vector<string> *v = reinterpret_cast<vector<string> *>(mWritePtr);
+        if (v)
+        {
+            vector<string> newv;
+            int idx = 0;
+            int sz = ba.size();
+            while (idx < sz)
+            {
+                string s = string(ba.data() + idx);
+                newv.push_back(s);
+                idx += s.length() + 1;
+            }
+            if (onValueChanged && *v != newv)
+                changed = true;
+            *v = newv;
         }
     }
     else if (mDesc.wType == Common && mDesc.writeSize == 0) // pure (Q)ByteArray
@@ -564,6 +599,15 @@ QVariant ObjectInfo::toVariant()
         }
         return QVariant();
     }
+
+    if (mDesc.wType == StringList)
+    {
+        QStringList list;
+        const vector<string> &v = *reinterpret_cast<const vector<string> *>(mWritePtr);
+        for (const string &s: v)
+            list << QString::fromStdString(s);
+        return list;
+    }
     return QVariant(mDesc.wType, mWritePtr);
 }
 
@@ -639,6 +683,14 @@ bool ObjectInfo::fromVariant(QVariant &v)
     {
         if (mDesc.rType == String)
             *const_cast<_String *>(reinterpret_cast<const _String *>(mReadPtr)) = v.toString();
+        else if (mDesc.wType == StringList)
+        {
+            QStringList list = v.toStringList();
+            StringList_t vec;
+            for (const QString &s: list)
+                vec.push_back(s.toStdString());
+            *const_cast<StringList_t *>(reinterpret_cast<const StringList_t *>(mReadPtr)) = vec;
+        }
         else for (int i=0; i<mDesc.readSize; i++)
             const_cast<unsigned char*>(reinterpret_cast<const unsigned char*>(mReadPtr))[i] = reinterpret_cast<unsigned char*>(v.data())[i];
         return true;

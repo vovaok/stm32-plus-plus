@@ -1,11 +1,6 @@
 #ifndef _BYTEARRAY_H
 #define _BYTEARRAY_H
 
-#ifdef QT_CORE_LIB
-#include <QByteArray>
-#define ByteArray QByteArray
-#else
-
 #include <string>
 #include <string.h>
 #include <stdio.h>
@@ -20,6 +15,7 @@ private:
 
     void allocMore(int size);
     static char readHex(char *ptr);
+    static void writeHex(char *&ptr, char value);
 
 public:
     ByteArray();
@@ -111,6 +107,8 @@ public:
     int toInt() const;
     float toFloat() const;
     std::string toStdString() const;
+    ByteArray toHex();
+    ByteArray toHex(char separator);
 
     static ByteArray fromStdString(const std::string &str);
     static ByteArray fromRawData(const char *data, int size);
@@ -123,5 +121,4 @@ public:
 ByteArray operator +(const ByteArray &ba1, const ByteArray ba2);
 bool operator<(const ByteArray &ba1, const ByteArray &ba2);
 
-#endif
 #endif

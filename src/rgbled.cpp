@@ -19,7 +19,7 @@ RgbLed::RgbLed(Gpio::Config pinR, Gpio::Config pinG, Gpio::Config pinB, int pwmF
 //    if (chR == ChNone || chG == ChNone || chB == ChNone)
 //        throw Exception::invalidPin;
   
-    pwm = new PwmOutput(tim, 1 _kHz);
+    pwm = new PwmOutput(tim, 1000);
     if (chR != HardwareTimer::ChNone)
         pwm->configChannel(pinR, Gpio::NoConfig, inverted); 
     if (chG != HardwareTimer::ChNone)

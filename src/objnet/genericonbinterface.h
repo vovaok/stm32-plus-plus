@@ -10,7 +10,7 @@ namespace Objnet
 class GenericOnbInterface : public ObjnetInterface
 {
 public:
-    GenericOnbInterface(Device *dev);
+    GenericOnbInterface(Device *dev, int framesize, BusType bus);
     virtual ~GenericOnbInterface() {}
     
     virtual bool isBusPresent() const {return m_device->isOpen();}
@@ -27,7 +27,7 @@ public:
 protected:
     const uint32_t *prefix = nullptr;
     
-    virtual bool send(const CommonMessage &msg);
+    virtual bool send(const CommonMessage &msg) override;
     void receiveHandler();
   
 private:

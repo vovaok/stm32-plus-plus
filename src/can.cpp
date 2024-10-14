@@ -1,20 +1,10 @@
 #include "can.h"
+#include "rcc.h"
 
-//#define CAN_RX_PIN                 GPIO_Pin_0
-//#define CAN_TX_PIN                 GPIO_Pin_1
-//#define CAN_GPIO_PORT              GPIOD
-//#define CAN_GPIO_CLK               RCC_AHB1Periph_GPIOD
-//#define CAN_AF_PORT                GPIO_AF_CAN1
-//#define CAN_RX_SOURCE              GPIO_PinSource0
-//#define CAN_TX_SOURCE              GPIO_PinSource1
-
-Can *Can::mInstances[2] = {0L, 0L};
+Can *Can::m_instances[2] = {nullptr, nullptr};
 
 Can::Can(Gpio::Config pinRx, Gpio::Config pinTx, int baudrate) :
-    mFilterUsed(0),
-    mPacketsReceived(0),
-    mPacketsSent(0),
-    mPacketsSendFailed(0)
+    CanInterface(2)
 {
     int canNumber = GpioConfigGetPeriphNumber(pinRx);
     if (canNumber == 0)
@@ -22,55 +12,47 @@ Can::Can(Gpio::Config pinRx, Gpio::Config pinTx, int baudrate) :
     if (pinRx != Gpio::NoConfig && canNumber != GpioConfigGetPeriphNumber(pinTx))
         THROW(Exception::InvalidPin);
 
-//    mInstances[canNumber-1] = this;
-
     switch (canNumber)
     {
-      case 1:
-        mCan = CAN1;
-        mInstances[0] = this;
-        RCC->APB1ENR |= RCC_APB1ENR_CAN1EN;
-        break;
-
-      case 2:
-        mCan = CAN2;
-        mInstances[1] = this;
-        RCC->APB1ENR |= RCC_APB1ENR_CAN1EN; // CAN2 take SRAM access through CAN1 memory bus
-        RCC->APB1ENR |= RCC_APB1ENR_CAN2EN;
-        break;
-
-      default:
-        THROW(Exception::InvalidPeriph);
+        case 1: m_can = CAN1; break;
+        case 2: m_can = CAN2; break;
+        default: THROW(Exception::InvalidPeriph);
     }
 
-    mStartFilter = (mCan == CAN2)? 14: 0;
+    m_instances[canNumber-1] = this;
+
+    // CAN2 take SRAM access through CAN1 memory bus, so it must be enabled always
+    rcc().setPeriphEnabled(CAN1);
+    if (m_can == CAN2)
+        rcc().setPeriphEnabled(CAN2);
 
     Gpio::config(pinRx);
     Gpio::config(pinTx);
 
-    /* CAN register init */
-    CAN_DeInit(mCan);
-    CAN_InitTypeDef CAN_InitStructure;
-    CAN_StructInit(&CAN_InitStructure);
+    /// @todo Maybe implement timeout check
 
-    /* CAN cell init */
-    CAN_InitStructure.CAN_TTCM = DISABLE;
-    CAN_InitStructure.CAN_ABOM = ENABLE; //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! must be enabled!
-    CAN_InitStructure.CAN_AWUM = DISABLE;
-    CAN_InitStructure.CAN_NART = DISABLE;
-    CAN_InitStructure.CAN_RFLM = DISABLE;
-    CAN_InitStructure.CAN_TXFP = ENABLE; //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! TX priority by transmit request order. This mode is very useful for segmented transmission.
-    CAN_InitStructure.CAN_Mode = CAN_Mode_Normal;
+    // request Initialization mode
+    close();
+//    m_can->MCR |= CAN_MCR_INRQ;
+//    while (!(m_can->MSR & CAN_MSR_INAK));
 
-    int APB1freq = rcc().pClk1();
+    // exit sleep mode
+    m_can->MCR &= ~CAN_MCR_SLEEP;
+    while (m_can->MSR & CAN_MSR_SLAK);
+
+    // these bits should be 0 after reset
+//    m_can->MCR &= ~(CAN_MCR_TTCM | CAN_MCR_ABOM | CAN_MCR_AWUM | CAN_MCR_NART | CAN_MCR_RFLM | CAN_MCR_TXFP);
+    m_can->MCR |= CAN_MCR_ABOM | CAN_MCR_TXFP;
+
+    int clkin = rcc().getPeriphClk(m_can);
     int psc = 0;
     int mod = 0;
     int btq = 0;
     do
     {
         psc++;
-        btq = (APB1freq / psc) / (baudrate);
-        mod = (APB1freq / psc) % (baudrate);
+        btq = (clkin / psc) / (baudrate);
+        mod = (clkin / psc) % (baudrate);
         if (psc >= 1024)
             THROW(Exception::OutOfRange);
     }
@@ -78,178 +60,216 @@ Can::Can(Gpio::Config pinRx, Gpio::Config pinTx, int baudrate) :
 
     int t2 = btq<=17? ((btq-1)>>1): 8; // length of T2 segment
     int t1 = btq - 1 - t2; // length of T1 segment
-    CAN_InitStructure.CAN_SJW = CAN_SJW_1tq;
-    CAN_InitStructure.CAN_BS1 = t1 - 1;
-    CAN_InitStructure.CAN_BS2 = t2 - 1;
-    CAN_InitStructure.CAN_Prescaler = psc;
-    uint8_t status = CAN_Init(mCan, &CAN_InitStructure);
-    if (status != CAN_InitStatus_Success)
-      THROW(Exception::BadSoBad);
-}
 
-Can::~Can()
-{
-    for (int i=0; i<sizeof(mInstances)/sizeof(mInstances[0]); i++)
+    --t1; --t2;
+    // sync jump width = 1tq
+    m_can->BTR = (t1 << CAN_BTR_TS1_Pos) | (t2 << CAN_BTR_TS2_Pos) | (psc - 1);
+
+    if (m_can == CAN2)
     {
-        if (this == mInstances[i])
-        {
-            mInstances[i] = 0L;
-            return;
-        }
+        m_firstFilterIdx = 14;
+        // in theory, this is already done after reset:
+        CAN1->FMR = m_firstFilterIdx << 8; // allocate 14 filters for CAN2 core
     }
+
+    open();
 }
 //---------------------------------------------------------------------------
 
-int Can::addFilterA(uint16_t id, uint16_t mask, int fifoNumber)
+bool Can::open(Device::OpenMode mode)
 {
-    int filter = mStartFilter;
-    // find free filter
-    for (int i=0; i<14; i++)
-    {
-        if (!(mFilterUsed & (1<<i)))
-        {
-            filter += i;
-            mFilterUsed |= (1<<i);
-            break;
-        }
-    }
-
-    CAN_FilterInitTypeDef CAN_FilterInitStructure;
-    CAN_FilterInitStructure.CAN_FilterNumber = filter;
-    CAN_FilterInitStructure.CAN_FilterMode = CAN_FilterMode_IdMask;
-    CAN_FilterInitStructure.CAN_FilterScale = CAN_FilterScale_32bit;
-    CAN_FilterInitStructure.CAN_FilterIdHigh = id >> 13;
-    CAN_FilterInitStructure.CAN_FilterIdLow = ((id<<3) & 0xFFF8) | (0<<2); // IDE=0
-    CAN_FilterInitStructure.CAN_FilterMaskIdHigh = mask >> 13;
-    CAN_FilterInitStructure.CAN_FilterMaskIdLow = ((mask<<3) & 0xFFFF) | (1<<2);
-//    CAN_FilterInitStructure.CAN_FilterIdHigh = id << 5;
-//    CAN_FilterInitStructure.CAN_FilterIdLow = 0;
-//    CAN_FilterInitStructure.CAN_FilterMaskIdHigh = mask << 5;
-//    CAN_FilterInitStructure.CAN_FilterMaskIdLow = (1<<2);
-    CAN_FilterInitStructure.CAN_FilterFIFOAssignment = fifoNumber;
-    CAN_FilterInitStructure.CAN_FilterActivation = ENABLE;
-    CAN_FilterInit(&CAN_FilterInitStructure);
-
-    return filter;
-}
-
-int Can::addFilterB(unsigned long id, unsigned long mask, int fifoNumber)
-{
-    int filter = mStartFilter;
-    // find free filter
-    for (int i=0; i<14; i++)
-    {
-        if (!(mFilterUsed & (1<<i)))
-        {
-            filter += i;
-            mFilterUsed |= (1<<i);
-            break;
-        }
-    }
-
-    CAN_FilterInitTypeDef CAN_FilterInitStructure;
-    CAN_FilterInitStructure.CAN_FilterNumber = filter;
-    CAN_FilterInitStructure.CAN_FilterMode = CAN_FilterMode_IdMask;
-    CAN_FilterInitStructure.CAN_FilterScale = CAN_FilterScale_32bit;
-    CAN_FilterInitStructure.CAN_FilterIdHigh = id >> 13;
-    CAN_FilterInitStructure.CAN_FilterIdLow = ((id<<3) & 0xFFF8) | (1<<2); // IDE=1
-    CAN_FilterInitStructure.CAN_FilterMaskIdHigh = mask >> 13;
-    CAN_FilterInitStructure.CAN_FilterMaskIdLow = ((mask<<3) & 0xFFFF) | (1<<2);
-    CAN_FilterInitStructure.CAN_FilterFIFOAssignment = fifoNumber;
-    CAN_FilterInitStructure.CAN_FilterActivation = ENABLE;
-    CAN_FilterInit(&CAN_FilterInitStructure);
-
-    return filter;
-}
-
-void Can::removeFilter(int number)
-{
-    CAN_FilterInitTypeDef CAN_FilterInitStructure;
-    CAN_FilterInitStructure.CAN_FilterNumber = number;
-    CAN_FilterInitStructure.CAN_FilterActivation = DISABLE;
-    CAN_FilterInit(&CAN_FilterInitStructure);
-
-    int idx = number - mStartFilter;
-    mFilterUsed &= ~(1<<idx);
-}
-//---------------------------------------------------------------------------
-
-
-bool Can::send(CanTxMsg &msg)
-{
-    msg.RTR = CAN_RTR_DATA;
-//    msg.IDE = CAN_ID_EXT;
-    if (CAN_Transmit(mCan, &msg) == CAN_TxStatus_NoMailBox)
-    {
-        mPacketsSendFailed++;
+    // if already opened...
+    if (!(m_can->MSR & CAN_MSR_INAK))
         return false;
-    }
-    mPacketsSent++;
+
+    // choose Silent mode if no write allowed
+    if (mode & Device::WriteOnly)
+        m_can->BTR &= ~CAN_BTR_SILM;
+    else
+        m_can->BTR |= CAN_BTR_SILM;
+
+    // enter Normal mode
+    m_can->MCR &= ~CAN_MCR_INRQ;
+    while (m_can->MSR & CAN_MSR_INAK);
     return true;
 }
 
-bool Can::receive(unsigned char fifoNumber, CanRxMsg &msg)
+bool Can::close()
 {
-    if (fifoNumber > 1)
-        return false;
-    if ((CAN_MessagePending(mCan, fifoNumber)) > 0)
+    // request Initialization mode
+    m_can->MCR |= CAN_MCR_INRQ;
+    while (!(m_can->MSR & CAN_MSR_INAK));
+    return true;
+}
+
+int Can::configureFilter(Flags flags, uint32_t id, uint32_t mask, int fifoChannel)
+{
+    // this function configures filter in 32-bit Identifier Mask mode
+    CAN_TypeDef *can = CAN1;
+
+    if (fifoChannel < 0 || fifoChannel > 1)
+        return -1; // ERROR: invalid FIFO channel provided
+
+    // find free filter
+    uint32_t filterBit = 1 << m_firstFilterIdx;
+    int idx;
+    for (idx=0; idx<14; idx++, filterBit<<=1)
     {
-        CAN_Receive(mCan, fifoNumber, &msg);
-        mPacketsReceived++;
-        return true;
+        if (!(can->FA1R & filterBit))
+            break;
     }
+
+    // if no more filters available:
+    if (idx == 14)
+        return -1;
+
+    idx += m_firstFilterIdx;
+
+    // enter filter initialization mode
+    can->FMR |= CAN_FMR_FINIT;
+    // select Identifier Mask mode
+    can->FM1R &= ~filterBit;
+    // select Single 32-bit scale configuration
+    can->FS1R |= filterBit;
+    // select FIFO channel
+    if (fifoChannel)
+        can->FFA1R |= filterBit;
+    else
+        can->FFA1R &= ~filterBit;
+
+    // set ID and mask
+    uint32_t IDE = 0;
+    if (flags & ExtId)
+        IDE = 1 << 2;
+
+    can->sFilterRegister[idx].FR1 = (id << 3) | IDE;
+    can->sFilterRegister[idx].FR2 = (mask << 3) | (1 << 2);
+    // activate the filter
+    can->FA1R |= filterBit;
+
+    // exit filter initialization mode
+    can->FMR &= ~CAN_FMR_FINIT;
+
+    setRxInterruptEnabled(fifoChannel, true);
+
+    return idx - m_firstFilterIdx;
+}
+
+bool Can::removeFilter(int index)
+{
+    if (index < 0 || index >= 14)
+        return false;
+
+    CAN_TypeDef *can = CAN1;
+
+    can->FMR |= CAN_FMR_FINIT;
+    can->FA1R &= ~(1 << (index + m_firstFilterIdx));
+    can->FMR &= ~CAN_FMR_FINIT;
+    return true;
+}
+
+void Can::setRxInterruptEnabled(int fifoChannel, bool enabled)
+{
+    IRQn_Type IRQn;
+    uint32_t mask;
+    if (fifoChannel == 0)
+    {
+        IRQn = (m_can == CAN1)? CAN1_RX0_IRQn: CAN2_RX0_IRQn;
+        mask = CAN_IER_FMPIE0;// CAN_IER_FFIE0;
+    }
+    else
+    {
+        IRQn = (m_can == CAN1)? CAN1_RX1_IRQn: CAN2_RX1_IRQn;
+        mask = CAN_IER_FMPIE1;// CAN_IER_FFIE1;
+    }
+
+    NVIC_SetPriority(IRQn, 3);
+    NVIC_EnableIRQ(IRQn);
+
+    if (enabled)
+        m_can->IER |= mask;
+    else
+        m_can->IER &= ~mask;
+}
+//---------------------------------------------------------------------------
+
+int Can::pendingMessageLength(int fifoChannel)
+{
+    if (!isRxMessagePending(fifoChannel))
+        return -1;
+    return m_can->sFIFOMailBox[fifoChannel].RDTR & CAN_RDT0R_DLC;
+}
+
+int Can::receiveMessage(uint32_t *id, uint8_t *data, uint8_t maxsize, int fifoChannel)
+{
+    if (!isRxMessagePending(fifoChannel))
+        return -1;
+
+    CAN_FIFOMailBox_TypeDef *fifo = m_can->sFIFOMailBox + fifoChannel;
+
+    // read data from the FIFO
+    bool ext_id = fifo->RIR & CAN_RI0R_IDE;
+    if (ext_id)
+        *id = fifo->RIR >> CAN_RI0R_EXID_Pos;
+    else
+        *id = fifo->RIR >> CAN_RI0R_STID_Pos;
+    int size = fifo->RDTR & CAN_RDT0R_DLC;
+    if (size > maxsize)
+        size = maxsize;
+
+    uint32_t w[2];
+    w[0] = fifo->RDLR;
+    w[1] = fifo->RDHR;
+    const uint8_t *src = reinterpret_cast<const uint8_t *>(w);
+    int cnt = size;
+    while (cnt--)
+        *data++ = *src++;
+
+    // release the FIFO
+    if (fifoChannel == 0)
+        m_can->RF0R |= CAN_RF0R_RFOM0;
+    else if (fifoChannel == 1)
+        m_can->RF1R |= CAN_RF1R_RFOM1;
+
+    return size;
+}
+
+bool Can::isRxMessagePending(int fifoChannel)
+{
+    if (fifoChannel == 0 && (m_can->RF0R & CAN_RF0R_FMP0))
+        return true;
+    if (fifoChannel == 1 && (m_can->RF1R & CAN_RF1R_FMP1))
+        return true;
     return false;
 }
-//---------------------------------------------------------------------------
 
-void Can::flush()
+bool Can::transmitMessage(Flags flags, uint32_t id, const uint8_t *data, uint8_t size)
 {
-    CAN_CancelTransmit(mCan, 0);
-    CAN_CancelTransmit(mCan, 1);
-    CAN_CancelTransmit(mCan, 2);
-}
+    // check maximum size
+    if (size > 8)
+        return false;
 
-void Can::free(unsigned char fifoNumber)
-{
-    CAN_FIFORelease(mCan, fifoNumber);
-}
-//---------------------------------------------------------------------------
+    uint32_t tsr = m_can->TSR;
+    // check free transmit mailboxes
+    if (!(tsr & CAN_TSR_TME))
+        return false;
 
-void Can::setReceiveEvent(CanReceiveEvent event)
-{
-    mReceiveEvent = event;
+    // get index of the next free mailbox
+    int idx = (tsr & CAN_TSR_CODE) >> CAN_TSR_CODE_Pos;
+    CAN_TxMailBox_TypeDef *mb = m_can->sTxMailBox + idx;
 
-    setRxInterruptEnabled(true);
-//    CAN_ITConfig(mCan, CAN_IT_FF0 | CAN_IT_FF1, ENABLE);
+    // fill the mailbox
+    if (flags & ExtId)
+        mb->TIR = (id << CAN_TI0R_EXID_Pos) | CAN_TI0R_IDE;
+    else
+        mb->TIR = (id << CAN_TI0R_STID_Pos);
+    mb->TDTR = size;
+    mb->TDLR = reinterpret_cast<const uint32_t*>(data)[0];
+    mb->TDHR = reinterpret_cast<const uint32_t*>(data)[1];
 
-    IRQn_Type IRQn1 = (mCan == CAN1)? CAN1_RX0_IRQn: CAN2_RX0_IRQn;
-    IRQn_Type IRQn2 = (mCan == CAN1)? CAN1_RX1_IRQn: CAN2_RX1_IRQn;
-
-    NVIC_SetPriority(IRQn1, 3);
-    NVIC_SetPriority(IRQn2, 3);
-    NVIC_EnableIRQ(IRQn1);
-    NVIC_EnableIRQ(IRQn2);
-}
-
-void Can::setRxInterruptEnabled(bool enabled)
-{
-    CAN_ITConfig(mCan, CAN_IT_FMP0 | CAN_IT_FMP1, enabled? ENABLE: DISABLE);
-}
-
-void Can::setTxInterruptEnabled(bool enabled)
-{
-    CAN_ITConfig(mCan, CAN_IT_TME, enabled? ENABLE: DISABLE);
-}
-
-void Can::setTransmitReadyEvent(NotifyEvent event)
-{
-    mTransmitReadyEvent = event;
-
-    CAN_ITConfig(mCan, CAN_IT_TME, ENABLE);
-
-    IRQn_Type IRQn = (mCan == CAN1)? CAN1_TX_IRQn: CAN2_TX_IRQn;
-    NVIC_SetPriority(IRQn, 2);
-    NVIC_EnableIRQ(IRQn);
+    // request transmission;
+    mb->TIR |= CAN_TI0R_TXRQ;
+    return true;
 }
 //------------------------- interrupt handlers ------------------------------
 
@@ -259,74 +279,46 @@ void Can::setTransmitReadyEvent(NotifyEvent event)
 
 void CAN1_RX0_IRQHandler()
 {
-    CAN_ClearITPendingBit(CAN1, CAN_IT_FF0);
-
-    Can *can = Can::instance(1);
-    if (can)
-    {
-        CanRxMsg msg;
-        while (can->receive(0, msg))
-            can->receiveEvent()(0, msg);
-    }
+    CAN1->RF0R = CAN_RF0R_FULL0;
+    Can::m_instances[0]->messageReceived(0);
 }
 
 void CAN1_RX1_IRQHandler()
 {
-    CAN_ClearITPendingBit(CAN1, CAN_IT_FF1);
-
-    Can *can = Can::instance(1);
-    if (can)
-    {
-        CanRxMsg msg;
-        while (can->receive(1, msg))
-            can->receiveEvent()(1, msg);
-    }
+    CAN1->RF1R = CAN_RF1R_FULL1;
+    Can::m_instances[0]->messageReceived(1);
 }
 
 void CAN1_TX_IRQHandler()
 {
-    CAN_ClearITPendingBit(CAN1, CAN_IT_TME);
-    Can *can = Can::instance(1);
-    if (can)
-    {
-        can->transmitReadyEvent()();
-    }
+    CAN1->TSR = CAN_TSR_RQCP0 | CAN_TSR_RQCP1 | CAN_TSR_RQCP2;
+//    Can *can = Can::instance(1);
+//    if (can)
+//    {
+//        can->transmitReadyEvent()();
+//    }
 }
 
 void CAN2_RX0_IRQHandler()
 {
-    CAN_ClearITPendingBit(CAN2, CAN_IT_FF0);
-
-    Can *can = Can::instance(2);
-    if (can)
-    {
-        CanRxMsg msg;
-        while (can->receive(0, msg))
-            can->receiveEvent()(0, msg);
-    }
+    CAN2->RF0R = CAN_RF0R_FULL0;
+    Can::m_instances[1]->messageReceived(0);
 }
 
 void CAN2_RX1_IRQHandler()
 {
-    CAN_ClearITPendingBit(CAN2, CAN_IT_FF1);
-
-    Can *can = Can::instance(2);
-    if (can)
-    {
-        CanRxMsg msg;
-        while (can->receive(1, msg))
-            can->receiveEvent()(1, msg);
-    }
+    CAN2->RF1R = CAN_RF1R_FULL1;
+    Can::m_instances[1]->messageReceived(1);
 }
 
 void CAN2_TX_IRQHandler()
 {
-    CAN_ClearITPendingBit(CAN2, CAN_IT_TME);
-    Can *can = Can::instance(2);
-    if (can)
-    {
-        can->transmitReadyEvent()();
-    }
+    CAN2->TSR = CAN_TSR_RQCP0 | CAN_TSR_RQCP1 | CAN_TSR_RQCP2;
+//    Can *can = Can::instance(2);
+//    if (can)
+//    {
+//        can->transmitReadyEvent()();
+//    }
 }
 
 #ifdef __cplusplus

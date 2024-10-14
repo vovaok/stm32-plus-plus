@@ -56,6 +56,7 @@ protected:
     bool mAutoDelete; // когда true, при отключении девайса от сети, он удаляется из списка (по умолчанию false, только мастер может установить true при создании объекта)
     bool mIsLocal; // true когда девайс подключён непосредственно к подсети текущего мастера
     bool mConnectionError; // true если подключение к устройству вызывает ошибку
+    bool mAlreadyReady = false; // если уже был хоть раз полностью проиничен (чтобы заново не эмитить ready())
     //    bool mStateChanged;
 //    unsigned char mChildrenCount;
 //    unsigned char mOrphanCount; // not processed children

@@ -1,4 +1,5 @@
 #include "as5040master.h"
+#include <math.h>
 
 As5040Master::As5040Master(Spi *spi) :
     mSpi(spi),
@@ -11,7 +12,7 @@ As5040Master::As5040Master(Spi *spi) :
     conf.baudrate = 6; // clock / 128
     mSpi->setConfig(conf);
     mSpi->setDataSize(16);
-    mSpi->setTransferCompleteEvent(EVENT(&As5040Master::onRead));  
+    mSpi->setTransferCompleteEvent(EVENT(&As5040Master::onRead));
     mSpi->open();
 }
 //---------------------------------------------------------------------------
@@ -24,7 +25,7 @@ unsigned char As5040Master::addChannel(Gpio::PinName csPin, float zeroDeg)
     ch.cs->write(1);
     ch.raw = 0;
     ch.value = 0;
-    ch.zero = lrintf(zeroDeg * (65536.0f / 360.0f));
+    ch.zero = lroundf(zeroDeg * (65536.0f / 360.0f));
     mChannels.push_back(ch);
     return mChannels.size() - 1;
 }
@@ -33,7 +34,7 @@ void As5040Master::start()
 {
     if (mChannels.empty())
         return;
-      
+
     mCurChannel = 0;
     mChannels[0].cs->write(0);
     mSpi->transferWordAsync();
@@ -47,7 +48,7 @@ void As5040Master::onRead(unsigned short rawValue)
     ch.raw = rawValue & 0xFFC0; // last 6 bits are flags
     ch.value = ((unsigned long)(ch.raw - ch.zero) & 0xFFFF) * (360.0f / 65536.0f);
     ch.flags.word = rawValue & 0x3f;
-    
+
     mCurChannel++;
     if (mCurChannel < mChannels.size())
     {
@@ -70,7 +71,7 @@ void As5040Master::setZero(unsigned char channel)
 void As5040Master::setZero(unsigned char channel, float zeroDeg)
 {
     if (channel < mChannels.size())
-        mChannels[channel].zero = lrintf(zeroDeg * (65536.0f / 360.0f));
+        mChannels[channel].zero = lroundf(zeroDeg * (65536.0f / 360.0f));
 }
 
 float As5040Master::zeroDeg(unsigned char channel) const

@@ -50,7 +50,7 @@ public:
     void setUseDmaRx(bool useDma);
     void setUseDmaTx(bool useDma);
     
-    bool open(OpenMode mode = ReadWrite);
+    bool open(OpenMode mode = ReadWrite) override;
     void close();
     
     int bytesAvailable() const;

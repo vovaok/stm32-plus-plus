@@ -1,18 +1,19 @@
 #include "spi.h"
+#include "rcc.h"
 
-#if defined(STM32F4)
-#define SPI1_DMA_CHANNEL_RX     Dma::SPI1_RX_Stream0; // Dma::SPI1_RX_Stream2;
+#if defined(STM32F4) || defined(STM32F7)
+#define SPI1_DMA_CHANNEL_RX     Dma::SPI1_RX_Stream2; // Dma::SPI1_RX_Stream0;
 #define SPI1_DMA_CHANNEL_TX     Dma::SPI1_TX_Stream3; // Dma::SPI1_TX_Stream5;
 #define SPI2_DMA_CHANNEL_RX     Dma::SPI2_RX_Stream3;
 #define SPI2_DMA_CHANNEL_TX     Dma::SPI2_TX_Stream4;
 #define SPI3_DMA_CHANNEL_RX     Dma::SPI3_RX_Stream0; // Dma::SPI3_RX_Stream2;
-#define SPI3_DMA_CHANNEL_TX     Dma::SPI3_TX_Stream5; // DMa::SPI3_TX_Stream7;
+#define SPI3_DMA_CHANNEL_TX     Dma::SPI3_TX_Stream7; // DMa::SPI3_TX_Stream5;
 #define SPI4_DMA_CHANNEL_RX     Dma::SPI4_RX_Stream0; // Dma::SPI4_RX_Stream3;
 #define SPI4_DMA_CHANNEL_TX     Dma::SPI4_TX_Stream1; // Dma::SPI4_TX_Stream4;
-#define SPI5_DMA_CHANNEL_RX     Dma::SPI5_RX_Stream3; // Dma::SPI5_RX_Stream5
-#define SPI5_DMA_CHANNEL_TX     Dma::SPI5_TX_Stream4; // Dma::SPI5_TX_Stream6;
-#define SPI6_DMA_CHANNEL_RX     Dma::SPI6_TX_Stream5;
-#define SPI6_DMA_CHANNEL_TX     Dma::SPI6_RX_Stream6;
+#define SPI5_DMA_CHANNEL_RX     Dma::SPI5_RX_Stream5; // Dma::SPI5_RX_Stream3;
+#define SPI5_DMA_CHANNEL_TX     Dma::SPI5_TX_Stream6; // Dma::SPI5_TX_Stream4;
+#define SPI6_DMA_CHANNEL_RX     Dma::SPI6_RX_Stream6; // SHARE with SPI5_DMA_CHANNEL_TX!
+#define SPI6_DMA_CHANNEL_TX     Dma::SPI6_TX_Stream5; // SHARE with SPI5_DMA_CHANNEL_RX!
 
 #elif defined(STM32L4)
 #define SPI1_DMA_CHANNEL_RX     Dma::SPI1_RX_Channel2; // Dma::SPI1_RX_Channel3;
@@ -29,7 +30,12 @@
 #define SPI2_DMA_CHANNEL_TX     Dma::SPI2_TX;
 #define SPI3_DMA_CHANNEL_RX     Dma::SPI3_RX;
 #define SPI3_DMA_CHANNEL_TX     Dma::SPI3_TX;
+#define SPI4_DMA_CHANNEL_RX     Dma::SPI4_RX;
+#define SPI4_DMA_CHANNEL_TX     Dma::SPI4_TX;
 
+#elif defined(STM32F303x8)
+#define SPI1_DMA_CHANNEL_RX     Dma::Channel2_SPI1_RX;
+#define SPI1_DMA_CHANNEL_TX     Dma::Channel3_SPI1_TX;
 #endif
 
 Spi *Spi::mSpies[6] = {0L, 0L, 0L, 0L, 0L, 0L};
@@ -58,48 +64,45 @@ Spi::Spi(Gpio::Config sck, Gpio::Config miso, Gpio::Config mosi) :
     {
       case 1:
         mDev = SPI1;
-        RCC->APB2ENR |= RCC_APB2ENR_SPI1EN;
         mIrq = SPI1_IRQn;
         mDmaChannelRx = SPI1_DMA_CHANNEL_RX;
         mDmaChannelTx = SPI1_DMA_CHANNEL_TX;
         break;
-
+#if defined(SPI2)
       case 2:
         mDev = SPI2;
-        RCC->APB1ENR |= RCC_APB1ENR_SPI2EN;
         mIrq = SPI2_IRQn;
         mDmaChannelRx = SPI2_DMA_CHANNEL_RX;
         mDmaChannelTx = SPI2_DMA_CHANNEL_TX;
         break;
-
+#endif
+#if defined(SPI3)
       case 3:
         mDev = SPI3;
-        RCC->APB1ENR |= RCC_APB1ENR_SPI3EN;
         mIrq = SPI3_IRQn;
         mDmaChannelRx = SPI3_DMA_CHANNEL_RX;
         mDmaChannelTx = SPI3_DMA_CHANNEL_TX;
         break;
-
-#if defined(STM32F429XX)
+#endif
+#if defined(SPI4)
       case 4:
         mDev = SPI4;
-        RCC->APB2ENR |= RCC_APB2ENR_SPI4EN;
         mIrq = SPI4_IRQn;
         mDmaChannelRx = SPI4_DMA_CHANNEL_RX;
         mDmaChannelTx = SPI4_DMA_CHANNEL_TX;
         break;
-
+#endif
+#if defined(SPI5)
       case 5:
         mDev = SPI5;
-        RCC->APB2ENR |= RCC_APB2ENR_SPI5EN;
         mIrq = SPI5_IRQn;
         mDmaChannelRx = SPI5_DMA_CHANNEL_RX;
         mDmaChannelTx = SPI5_DMA_CHANNEL_TX;
         break;
-
+#endif
+#if defined(SPI6)
       case 6:
         mDev = SPI6;
-        RCC->APB2ENR |= RCC_APB2ENR_SPI6EN;
         mIrq = SPI6_IRQn;
         mDmaChannelRx = SPI6_DMA_CHANNEL_RX;
         mDmaChannelTx = SPI6_DMA_CHANNEL_TX;
@@ -109,6 +112,8 @@ Spi::Spi(Gpio::Config sck, Gpio::Config miso, Gpio::Config mosi) :
 
     if (!mDev)
         THROW(Exception::InvalidPeriph);
+
+    rcc().setPeriphEnabled(mDev);
 
     mConfig.SSI = 1;
     mConfig.SSM = 1;
@@ -169,6 +174,21 @@ void Spi::setBaudratePrescaler(int psc)
     mConfig.baudrate = psc & 7;
     updateConfig();
 }
+
+void Spi::setBaudrate(int value)
+{
+    int pclk = rcc().getPeriphClk(mDev);
+    int psc = log2i(pclk / value) - 1;
+    if (psc < 0)
+        psc = 0;
+    setBaudratePrescaler(psc);
+}
+
+int Spi::baudrate() const
+{
+    int pclk = rcc().getPeriphClk(mDev);
+    return pclk >> (mConfig.baudrate + 1);
+}
 //--------------------------------------------------------------------------
 
 void Spi::open()
@@ -176,26 +196,36 @@ void Spi::open()
     if (isOpen())
         return;// false;
 
-//    if (mUseDmaRx)
-//    {
-//        if (!mDmaRx)
-//            mDmaRx = Dma::getStreamForPeriph(mDmaChannelRx);
-//        mDmaRx->setSource((void*)&mDev->DR, 1);
-//        mDev->CR2 |= SPI_CR2_RXDMAEN;
-//    }
+    if (mUseDmaRx)
+    {
+        mDmaRx = Dma::instance(mDmaChannelRx);
+        int dataSize = (m_dataSize > 8)? 2: 1;
+//        size /= dataSize;
+        mDmaRx->setSource(&mDev->DR, dataSize);
+        
+//        if (circular)
+//            mDmaRx->setCircularBuffer(data, size);
+//        else
+//            mDmaRx->setSingleBuffer(data, size);
+        mConfig.RXDMAEN = 1;
+    }
+
+//    if (mDmaRx)
+//        mDmaRx->start();
 
     if (mUseDmaTx)
     {
-        if (!mDmaTx)
-            mDmaTx = new Dma(mDmaChannelTx);
-        mDmaTx->setTransferCompleteEvent(EVENT(&Spi::handleDmaInterrupt));
+        mDmaTx = Dma::instance(mDmaChannelTx);
+        if (onBytesWritten)
+            mDmaTx->setTransferCompleteEvent(EVENT(&Spi::handleDmaInterrupt));
         if (m_dataSize <= 8)
             mDmaTx->setSink((void*)&mDev->DR, 1);
         else
             mDmaTx->setSink((void*)&mDev->DR, 2);
         mConfig.TXDMAEN = 1;
-        updateConfig();
     }
+
+    updateConfig();
 
     mConfig.enable = 1;
     mDev->CR1 = mConfig.cr1;
@@ -203,20 +233,21 @@ void Spi::open()
 
 void Spi::close()
 {
-//    if (mDmaRx)
-//    {
-//        mDev->CR2 &= ~SPI_CR2_RXDMAEN;
-//        mDmaRx->stop(true);
+    if (mUseDmaRx)
+    {
+        mConfig.RXDMAEN = 0;
+        updateConfig();
+        mDmaRx->stop(true);
 //        delete mDmaRx;
 //        mDmaRx = 0L;
-//    }
-    if (mDmaTx)
+    }
+    if (mUseDmaTx)
     {
         mConfig.TXDMAEN = 0;
         updateConfig();
         mDmaTx->stop(true);
-        delete mDmaTx;
-        mDmaTx = 0L;
+//        delete mDmaTx;
+//        mDmaTx = 0L;
     }
 
     mConfig.enable = 0;
@@ -240,28 +271,59 @@ void Spi::transferWordAsync(uint16_t word)
 
 void Spi::transfer(uint8_t* data, int size)
 {
-//    if (!mUseDmaRx && !mUseDmaTx)
-//    {
-        for (int i=0; i<size; i++)
-        {
-            mDev->DR = data[i];
-            while (!(mDev->SR & SPI_SR_RXNE)); // wait for RX Not Empty
-            data[i] =  mDev->DR;
-        }
-//    }
-//    else
-//    {
-//        if (mUseDmaRx)
-//        {
-//            mDmaRx->setSingleBuffer(data, size);
-//            mDmaRx->start();
-//        }
-//        if (mUseDmaTx)
-//        {
-//            mDmaTx->setSingleBuffer(data, size);
-//            mDmaTx->start();
-//        }
-//    }
+    while (size--)
+    {
+        *((__IO uint8_t *)(&mDev->DR)) = *data;
+        while (!(mDev->SR & SPI_SR_RXNE)); // wait for RX Not Empty
+        *data++ = *((__IO uint8_t *)(&mDev->DR));
+    }
+}
+
+bool Spi::transferDma(const uint8_t *data, uint8_t *buffer, int size)
+{
+    if (!data && buffer)
+    {
+        if (m_dataSize <= 8)
+            mDmaRx->setSingleBuffer(buffer, size);
+        else
+            mDmaRx->setSingleBuffer(buffer, size / 2);
+
+        mDmaRx->setTransferCompleteEvent(EVENT(&Spi::handleRxDmaInterrupt));
+        mDmaRx->start();
+        mDev->CR1 |= SPI_CR1_RXONLY; // enable CLK generation
+        
+        return true;
+    }
+    
+    if (mDmaTx->isEnabled() && !mDmaTx->isComplete())
+        return false;
+
+    if (m_dataSize <= 8)
+    {
+        if (buffer)
+            mDmaRx->setSingleBuffer(buffer, size);
+        mDmaTx->setSingleBuffer(const_cast<uint8_t*>(data), size);
+    }
+    else
+    {
+        if (buffer)
+            mDmaRx->setSingleBuffer(buffer, size / 2);
+        mDmaTx->setSingleBuffer(const_cast<uint8_t*>(data), size / 2);
+    }
+    if (buffer)
+        mDmaRx->start();
+    
+    mDmaTx->start();
+
+//    while (!mDmaRx->isComplete());
+
+    return true;
+}
+
+void Spi::writeAsync(const uint8_t *data, int size)
+{
+    mDmaTx->setSingleBuffer(const_cast<uint8_t*>(data), size);
+    mDmaTx->start();
 }
 
 void Spi::transfer(const uint8_t *data, uint8_t *buffer, int size)
@@ -302,14 +364,46 @@ uint16_t Spi::write16(uint16_t word)
     return *((__IO uint16_t *)(&mDev->DR));
 }
 
-void Spi::read(uint8_t* data, int size)
+bool Spi::read(uint8_t* data, int size)
 {
-    while (size--)
+    if (mDmaRx && mDmaTx)
     {
-        *((__IO uint8_t *)(&mDev->DR)) = 0x00;
-        while (!(mDev->SR & SPI_SR_RXNE)); // wait for RX Not Empty
-        *data++ = *((__IO uint8_t *)(&mDev->DR));
+        if (mDmaRx->isEnabled() && !mDmaRx->isComplete())
+            return false;
+        if (m_dataSize <= 8)
+        {
+            mDmaRx->setSingleBuffer(const_cast<uint8_t*>(data), size);
+            mDmaTx->setSingleBuffer(const_cast<uint8_t*>(data), size);
+        }
+        else
+        {
+            mDmaRx->setSingleBuffer(const_cast<uint8_t*>(data), size / 2);
+            mDmaTx->setSingleBuffer(const_cast<uint8_t*>(data), size / 2);
+        }
+        mDmaRx->start();
+        mDmaTx->start();
     }
+    else if (m_dataSize <= 8)
+    {
+        while (size--)
+        {
+            *((__IO uint8_t *)(&mDev->DR)) = 0x00;
+            while (!(mDev->SR & SPI_SR_RXNE)); // wait for RX Not Empty
+            *data++ = *((__IO uint8_t *)(&mDev->DR));
+        }
+    }
+    else
+    {
+        size = (size + 1) >> 1;
+        uint16_t *dst = reinterpret_cast<uint16_t *>(data);
+        while (size--)
+        {
+             *((__IO uint16_t *)(&mDev->DR)) = 0x00;
+            while (!(mDev->SR & SPI_SR_RXNE)); // wait for RX Not Empty
+            *dst++ = *((__IO uint16_t *)(&mDev->DR));
+        }
+    }
+    return true;
 }
 
 bool Spi::write(const uint8_t *data, int size)
@@ -348,6 +442,24 @@ bool Spi::write(const uint8_t *data, int size)
         }
     }
     return true;
+}
+
+void Spi::setRxBuffer(uint8_t *data, int size, bool circular)
+{
+    if (mDmaRx)
+        mDmaRx->stop(true);
+    else
+        mDmaRx = new Dma(mDmaChannelRx);
+    int dataSize = (m_dataSize > 8)? 2: 1;
+    size /= dataSize;
+    mDmaRx->setSource(&mDev->DR, dataSize);
+    if (circular)
+        mDmaRx->setCircularBuffer(data, size);
+    else
+        mDmaRx->setSingleBuffer(data, size);
+    mConfig.RXDMAEN = 1;
+    updateConfig();
+    mDmaRx->start();
 }
 
 bool Spi::writeFill16(uint16_t *value, int count)
@@ -400,21 +512,27 @@ bool Spi::writeFill16(uint16_t *pattern, int patternSize, int count)
 
 void Spi::waitForBytesWritten()
 {
-    while (mDmaTx && mDmaTx->isEnabled() && !mDmaTx->isComplete());
+    if (mDmaTx && mDmaTx->isEnabled())
+    {
+        while (!mDmaTx->isComplete());
+        while (!(mDev->SR & SPI_SR_TXE));
+        while (mDev->SR & SPI_SR_BSY);
+        (void)mDev->DR; // read data register to make it empty
+    }
 }
 //---------------------------------------------------------------------------
 
 void Spi::setUseDmaRx(bool useDma)
 {
-    if (isOpen())
-        THROW(Exception::ResourceBusy);
+//    if (isOpen())
+//        THROW(Exception::ResourceBusy);
     mUseDmaRx = useDma;
 }
 
 void Spi::setUseDmaTx(bool useDma)
 {
-    if (isOpen())
-        THROW(Exception::ResourceBusy);
+//    if (isOpen())
+//        THROW(Exception::ResourceBusy);
     mUseDmaTx = useDma;
 }
 //---------------------------------------------------------------------------
@@ -422,6 +540,12 @@ void Spi::setUseDmaTx(bool useDma)
 void Spi::setTransferCompleteEvent(SpiDataEvent e)
 {
     onTransferComplete = e;
+    enableInterrupt();
+}
+
+void Spi::setTransferCompleteEvent(NotifyEvent e)
+{
+    onTxEnd = e;
     enableInterrupt();
 }
 //---------------------------------------------------------------------------
@@ -447,28 +571,68 @@ void Spi::enableInterrupt()
     NVIC_EnableIRQ(mIrq);
 
     // enable RXNE interrupt
-    mDev->CR2 |= SPI_CR2_RXNEIE;
+    if (onTransferComplete)
+        mConfig.RXNEIE = 1;
+    if (onTxEnd)
+        mConfig.TXEIE = 1;
+    updateConfig();
 }
 
 void Spi::handleInterrupt()
 {
-    if (mDev->SR & SPI_SR_RXNE)
+    if ((mDev->SR & SPI_SR_RXNE) || (mDmaRx && (mDev->CR2 & SPI_CR2_RXNEIE)))
     {
-        onTransferComplete(mDev->DR);
+        if (onTransferComplete)
+            onTransferComplete(mDev->DR);
+    }
+    else if ((mDev->SR & SPI_SR_TXE) || (mDmaTx && (mDev->CR2 & SPI_CR2_TXEIE)))
+    {
+        if (onTxEnd)
+            onTxEnd();
     }
 }
 
 void Spi::handleDmaInterrupt()
 {
-    if (mDmaTx)
-    {
-        mDmaTx->stop();
-        // clear RX FIFO
-        while (mDev->SR & SPI_SR_RXNE)
-            (void)mDev->DR;
+//    if (mDmaTx)
+//    {
+//        mDmaTx->stop();
+    
+//         clear RX FIFO
+    //! @todo check validity of this:
+    
+    while (!(mDev->SR & SPI_SR_RXNE)); // wait for RX Not Empty
+    for (int i=0; i<10; i++)
+        (void)mDev->DR; // dummy read
+        
         if (onBytesWritten)
             onBytesWritten();
-    }
+//    }
+}
+
+void Spi::handleRxDmaInterrupt()
+{
+//    1. Wait for the second to last occurrence of RXNE=1 (n–1)
+//    2. Then wait for one SPI clock cycle (using a software loop) before disabling the SPI
+//    (SPE=0)
+//    3. Then wait for the last RXNE=1 before entering the Halt mode (or disabling the
+//    peripheral clock)
+
+    while (!(mDev->SR & SPI_SR_RXNE));
+    mDev->DR; // dummy read
+    
+    mDev->CR1 &= ~(SPI_CR1_RXONLY);
+    for (int i=0; i<10; i++)
+        mDev->DR;
+//    while (mDev->SR & SPI_SR_BSY) // wait for last cycle completion
+//        mDev->DR; // dummy read
+    
+//    while (!(mDev->SR & SPI_SR_RXNE));
+    mDev->DR; // dummy read
+    
+    /// @todo make this crutch less wretched
+    if (onBytesWritten)
+        onBytesWritten();
 }
 //---------------------------------------------------------------------------
 
@@ -492,6 +656,24 @@ void SPI3_IRQHandler(void)
 {
     if (Spi::mSpies[2])
         Spi::mSpies[2]->handleInterrupt();
+}
+
+void SPI4_IRQHandler(void)
+{
+    if (Spi::mSpies[3])
+        Spi::mSpies[3]->handleInterrupt();
+}
+
+void SPI5_IRQHandler(void)
+{
+    if (Spi::mSpies[4])
+        Spi::mSpies[4]->handleInterrupt();
+}
+
+void SPI6_IRQHandler(void)
+{
+    if (Spi::mSpies[5])
+        Spi::mSpies[5]->handleInterrupt();
 }
 
 #ifdef __cplusplus

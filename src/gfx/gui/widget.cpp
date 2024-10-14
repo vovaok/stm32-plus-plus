@@ -11,6 +11,14 @@ Widget::Widget(Widget *parent)
     setParent(parent);
 }
 
+Widget::~Widget()
+{
+    for (Widget *w: m_children)
+    {
+        delete w;
+    }
+}
+
 void Widget::setParent(Widget *parent)
 {
     if (m_parent)
@@ -22,6 +30,8 @@ void Widget::setParent(Widget *parent)
 
 void Widget::addWidget(Widget *w)
 {
+    if (w->m_parent)
+        w->m_parent->removeWidget(w);
     m_children.push_back(w);
     w->m_parent = this;
 //    w->m_backgroundColor = m_backgroundColor;
@@ -31,8 +41,8 @@ void Widget::addWidget(Widget *w)
 void Widget::removeWidget(Widget *w)
 {
     auto it = std::find(m_children.begin(), m_children.end(), w);
-    // if (it != m_children.end())
-    m_children.erase(it);
+    if (it != m_children.end())
+        m_children.erase(it);
     updateGeometry();
 }
 
@@ -75,8 +85,13 @@ void Widget::setHeight(int value)
 
 void Widget::setGeometry(int x, int y, int w, int h)
 {
+    if (x == m_x && y == m_y && w == m_width && h == m_height)
+        return; // nothing changed
     if (m_parent && m_parent->m_layout)
+    {
+        m_parent->m_layout->m_needUpdate = true;
         return; // layout manages the widget's size
+    }
     m_x = x;
     m_y = y;
     m_width = w;
@@ -90,28 +105,39 @@ void Widget::setMinimumSize(int width, int height)
 {
     m_minWidth = width;
     m_minHeight = height;
+    if (m_width < width)
+        setWidth(width);
+    if (m_height < height)
+        setHeight(height);
 }
 
 void Widget::setMaximumSize(int width, int height)
 {
     m_maxWidth = width;
     m_maxHeight = height;
+    if (m_width > width)
+        setWidth(width);
+    if (m_height > height)
+        setHeight(height);
 }
 
 void Widget::setFixedWidth(int value)
 {
     m_minWidth = m_maxWidth = value;
+    setWidth(value);
 }
 
 void Widget::setFixedHeight(int value)
 {
     m_minHeight = m_maxHeight = value;
+    setHeight(value);
 }
 
 void Widget::setFixedSize(int width, int height)
 {
     m_minWidth = m_maxWidth = width;
     m_minHeight = m_maxHeight = height;
+    resize(width, height);
 }
 
 void Widget::setVisible(bool visible)
@@ -120,7 +146,11 @@ void Widget::setVisible(bool visible)
     {
         m_visible = visible;
         if (m_parent)
+        {
             m_parent->update();
+            if (m_parent->layout())
+                m_parent->updateGeometry();
+        }
     }
 }
 
@@ -168,6 +198,7 @@ void Widget::update()
 
 void Widget::updateGeometry()
 {
+    update();
     for (Widget *w = this; w; w = w->m_parent)
     {
         if (w->m_layout)
@@ -194,6 +225,33 @@ void Widget::setColor(Color color)
     if (m_color != color)
     {
         m_color = color;
+        update();
+    }
+}
+
+void Widget::setBorderSize(int value)
+{
+    if (m_borderSize != value)
+    {
+        m_borderSize = value;
+        update();
+    }
+}
+
+void Widget::setBorderRadius(int value)
+{
+    if (m_borderRadius != value)
+    {
+        m_borderRadius = value;
+        update();
+    }
+}
+
+void Widget::setOpacity(uint8_t value)
+{
+    if (m_opacity != value)
+    {
+        m_opacity = value;
         update();
     }
 }
@@ -256,7 +314,11 @@ void Widget::paint(Display *d)
     int oldy = d->yPos();
     d->moveTo(oldx + m_x, oldy + m_y);
 
-    if (m_needRepaint)
+//    FrameBuffer *fb = dynamic_cast<FrameBuffer*>(d);
+//    if (fb)
+//        fb->setOpacity(m_opacity);
+
+    if (m_needRepaint && m_width > 0 && m_height > 0)
         paintEvent(d);
     m_needRepaint = false;
 
@@ -283,4 +345,9 @@ void Widget::paint(Display *d)
     }
 
     d->moveTo(oldx, oldy);
+}
+
+Translator *Widget::translations()
+{
+    return GuiApplication::translator();
 }

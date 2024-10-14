@@ -19,10 +19,13 @@ public:
     void init(Orientation ori);
     void setOrientation(Orientation ori);
     
-	void fillRect(int x, int y, int width, int height, uint16_t color);
-    void copyRect(int x, int y, int width, int height, const uint16_t *buffer);
-    
-    virtual void setPixel(int x, int y, uint16_t color);
+	virtual void fillRect(int x, int y, int width, int height, uint32_t color) override;
+    virtual void overlayRect(int x, int y, int width, int height, uint32_t color) override;
+    virtual void copyRect(int x, int y, int width, int height, const uint8_t *buffer) override;
+    virtual void blendRect(int x, int y, int width, int height, const uint8_t *buffer, PixelFormat format) override;
+    virtual void drawBuffer(int x, int y, const FrameBuffer *fb, int sx=0, int sy=0, int sw=-1, int sh=-1) override;
+
+    virtual void setPixel(int x, int y, uint32_t color);
 //    virtual uint16_t pixel(int x, int y); // THIS DISPLAY IMPLEMENTATION IS NOT READABLE!!!
     
 private:

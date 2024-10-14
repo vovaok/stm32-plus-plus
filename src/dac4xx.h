@@ -53,6 +53,8 @@ public:
     void setEnabled(bool enabled);
     bool isEnabled() const {return mEnabled;}
     
+    void disableBuffer();
+    
     void configDma(Dma *dma);
 };
 

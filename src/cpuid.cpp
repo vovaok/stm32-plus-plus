@@ -1,9 +1,14 @@
 #include "cpuid.h"
 
-#if defined(STM32F37X)
+#if defined(STM32F3)
 const unsigned long * const  CpuId::mSignature = (const unsigned long*) 0x1FFFF7AC;
 const unsigned short * const CpuId::mFlashSize = (const unsigned short*)0x1FFFF7CC;
 const unsigned short * const CpuId::mPackage   = (const unsigned short*)0x1FFFF7AC; // signature instead of package
+const unsigned long * const  CpuId::mCpuId     = (const unsigned long*) 0xE0042000;
+#elif defined(STM32F7)
+const unsigned long * const  CpuId::mSignature = (const unsigned long*) 0x1FF0F420;
+const unsigned short * const CpuId::mFlashSize = (const unsigned short*)0x1FF0F442;
+const unsigned short * const CpuId::mPackage   = (const unsigned short*)0x1FFF7BF0;
 const unsigned long * const  CpuId::mCpuId     = (const unsigned long*) 0xE0042000;
 #else
 const unsigned long * const  CpuId::mSignature = (const unsigned long*) 0x1FFF7A10;
@@ -26,6 +31,11 @@ unsigned long CpuId::serial()
 unsigned short CpuId::flashSizeK()
 {
     return *mFlashSize;
+}
+
+uint32_t CpuId::flashEnd()
+{
+    return flashBase() + (flashSizeK() << 10) - 1;
 }
 
 unsigned short CpuId::packageId()
@@ -63,7 +73,9 @@ const char *CpuId::name()
 #elif defined(STM32G4)
         default:    return "STM32G4 family";
 #elif defined(STM32F3)
-        default:    return "STM32F3 family";        
+        default:    return "STM32F3 family";
+#elif defined(STM32F7)
+        default:    return "STM32F7 family"; 
 #endif
     }
 }
@@ -101,13 +113,28 @@ unsigned long CpuId::maxSysClk()
 #elif defined(STM32G4)
         default:    return 170000000;
 #elif defined(STM32F3)
-        default:    return 72000000;        
+        default:    return 72000000;
+#elif defined(STM32F7)
+        default:    return 216000000;
 #endif
     }
 }
 
 const char *CpuId::package()
 {
+#if defined(STM32F7)
+    switch (packageId())
+    {
+    case 1: return "LQFP100";
+    case 2: return "LQFP144";
+    case 3: return "WLCSP180";
+    case 4: return "LQFP176"; // for 769 and 779
+    case 5: return "LQFP176"; // for 767 and 777
+    case 6: return "LQFP208"; // or TFBGA216: for 769 and 779
+    case 7: return "LQFP208"; // or TFBGA216: for 767 and 777
+    default: return "";
+    }
+#else
     switch (deviceId())
     {
       case 0x458: // STM32F410
@@ -139,4 +166,5 @@ const char *CpuId::package()
 
       default: return "";
     }
+#endif
 }

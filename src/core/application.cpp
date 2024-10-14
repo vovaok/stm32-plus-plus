@@ -119,6 +119,11 @@ Application *stmApp()
 }
 //---------------------------------------------------------------------------
 
+void Application::systemReset()
+{
+    NVIC_SystemReset();
+}
+
 bool Application::startOnbBootloader()
 {
     unsigned long *ptr = (unsigned long*)0x08000000;
@@ -138,7 +143,9 @@ bool Application::startOnbBootloader()
     GPIOB->MODER &= 0x000000C0; GPIOB->PUPDR &= 0x000000C0;
     __DISABLE_GPIO(C);
     __DISABLE_GPIO(D);
+#if defined(GPIOE)
     __DISABLE_GPIO(E);
+#endif
     __DISABLE_GPIO(F);
 #if defined(GPIOG)
     __DISABLE_GPIO(G);

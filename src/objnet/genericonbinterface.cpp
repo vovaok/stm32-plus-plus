@@ -3,12 +3,13 @@
 using namespace Objnet;
 
 static char buf[1024];
+static char txBuf[1024];
 
-GenericOnbInterface::GenericOnbInterface(Device *dev) :
+GenericOnbInterface::GenericOnbInterface(Device *dev, int framesize, BusType bus) :
     m_device(dev)
 {
-    mMaxFrameSize = 1024;
-    mBusType = BusUnknown;
+    mMaxFrameSize = framesize;//1024;
+    mBusType = bus;//BusUnknown;
     
     m_device->onReadyRead = EVENT(&GenericOnbInterface::receiveHandler);
     m_device->open();
@@ -30,7 +31,7 @@ bool GenericOnbInterface::send(const CommonMessage &msg)
     if (!m_device->isOpen())
         return false;
     
-    uint32_t *data = reinterpret_cast<uint32_t *>(buf);
+    uint32_t *data = reinterpret_cast<uint32_t *>(txBuf);
     int sz = msg.size();
     if (prefix)
     {
@@ -40,7 +41,7 @@ bool GenericOnbInterface::send(const CommonMessage &msg)
     *data++ = msg.rawId();
     sz += 4;
     memcpy(data, msg.data().data(), msg.size());
-    int written = m_device->write(buf, sz);
+    int written = m_device->write(txBuf, sz);
     return (sz == written);
 }
 

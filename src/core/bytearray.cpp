@@ -97,6 +97,20 @@ char ByteArray::readHex(char *ptr)
     char bl = *ptr++ & 0x4F;
     return ((bh & 0x40? bh - 55: bh) << 4) | (bl & 0x40? bl - 55: bl);
 }
+
+void ByteArray::writeHex(char *&ptr, char value)
+{
+    char bh = (value >> 4);
+    char bl = value & 0xF;
+    if (bh < 10)
+        *ptr++ = bh + '0';
+    else
+        *ptr++ = bh + '7';
+    if (bl < 10)
+        *ptr++ = bl + '0';
+    else
+        *ptr++ = bl + '7';
+}
 //---------------------------------------------------------------------------
 
 void ByteArray::allocMore(int size)
@@ -588,6 +602,29 @@ float ByteArray::toFloat() const
 std::string ByteArray::toStdString() const
 {
     return std::string(mData, mSize);
+}
+
+ByteArray ByteArray::toHex()
+{
+    ByteArray ba(mSize * 2, 0);
+    char *src = mData;
+    char *dst = ba.mData;
+    for (int i=0; i<mSize; i++)
+        writeHex(dst, *src++);
+    return ba;
+}
+
+ByteArray ByteArray::toHex(char separator)
+{
+    ByteArray ba(mSize * 3, 0);
+    char *src = mData;
+    char *dst = ba.mData;
+    for (int i=0; i<mSize; i++)
+    {
+        writeHex(dst, *src++);
+        *dst++ = separator;
+    }
+    return ba;
 }
 //---------------------------------------------------------------------------
 

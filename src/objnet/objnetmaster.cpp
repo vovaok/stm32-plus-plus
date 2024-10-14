@@ -21,7 +21,7 @@ ObjnetMaster::ObjnetMaster(ObjnetInterface *iface) :
     reset();
     
     #ifndef QT_CORE_LIB
-    mTimer.setTimeoutEvent(EVENT(&ObjnetMaster::onTimer));
+    mTimer.onTimeout = EVENT(&ObjnetMaster::onTimer);
     mInterface->nakEvent = EVENT(&ObjnetMaster::onNak);
     #else
     QObject::connect(&mTimer, SIGNAL(timeout()), this, SLOT(onTimer()));
@@ -58,11 +58,11 @@ void ObjnetMaster::task()
 
 void ObjnetMaster::onNak(unsigned char mac)
 {
-    if (mLocalnetDevices[mac])
-    {
-        if (mLocalnetDevices[mac]->mTimeout)
-            --mLocalnetDevices[mac]->mTimeout;
-    }
+//    if (mLocalnetDevices[mac])
+//    {
+//        if (mLocalnetDevices[mac]->mTimeout)
+//            --mLocalnetDevices[mac]->mTimeout;
+//    }
 }
 
 void ObjnetMaster::onError(unsigned char mac, ObjnetInterface::Error error)
@@ -251,7 +251,7 @@ void ObjnetMaster::connectDevice(unsigned char netaddr)
         return;
     ObjnetDevice *dev = mDevices[netaddr];
     dev->mPresent = true;
-    dev->mTimeout = 10;
+    dev->mTimeout = 5;
     
     if (mAdjacentNode)
     {
@@ -332,8 +332,10 @@ void ObjnetMaster::removeDevice(unsigned char netaddr)
 }
 //---------------------------------------------------------------------------
 
-void ObjnetMaster::parseServiceMessage(const CommonMessage &msg)
+bool ObjnetMaster::parseServiceMessage(const CommonMessage &msg)
 {
+    bool success = true;
+    
     if (msg.isGlobal())
     {
         #ifdef QT_CORE_LIB
@@ -342,7 +344,7 @@ void ObjnetMaster::parseServiceMessage(const CommonMessage &msg)
         if (onGlobalServiceMessage)
             onGlobalServiceMessage(msg.globalId().aid);
         #endif
-        return;
+        return true;
     }
 
     SvcOID oid = (SvcOID)msg.localId().oid;
@@ -364,17 +366,17 @@ void ObjnetMaster::parseServiceMessage(const CommonMessage &msg)
             {
                 connectDevice(dev->netAddress());
                 if (dev->mIsLocal && !dev->isInfoValid())
-                    sendServiceMessage(netaddr, svcRequestAllInfo);
+                    success &= sendServiceMessage(netaddr, svcRequestAllInfo);
             }
             else
             {
-                sendServiceMessage(netaddr, svcClass);
-                sendServiceMessage(netaddr, svcName);
+                success &= sendServiceMessage(netaddr, svcClass);
+                success &= sendServiceMessage(netaddr, svcName);
             }
         }
         else
         {
-            dev->mTimeout = 10;
+            dev->mTimeout = 5;
         }
         break;
         
@@ -436,12 +438,12 @@ void ObjnetMaster::parseServiceMessage(const CommonMessage &msg)
         response.append(dev->netAddress());
         if (isLocalNet)
         {
-            sendServiceMessage(dev->netAddress(), welcomeCmd, std::move(response));
+            success &= sendServiceMessage(dev->netAddress(), welcomeCmd, std::move(response));
         }
         else
         {
             response.append(subnetaddr);
-            sendServiceMessage(netaddr, welcomeCmd, std::move(response));
+            success &= sendServiceMessage(netaddr, welcomeCmd, std::move(response));
         }
       } break;
       
@@ -508,9 +510,9 @@ void ObjnetMaster::parseServiceMessage(const CommonMessage &msg)
         }
         else
         {
-            sendServiceMessage(remoteAddress, svcClass);
-            sendServiceMessage(remoteAddress, svcName);
-            sendServiceMessage(remoteAddress, svcEcho);
+            success &= sendServiceMessage(remoteAddress, svcClass);
+            success &= sendServiceMessage(remoteAddress, svcName);
+            success &= sendServiceMessage(remoteAddress, svcEcho);
         }
       } break;
         
@@ -527,7 +529,7 @@ void ObjnetMaster::parseServiceMessage(const CommonMessage &msg)
       } break;
       
       case svcObjectCount:
-        sendServiceMessage(netaddr, svcRequestObjInfo);
+        success &= sendServiceMessage(netaddr, svcRequestObjInfo);
         break;
       
       case svcFail:
@@ -537,15 +539,18 @@ void ObjnetMaster::parseServiceMessage(const CommonMessage &msg)
             switch (failedOid)
             {
               case svcRequestAllInfo:
-                for (unsigned char idx = svcClass; idx <= svcBusType; idx++)
-                    sendServiceMessage(netaddr, static_cast<SvcOID>(idx));
+                for (unsigned char idx = svcClass; idx <= svcBusType && success; idx++)
+                    success &= sendServiceMessage(netaddr, static_cast<SvcOID>(idx));
                 break;
                 
               case svcRequestObjInfo:
                 if (dev)
                 {
-                    for (int idx=0; idx<dev->mObjectCount; idx++)
-                        sendServiceMessage(netaddr, svcObjectInfo, idx);
+                    for (int idx=0; idx<dev->mObjectCount && success; idx++)
+                    {
+                        if (!dev->objectInfo(idx) || !dev->objectInfo(idx)->isValid())
+                            success &= sendServiceMessage(netaddr, svcObjectInfo, idx);
+                    }
                 }
                 break;
                 
@@ -583,6 +588,8 @@ void ObjnetMaster::parseServiceMessage(const CommonMessage &msg)
     
     if (onServiceMessage)
         onServiceMessage(msg);
+    
+    return success;
 }
 //---------------------------------------------------------------------------
 

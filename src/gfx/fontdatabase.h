@@ -13,7 +13,8 @@ public:
     
     Font font(const char *family, int pixelSize=12, bool bold=false, bool italic=false);
     
-    static void addApplicationFontFromData(const uint32_t *fontdata);
+    static bool addApplicationFont(const char *filename);
+    static bool addApplicationFontFromData(const uint32_t *fontdata);
     static Font systemFont();
 
 private:

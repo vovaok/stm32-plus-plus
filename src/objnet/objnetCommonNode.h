@@ -7,7 +7,7 @@
 #include "objectinfo.h"
 
 #if !defined(QT_CORE_LIB) && !defined(NRF52840_XXAA)
-    #include "canInterface.h"
+//    #include "canonbinterface.h"
     #include "gpio.h"
 #endif
 
@@ -49,7 +49,7 @@ private:
     bool m_receiveBusy = false;
     CommonMessage m_currentMsg;
 //    CommonMessage mSheduledMsg; // to be sent later
-    
+
     // fragmented receive buffers
 //    std::map<uint32_t, CommonMessageBuffer> mFragmentBuffer;
     CommonMessageBufferList mFragmentBuffer;
@@ -58,7 +58,7 @@ private:
     std::map<unsigned char, unsigned char> mNatTable;
 
     void onNewMessage();
-    void handleMessage(const CommonMessage &msg);
+    bool handleMessage(const CommonMessage &msg);
     bool sendCommonMessage(CommonMessage &msg);
 
 protected:
@@ -83,7 +83,7 @@ protected:
     bool sendServiceMessageToMac(unsigned char mac, SvcOID oid, const ByteArray &ba = ByteArray());
     bool sendGlobalServiceMessage(StdAID aid, unsigned char payload=0);
     bool sendGlobalServiceMessage(StdAID aid, const ByteArray &ba);
-    virtual void parseServiceMessage(const CommonMessage &msg) = 0;
+    virtual bool parseServiceMessage(const CommonMessage &msg) = 0;
 
     virtual unsigned char route(unsigned char netAddress) = 0;
     virtual unsigned char natRoute(unsigned char addr) {return mNatTable.count(addr)? mNatTable[addr]: 0x7F;}
@@ -93,8 +93,6 @@ protected:
     friend class ObjnetNode;
     friend class ObjnetMaster;
 
-//    virtual void acceptServiceMessage(unsigned char sender, SvcOID oid, ByteArray *ba=0L) = 0;
-    
     virtual void adjacentConnected() {} // called by adjacent interface
 
 #ifndef QT_CORE_LIB
@@ -126,7 +124,7 @@ public:
     */
     unsigned char busAddress() const {return mBusAddress;}
 
-#if !defined(QT_CORE_LIB ) && !defined (NRF52840_XXAA) 
+#if !defined(QT_CORE_LIB ) && !defined (NRF52840_XXAA)
     /*! Установка физического адреса по сигналам на ногах.
         В функцию передаётся разрядность адреса и имена ножек
         в порядке от младшего бита к старшему.

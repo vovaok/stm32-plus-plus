@@ -140,7 +140,7 @@ void Dma::setMemorySource(uint32_t *ptr)
     setMemorySource(ptr, 4);
 }
 
-void Dma::setPeriph(void *periph, int dataSize, bool isSource)
+void Dma::setPeriph(volatile void *periph, int dataSize, bool isSource)
 {
     if (dataSize == 4)
         --dataSize;
@@ -154,12 +154,12 @@ void Dma::setPeriph(void *periph, int dataSize, bool isSource)
     mChannel->CCR = mConfig.all;
 }
 
-void Dma::setSource(void *periph, int dataSize)
+void Dma::setSource(volatile void *periph, int dataSize)
 {
     setPeriph(periph, dataSize, true);
 }
 
-void Dma::setSink(void *periph, int dataSize)
+void Dma::setSink(volatile void *periph, int dataSize)
 {
     setPeriph(periph, dataSize, false);
 }

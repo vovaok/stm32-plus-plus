@@ -41,73 +41,64 @@ CommonMessageBuffer &CommonMessageBufferList::operator[](uint32_t key)
     CommonMessageBufferList *b;
     for (b=this; b->m_next; b=b->m_next)
     {
-        if (b->m_key == key)
-            return *b;
+        if (b->m_next->m_key == key)
+            return *b->m_next;
     }
-    b->m_key = key;
+    
+    CommonMessageBufferList *tmp;
 #ifdef __ICCARM__
     __istate_t interrupt_state = __get_interrupt_state();
     __disable_interrupt();
-    b->m_next = new CommonMessageBufferList;
+    tmp = new CommonMessageBufferList;
     __set_interrupt_state(interrupt_state);
 #else
-    b->m_next = new CommonMessageBufferList;
+    tmp = new CommonMessageBufferList;
 #endif
-    return *b;
+    tmp->m_key = key;
+    b->m_next = tmp;    
+    return *tmp;
 }
 
 void CommonMessageBufferList::erase(uint32_t key)
 {
     CommonMessageBufferList *b;
-    if (m_key == key)
-        m_key = 0; // don't delete this
-    for (b=this; b->m_next; b=b->m_next)
+    for (b=this; b && b->m_next; b=b->m_next)
     {
         if (b->m_next->m_key == key)
-        {
-            CommonMessageBufferList *tmp = b->m_next;
-            b->m_next = b->m_next->m_next;
-#ifdef __ICCARM__
-            __istate_t interrupt_state = __get_interrupt_state();
-            __disable_interrupt();
-            delete tmp;
-            __set_interrupt_state(interrupt_state);
-#else
-            delete tmp;
-#endif
-            break;
-        }
+            eraseNext(b);
     }
 }
 
 void CommonMessageBufferList::damage(int pts)
-{
-    if (m_key && (0 == static_cast<CommonMessageBuffer*>(this)->damage(pts)))
-        m_key = 0;
- 
+{ 
     CommonMessageBufferList *b;
-    for (b = this; b->m_next; b=b->m_next)
+    for (b=this; b && b->m_next; b=b->m_next)
     {
-        CommonMessageBufferList *tmp = b->m_next;
-        if (0 == static_cast<CommonMessageBuffer*>(tmp)->damage(pts))
-        {
-            b->m_next = b->m_next->m_next;
-#ifdef __ICCARM__
-            __istate_t interrupt_state = __get_interrupt_state();
-            __disable_interrupt();
-            delete tmp;
-            __set_interrupt_state(interrupt_state);
-#else
-            delete tmp;
-#endif
-        }
+        if (0 == b->m_next->CommonMessageBuffer::damage(pts))
+            eraseNext(b);
     }
+}
+
+void CommonMessageBufferList::eraseNext(CommonMessageBufferList *b)
+{
+    if (!b)
+        return;
+    CommonMessageBufferList *tmp = b->m_next;
+    b->m_next = b->m_next->m_next;
+#ifdef __ICCARM__
+    __istate_t interrupt_state = __get_interrupt_state();
+    __disable_interrupt();
+    delete tmp;
+    __set_interrupt_state(interrupt_state);
+#else
+    delete tmp;
+#endif
 }
 
 int CommonMessageBufferList::count() const
 {
     int cnt = 0;
-    for (const CommonMessageBufferList *b = this; b; b = b->m_next)
+    for (const CommonMessageBufferList *b = this; b->m_next; b = b->m_next)
         cnt++;
     return cnt;
 }

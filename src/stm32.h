@@ -32,8 +32,19 @@
       defined (STM32F302xE) || defined (STM32F303xE) || defined (STM32F398xx) || \
       defined (STM32F373xC) || defined (STM32F378xx)
 
-#include "../lib/CMSIS/Device/ST/cmsis_device_f3/Include/stm32f3xx.h"        
+#include "../lib/CMSIS/Device/ST/cmsis_device_f3/Include/stm32f3xx.h"
         
+#elif defined (STM32F030x6)
+          
+#include "../lib/CMSIS/Device/ST/STM32F0xx/Include/stm32f0xx.h"     
+      
+#elif defined (STM32F756xx) || defined (STM32F746xx) || defined (STM32F745xx) || defined (STM32F765xx) || \
+      defined (STM32F767xx) || defined (STM32F769xx) || defined (STM32F777xx) || defined (STM32F779xx) || \
+      defined (STM32F722xx) || defined (STM32F723xx) || defined (STM32F732xx) || defined (STM32F733xx) || \
+      defined (STM32F730xx) || defined (STM32F750xx)
+
+#include "../lib/CMSIS/Device/ST/cmsis_device_f7/Include/stm32f7xx.h"       
+          
 #endif
 
 #endif

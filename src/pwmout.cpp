@@ -8,16 +8,17 @@ PwmOutput *PwmOutput::instance(TimerNumber timerNo)
     {
         if (mInstances[timerNo])
             return mInstances[timerNo];
-        return new PwmOutput(timerNo, 10 _kHz);
+        return new PwmOutput(timerNo, 10000);
     }
     return 0L;
 }
 
-PwmOutput::PwmOutput(TimerNumber timerNo, unsigned long pwmFreq) :
-    HardwareTimer(timerNo, pwmFreq*2), // *2 for center-aligned mode
+PwmOutput::PwmOutput(TimerNumber timerNo, int pwmFreq) :
+    HardwareTimer(timerNo),
     m_chMask(0)
 {
     mInstances[timerNo] = this;
+    setFrequency(pwmFreq);
     init();
 }
 
@@ -52,11 +53,11 @@ void PwmOutput::init()
 {
     tim()->CR2 |= TIM_CR2_CCPC; // enable preload control
     mPeriod = autoReloadRegister() + 1;
-//    setEnabled(true);
-    tim()->CR1 |= TIM_CR1_CMS_0; // center aligned mode 1
+    setPwmAlignMode(CenterAlignedMode1);
 //    tim()->RCR = 0x01; // update event freq / 2;
 
-    if (tim() == TIM1 || tim() == TIM8)
+    setEnabled(true);
+    if (hasCapability(Complementary))
     {
         tim()->BDTR &= 0xFF; //! @todo check this
         tim()->BDTR |= 100;
@@ -96,7 +97,7 @@ void PwmOutput::configChannel(Gpio::Config pin, Gpio::Config complementaryPin, b
     Gpio::config(pin);
     Gpio::config(complementaryPin);
 
-    configPwm(channel, PwmMode_PWM2, invert);
+    configPwm(channel, PwmMode_PWM1, invert);
 
     if (chEnabled)
         m_chMask |= channel;
@@ -116,7 +117,7 @@ void PwmOutput::configChannel(Gpio::Config pin, bool invert)
 
     Gpio::config(pin);
 
-    configPwm(channel, PwmMode_PWM2, invert);
+    configPwm(channel, PwmMode_PWM1, invert);
 
     if (comp)
         m_chMask |= ((unsigned long)channel) << 16;
@@ -207,13 +208,25 @@ void PwmOutput::setDutyCycle(int dutyCycle1, int dutyCycle2, int dutyCycle3, int
 
 void PwmOutput::setFrequency(int f_Hz)
 {
+    if (tim()->CR1 & TIM_CR1_CMS_Msk) // if center-aligned mode
+        f_Hz <<= 1;
     HardwareTimer::setFrequency(f_Hz);
     mPeriod = autoReloadRegister() + 1;
 }
 
-void PwmOutput::setPwmMode(uint8_t mode)
+int PwmOutput::frequency()
 {
+    int f = HardwareTimer::frequency();
+    if (tim()->CR1 & TIM_CR1_CMS_Msk) // if center-aligned mode
+        return f >> 1;
+    return f;
+}
+
+void PwmOutput::setPwmAlignMode(PwmAlignMode mode)
+{
+    int f = frequency();
     tim()->CR1 = tim()->CR1 & ~TIM_CR1_CMS | (mode & TIM_CR1_CMS);
+    setFrequency(f);
 }
 
 void PwmOutput::setAllChannelsInverted(bool inverted)

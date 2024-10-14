@@ -1,25 +1,48 @@
 #include "serialframe.h"
+#include "core/application.h"
 
-using namespace Serial;
-
-SerialFrame::SerialFrame(Device *iface) :
-    m_device(iface)
+SerialFrame::SerialFrame(Device *device) :
+    m_device(device)
 {
+    m_sequential = false;
+    m_buffer.resize(64);
     cmd_acc = false;
-    mFramesSent = 0;
     stmApp()->registerTaskEvent(EVENT(&SerialFrame::task));
 }
 //---------------------------------------------------------------------------
 
+bool SerialFrame::open(OpenMode mode)
+{
+    if (m_device && m_device->open(mode))
+        return Device::open(mode);
+    return false;
+}
+
+void SerialFrame::close()
+{
+    Device::close();
+    if (m_device)
+        m_device->close();
+}
+
 void SerialFrame::task()
 {
-    char buferok[16];
-    int sz = m_device->read(buferok, 16);
-    
-    for (int i=0; i<sz; i++)
+    if (m_ready)
+        return;
+
+    if (!m_device || !isOpen())
+        return;
+
+//    char buferok[16];
+//    int sz = m_device->read(buferok, 16);
+
+//    for (int i=0; i<sz; i++)
     {
-        uint8_t byte = buferok[i];
-        
+//        uint8_t byte = buferok[i];
+        uint8_t byte;
+        if (!m_device->read((char*)&byte, 1))
+            return;
+
         switch (byte)
         {
           case uartESC:
@@ -27,7 +50,7 @@ void SerialFrame::task()
             break;
 
           case uartSOF:
-            m_buffer.clear();
+            m_buffer.resize(0);
             cs = 0;
             esc = false;
             cmd_acc = true;
@@ -39,7 +62,14 @@ void SerialFrame::task()
                 if (!cs && m_buffer.size())
                 {
                     m_buffer.resize(m_buffer.size() - 1); // remove checksum
-                    dataReceived(m_buffer);
+                    m_ready = true;
+                    if (onReadyRead)
+                        onReadyRead();
+//                    dataReceived(m_buffer);
+                }
+                else
+                {
+                    setErrorString("Checksum failed");
                 }
                 cmd_acc = false;
             }
@@ -58,14 +88,13 @@ void SerialFrame::task()
 }
 //----------------------------------------------------------
 
-void SerialFrame::sendData(const ByteArray &data)
+int SerialFrame::writeData(const char *data, int size)
 {
     ByteArray out;
     uint8_t cs = 0;
 
     out.append(uartSOF);
-
-    for (char i=0; i<data.size(); i++)
+    for (char i=0; i<size; i++)
     {
         char b = data[i];
         cs -= b;
@@ -76,31 +105,40 @@ void SerialFrame::sendData(const ByteArray &data)
         }
         out.append(b);
     }
-
     if (cs == uartESC || cs == uartSOF || cs == uartEOF)
     {
         out.append(uartESC);
         cs ^= 0x20;
     }
-
     out.append(cs);
-
     out.append(uartEOF);
 
-    m_device->write(out.data(), out.size());
-    mFramesSent++;
+    if (m_device->write(out.data(), out.size()) == out.size())
+        return size;
+    return 0;
 }
-//----------------------------------------------------------
 
-void SerialFrame::dataReceived(const ByteArray &ba)
+int SerialFrame::bytesAvailable() const
 {
-    if (onDataReceived)
-        onDataReceived(ba);
+    if (m_ready)
+        return m_buffer.size();
+    else
+        return 0;
 }
-//----------------------------------------------------------
 
-//void SerialFrame::attach(UartInterface *iface)
-//{
-//    mInterface = iface;
-//    mInterface->setByteReadEvent(EVENT(&UartFrame::onByteRead));
-//}
+int SerialFrame::readData(char *data, int size)
+{
+    int sz = 0;
+    if (m_ready)
+    {
+        sz = m_buffer.size();
+        memcpy(data, m_buffer.data(), sz);
+//        char *src = m_buffer.data();
+//        while (sz--)
+//            *data++ = *src++;
+
+        m_ready = false;
+    }
+//    task();
+    return sz;
+}
