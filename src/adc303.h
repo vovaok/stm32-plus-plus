@@ -110,6 +110,8 @@ public:
     void setMultisample(int sampleCount);
 
     int maxValue() const;
+    
+    Dma* getDma () {return mDma;}
 
     void setEnabled(bool enable);
     bool isEnabled() const {return mEnabled;}
