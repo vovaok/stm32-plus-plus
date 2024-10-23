@@ -29,7 +29,7 @@ public:
     void setPrecision(int digits);
     int precision() const {return m_precision;}
     
-    Closure<void(float)> onValueChanged;
+    std::function<void(float)> onValueChanged;
 
     virtual void stepBy(int steps) override;
     virtual void reset() override;
