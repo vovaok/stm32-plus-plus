@@ -48,17 +48,20 @@ public:
     NotifyEvent onReadyRead;
     NotifyEvent onBytesWritten;
     
+    const ByteArray &errorString() const {return m_errorString;}
+    
 protected:
     bool m_sequential;
     bool m_halfDuplex;
     
     virtual int readData(char *data, int size) = 0;
     virtual int writeData(const char *data, int size) = 0;
-    void setErrorString(const std::string &str);
+    void setErrorString(const ByteArray &str) {m_errorString = str;}
     virtual int readLineData(char *data, int size);
     
 private:
     OpenMode m_openMode;
+    ByteArray m_errorString;
 };
 
 #endif
