@@ -150,7 +150,9 @@ int Can::configureFilter(Flags flags, uint32_t id, uint32_t mask, int fifoChanne
     // exit filter initialization mode
     can->FMR &= ~CAN_FMR_FINIT;
 
-    setRxInterruptEnabled(fifoChannel, true);
+    // don't enable interrupt!
+    // it will be done on the socket activation!
+//    setRxInterruptEnabled(fifoChannel, true);
 
     return idx - m_firstFilterIdx;
 }

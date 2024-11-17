@@ -17,6 +17,7 @@ CanSocket::~CanSocket()
 int CanSocket::addFilter(uint32_t id, uint32_t mask)
 {
     int filterIdx = m_can->configureFilter(m_flags, id, mask, m_fifoChannel);
+    m_can->setRxInterruptEnabled(m_fifoChannel, true);
     /// @todo use filterIdx
     return filterIdx;
 }

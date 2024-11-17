@@ -24,7 +24,8 @@ void CanOnbInterface::receiveHandler()
 //    msg.setData(std::move(ba));
 //    receive(std::move(msg));
     
-    receive(CommonMessage(m_can->readAll()));
+    while (m_can->bytesAvailable() > 0)
+        receive(CommonMessage(m_can->readAll()));
 }
 
 void CanOnbInterface::setReceiveEnabled(bool enabled)

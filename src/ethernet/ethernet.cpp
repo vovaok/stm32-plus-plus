@@ -62,7 +62,10 @@ Ethernet::Ethernet(const RMII &rmii)
 
         bool result = ethConfig(rmii.phyAddress);
         if (!result)
+        {
+            THROW(Exception::BadSoBad);
             return;
+        }
 
         m_DMARxDscrTab = new ETH_DMADESCTypeDef[rxBufCount];
         m_DMATxDscrTab = new ETH_DMADESCTypeDef[txBufCount];
