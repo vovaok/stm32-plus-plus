@@ -386,10 +386,13 @@ bool Gpio::read() const
 {
     if (!mPort)
         return false;
-    if (mConfig.mode == modeOut)
-        return mPort->ODR & mPin;
-    else
-        return mPort->IDR & mPin;
+    
+//    if (mConfig.mode == modeOut)
+//        return mPort->ODR & mPin;
+//    else
+    
+    /// @attention Always read IDR!
+    return mPort->IDR & mPin;
 }
 
 void Gpio::write(bool value)
