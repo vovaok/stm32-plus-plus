@@ -332,6 +332,9 @@ function onb_proto.dissector(tvbuf, pktinfo, root)
 				nodes[netaddr] = {["name"] = "(node"..netaddr..")", ["objects"]={}}
 			elseif is_request then
 				value = ""
+			elseif msgoid == "svcHello" then
+				tree:add("[Location: ]", data:range(0, 1):uint())
+				msgdata = data:range(0, 1):uint()
 			elseif msgoid == "svcName" then
 				value = "\""..data:string().."\""
 				if data:range(0, 1):uint() ~= 0 then
@@ -420,7 +423,7 @@ function onb_proto.dissector(tvbuf, pktinfo, root)
 			end
 		elseif is_request then
 			msginfo = msginfo.." (request)"
-		elseif value ~= "" then
+		elseif value and value ~= "" then
 			msginfo = msginfo.." = "..value
 			tree:add("Value:", data:range(0), value)
 		end
