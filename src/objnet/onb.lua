@@ -67,6 +67,7 @@ local nodes =
 
 local ObjectInfoTypes = 
 {
+	[0] = "<Invalid>",
 	[43] = "Void",
 	[1] = "Bool",
 	[2] = "Int",
@@ -93,6 +94,26 @@ local ObjectInfoTypes =
 	[0x80] = "Compound_base"
 }
 
+local ObjectInfoFlags = 
+{
+	[0x01] = "Volatile",
+	[0x02] = "Constant", -- "Read"
+	[0x04] = "Write",
+	[0x08] = "Save",
+	[0x10] = "Hidden",
+	[0x20] = "Dual",
+	[0x40] = "Procedure", -- "Function",
+	[0x80] = "Array",
+	[0x03] = "Output", -- Measurement
+	[0x05] = "Input", -- Control
+	[0x06] = "Variable",
+	[0x07] = "IO", -- Exchange
+	[0x0E] = "Setting", -- Storage
+	[0x42] = "Getter function",
+	[0x44] = "Setter function",
+	[0x46] = "Function" -- function with one argument and return value
+}
+
 local header = 
 {
 	prefix = ProtoField.new("Prefix", "onb.prefix", ftypes.STRING, nil),
@@ -110,10 +131,18 @@ local header =
 	payload = ProtoField.new("Payload", "onb.payload", ftypes.UINT8, nil, base.DEC),
 	
 	-- ObjectInfo fields --
-	_oid = ProtoField.new("ObjectID", "onb.ObjectInfo.oid", ftypes.UINT8, nil, base.DEC),
-	flags = ProtoField.new("Flags", "onb.ObjectInfo.flags", ftypes.UINT8, nil, base.HEX),
-	rType = ProtoField.new("ReadType", "onb.ObjectInfo.rType", ftypes.UINT8, ObjectInfoTypes, base.DEC),
-	wType = ProtoField.new("WriteType", "onb.ObjectInfo.wType", ftypes.UINT8, ObjectInfoTypes, base.DEC),
+	_oid = ProtoField.new("ObjectID", "onb.ObjectInfo.oid", ftypes.STRING, nil),
+	flags = ProtoField.new("Flags", "onb.ObjectInfo.flags", ftypes.STRING),--ftypes.STRING, ObjectInfoFlags, base.STRING),
+	flagVolatile = ProtoField.new("Volatile", "onb.ObjectInfo.flags.volatile", ftypes.UINT8, nil, base.DEC, 0x01),
+	flagRead = ProtoField.new("Read", "onb.ObjectInfo.flags.volatile", ftypes.UINT8, nil, base.DEC, 0x02),
+	flagWrite = ProtoField.new("Write", "onb.ObjectInfo.flags.volatile", ftypes.UINT8, nil, base.DEC, 0x04),
+	flagSave = ProtoField.new("Save", "onb.ObjectInfo.flags.volatile", ftypes.UINT8, nil, base.DEC, 0x08),
+	flagHidden = ProtoField.new("Hidden", "onb.ObjectInfo.flags.volatile", ftypes.UINT8, nil, base.DEC, 0x10),
+	flagDual = ProtoField.new("Dual", "onb.ObjectInfo.flags.volatile", ftypes.UINT8, nil, base.DEC, 0x20),
+	flagFunction = ProtoField.new("Function", "onb.ObjectInfo.flags.volatile", ftypes.UINT8, nil, base.DEC, 0x40),
+	flagArray = ProtoField.new("Array", "onb.ObjectInfo.flags.volatile", ftypes.UINT8, nil, base.DEC, 0x80),
+	rType = ProtoField.new("ReadType", "onb.ObjectInfo.rType", ftypes.STRING),--ftypes.UINT8, ObjectInfoTypes, base.DEC),
+	wType = ProtoField.new("WriteType", "onb.ObjectInfo.wType", ftypes.STRING),--ftypes.UINT8, ObjectInfoTypes, base.DEC),
 	readSize = ProtoField.new("ReadSize", "onb.ObjectInfo.readSize", ftypes.UINT8, nil, base.DEC),
 	writeSize = ProtoField.new("WriteSize", "onb.ObjectInfo.writeSize", ftypes.UINT8, nil, base.DEC),
 	name = ProtoField.new("Name", "onb.ObjectInfo.name", ftypes.STRING, nil)
@@ -148,18 +177,78 @@ function objName(netaddr, oid)
 	return nodes[netaddr].objects[oid] or "Object #"..oid
 end
 
+function flagString(flags_val)
+	local flags_str = ""
+	-- flags_str = ObjectInfoFlags[flags_val]
+	-- if not flags_str then
+		flags_str = ""
+		local f = ObjectInfoFlags[bit.band(flags_val, 0x4F)]
+		if f then
+			flags_str = f
+		end
+		if bit.band(flags_val, 0x80) ~= 0 then
+			flags_str = string.format("Array of %ss", flags_str)
+		end
+		if bit.band(flags_val, 0x20) ~= 0 then
+			flags_str = "Dual "..flags_str
+		end
+		if bit.band(flags_val, 0x10) ~= 0 then
+			flags_str = "Hidden "..flags_str
+		end
+	-- end
+	return flags_str
+end
+
+function typeName(type_val)
+	local name = ObjectInfoTypes[type_val]
+	if type_val >= 0x80 then
+		name = string.format("Compound object (%d fields)", type_val - 0x80)
+	end
+	if not name then
+		name = "(Unknown type)"
+	end
+	return name
+end
+
 function parseObjectInfo(tree, sender, data)
+
+	local oidstr = ""
+	local namestr = ""
+
+	while data:range(0, 1):uint() == 0xFF do
+		local _oid = data:range(1, 1):uint()
+		oidstr = string.format("%s%d.", oidstr, _oid)
+		namestr = string.format("%s%s.", namestr, objName(sender, _oid))
+		data = data:range(2)
+	end
+	data = data:range(offset)
+
 	local _oid = data:range(0, 1):uint()
+	local flags = data:range(1, 1)
+	local rType = data:range(2, 1)
+	local wType = data:range(3, 1)
 	local name = data:range(6):string()
-	node(sender).objects[_oid] = name
-	tree:add(header._oid, data:range(0, 1))
-	tree:add(header.flags, data:range(1, 1))
-	tree:add(header.rType, data:range(2, 1))
-	tree:add(header.wType, data:range(3, 1))
+	if oidstr == "" then -- store name of the top level object only
+		node(sender).objects[_oid] = name
+	end
+	oidstr = string.format("%s%d", oidstr, _oid)
+	namestr = string.format("%s%s", namestr, name)
+	tree:add(header._oid, data:range(0, 1), oidstr)
+	local flags_tree = tree:add(header.flags, flags, flagString(flags:uint()))
+	flags_tree:add(header.flagVolatile, flags)
+	flags_tree:add(header.flagRead, flags)
+	flags_tree:add(header.flagWrite, flags)
+	flags_tree:add(header.flagSave, flags)
+	flags_tree:add(header.flagHidden, flags)
+	flags_tree:add(header.flagDual, flags)
+	flags_tree:add(header.flagFunction, flags)
+	flags_tree:add(header.flagArray, flags)
+	tree:add(header.rType, rType, typeName(rType:uint()))
+	tree:add(header.wType, wType, typeName(wType:uint()))
 	tree:add(header.readSize, data:range(4, 1))
 	tree:add(header.writeSize, data:range(5, 1))
 	tree:add(header.name, data:range(6))
-	local datastr = string.format("(%d) -> %s", _oid, name)
+	local datastr = string.format("(%s)=>%s", oidstr, namestr)
 	return datastr
 end
 
@@ -195,7 +284,7 @@ function onb_proto.dissector(tvbuf, pktinfo, root)
 	
 	local id = tvbuf:range(prefix_len, 4)
 	local data = tvbuf:range(prefix_len + 4, data_len)
-	local value = ""
+	local value = nil
 	local msgdata = ""
 	
 	local msgId = id:le_uint()
@@ -256,15 +345,13 @@ function onb_proto.dissector(tvbuf, pktinfo, root)
 				value = string.format("[%s]", bustypes[data:uint()] or "INVALID")
 			elseif msgoid == "svcObjectInfo" then
 				if sender ~= 0 then
-					local offset = 0
-					while data:range(offset, 1):uint() == 0xFF do
-						local _oid = data:range(offset+1, 1):uint()
-						msgdata = string.format("%s%s.", msgdata, objName(sender, _oid))
-						offset = offset + 2;
-					end
-					data = data:range(offset)
-					-- datastr = parseObjectInfo(tree:add("ObjectInfo"), sender, data:range(offset, data_len-offset))
-					-- msgdata = "\""..msgdata..datastr.."\""
+					-- local offset = 0
+					-- while data:range(offset, 1):uint() == 0xFF do
+						-- local _oid = data:range(offset+1, 1):uint()
+						-- msgdata = string.format("%s%s.", msgdata, objName(sender, _oid))
+						-- offset = offset + 2;
+					-- end
+					-- data = data:range(offset)
 				else
 					local _oid = data:range(0, 1):uint()
 					msgdata = string.format("\"%s\"", objName(receiver, _oid))
@@ -274,6 +361,7 @@ function onb_proto.dissector(tvbuf, pktinfo, root)
 						offset = offset + 1
 						msgdata = string.format("%s[%d]", msgdata, _sub)
 					end
+					data = data:range(offset-1)
 				end
 				
 			elseif msgoid == "svcAutoRequest" then
@@ -295,6 +383,8 @@ function onb_proto.dissector(tvbuf, pktinfo, root)
 		
 			msgoid = objName(netaddr, oid)
 		
+			value = "(value)"
+		
 		end
 		
 		msginfo = msginfo.." "..msgoid
@@ -306,12 +396,15 @@ function onb_proto.dissector(tvbuf, pktinfo, root)
 			tree:add(string.format("[Object: %s]", msgoid))
 		end
 		
-		if msgoid == "svcObjectInfo" then
-			local info = parseObjectInfo(tree:add("ObjectInfo: "), sender, data)
+		if msgoid == "svcObjectInfo" and data:len() > 6 then
+			local info = parseObjectInfo(tree:add("ObjectInfo: ", data), sender, data)
 			msginfo = msginfo.." "..info
-		elseif value ~= "" then
+		elseif data:len() == 0 then
+			tree:add("[request value]")
+			msginfo = msginfo.." [request value]"
+		elseif data:len() > 0 and value then
 			msginfo = msginfo.." = "..value
-			tree:add("Value:", value)
+			tree:add("Value:", data:range(0), value)
 		end
 	
 	else -- this is global message --
