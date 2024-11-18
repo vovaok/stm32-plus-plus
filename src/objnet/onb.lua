@@ -162,7 +162,7 @@ local header =
 onb_proto.fields = header
 
 function node(netaddr)
-	return nodes[netaddr] or {["name"]="(UNKNOWN NODE)", ["objects"]={}}
+	return nodes[netaddr] or {["name"]="(UNKNOWN NODE #"..netaddr..")", ["objects"]={}}
 end
 
 --function nodeName(netaddr)
@@ -174,7 +174,7 @@ end
 --end
 
 function objName(netaddr, oid)
-	return nodes[netaddr].objects[oid] or "Object #"..oid
+	return node(netaddr).objects[oid] or "Object #"..oid
 end
 
 function flagString(flags_val)
@@ -322,12 +322,16 @@ function onb_proto.dissector(tvbuf, pktinfo, root)
 		msginfo = msginfo..": "
 		
 		local msgoid = "Object["..oid.."]"
+		local is_request = (sender == 0 and data:len() == 0)
 		
 		if svc ~= 0 then
 			msgoid = SvcOID[oid]
 			
 			if sender == 0 and msgoid == "svcWelcome" then
-				nodes[receiver] = {["name"] = "(node"..receiver..")", ["objects"]={}}
+				local netaddr = data:range(0, 1):uint()
+				nodes[netaddr] = {["name"] = "(node"..netaddr..")", ["objects"]={}}
+			elseif is_request then
+				value = ""
 			elseif msgoid == "svcName" then
 				value = "\""..data:string().."\""
 				if data:range(0, 1):uint() ~= 0 then
@@ -343,6 +347,8 @@ function onb_proto.dissector(tvbuf, pktinfo, root)
 				value = data:uint()
 			elseif msgoid == "svcBusType" then
 				value = string.format("[%s]", bustypes[data:uint()] or "INVALID")
+			elseif msgoid == "svcBusAddress" then
+				value = data:uint()
 			elseif msgoid == "svcObjectInfo" then
 				if sender ~= 0 then
 					-- local offset = 0
@@ -396,13 +402,25 @@ function onb_proto.dissector(tvbuf, pktinfo, root)
 			tree:add(string.format("[Object: %s]", msgoid))
 		end
 		
-		if msgoid == "svcObjectInfo" and data:len() > 6 then
-			local info = parseObjectInfo(tree:add("ObjectInfo: ", data), sender, data)
-			msginfo = msginfo.." "..info
-		elseif data:len() == 0 then
-			tree:add("[request value]")
-			msginfo = msginfo.." [request value]"
-		elseif data:len() > 0 and value then
+
+		-- if msgoid == "svcObjectInfo" and data:len() > 6 then
+			-- local info = parseObjectInfo(tree:add("ObjectInfo: ", data), sender, data)
+			-- msginfo = msginfo.." "..info
+		-- elseif data:len() == 0 then
+			-- tree:add("[request value]")
+			-- msginfo = msginfo.." [request value]"
+		-- elseif data:len() > 0 and value then
+
+		if msgoid == "svcObjectInfo" then
+			if sender == 0 then
+				msginfo = msginfo.." (request)"
+			else
+				local info = parseObjectInfo(tree:add("ObjectInfo: "), sender, data)
+				msginfo = msginfo.." "..info
+			end
+		elseif is_request then
+			msginfo = msginfo.." (request)"
+		elseif value ~= "" then
 			msginfo = msginfo.." = "..value
 			tree:add("Value:", data:range(0), value)
 		end
