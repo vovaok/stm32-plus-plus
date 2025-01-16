@@ -11,7 +11,7 @@ public:
     UdpSocket();
     virtual ~UdpSocket();
     
-    bool bind(uint16_t port);
+    bool bind(uint16_t port = 0);
     
     void connectToHost(ip_addr_t ipaddr, uint16_t port);
     bool open(OpenMode mode=ReadWrite);
