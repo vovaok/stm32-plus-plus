@@ -62,14 +62,14 @@ public:
 //    }
     
     CommonMessage(uint32_t id, ByteArray &&ba) :
-        mId(id), mBa(std::move(ba))
+        mBa(std::move(ba)), mId(id)
     {
     }
     
     CommonMessage(const ByteArray &ba) :
-        mId(*reinterpret_cast<const uint32_t*>(ba.data())),
-//        mBa(ByteArray::fromRawData(ba.data() + 4, ba.size() - 4))
-        mBa(ByteArray(ba.data() + 4, ba.size() - 4))
+//        mBa(ByteArray::fromRawData(ba.data() + 4, ba.size() - 4)),
+        mBa(ByteArray(ba.data() + 4, ba.size() - 4)),
+        mId(*reinterpret_cast<const uint32_t*>(ba.data()))
     {
     }
 
@@ -79,12 +79,12 @@ public:
 
     uint32_t rawId() const {return mId;}
     void setId(uint32_t rawId) {mId = rawId;}
-    LocalMsgId localId() const {return reinterpret_cast<const LocalMsgId&>(mId);}
-    void setLocalId(LocalMsgId id) {mId = reinterpret_cast<int&>(id);}
-    GlobalMsgId globalId() const {return reinterpret_cast<const GlobalMsgId&>(mId);}
+    LocalMsgId localId() const {return static_cast<const LocalMsgId>(mId);}
+    void setLocalId(LocalMsgId id) {mId = static_cast<int>(id);}
+    GlobalMsgId globalId() const {return static_cast<const GlobalMsgId>(mId);}
     void setGlobalId(GlobalMsgId id) {mId = reinterpret_cast<int&>(id);}
-    bool isLocal() const {return ((LocalMsgId&)mId).local;}
-    bool isGlobal() const {return !((LocalMsgId&)mId).local;}
+    inline bool isLocal() const {return localId().local;}
+    inline bool isGlobal() const {return !isLocal();}
     ByteArray &data() {return mBa;}
     const ByteArray &data() const {return mBa;}
 //    void setData(const ByteArray &ba) {mBa = ba;}

@@ -427,6 +427,7 @@ void ObjnetDevice::receiveServiceObject(unsigned char oid, const ByteArray &ba)
 
 void ObjnetDevice::receiveObject(unsigned char oid, const ByteArray &ba)
 {
+    mTimeout = 5;
     mTempTimeout = 0;
     if (oid < mObjects.size())
     {
@@ -454,6 +455,7 @@ void ObjnetDevice::receiveObject(unsigned char oid, const ByteArray &ba)
 
 void ObjnetDevice::receiveTimedObject(const ByteArray &ba)
 {
+    mTimeout = 5;
     unsigned char oid = ba[0];
 //    unsigned char reserve = ba[1];
     uint32_t timestamp = *reinterpret_cast<const uint32_t*>(ba.data() + 2);
@@ -485,6 +487,7 @@ void ObjnetDevice::receiveTimedObject(const ByteArray &ba)
 
 void ObjnetDevice::receiveGroupedObject(const ByteArray &ba)
 {
+    mTimeout = 5;
     mTempTimeout = 0;
     #ifdef QT_CORE_LIB
     QVariantMap values;
