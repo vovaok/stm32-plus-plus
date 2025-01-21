@@ -62,21 +62,21 @@ void I2c::close()
 bool I2c::writeRegAddr(uint8_t address, uint32_t regAddr, int regSize)
 {
     bool r = true;
-    // ∆дем окончани€ передачи
-    while (!(m_dev->ISR & I2C_ISR_TC));
+    // ∆дем освобождени€
+   // while ((m_dev->ISR & I2C_ISR_BUSY));
     // Ўлем стартовый сигнал и адрес устройства
     m_dev->CR2 = address | (regSize << 16) | I2C_CR2_START;
     uint8_t *data = reinterpret_cast<uint8_t *>(&regAddr) + regSize;
     while (r && regSize--)
         r &= writeData(*--data);
+    // ∆дем окончани€ передачи
+    while (!(m_dev->ISR & I2C_ISR_TC));
     return r;
 }
 
 bool I2c::write(uint8_t address, const uint8_t *data, int size)
 {
     bool r = true;
-    // ∆дем окончани€ передачи
-    while (!(m_dev->ISR & I2C_ISR_TC));
     // Ўлем стартовый сигнал и адрес устройства
     m_dev->CR2 = address | (size << 16) | I2C_CR2_START;
     while (r && size--)
@@ -93,8 +93,6 @@ bool I2c::write(uint8_t address, const uint8_t *data, int size)
 bool I2c::read(uint8_t address, uint8_t *data, int size)
 {
     bool r = true;
-    // ∆дем окончани€ передачи
-    while (!(m_dev->ISR & I2C_ISR_TC));
     // Ўлем стартовый сигнал и адрес устройства
     m_dev->CR2 = address | I2C_CR2_RD_WRN | (size << 16) | I2C_CR2_START;
     while (r && size--)
