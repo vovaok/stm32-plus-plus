@@ -178,6 +178,16 @@ ip_addr_t Ethernet::ipFromString(const char *s)
     return ipaddr;
 }
 
+ByteArray Ethernet::ipToString(const ip_addr_t &ip)
+{
+    char buf[16];
+    const uint8_t *b = reinterpret_cast<const uint8_t *>(&ip.addr);
+    sprintf(buf, "%d.%d.%d.%d", b[0], b[1], b[2], b[3]);
+    ByteArray ba;
+    ba.append(buf);
+    return ba;
+}
+
 ip_addr_t Ethernet::broadcast() const
 {
     ip_addr_t result = m_netif.ip_addr;

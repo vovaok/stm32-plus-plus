@@ -48,7 +48,7 @@ void Application::exec()
     if (SysTick_Config((rcc().sysClk() / 1000) * mSysClkPeriod) != 0)
         THROW(Exception::BadSoBad);
 
-//    NVIC_SetPriorityGrouping(0);
+    NVIC_SetPriorityGrouping(4);
 
     __enable_interrupt();
 

@@ -568,6 +568,8 @@ void Spi::enableInterrupt()
 //    NVIC->IP[mIrq] = tmppriority << 4;
 //    NVIC->ISER[mIrq >> 5] = 1 << (mIrq & 0x1F);
 
+//    NVIC_SetPriority(mIrq, 2);
+    NVIC_SetPriority(mIrq, NVIC_EncodePriority(NVIC_GetPriorityGrouping(), 2, 2));
     NVIC_EnableIRQ(mIrq);
 
     // enable RXNE interrupt

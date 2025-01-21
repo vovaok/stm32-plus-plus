@@ -192,6 +192,10 @@ The STM32F4x7 allows computing and verifying the IP, UDP, TCP and ICMP checksums
 #define LWIP_SOCKET                     0
 
 
+// Enable raw API
+#define LWIP_RAW                        1
+
+
 /*
    ----------------------------------------
    ---------- Lwip Debug options ----------
