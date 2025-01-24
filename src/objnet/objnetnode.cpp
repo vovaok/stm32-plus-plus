@@ -550,7 +550,10 @@ void ObjnetNode::parseMessage(const CommonMessage &msg)
             emit globalMessage(msg.globalId().aid);
     #else
         if (msg.data().size())
-            onGlobalDataMessage(msg.globalId().aid, msg.data());
+        {
+            if (onGlobalDataMessage)
+                onGlobalDataMessage(msg.globalId().aid, msg.data());
+        }
         else if (onGlobalMessage)
             onGlobalMessage(msg.globalId().aid);
     #endif

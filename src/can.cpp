@@ -102,6 +102,11 @@ bool Can::close()
     return true;
 }
 
+bool Can::isOpen() const
+{
+    return !(m_can->MSR & CAN_MSR_INAK);
+}
+
 int Can::configureFilter(Flags flags, uint32_t id, uint32_t mask, int fifoChannel)
 {
     // this function configures filter in 32-bit Identifier Mask mode

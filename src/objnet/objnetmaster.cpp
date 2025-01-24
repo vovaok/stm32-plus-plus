@@ -291,6 +291,8 @@ void ObjnetMaster::disconnectDevice(unsigned char netaddr)
             mAdjacentNode->sendServiceMessage(svcDisconnected, supernetaddr);
     }
     
+    dev->disconnectEvent();
+    
     #ifdef QT_CORE_LIB
     emit devDisconnected(netaddr);
     #else
