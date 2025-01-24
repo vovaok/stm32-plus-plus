@@ -290,7 +290,7 @@ float Adc::averageByIndex(uint8_t index)
             return (sum / mSampleCount);
         }
     }
-    return NAN;
+    return 0.NaN;
 }
 
 int Adc::lastResultByIndex(unsigned char index)

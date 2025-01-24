@@ -88,7 +88,7 @@ Clear();
 
 void HD44780::Clear(void) {
     Cmd(HD44780_CLEARDISPLAY);
-    delay_us(5);
+    delay(5);
 }
 
 void HD44780::Puts(uint8_t x, uint8_t y, char* str) {
@@ -231,6 +231,36 @@ void HD44780::CursorSet(uint8_t col, uint8_t row) {
     HD44780::Cmd(HD44780_SETDDRAMADDR | (col + row_offsets[row]));
 }
 
+
+void HD44780::setCmdPins(Gpio::PinName rs, Gpio::PinName e )
+ {
+   rsPin = new Gpio(rs);
+   rsPin->setAsOutput();
+   
+   ePin = new Gpio( e);
+   ePin->setAsOutput();  
+ }
+   
+ void HD44780::setDataPins(Gpio::PinName d4, Gpio::PinName d5, Gpio::PinName d6, Gpio::PinName d7 )
+ {
+   d4Pin = new Gpio(d4);
+   d4Pin->setAsOutput();
+   
+   d5Pin = new Gpio(d5);
+   d5Pin->setAsOutput();
+   
+   d6Pin = new Gpio(d6);
+   d6Pin->setAsOutput();
+   
+   d7Pin = new Gpio(d7);
+   d7Pin->setAsOutput();
+ }
+
+
  void HD44780::InitPins(void) {
-    return;
+   
+   
+   
+   
+   
 }
