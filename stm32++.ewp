@@ -16358,6 +16358,42 @@
         </file>
     </group>
     <group>
+        <name>canopen</name>
+        <file>
+            <name>$PROJ_DIR$\src\canopen\canopencommon.h</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\canopen\canopendevice.cpp</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\canopen\canopendevice.h</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\canopen\canopenlite.cpp</name>
+            <excluded>
+                <configuration>stm32f407vg</configuration>
+            </excluded>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\canopen\canopenlite.h</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\canopen\canopenmaster.cpp</name>
+            <excluded>
+                <configuration>stm32f407vg</configuration>
+            </excluded>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\canopen\canopenmaster.h</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\canopen\canopenproxy.cpp</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\canopen\canopenproxy.h</name>
+        </file>
+    </group>
+    <group>
         <name>core</name>
         <file>
             <name>$PROJ_DIR$\src\core\advmath.cpp</name>
