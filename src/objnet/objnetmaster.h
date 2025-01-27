@@ -53,6 +53,7 @@ public:
     
     ObjnetDevice *createStaticDevice(unsigned char busAddress);
     void registerDevice(ObjnetDevice *dev, unsigned char busAddress);
+    ObjnetDevice *localDevice(uint8_t mac) {return mac < 16? mLocalnetDevices[mac]: nullptr;}
 
 #ifdef QT_CORE_LIB
 signals:

@@ -231,7 +231,8 @@ bool Usart::open(OpenMode mode)
     // enable interrupt if necessary
     if (enableIrq)
     {
-        NVIC_SetPriority(mIrq, 1);
+//        NVIC_SetPriority(mIrq, 1);
+        NVIC_SetPriority(mIrq, NVIC_EncodePriority(NVIC_GetPriorityGrouping(), 0, 0));
         NVIC_EnableIRQ(mIrq);
     }
 
@@ -372,17 +373,18 @@ int Usart::writeData(const char *data, int size)
     int sz = writeBuffer(data, size);
     if (sz < 0)
         return -1;
-    if(sz ==0)
+    
+    int mask = mTxBuffer.size() - 1;
+    int curPos = (mTxReadPos - mDmaTx->dataCounter()) & mask;
+    sz = (mTxPos - curPos) & mask;
+    if (sz == 0)
         return 0;
-
-//    sz = (mTxPos - curPos) & mask;
 
 //    if (mDmaTx->dataCounter() > 0) // if transmission in progress...
     if (mDmaTx->isEnabled() || !(mDev->SR & USART_SR_TC))
         return sz; // dma restarts in irq handler
 
     // otherwise start new dma transfer
-    int mask = mTxBuffer.size() - 1;
     mDmaTx->stop(true);
     if (sz > mTxBufferSize - mTxReadPos)
         sz = mTxBufferSize - mTxReadPos;
@@ -405,6 +407,8 @@ int Usart::writeData(const char *data, int size)
 //        while (!(mDev->SR & USART_SR_IDLE));
 //    }
 
+//    (void)mDev->SR; // read SR to clear TC flag
+    
     mDmaTx->start();
     return sz;
 }
@@ -486,6 +490,8 @@ void Usart::dmaTxComplete()
     }
     mDmaTx->setSingleBuffer(mTxBuffer.data() + mTxReadPos, sz);
     mTxReadPos = (mTxReadPos + sz) & mask;
+    
+    (void)mDev->SR; // read status register to clear the TC flag (this is important!)
     mDmaTx->start();
 }
 //---------------------------------------------------------------------------
@@ -612,12 +618,10 @@ void Usart::handleInterrupt()
         {
             if (mDev->RDR == m_characterMatch)
             {
-    //            GPIOA->BSRR = 1; // this is for performance tests only!
                 if (m_characterMatchEvent)
                     m_characterMatchEvent();
                 else if (onReadyRead)
                     onReadyRead();
-    //            GPIOA->BSRR = 1 << 16;
             }
         }
         else if (onReadyRead)

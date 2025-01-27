@@ -16,6 +16,7 @@ private:
         Adc::Channel channel;
         float bias;
         float factor;
+        float rawValue; // unfiltered
         float value;
         float Kf;
     } VoltageEntry;
@@ -38,6 +39,7 @@ public:
 //    inline const float &referenceVoltage() const {return mVref;}
     inline const float &batteryVoltage() const {return mVbat;}
     const float &voltage(string name) {return mVoltages[name].value;}
+    const float &rawVoltage(string name) {return mVoltages[name].rawValue;}
 };
 
 #endif

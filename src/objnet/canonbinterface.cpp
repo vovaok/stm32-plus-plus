@@ -3,7 +3,7 @@
 using namespace Objnet;
 
 CanOnbInterface::CanOnbInterface(CanInterface *can)
-{ 
+{
     m_can = new CanSocket(can, CanInterface::ExtId);
     mMaxFrameSize = 8; // 64 if CAN FD
     setTxQueueSize(128);
@@ -15,15 +15,20 @@ CanOnbInterface::CanOnbInterface(CanInterface *can)
 }
 //---------------------------------------------------------------------------
 
+bool CanOnbInterface::isBusPresent() const
+{
+    return m_can->isOpen() && m_can->interface()->isOpen();
+}
+
 void CanOnbInterface::receiveHandler()
-{   
+{
 //    CommonMessage msg(m_can->readAll());
-    
+
 //    msg.setId(canmsg.ExtId);
 //    ByteArray ba(canmsg.Data, canmsg.DLC);
 //    msg.setData(std::move(ba));
 //    receive(std::move(msg));
-    
+
     while (m_can->bytesAvailable() > 0)
         receive(CommonMessage(m_can->readAll()));
 }
@@ -46,7 +51,7 @@ bool CanOnbInterface::read(CommonMessage &msg)
     ByteArray ba(m_can->read(mMaxFrameSize + 4));
     if (ba.size())
         receive(CommonMessage(ba));
-      
+
     return ObjnetInterface::read(msg);
 }
 
@@ -54,12 +59,12 @@ bool CanOnbInterface::send(const CommonMessage &msg)
 {
     if (msg.data().size() > mMaxFrameSize)
         return false;
-    
+
     ByteArray ba(4 + msg.size(), '\0');
     ba.resize(4);
     *reinterpret_cast<uint32_t *>(ba.data()) = msg.rawId();
     ba.append(msg.data());
-    
+
     return m_can->write(ba) == ba.size();
 }
 //---------------------------------------------------------------------------
@@ -67,7 +72,7 @@ bool CanOnbInterface::send(const CommonMessage &msg)
 void CanOnbInterface::flush()
 {
     ObjnetInterface::flush();
-//    m_can->flush(); 
+//    m_can->flush();
 }
 //---------------------------------------------------------------------------
 
