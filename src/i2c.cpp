@@ -119,8 +119,10 @@ bool I2c::writeRegAddr(uint8_t address, uint32_t regAddr, int regSize)
 
 bool I2c::write(uint8_t address, const uint8_t *data, int size)
 {
-    bool r;
-    r = startTransmission(DirectionTransmitter, address);
+    bool r = true;
+    // если шина не занята, значит надо заново генерить старт
+    if (!(m_dev->SR2 & I2C_SR2_BUSY))
+        r = startTransmission(DirectionTransmitter, address);
     if (r)
     {
         setAcknowledge(false);
@@ -147,7 +149,7 @@ bool I2c::read(uint8_t address, uint8_t *data, int size)
                 data++;
             }
             setAcknowledge(false);
-                r &= readData(data);
+            r &= readData(data);
         }
     }
     if (r)

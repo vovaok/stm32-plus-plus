@@ -2140,7 +2140,7 @@
                 </option>
                 <option>
                     <name>IarchiveOutput</name>
-                    <state>D:\projects\iar\components\stm32++\bin\stm32f373xB\stm32++_IAR_9.a</state>
+                    <state>D:\projects\iar\components\stm32++\bin\stm32f373xB\stm32++.a</state>
                 </option>
             </data>
         </settings>
@@ -2238,7 +2238,7 @@
                 </option>
                 <option>
                     <name>RTConfigPath2</name>
-                    <state>$TOOLKIT_DIR$\INC\c\DLib_Config_Full.h</state>
+                    <state>$TOOLKIT_DIR$\inc\c\DLib_Config_Full.h</state>
                 </option>
                 <option>
                     <name>GBECoreSlave</name>
@@ -2324,7 +2324,7 @@
                 </option>
                 <option>
                     <name>DSPExtension</name>
-                    <state>0</state>
+                    <state>1</state>
                 </option>
                 <option>
                     <name>TrustZone</name>
@@ -16199,9 +16199,12 @@
         <file>
             <name>$PROJ_DIR$\lib\CMSIS\Device\ST\STM32F0xx\Source\Templates\iar\startup_stm32f030x6.s</name>
             <excluded>
+                <configuration>stm32f373xB</configuration>
+                <configuration>stm32f373xB_no-exceptions_no-rtti</configuration>
                 <configuration>stm32f407vg</configuration>
                 <configuration>stm32f429zi</configuration>
                 <configuration>stm32g474</configuration>
+                <configuration>stm32f303x8</configuration>
                 <configuration>stm32f767</configuration>
                 <configuration>stm32f405xx</configuration>
             </excluded>
@@ -16221,6 +16224,7 @@
         <file>
             <name>$PROJ_DIR$\lib\CMSIS\Device\ST\cmsis_device_f3\Source\Templates\iar\startup_stm32f303xc.s</name>
             <excluded>
+                <configuration>stm32f373xB</configuration>
                 <configuration>stm32f407vg</configuration>
                 <configuration>stm32f429zi</configuration>
                 <configuration>stm32l476rg</configuration>
@@ -16234,6 +16238,7 @@
         <file>
             <name>$PROJ_DIR$\lib\CMSIS\Device\ST\STM32F4xx\Source\Templates\iar\startup_stm32f40xx.s</name>
             <excluded>
+                <configuration>stm32f373xB</configuration>
                 <configuration>stm32f407vg</configuration>
                 <configuration>stm32f429zi</configuration>
                 <configuration>stm32l476rg</configuration>
@@ -16247,6 +16252,7 @@
         <file>
             <name>$PROJ_DIR$\lib\CMSIS\Device\ST\STM32F4xx\Source\Templates\iar\startup_stm32f429_439xx.s</name>
             <excluded>
+                <configuration>stm32f373xB</configuration>
                 <configuration>stm32f407vg</configuration>
                 <configuration>stm32g474</configuration>
                 <configuration>stm32f303xC</configuration>
@@ -16259,14 +16265,17 @@
         <file>
             <name>$PROJ_DIR$\lib\CMSIS\Device\ST\cmsis_device_f7\Source\Templates\iar\startup_stm32f767xx.s</name>
             <excluded>
+                <configuration>stm32f373xB</configuration>
                 <configuration>stm32f429zi</configuration>
                 <configuration>stm32g474</configuration>
+                <configuration>stm32f303x8</configuration>
                 <configuration>stm32f405xx</configuration>
             </excluded>
         </file>
         <file>
             <name>$PROJ_DIR$\lib\CMSIS\Device\ST\STM32G4xx\Source\Templates\iar\startup_stm32g474xx.s</name>
             <excluded>
+                <configuration>stm32f373xB</configuration>
                 <configuration>stm32f407vg</configuration>
                 <configuration>stm32f429zi</configuration>
                 <configuration>stm32l476rg</configuration>
@@ -16280,6 +16289,7 @@
         <file>
             <name>$PROJ_DIR$\lib\CMSIS\Device\ST\STM32L4xx\Source\Templates\iar\startup_stm32l476xx.s</name>
             <excluded>
+                <configuration>stm32f373xB</configuration>
                 <configuration>stm32f407vg</configuration>
                 <configuration>stm32f429zi</configuration>
                 <configuration>stm32g474</configuration>

@@ -18,34 +18,35 @@ class FdCan : public CanInterface
 {
 public:
     FdCan(Gpio::Config fdcanRx, Gpio::Config fdcanTx);
-    
+
     virtual bool hasFD() override {return true;}
-    
+
     virtual int configureFilter(Flags flags, uint32_t id, uint32_t mask, int fifoChannel) override;
     virtual bool removeFilter(int index) override;
 
     virtual int pendingMessageLength(int fifoChannel) override;
     virtual int receiveMessage(uint32_t *id, uint8_t *data, uint8_t maxsize, int fifoChannel) override;
     virtual bool transmitMessage(Flags flags, uint32_t id, const uint8_t *data, uint8_t size) override;
-    
+
     virtual bool setBaudrate(int value);
     bool setDataBaudrate(int value); // for CAN FD mode with BRS
     virtual bool open(Device::OpenMode mode=Device::ReadWrite) override; // set to normal mode
     virtual bool close() override; // set to init mode
-    
+    virtual bool isOpen() const override;
+
     virtual void setRxInterruptEnabled(int fifoChannel, bool enabled) override;
-    
+
 private:
     static FdCan *m_instances[3];
     FDCAN_GlobalTypeDef *m_dev = nullptr;
-    
+
     friend void FDCAN1_IT0_IRQHandler();
     friend void FDCAN1_IT1_IRQHandler();
     friend void FDCAN2_IT0_IRQHandler();
     friend void FDCAN2_IT1_IRQHandler();
     friend void FDCAN3_IT0_IRQHandler();
     friend void FDCAN3_IT1_IRQHandler();
-    
+
     union StdFilterElement
     {
         struct
@@ -58,7 +59,7 @@ private:
         };
         uint32_t word = 0;
     };
-    
+
     union ExtFilterElement
     {
         struct
@@ -71,7 +72,7 @@ private:
         };
         uint32_t word[2] = {0, 0};
     };
-    
+
     union RxFifoElement
     {
         struct
@@ -80,7 +81,7 @@ private:
         uint32_t RTR: 1;
         uint32_t XTD: 1;
         uint32_t ESI: 1;
-        
+
         uint32_t RXTS: 16;
         uint32_t DLC: 4;
         uint32_t BRS: 1;
@@ -88,12 +89,12 @@ private:
         uint32_t : 2;
         uint32_t FIDX: 7;
         uint32_t ANMF: 1;
-        
+
         uint32_t data[16];
         };
         uint32_t words[18];
     };
-    
+
     union TxEventFIFOElement
     {
         struct
@@ -102,7 +103,7 @@ private:
         uint32_t RTR: 1;
         uint32_t XTD: 1;
         uint32_t ESI: 1;
-        
+
         uint32_t TXTS: 16;
         uint32_t DLC: 4; // Data Length Code
         uint32_t BRS: 1; // Bit Rate Switching
@@ -112,7 +113,7 @@ private:
         };
         uint32_t word[2];
     };
-    
+
     union TxBufferHeader
     {
         struct
@@ -121,7 +122,7 @@ private:
         uint32_t RTR: 1; // Remote Transmission Request
         uint32_t XTD: 1; // 1 = extended ID (29 bit)
         uint32_t ESI: 1; // Error State Indicator
-        
+
         uint32_t : 16;
         uint32_t DLC: 4; // Data Length Code
         uint32_t BRS: 1; // Bit Rate Switching
@@ -132,17 +133,17 @@ private:
         };
         uint32_t words[2] = {0, 0};
     };
-    
+
     union TxBufferElement
     {
         struct
         {
-        TxBufferHeader hdr;        
+        TxBufferHeader hdr;
         uint32_t data[16];
         };
         uint32_t words[18];
     };
-    
+
     struct MessageRAM
     {
         StdFilterElement stdFilters[28];
@@ -152,9 +153,9 @@ private:
         TxEventFIFOElement txEventFifo[3];
         TxBufferElement txBuffers[3];
     };
-    
+
     MessageRAM *msgRam = nullptr;
-    
+
     RxFifoElement *nextRxMessage(int fifoChannel);
     static int calcDLC(int size);
     static int sizeFromDLC(uint8_t DLC);
