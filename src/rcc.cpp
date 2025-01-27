@@ -716,9 +716,10 @@ bool Rcc::configPll(uint32_t sysClk)
 //    else
 //        THROW(Exception::BadSoBad);
 /////////*********************
-  mSysClk  = 68812800;
-  mAPB1Clk = 68812800;         // только под кварц 14.7456
-  mAPB2Clk = 68812800/2;
+  
+  mSysClk  = mHseValue == 16000000? sysClk: 68812800;
+  mAPB1Clk = mSysClk;         // только под кварц 14.7456
+  mAPB2Clk = mSysClk;
 /////////////////*************
       RCC->CR |= RCC_CR_HSEON;
   while(!(RCC->CR & RCC_CR_HSERDY));
@@ -728,13 +729,19 @@ bool Rcc::configPll(uint32_t sysClk)
 
   // Настройка коэффициентов PLL
   RCC->CFGR &= ~RCC_CFGR_PLLMUL; // Сброс множителя PLL
+  if(mHseValue==16000000)
+    // Для HSE 14.7456 МГц, чтобы получить SYSCLK = 72 МГц, множитель PLL должен быть 14\3 (PLLMUL x 5)
+     RCC->CFGR |= RCC_CFGR_PLLMUL9;
+    else
   // Для HSE 14.7456 МГц, чтобы получить SYSCLK = 72 МГц, множитель PLL должен быть 14\3 (PLLMUL x 5)
   RCC->CFGR |= RCC_CFGR_PLLMUL14;
 
   RCC->CFGR &= ~RCC_CFGR_PLLSRC; // Выбор HSE как источника для PLL
   RCC->CFGR |= RCC_CFGR_PLLSRC_HSE_PREDIV;
  
-  
+  if(mHseValue==16000000)
+    RCC->CFGR2 |= RCC_CFGR2_PREDIV_DIV2;
+    else
   RCC->CFGR2 |= RCC_CFGR2_PREDIV_DIV3;
 
   // Включение PLL и ожидание его готовности

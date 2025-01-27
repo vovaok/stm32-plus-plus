@@ -240,6 +240,8 @@ void Dma::setTransferCompleteEvent(NotifyEvent event)
 //    NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
 //    NVIC_Init(&NVIC_InitStructure);
 
+    
+    NVIC_SetPriority(mIrq, NVIC_EncodePriority(NVIC_GetPriorityGrouping(), 1, 1));
     NVIC_EnableIRQ(mIrq);
 
     clearFlag(AllFlags);

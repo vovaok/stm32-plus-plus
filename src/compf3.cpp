@@ -48,7 +48,7 @@ Comp::Comp(int no) :
         THROW(Exception::InvalidPeriph);    
   
     rcc().setPeriphEnabled(SYSCFG);
-//    RCC->APB2ENR |= RCC_APB2ENR_SYSCFGEN;
+   // RCC->APB2ENR |= RCC_APB2ENR_SYSCFGEN;
 
 }
 //---------------------------------------------------------------------------

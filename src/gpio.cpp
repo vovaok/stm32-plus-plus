@@ -14,7 +14,7 @@
 #endif
 
 uint8_t Gpio::mPinsUsed[176]; // assuming all items = 0 at startup
-NotifyEvent Gpio::m_interruptHandlers[16];
+std::function<void(void)> Gpio::m_interruptHandlers[16];
 
 Gpio::Gpio(PinName pin, Flags flags/*, PinAF altFunction*/)
 {
@@ -323,7 +323,7 @@ void Gpio::setAsOutputOpenDrain()
     updateConfig();
 }
 
-void Gpio::configInterrupt(NotifyEvent event, InterruptMode mode)
+void Gpio::configInterrupt(std::function<void(void)> event, InterruptMode mode)
 {
   #ifndef STM32F0
     setAsInput();
@@ -386,10 +386,13 @@ bool Gpio::read() const
 {
     if (!mPort)
         return false;
-    if (mConfig.mode == modeOut)
-        return mPort->ODR & mPin;
-    else
-        return mPort->IDR & mPin;
+    
+//    if (mConfig.mode == modeOut)
+//        return mPort->ODR & mPin;
+//    else
+    
+    /// @attention Always read IDR!
+    return mPort->IDR & mPin;
 }
 
 void Gpio::write(bool value)

@@ -62,7 +62,10 @@ Ethernet::Ethernet(const RMII &rmii)
 
         bool result = ethConfig(rmii.phyAddress);
         if (!result)
+        {
+            THROW(Exception::BadSoBad);
             return;
+        }
 
         m_DMARxDscrTab = new ETH_DMADESCTypeDef[rxBufCount];
         m_DMATxDscrTab = new ETH_DMADESCTypeDef[txBufCount];
@@ -173,6 +176,16 @@ ip_addr_t Ethernet::ipFromString(const char *s)
         i1 = i2 + 1;
     }
     return ipaddr;
+}
+
+ByteArray Ethernet::ipToString(const ip_addr_t &ip)
+{
+    char buf[16];
+    const uint8_t *b = reinterpret_cast<const uint8_t *>(&ip.addr);
+    sprintf(buf, "%d.%d.%d.%d", b[0], b[1], b[2], b[3]);
+    ByteArray ba;
+    ba.append(buf);
+    return ba;
 }
 
 ip_addr_t Ethernet::broadcast() const

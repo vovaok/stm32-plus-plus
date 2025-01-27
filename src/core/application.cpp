@@ -48,13 +48,17 @@ void Application::exec()
     if (SysTick_Config((rcc().sysClk() / 1000) * mSysClkPeriod) != 0)
         THROW(Exception::BadSoBad);
 
-//    NVIC_SetPriorityGrouping(0);
+    NVIC_SetPriorityGrouping(4);
 
     __enable_interrupt();
 
     // main loop
     while(1)
     {
+        // update watchdog
+//        if (m_watchdogEnabled) // dummy write to the register if it is not initialized
+            IWDG->KR = 0xAAAA;
+        
 #if __cplusplus > 199711L
         for (TaskEvent &e: mTaskEvents)
         {
@@ -122,6 +126,14 @@ Application *stmApp()
 void Application::systemReset()
 {
     NVIC_SystemReset();
+}
+
+void Application::enableWatchdog()
+{
+    IWDG->KR = 0x5555;
+    IWDG->PR = 7;//1; 
+    IWDG->RLR = 0xfff;  
+    IWDG->KR = 0xCCCC;
 }
 
 bool Application::startOnbBootloader()

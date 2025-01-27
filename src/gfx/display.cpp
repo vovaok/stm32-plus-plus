@@ -95,7 +95,7 @@ void Display::drawString(int x, int y, int w, int h, int flags, const char *s)
         const char *s = ln.s;
         for (int i=0; i<ln.len; i++)
         {
-            if (*s == ' ' || *s == '\t')
+            if ((flags & TextWordWrap) && *s == ' ' || *s == '\t')
             {
                 int sp = space / --wcnt;
                 xpos += sp;

@@ -89,6 +89,7 @@ protected:
     void receiveGlobalMessage(unsigned char aid);
     
     virtual void readyEvent() {}
+    virtual void disconnectEvent() {}
     
 #ifdef QT_CORE_LIB
 protected slots:

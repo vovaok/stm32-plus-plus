@@ -52,7 +52,7 @@ public:
     ~Can();
 
     virtual bool hasFD() override {return false;}
-    
+
     /*! Add mask mode filter to bank.
         Message is filtered when receiving by matching of message ID and filter ID applying the mask.
         Bits of ID's must match where the mask bits are 1. \n
@@ -73,10 +73,11 @@ public:
     virtual int pendingMessageLength(int fifoChannel) override;
     virtual int receiveMessage(uint32_t *id, uint8_t *data, uint8_t maxsize, int fifoChannel) override;
     virtual bool transmitMessage(Flags flags, uint32_t id, const uint8_t *data, uint8_t size) override;
-    
+
     virtual bool open(Device::OpenMode mode=Device::ReadWrite) override; // set to normal mode
     virtual bool close() override; // set to init mode
-    
+    virtual bool isOpen() const override;
+
 //    /*! Send a message.
 //        \param [in] msg The message to be transmitted. You must complete ExtId, DLC and Data (optional) fields before passing it to the function.
 //        \return true if the message successfully placed into TX FIFO, otherwise returns false.
@@ -148,7 +149,7 @@ public:
 //    static Can* instance(int canNumber) {return canNumber>0 && canNumber<=2? mInstances[canNumber-1]: 0L;}
 
     virtual void setRxInterruptEnabled(int fifoChannel, bool enabled) override;
-    
+
 private:
     static Can *m_instances[2];
     CAN_TypeDef *m_can;
@@ -159,11 +160,11 @@ private:
 //    uint32_t mPacketsReceived;
 //    uint32_t mPacketsSent;
 //    uint32_t mPacketsSendFailed;
-    
+
     bool isRxMessagePending(int fifoChannel);
 //    void setRxInterruptEnabled(int fifoChannel, bool enabled);
 //    void setTxInterruptEnabled(bool enabled);
-    
+
     friend void CAN1_RX0_IRQHandler();
     friend void CAN1_RX1_IRQHandler();
     friend void CAN1_TX_IRQHandler();

@@ -4,6 +4,7 @@
 #include "../touchscreen.h"
 #include "palette.h"
 #include "translator.h"
+#include <functional>
 //#include "layout.h"
 
 class Layout;
@@ -106,9 +107,9 @@ protected:
 
     virtual void paintEvent(Display *d);
 
-    virtual void pressEvent(int x, int y) {}
-    virtual void moveEvent(int x, int y) {}
-    virtual void releaseEvent(int x, int y) {}
+    virtual void pressEvent(int x, int y) {(void)x, (void)y;}
+    virtual void moveEvent(int x, int y) {(void)x, (void)y;}
+    virtual void releaseEvent(int x, int y) {(void)x, (void)y;}
 
     Translator *translations();
 

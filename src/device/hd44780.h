@@ -46,8 +46,9 @@ class HD44780
   public:
     
      HD44780(char cols, char rows);
- void setCmdPins(Gpio::Config rs, Gpio::Config e );
- void setDataPins(Gpio::Config d4, Gpio::Config d5, Gpio::Config d6, Gpio::Config d7 );
+ void setCmdPins(Gpio::PinName rs, Gpio::PinName e );
+ void setDataPins(Gpio::PinName d4, Gpio::PinName d5, Gpio::PinName d6, Gpio::PinName d7 );
+ void InitPins(void);
     
  typedef enum
  {
@@ -226,7 +227,7 @@ void Data(uint8_t data);
 uint8_t mCols, mRows;
 Gpio *rsPin, *ePin, *d4Pin, *d5Pin, *d6Pin, *d7Pin;   
 
-void InitPins(void);
+
 void Cmd(uint8_t cmd);
 void Cmd4bit(uint8_t cmd);
 void delay(int ms) {for (int w=ms*20000; --w;);}
@@ -239,7 +240,7 @@ void HD44780_RS_HIGH()    {rsPin->write(true);  }
 void HD44780_E_LOW()      {ePin->write(false); }                       
 void HD44780_E_HIGH()     {ePin->write(true);  }                
 
-void HD44780_E_BLINK()    {HD44780_E_HIGH(); delay_us(50); HD44780_E_LOW(); delay_us(50); }
+void HD44780_E_BLINK()    {HD44780_E_HIGH(); delay_us(150); HD44780_E_LOW(); delay_us(150); }
 
 };
 

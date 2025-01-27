@@ -2,12 +2,18 @@
 #include "../image.h"
 #include "core/macros.h"
 
-ProgressBar::ProgressBar(Widget *parent) :
-    Widget(parent)
+ProgressBar::ProgressBar(Orientation orient, Widget *parent) :
+    Widget(parent),
+    m_orientation(orient)
 {
     m_color = palette()->accent();
     m_backgroundColor = palette()->base();
-    setFixedHeight(font().info().height() + 4);
+    int def_sz = font().info().height() + 4;
+    switch (m_orientation)
+    {
+    case Horizontal: case HorizontalReversed: setFixedHeight(def_sz); break;
+    case Vertical:   case VerticalReversed:   setFixedWidth (def_sz); break;
+    }
     update();
 }
 
@@ -90,6 +96,21 @@ void ProgressBar::setFont(Font font)
     updateGeometry();
 }
 
+void ProgressBar::setOrientation(Orientation orient)
+{
+    if (m_orientation != orient)
+    {
+        m_orientation = orient;
+        update();
+    }
+}
+
+void ProgressBar::useColorMap(Gradient *gradient)
+{
+    m_colorMap = gradient;
+    update();
+}
+
 void ProgressBar::paintEvent(Display *d)
 {
     if (d->isReadable())
@@ -109,19 +130,34 @@ void ProgressBar::doPaint(Display *d)
 {
     int w = width();
     int h = height();
-    int x = 0;
+    int p = 0; // x or y
     float percent = 0;
     if (m_maximum > m_minimum)
     {
-        x = map(m_value);//lrintf((m_value - m_minimum) * (w - 2) / (m_maximum - m_minimum));
+        p = map(m_value);
         percent = (m_value - m_minimum) * 100 / (m_maximum - m_minimum);
+    }
+    else
+    {
+        //! @todo implement indeterminate state appearance
     }
 
     d->setColor(m_borderColor);
     d->setBackgroundColor(m_backgroundColor);
     d->drawFillRoundRect(0, 0, w, h, 3);
-    d->setBackgroundColor(m_color);
-    d->fillRoundRect(1, 1, x-1, h-2, 2);
+    if (m_colorMap)
+        d->setBackgroundColor(m_colorMap->colorAt(percent * 0.01f));
+    else
+        d->setBackgroundColor(m_color);
+    
+    switch (m_orientation)
+    {
+    case Horizontal:         d->fillRoundRect(1,   1,   p-1, h-2, 2); break;
+    case Vertical:           d->fillRoundRect(1,   h-p, w-2, p-1, 2); break;
+    case HorizontalReversed: d->fillRoundRect(w-p, 1,   p-1, h-2, 2); break;
+    case VerticalReversed:   d->fillRoundRect(1,   1,   w-2, p-1, 2); break;
+    }
+    
     if (m_textVisible)
     {
         ByteArray s = m_format;
@@ -137,11 +173,18 @@ int ProgressBar::map(float value)
 {
     if (m_maximum == m_minimum)
         return 0;
-    int w = m_width - 2;
-    int x = static_cast<int>((value - m_minimum) * w / (m_maximum - m_minimum)) + 1;
+    int sz;
+    switch (m_orientation)
+    {
+    case Horizontal: case HorizontalReversed: sz = m_width  - 2; break;
+    case Vertical:   case VerticalReversed:   sz = m_height - 2; break;
+    }
+    
+    int x = static_cast<int>((value - m_minimum) * sz / (m_maximum - m_minimum)) + 1;
+    
     if (x < 1)
         return 1;
-    else if (x > w)
-        return w;
+    else if (x > sz)
+        return sz;
     return x;
 }

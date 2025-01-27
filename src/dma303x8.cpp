@@ -39,6 +39,20 @@ Dma::Dma(Channel channelName)
     mConfig.all = 0;
 }
 
+Dma *Dma::instance(Channel channelName)
+{
+     int dma_num = channelName >> 8;
+    int stream_num   = channelName & 0x07; // 0...6
+    int channel_num = channelName & 7;
+      
+    int idx = channel_num ;
+     Dma *dma = mChannels[idx];
+    if (!dma)
+        dma = new Dma(channelName); // this updates mStream[idx]
+    return dma;
+  
+}
+
 Dma::~Dma()
 {
     mChannel->CCR &= ~DMA_CCR_EN;

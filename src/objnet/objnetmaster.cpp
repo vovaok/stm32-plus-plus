@@ -124,6 +124,18 @@ void ObjnetMaster::onTimer()
     }
     else
     {
+        if (mSwonbMode)
+        {
+//            if (mLocalnetDevices[mSearchMac] && mLocalnetDevices[mSearchMac]->mConnectionError)
+//                sendServiceMessageToMac(mSearchMac, svcFail);
+//            else
+                sendServiceMessageToMac(mSearchMac, svcHello);
+            ObjnetDevice *dev = mLocalnetDevices[mSearchMac];
+            if (dev && dev->mTimeout)
+                --dev->mTimeout;
+            mSearchMac = (mSearchMac < 15)? mSearchMac + 1: 1;
+        }
+      
         // test local devices for presence
         for (unsigned char mac=1; mac<16; mac++)
         {
@@ -147,14 +159,7 @@ void ObjnetMaster::onTimer()
 //                    mSearchMac = (mSearchMac < 15)? mSearchMac + 1: 1;
 //            }
         }
-        if (mSwonbMode)
-        {
-//            if (mLocalnetDevices[mSearchMac] && mLocalnetDevices[mSearchMac]->mConnectionError)
-//                sendServiceMessageToMac(mSearchMac, svcFail);
-//            else
-                sendServiceMessageToMac(mSearchMac, svcHello);
-            mSearchMac = (mSearchMac < 15)? mSearchMac + 1: 1;
-        }
+        
     }
 }
 //---------------------------------------------------------------------------
@@ -285,6 +290,8 @@ void ObjnetMaster::disconnectDevice(unsigned char netaddr)
         if (supernetaddr < 0x7F)
             mAdjacentNode->sendServiceMessage(svcDisconnected, supernetaddr);
     }
+    
+    dev->disconnectEvent();
     
     #ifdef QT_CORE_LIB
     emit devDisconnected(netaddr);

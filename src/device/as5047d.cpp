@@ -21,7 +21,7 @@ unsigned short AS5047D::read()
     unsigned short result;
     mCs->write(0);
 //    for (int i=0; i<10; i++);
-    result = mSpi->read() << 2;
+    result = mSpi->read16() << 2;
     mCs->write(1);
     return result;
 }
