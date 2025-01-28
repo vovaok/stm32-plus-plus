@@ -6,10 +6,10 @@ PwmInput::PwmInput(Gpio::Config inputPin) :
     int ch = GpioConfigGetPeriphChannel(inputPin);
     if (ch != 1 && ch != 2)
         THROW(Exception::InvalidPin);
-    
+
     Gpio::config(inputPin);
-    
-    // 1. Select the active input for TIMx_CCR1: write the CC1S bits to ‘01’ 
+
+    // 1. Select the active input for TIMx_CCR1: write the CC1S bits to ‘01’
     // in the TIMx_CCMR1 register (TI1 selected).
     // 2. Select the active polarity for TI1FP1 (used both for capture in
     // TIMx_CCR1 and counter clear): program the CC1P and CC1NP bits to ‘00’
@@ -24,15 +24,15 @@ PwmInput::PwmInput(Gpio::Config inputPin) :
     // to ‘100’ in the TIMx_SMCR register.
     // 7. Enable the captures: write the CC1E and CC2E bits to ‘1’ in the
     // TIMx_CCER register.
-        
+
     setCounter(0);
     setCompare1(0);
     setCompare2(0);
     setAutoReloadRegister(-1);
-    
+
     selectInputTrigger(ch==2? TsTI2FP2: TsTI1FP1);
     setSlaveMode(SmReset);
-    
+
     TIM_TypeDef *t = tim();
     t->CR1 |= TIM_CR1_URS; // set update flag on the overflow only
     /// @todo add filter if needed
@@ -51,7 +51,9 @@ PwmInput::PwmInput(Gpio::Config inputPin) :
 
 void PwmInput::setMinFrequency(unsigned int freq)
 {
-    setPrescaler((inputClk() / freq) >> 16);
+    tim()->ARR = inputClk() / (freq * (tim()->PSC + 1)) - 1;
+    //! @note to change prescaler use setPrecaler directly!
+//    setPrescaler((inputClk() / freq) >> 16);
 }
 
 #if __FPU_PRESENT
@@ -64,19 +66,38 @@ int PwmInput::read()
     if (t->SR & TIM_SR_UIF) // overflow
     {
         m_period = 0;
+        m_flag = false;
+        t->SR = 0; // clear all flags
         // tut budet 4ot tipa: if (noga == 1) duty = 100%;
     }
     else if (t->CCMR1 & TIM_CCMR1_CC1S_1) // channel 2
     {
-        m_dutyCycle = t->CCR1;
-        m_period = t->CCR2;
+        if (t->SR & TIM_SR_CC2IF)
+        {
+            if (!m_flag)
+            {
+                m_flag = true;
+                t->SR &= ~TIM_SR_CC2IF;
+                return 0;
+            }
+            m_dutyCycle = t->CCR1;
+            m_period = t->CCR2;
+        }
     }
     else
     {
-        m_dutyCycle = t->CCR2;
-        m_period = t->CCR1;
+        if (t->SR & TIM_SR_CC1IF)
+        {
+            if (!m_flag)
+            {
+                m_flag = true;
+                t->SR &= ~TIM_SR_CC1IF;
+                return 0;
+            }
+            m_dutyCycle = t->CCR2;
+            m_period = t->CCR1;
+        }
     }
-    t->SR &= ~TIM_SR_UIF; // clear overflow flag
     return dutyCycle();
 }
 
