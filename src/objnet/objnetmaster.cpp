@@ -381,6 +381,23 @@ bool ObjnetMaster::parseServiceMessage(const CommonMessage &msg)
                 success &= sendServiceMessage(netaddr, svcName);
             }
         }
+        else if (!dev->isInfoValid())
+        {
+            dev->requestMetaInfo();
+            qDebug() << "[ObjnetMaster] info not valid, request it again";
+        }
+        else if (!dev->isReady())
+        {
+            for (int i=0; i<dev->objectCount(); i++)
+            {
+                if (!dev->objectInfo(i))
+                {
+                    dev->requestObjectInfo(i);
+                    qDebug() << "[ObjnetMaster] object #" << i << "was not obtained, request it again";
+                    break;
+                }
+            }
+        }
         else
         {
             dev->mTimeout = 5;

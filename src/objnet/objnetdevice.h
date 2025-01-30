@@ -27,7 +27,7 @@ class ObjnetDevice : public QObject
 #endif
 private:
     // mask should be 0x3FF but now we have this shit for backward compatibility
-    static const uint32_t mInfoValidMask = 0x000000FF;
+    static const uint32_t mInfoValidMask = 0x000001FF;
     uint32_t mInfoValidFlags;
 
     void onObjectValueChanged(unsigned char id);
