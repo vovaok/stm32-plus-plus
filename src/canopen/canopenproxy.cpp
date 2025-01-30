@@ -19,7 +19,7 @@ void CanOpenProxy::nmtModuleControl(NMTControl cmd)
 
 void CanOpenProxy::nmtErrorControl() // request node state
 {
-    sendPacket(NMT_ErrorControl | m_nodeId);
+    m_can->interface()->transmitMessage(CanInterface::RTR, NMT_ErrorControl | m_nodeId, nullptr, 0);
 }
 
 void CanOpenProxy::pdoWrite(uint8_t pdo, const ByteArray &value)

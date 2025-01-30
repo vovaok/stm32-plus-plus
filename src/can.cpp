@@ -141,14 +141,21 @@ int Can::configureFilter(Flags flags, uint32_t id, uint32_t mask, int fifoChanne
         can->FFA1R |= filterBit;
     else
         can->FFA1R &= ~filterBit;
-
+    
     // set ID and mask
-    uint32_t IDE = 0;
     if (flags & ExtId)
-        IDE = 1 << 2;
+    {
+        id = (id << CAN_RI0R_EXID_Pos) | (1 << 2);
+        mask = (mask << CAN_RI0R_EXID_Pos) | (1 << 2);
+    }
+    else
+    {
+        id = (id << CAN_RI0R_STID_Pos) | (0 << 2);
+        mask = (mask << CAN_RI0R_STID_Pos) | (1 << 2);
+    }
 
-    can->sFilterRegister[idx].FR1 = (id << 3) | IDE;
-    can->sFilterRegister[idx].FR2 = (mask << 3) | (1 << 2);
+    can->sFilterRegister[idx].FR1 = id;
+    can->sFilterRegister[idx].FR2 = mask;
     // activate the filter
     can->FA1R |= filterBit;
 
@@ -265,11 +272,15 @@ bool Can::transmitMessage(Flags flags, uint32_t id, const uint8_t *data, uint8_t
     int idx = (tsr & CAN_TSR_CODE) >> CAN_TSR_CODE_Pos;
     CAN_TxMailBox_TypeDef *mb = m_can->sTxMailBox + idx;
 
+    uint32_t rtr = 0;
+    if (flags & RTR)
+        rtr = CAN_TI0R_RTR;
+    
     // fill the mailbox
     if (flags & ExtId)
-        mb->TIR = (id << CAN_TI0R_EXID_Pos) | CAN_TI0R_IDE;
+        mb->TIR = (id << CAN_TI0R_EXID_Pos) | CAN_TI0R_IDE | rtr;
     else
-        mb->TIR = (id << CAN_TI0R_STID_Pos);
+        mb->TIR = (id << CAN_TI0R_STID_Pos) | rtr;
     mb->TDTR = size;
     mb->TDLR = reinterpret_cast<const uint32_t*>(data)[0];
     mb->TDHR = reinterpret_cast<const uint32_t*>(data)[1];

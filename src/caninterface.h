@@ -17,6 +17,7 @@ public:
         ExtId = 0x01,
         FD    = 0x02, // CAN FD mode
         BRS   = 0x04, // bit rate switch
+        RTR   = 0x08, 
     };
 
     virtual bool hasFD() {return false;}
