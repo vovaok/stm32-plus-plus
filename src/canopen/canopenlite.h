@@ -1,7 +1,7 @@
 #ifndef _CANOPENLITE_H
 #define _CANOPENLITE_H
 
-#include "periph/can.h"
+#include "caninterface.h"
 
 typedef struct
 {
@@ -97,7 +97,7 @@ typedef void (*WriteSDOEnd_t)(uint16_t id, uint8_t subid, uint32_t offset);
 class CanOpenLite
 {
 public:
-    CanOpenLite(Can *can, uint8_t address);
+    CanOpenLite(CanInterface *can, uint8_t address);
     
     ReadSDO_t readSDO;
     WriteSDO_t writeSDO;
@@ -106,7 +106,7 @@ public:
     void loop();
     
 private:
-    Can *m_can;
+    CanInterface *m_can;
     uint8_t m_address;
     Segment m_seg;
 };

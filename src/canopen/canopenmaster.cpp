@@ -1,4 +1,4 @@
-#include "canopen.h"
+//#include "canopen.h"
 
 //CanOpenMaster::CanOpenMaster(CanInterface *device, uint8_t address, QObject *parent) :
 //    QObject(parent),
