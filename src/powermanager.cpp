@@ -18,9 +18,14 @@ PowerManager::PowerManager(Adc *adc) :
     mAdc->start();
     mAdc->startConversion();
 
-    Timer *timer = new Timer();
+    timer = new Timer();
     timer->onTimeout = EVENT(&PowerManager::onTimer);
     timer->start(10);
+}
+
+void PowerManager::setUpdateInterval(int value_ms)
+{
+    timer->setInterval(value_ms);
 }
 
 void PowerManager::addVoltageMeasurement(string name, Gpio::Config pin, float Rhigh, float Rlow)

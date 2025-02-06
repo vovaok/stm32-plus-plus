@@ -27,10 +27,13 @@ private:
 //    float mVref;
     map<string, VoltageEntry> mVoltages;
 
+    Timer *timer;
     void onTimer();
 
 public:
     PowerManager(Adc *adc=nullptr);
+    void setUpdateInterval(int value_ms);
+    int updateInterval() const {return timer->interval();}
     void addVoltageMeasurement(string name, Gpio::Config pin, float Rhigh, float Rlow);
     void addMeasurement(string name, Gpio::Config pin, float factor = 1.f, float bias = 0);
     void setFilter(string name, float Kf);
