@@ -230,7 +230,7 @@ Gpio *rsPin, *ePin, *d4Pin, *d5Pin, *d6Pin, *d7Pin;
 
 void Cmd(uint8_t cmd);
 void Cmd4bit(uint8_t cmd);
-void delay(int ms) {for (int w=ms*20000; --w;);}
+void delay(int ms) {for (int w=ms*40000; --w;);}
 void delay_us(int us) {for (int w=us*20; --w;);}
 
  HD44780_Options_t HD44780_Opts;
