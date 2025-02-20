@@ -136,11 +136,11 @@ enum NMTState
 
 enum NMTControl
 {
-    StartRemoteNode = 0x01,
-    StopRemoteNode = 0x02,
-    EnterPreOperationalState = 0x80,
-    ResetNode = 0x81,
-    ResetCommunication = 0x82,
+    NMT_StartRemoteNode = 0x01,
+    NMT_StopRemoteNode = 0x02,
+    NMT_EnterPreOperationalState = 0x80,
+    NMT_ResetNode = 0x81,
+    NMT_ResetCommunication = 0x82,
 };
 
 #pragma pack(push,1)

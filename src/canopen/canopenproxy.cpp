@@ -7,6 +7,25 @@ CanOpenProxy::CanOpenProxy(CanInterface *device, uint8_t nodeId) :
     m_can->addFilter(nodeId, 0x7F);
     m_can->onReadyRead = EVENT(&CanOpenProxy::readPacket);
     m_can->open();
+    
+    m_resendTimer = new Timer();
+    m_resendTimer->setInterval(50);
+    m_resendTimer->onTimeout = EVENT(&CanOpenProxy::task);
+}
+
+void CanOpenProxy::task()
+{
+    while (!m_sdoQueue.empty())
+    {
+        SDO &sdo = m_sdoQueue.front();
+        ByteArray ba = ByteArray(reinterpret_cast<const char*>(&sdo), 8);
+        bool success = sendPacket(SDO_Request | m_nodeId, ba);
+        if (success)
+            m_sdoQueue.pop();
+        else
+            return;
+    }
+    m_resendTimer->stop();
 }
 
 void CanOpenProxy::nmtModuleControl(NMTControl cmd)
@@ -36,20 +55,37 @@ void CanOpenProxy::pdoWrite(uint8_t pdo, const ByteArray &value)
     sendPacket(cob_id, value);
 }
 
-void CanOpenProxy::sdoRead(uint16_t id, uint8_t subid)
+void CanOpenProxy::sdoRead(uint16_t id, uint8_t subid, uint8_t size)
 {
+    if (size > 4)
+        return;
     SDO sdo;
     sdo.cmd = cmdReadParam;
+    sdo.n = 4 - size;
     sdo.id = id;
     sdo.subid = subid;
     sdo.value = 0;
-    ByteArray ba = ByteArray(reinterpret_cast<const char*>(&sdo), 8);
-    sendPacket(SDO_Request | m_nodeId, ba);
+    sdoEnqueue(std::move(sdo));
+}
+
+void CanOpenProxy::sdoRead8(uint16_t id, uint8_t subid)
+{
+    sdoRead(id, subid, 1);
+}
+
+void CanOpenProxy::sdoRead16(uint16_t id, uint8_t subid)
+{
+    sdoRead(id, subid, 2);
+}
+
+void CanOpenProxy::sdoRead32(uint16_t id, uint8_t subid)
+{
+    sdoRead(id, subid, 4);
 }
 
 void CanOpenProxy::sdoWrite(uint16_t id, uint8_t subid, uint32_t value, uint8_t size)
 {
-    if (size >= 4)
+    if (size > 4)
         return;
     
     SDO sdo;
@@ -57,9 +93,8 @@ void CanOpenProxy::sdoWrite(uint16_t id, uint8_t subid, uint32_t value, uint8_t 
     sdo.n = 4 - size;
     sdo.id = id;
     sdo.subid = subid;
-    sdo.value = value;
-    ByteArray ba = ByteArray(reinterpret_cast<const char*>(&sdo), 8);
-    sendPacket(SDO_Request | m_nodeId, ba);
+    sdo.value = value;    
+    sdoEnqueue(std::move(sdo));
 }
 
 void CanOpenProxy::sdoWrite8(uint16_t id, uint8_t subid, uint8_t value)
@@ -77,12 +112,19 @@ void CanOpenProxy::sdoWrite32(uint16_t id, uint8_t subid, uint32_t value)
     sdoWrite(id, subid, value, 4);
 }
 
-void CanOpenProxy::sendPacket(uint16_t cob_id, const ByteArray &payload)
+void CanOpenProxy::sdoEnqueue(SDO &&sdo)
+{
+    m_sdoQueue.push(std::move(sdo));
+    if (!m_resendTimer->isRunning())
+        m_resendTimer->start();
+}
+
+bool CanOpenProxy::sendPacket(uint16_t cob_id, const ByteArray &payload)
 {
     ByteArray ba;
     ba.append(reinterpret_cast<const char *>(&cob_id), 2);
     ba.append(payload);
-    m_can->write(ba);
+    return m_can->write(ba) > 0;
 }
 
 void CanOpenProxy::readPacket()

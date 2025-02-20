@@ -3,6 +3,8 @@
 
 #include "canopencommon.h"
 #include "cansocket.h"
+#include <queue>
+#include "core/timer.h"
 
 using namespace CanOpen;
 
@@ -10,6 +12,7 @@ class CanOpenProxy
 {
 public:
     CanOpenProxy(CanInterface *can, uint8_t nodeId);
+    uint8_t nodeId() const {return m_nodeId;}
     
     NMTState nmtState() const {return static_cast<NMTState>(m_nmtState & 0x7F);}
 
@@ -18,7 +21,10 @@ public:
     
     void pdoWrite(uint8_t pdo, const ByteArray &value);
     
-    void sdoRead(uint16_t id, uint8_t subid);
+    void sdoRead(uint16_t id, uint8_t subid, uint8_t size);
+    void sdoRead8(uint16_t id, uint8_t subid);
+    void sdoRead16(uint16_t id, uint8_t subid);
+    void sdoRead32(uint16_t id, uint8_t subid);
     void sdoWrite(uint16_t id, uint8_t subid, uint32_t value, uint8_t size);
     void sdoWrite8(uint16_t id, uint8_t subid, uint8_t value);
     void sdoWrite16(uint16_t id, uint8_t subid, uint16_t value);
@@ -37,7 +43,12 @@ private:
     uint8_t m_nodeId;
     uint8_t m_nmtState;
     
-    void sendPacket(uint16_t cob_id, const ByteArray &payload = ByteArray());
+    std::queue<SDO> m_sdoQueue;
+    Timer *m_resendTimer;
+    void task();
+    
+    void sdoEnqueue(SDO &&sdo);
+    bool sendPacket(uint16_t cob_id, const ByteArray &payload = ByteArray());
     void readPacket();
     void handlePacket(uint16_t cob_id, const ByteArray &payload);
 };
