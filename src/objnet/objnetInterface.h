@@ -108,7 +108,7 @@ public:
 
     NakEvent nakEvent;
 
-    void setMasterMode(bool enabled) {isMaster = enabled;}
+    virtual void setMasterMode(bool enabled) {isMaster = enabled;}
 
     Closure<void(unsigned char, Error)> errorEvent;
     
