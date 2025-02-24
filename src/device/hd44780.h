@@ -226,7 +226,7 @@ void HD44780_RS_HIGH()    {rsPin->write(true);  }
 void HD44780_E_LOW()      {ePin->write(false); }                       
 void HD44780_E_HIGH()     {ePin->write(true);  }                
 
-void HD44780_E_BLINK()    {HD44780_E_HIGH(); delay_us(150); HD44780_E_LOW(); delay_us(150); }
+void HD44780_E_BLINK()    {HD44780_E_HIGH(); delay_us(200); HD44780_E_LOW(); delay_us(200); }
 
 };
 

@@ -34,6 +34,13 @@ I2c::I2c(Gpio::Config pinSDA, Gpio::Config pinSCL)
         RCC->APB1ENR |= RCC_APB1ENR_I2C3EN;
         break;
 #endif
+        
+#if defined (I2C4)
+    case 4:
+        m_dev = I2C4;
+        RCC->APB1ENR |= RCC_APB1ENR_I2C4EN;
+        break;
+#endif
     }
 }
 
