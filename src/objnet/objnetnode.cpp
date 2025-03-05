@@ -36,6 +36,7 @@ ObjnetNode::ObjnetNode(ObjnetInterface *iface) :
     mBurnCount = stmApp()->burnCount();
     #endif
 
+    iface->setMasterMode(false);
     mBusType = iface->busType();
 
     // sendTimer must be running for mTimestamp++
