@@ -7,7 +7,7 @@ GenericDevice::GenericDevice(uint8_t slaveId) : ModbusDevice(slaveId)
 
 }
   
-void GenericDevice::bindProxy(CommonProxy *proxy, int baseHolding, int baseInput, int baseCoil)
+void GenericDevice::bindProxy(CommonProxy *proxy, int baseHolding, int baseInput, int baseCoil, Flags defaultFlags)
 {
     ProxyDescriptor d;
     d.proxy = proxy;
@@ -17,13 +17,13 @@ void GenericDevice::bindProxy(CommonProxy *proxy, int baseHolding, int baseInput
     m_proxies.push_back(d);
 
     for (int i=0; i<proxy->holdingCount(); i++)
-        bindHoldingRegister(baseHolding + i, proxy->holdingRegs() + i);
+        bindHoldingRegister(baseHolding + i, proxy->holdingRegs() + i, defaultFlags);
 
     for (int i=0; i<proxy->inputCount(); i++)
-        bindInputRegister(baseInput + i, proxy->inputRegs() + i);
+        bindInputRegister(baseInput + i, proxy->inputRegs() + i, defaultFlags);
 
     for (int i=0; i<proxy->coilsCount(); i++)
-        bindCoil(baseCoil + i, proxy->coils() + i);
+        bindCoil(baseCoil + i, proxy->coils() + i, defaultFlags);
 }
 
 void GenericDevice::bindCoil(uint16_t addr, uint8_t *reg, Flags flags)
@@ -36,9 +36,27 @@ void GenericDevice::bindHoldingRegister(uint16_t addr, uint16_t *reg, Flags flag
     m_holdingRegs[addr] = {reg, flags};
 }
 
-void GenericDevice::bindInputRegister(uint16_t addr, const uint16_t *reg)
+void GenericDevice::bindInputRegister(uint16_t addr, const uint16_t *reg, Flags flags)
 {
-    m_inputRegs[addr] = {reg, ReadOnly};
+    m_inputRegs[addr] = {reg, static_cast<uint8_t>(flags & ~WriteOnly)};
+}
+
+void GenericDevice::setCoilFlags(uint16_t addr, Flags flags)
+{
+    if (m_coils.count(addr))
+        m_coils[addr].flags = flags;
+}
+
+void GenericDevice::setHoldingFlags(uint16_t addr, Flags flags)
+{
+    if (m_holdingRegs.count(addr))
+        m_holdingRegs[addr].flags = flags;
+}
+
+void GenericDevice::setInputFlags(uint16_t addr, Flags flags)
+{
+    if (m_inputRegs.count(addr))
+        m_inputRegs[addr].flags = flags & ~WriteOnly;
 }
 //---------------------------------------------------------------------------
 

@@ -12,21 +12,26 @@ class GenericDevice : public ModbusDevice
 public:
     GenericDevice(uint8_t slaveId);
     
-    enum Flags
+    enum Flags : uint8_t
     {
+        NoAccess = 0x00,
         ReadOnly = 0x01,
         WriteOnly = 0x02,
         ReadWrite = 0x03
     };
     
-    void bindProxy(CommonProxy *proxy, int baseHolding=0, int baseInput=0, int baseCoil=0);
+    void bindProxy(CommonProxy *proxy, int baseHolding=0, int baseInput=0, int baseCoil=0, Flags defaultFlags=ReadWrite);
     
     void bindCoil(uint16_t, uint8_t *reg, Flags flags=ReadWrite);   
     void bindHoldingRegister(uint16_t addr, uint16_t *reg, Flags flags=ReadWrite);
-    void bindInputRegister(uint16_t addr, const uint16_t *reg);
+    void bindInputRegister(uint16_t addr, const uint16_t *reg, Flags=ReadOnly);
     
     std::function<void(short,short)> onWriteHoldRegs;
     std::function<void(short,short)> onWriteCoilRegs;
+    
+    void setCoilFlags(uint16_t addr, Flags flags);
+    void setHoldingFlags(uint16_t addr, Flags flags);
+    void setInputFlags(uint16_t addr, Flags flags);
     
     void setDebugMode(bool enabled) {m_debugMode = enabled;}
 
