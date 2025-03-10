@@ -26,19 +26,19 @@ void GenericDevice::bindProxy(CommonProxy *proxy, int baseHolding, int baseInput
         bindCoil(baseCoil + i, proxy->coils() + i);
 }
 
-void GenericDevice::bindCoil(uint16_t addr, uint8_t *reg)
+void GenericDevice::bindCoil(uint16_t addr, uint8_t *reg, Flags flags)
 {
-    m_coils[addr] = reg;
+    m_coils[addr] = {reg, flags};
 }
 
-void GenericDevice::bindHoldingRegister(uint16_t addr, uint16_t *reg)
+void GenericDevice::bindHoldingRegister(uint16_t addr, uint16_t *reg, Flags flags)
 {
-    m_holdingRegs[addr] = reg;
+    m_holdingRegs[addr] = {reg, flags};
 }
 
 void GenericDevice::bindInputRegister(uint16_t addr, const uint16_t *reg)
 {
-    m_inputRegs[addr] = reg;
+    m_inputRegs[addr] = {reg, ReadOnly};
 }
 //---------------------------------------------------------------------------
 
@@ -47,7 +47,8 @@ ExceptionCode GenericDevice::readCoils(uint16_t addr, uint16_t cnt, uint8_t *dat
     uint8_t byte;
     for (int i=0; i<cnt; i++, addr++)
     {
-        if (!m_coils.count(addr)) return eIllegalDataAddress;
+        if (!isReadable(m_coils, addr))
+            return eIllegalDataAddress;
         int bit = i & 7;
         if (!bit)
             byte = 0;
@@ -62,7 +63,7 @@ ExceptionCode GenericDevice::readHoldingRegisters(uint16_t addr, uint16_t cnt, u
 {
     for (; cnt--; addr++)
     {
-        if (m_holdingRegs.count(addr))
+        if (isReadable(m_holdingRegs, addr))
             writeWord(data, *m_holdingRegs[addr]);
         else
             return eIllegalDataAddress;
@@ -74,7 +75,7 @@ ExceptionCode GenericDevice::readInputRegisters(uint16_t addr, uint16_t cnt, uin
 {
     for (; cnt--; addr++)
     {
-        if (m_inputRegs.count(addr))
+        if (isReadable(m_inputRegs, addr))
             writeWord(data, *m_inputRegs[addr]);
         else
             return eIllegalDataAddress;
@@ -84,7 +85,7 @@ ExceptionCode GenericDevice::readInputRegisters(uint16_t addr, uint16_t cnt, uin
 
 ExceptionCode GenericDevice::writeSingleCoil(uint16_t addr, uint16_t data)
 {
-    if (m_coils.count(addr))
+    if (isWritable(m_coils, addr))
     {      
         switch (data)
         {
@@ -112,7 +113,7 @@ ExceptionCode GenericDevice::writeSingleCoil(uint16_t addr, uint16_t data)
 
 ExceptionCode GenericDevice::writeSingleRegister(uint16_t addr, uint16_t data)
 {
-    if (m_holdingRegs.count(addr))
+    if (isWritable(m_holdingRegs, addr))
     {    
         *m_holdingRegs[addr] = data;       
     
@@ -137,7 +138,8 @@ ExceptionCode GenericDevice::writeMultipleCoils(uint16_t addr, uint16_t cnt, con
 {    
     for (int i=0,a = addr; i<cnt; i++, a++)
     {
-       if (!m_coils.count(a)) return eIllegalDataAddress;
+        if (!isWritable(m_coils, a))
+            return eIllegalDataAddress;
         int bit = i & 7;
         if (data[i >> 3] & (1 << bit))
             *m_coils[a] = 1;
@@ -168,7 +170,7 @@ ExceptionCode GenericDevice::writeMultipleRegisters(uint16_t addr, uint16_t cnt,
 {     
     for (int a = addr,c = cnt; c--; a++)
     {
-        if (m_holdingRegs.count(a))
+        if (isWritable(m_holdingRegs, a))
             *m_holdingRegs[a] = readWord(data);
         else
             return eIllegalDataAddress; 
