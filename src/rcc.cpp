@@ -778,6 +778,7 @@ bool Rcc::configPll(uint32_t sysClk)
   mSysClk  = 47923200;
   mAPB1Clk = 47923200;         // только под кварц 14.7456
   mAPB2Clk = 47923200;
+  mAHBClk  = 47923200;
 /////////////////*************
       RCC->CR |= RCC_CR_HSEON;
   while(!(RCC->CR & RCC_CR_HSERDY));

@@ -12459,7 +12459,7 @@
             <data>
                 <extensions></extensions>
                 <cmdline></cmdline>
-                <hasPrio>160</hasPrio>
+                <hasPrio>1</hasPrio>
                 <buildSequence>inputOutputBased</buildSequence>
             </data>
         </settings>
@@ -12919,16 +12919,16 @@
                 <option>
                     <name>GRuntimeLibSelect</name>
                     <version>0</version>
-                    <state>2</state>
+                    <state>4</state>
                 </option>
                 <option>
                     <name>GRuntimeLibSelectSlave</name>
                     <version>0</version>
-                    <state>2</state>
+                    <state>4</state>
                 </option>
                 <option>
                     <name>RTDescription</name>
-                    <state>To be used with a complete configuration of the C/C++14 runtime library. Full locale interface, C locale, file descriptor support, multibytes in printf and scanf, and hex floats in strtod.</state>
+                    <state>To be used with a complete C/C++17 runtime library. Full locale interface, C locale, file descriptor support, multibytes in printf and scanf, and hex floats in strtod.</state>
                 </option>
                 <option>
                     <name>OGProductVersion</name>
@@ -12960,7 +12960,7 @@
                 </option>
                 <option>
                     <name>RTConfigPath2</name>
-                    <state>$TOOLKIT_DIR$\inc\c\DLib_Config_Full.h</state>
+                    <state></state>
                 </option>
                 <option>
                     <name>GBECoreSlave</name>
@@ -13093,6 +13093,7 @@
                 <option>
                     <name>CCDefines</name>
                     <state>STM32F030x6</state>
+                    <state>STM32F0</state>
                 </option>
                 <option>
                     <name>CCPreprocFile</name>
@@ -13153,7 +13154,7 @@
                 <option>
                     <name>CCAllowList</name>
                     <version>1</version>
-                    <state>00000000</state>
+                    <state>11111110</state>
                 </option>
                 <option>
                     <name>CCDebugInfo</name>
@@ -13230,16 +13231,16 @@
                 </option>
                 <option>
                     <name>CCOptLevel</name>
-                    <state>1</state>
+                    <state>3</state>
                 </option>
                 <option>
                     <name>CCOptStrategy</name>
                     <version>0</version>
-                    <state>0</state>
+                    <state>1</state>
                 </option>
                 <option>
                     <name>CCOptLevelSlave</name>
-                    <state>1</state>
+                    <state>3</state>
                 </option>
                 <option>
                     <name>CCPosIndRopi</name>
@@ -13288,7 +13289,7 @@
                 <option>
                     <name>CCOptStrategySlave</name>
                     <version>0</version>
-                    <state>0</state>
+                    <state>1</state>
                 </option>
                 <option>
                     <name>CCGuardCalls</name>
@@ -13530,7 +13531,7 @@
             <data>
                 <extensions></extensions>
                 <cmdline></cmdline>
-                <hasPrio>1</hasPrio>
+                <hasPrio>208</hasPrio>
                 <buildSequence>inputOutputBased</buildSequence>
             </data>
         </settings>
@@ -17571,6 +17572,12 @@
         <name>$PROJ_DIR$\src\dma.h</name>
     </file>
     <file>
+        <name>$PROJ_DIR$\src\dma0fxx.cpp</name>
+    </file>
+    <file>
+        <name>$PROJ_DIR$\src\dma0fxx.h</name>
+    </file>
+    <file>
         <name>$PROJ_DIR$\src\dma303x8.cpp</name>
         <excluded>
             <configuration>stm32f407vg</configuration>
@@ -17587,6 +17594,7 @@
         <name>$PROJ_DIR$\src\dma303x8.h</name>
         <excluded>
             <configuration>stm32f429zi</configuration>
+            <configuration>stm32f030x6</configuration>
             <configuration>stm32f767</configuration>
             <configuration>stm32f405xx</configuration>
         </excluded>
@@ -18012,9 +18020,6 @@
     </file>
     <file>
         <name>$PROJ_DIR$\src\usart.cpp</name>
-        <excluded>
-            <configuration>stm32f030x6</configuration>
-        </excluded>
     </file>
     <file>
         <name>$PROJ_DIR$\src\usart.h</name>
