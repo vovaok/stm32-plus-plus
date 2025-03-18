@@ -3,13 +3,13 @@
 Application *Application::self = 0L;
 bool Application::m_tickFlag = false;
 
-string Application::mName = APP_NAME;
-string Application::mDescription = APP_DESCRIPTION;
-string Application::mCompany = APP_COMPANY;
-unsigned short Application::mVersion = 0x0000;
-string Application::mBuildDate = __DATE__ " " __TIME__;
+const char *Application::mName = APP_NAME;
+const char *Application::mDescription = APP_DESCRIPTION;
+const char *Application::mCompany = APP_COMPANY;
+uint16_t Application::mVersion = 0x0000;
+uint32_t Application::mBurnCount = 0;
+const char * Application::mBuildDate = __DATE__ " " __TIME__;
 string Application::mCpuInfo = "unknown";
-unsigned long Application::mBurnCount = 0;
 //---------------------------------------------------------------------------
 
 void Application::sysTickHandler()

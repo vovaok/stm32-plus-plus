@@ -123,14 +123,15 @@ void ByteArray::allocMore(int size)
     __istate_t interrupt_state = __get_interrupt_state();
     __disable_interrupt();
 
+    if (!allocSize) // if first time alloc
+        allocSize = ((desiredSize - 1) | 3) + 1; // alloc exactly needed bytes (aligned to 4)
     if (desiredSize <= 16)
         allocSize = 16;
     if (desiredSize <= 512)
         allocSize = upper_power_of_two(desiredSize);
     else
-        allocSize = (desiredSize | 511) + 1;
-//    while (allocSize < desiredSize) // compute nearest allocation size
-//        allocSize = allocSize? (allocSize << 1): 16; // minimum size = 16 bytes
+        allocSize = ((desiredSize - 1) | 511) + 1;
+    
     char *temp = new char[allocSize]; // allocate new buffer
     if (mData)
     {

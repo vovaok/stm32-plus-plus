@@ -13,8 +13,12 @@
     #define PR      PR1
 #endif
 
+#ifdef STM32F0
+uint8_t Gpio::mPinsUsed[48];
+#else
 uint8_t Gpio::mPinsUsed[176]; // assuming all items = 0 at startup
 std::function<void(void)> Gpio::m_interruptHandlers[16];
+#endif
 
 Gpio::Gpio(PinName pin, Flags flags/*, PinAF altFunction*/)
 {
@@ -429,6 +433,8 @@ uint16_t Gpio::readPort()
 }
 //---------------------------------------------------------------------------
 
+#ifndef STM32F0
+
 extern "C"
 {
 
@@ -489,3 +495,5 @@ void EXTI15_10_IRQHandler()
 }
 
 } // extern "C"
+
+#endif

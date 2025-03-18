@@ -366,8 +366,12 @@ private:
     } ConfigStruct;
 
     //! @todo obtain pin count from used controller
+#ifdef STM32F0
+    static uint8_t mPinsUsed[48];
+#else
     static uint8_t mPinsUsed[176];
     static std::function<void(void)> m_interruptHandlers[16];
+#endif
     static void usePin(const ConfigStruct &cfg);
 
     ConfigStruct mConfig;
