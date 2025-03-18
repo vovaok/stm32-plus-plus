@@ -60,11 +60,14 @@ const char *CpuId::name()
         case 0x413: return "STM32F40x_41x";
         case 0x419: return "STM32F42x_43x";
         case 0x421: return "STM32F446xx";
+        case 0x422: return "STM32F303xB/C"; // and STM32F358
         case 0x423: return "STM32F401xB/C";
         case 0x431: return "STM32F411xC/E";
         case 0x432: return "STM32F37xxx";
         case 0x433: return "STM32F401xD/E";
         case 0x434: return "STM32F469_479";
+        case 0x438: return "STM32F303x6/8"; // and STM32F328
+        case 0x446: return "STM32F303xD/E"; // and STM32F398xE
         case 0x458: return "STM32F410";
 #if defined(STM32F4)
         default:    return "STM32F4 family";
@@ -96,15 +99,18 @@ unsigned long CpuId::maxSysClk()
 {
     switch (deviceId())
     {
-        case 0x413: return 168000000; // "STM32F40x_41x";
-        case 0x419: return 180000000; // "STM32F42x_43x";
-        case 0x421: return 180000000; // "STM32F446xx"
-        case 0x423: return 84000000;  // "STM32F401xB/C";
-        case 0x431: return 100000000; // "STM32F411xC/E";
-        case 0x432: return 72000000;  // "STM32F37xxx"
-        case 0x433: return 84000000;  // "STM32F401xD/E";
-        case 0x434: return 180000000; // "STM32F469_479";
-        case 0x458: return 100000000; // "STM32F410"
+        case 0x413: return 168'000'000; // "STM32F40x_41x"
+        case 0x419: return 180'000'000; // "STM32F42x_43x"
+        case 0x421: return 180'000'000; // "STM32F446xx"
+        case 0x422: return  72'000'000; // "STM32F303xB/C"
+        case 0x423: return  84'000'000; // "STM32F401xB/C"
+        case 0x431: return 100'000'000; // "STM32F411xC/E"
+        case 0x432: return  72'000'000; // "STM32F37xxx"
+        case 0x433: return  84'000'000; // "STM32F401xD/E"
+        case 0x434: return 180'000'000; // "STM32F469_479"
+        case 0x438: return  72'000'000; // "STM32F303x6/8"
+        case 0x446: return  72'000'000; // "STM32F303xD/E"
+        case 0x458: return 100'000'000; // "STM32F410"
 
 #if defined(STM32F4)
         default:    return 0;

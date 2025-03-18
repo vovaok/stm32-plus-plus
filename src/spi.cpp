@@ -235,17 +235,17 @@ void Spi::close()
 {
     if (mUseDmaRx)
     {
+        mDmaRx->stop(true);
         mConfig.RXDMAEN = 0;
         updateConfig();
-        mDmaRx->stop(true);
 //        delete mDmaRx;
 //        mDmaRx = 0L;
     }
     if (mUseDmaTx)
     {
+        mDmaTx->stop(true);
         mConfig.TXDMAEN = 0;
         updateConfig();
-        mDmaTx->stop(true);
 //        delete mDmaTx;
 //        mDmaTx = 0L;
     }

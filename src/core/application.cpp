@@ -131,7 +131,7 @@ void Application::systemReset()
 void Application::enableWatchdog()
 {
     IWDG->KR = 0x5555;
-    IWDG->PR = 7;//1; 
+    IWDG->PR = 1; 
     IWDG->RLR = 0xfff;  
     IWDG->KR = 0xCCCC;
 }
