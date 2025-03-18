@@ -190,7 +190,7 @@ void SysTick_Handler(void)
 //}
 
 void SystemInit(void) // on Reset_Handler
-{
+{ 
     #if (__FPU_PRESENT == 1) && (__FPU_USED == 1)
     SCB->CPACR |= ((3UL << 10*2)|(3UL << 11*2));  /* set CP10 and CP11 Full Access */
     #endif
@@ -257,12 +257,33 @@ void SystemInit(void) // on Reset_Handler
   RCC->CIER = 0x00000000;
 #endif
 
+#if !defined(STM32F0)
     /* Configure the Vector Table location add offset address ------------------*/
     #ifdef VECT_TAB_SRAM
     SCB->VTOR = SRAM_BASE;// | VECT_TAB_OFFSET; /* Vector Table Relocation in Internal SRAM */
     #else
     SCB->VTOR = FLASH_BASE;// | VECT_TAB_OFFSET; /* Vector Table Relocation in Internal FLASH */
     #endif
+
+#else
+   // 2. Настройка источника тактового сигнала (HSI - внутренний генератор 8 МГц)
+    RCC->CR |= RCC_CR_HSION;            // Включаем HSI
+    while (!(RCC->CR & RCC_CR_HSIRDY)); // Ждем, пока HSI стабилизируется
+
+    // 3. Настройка системного тактового сигнала (SYSCLK)
+    RCC->CFGR &= ~RCC_CFGR_SW;          // Очищаем биты выбора источника SYSCLK
+    RCC->CFGR |= RCC_CFGR_SW_HSI;       // Выбираем HSI как источник SYSCLK
+    while ((RCC->CFGR & RCC_CFGR_SWS) != RCC_CFGR_SWS_HSI); // Ждем переключения
+
+    // 4. Настройка делителей для шин
+    RCC->CFGR &= ~(RCC_CFGR_HPRE | RCC_CFGR_PPRE); // Сбрасываем делители
+    RCC->CFGR |= RCC_CFGR_HPRE_DIV1;    // HCLK = SYSCLK (без деления)
+    RCC->CFGR |= RCC_CFGR_PPRE_DIV1;    // PCLK = HCLK (без деления)    
+
+    
+#endif
+    
+   
 }
 
 #ifdef __cplusplus

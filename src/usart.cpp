@@ -46,6 +46,14 @@
 #define USART3_RX_DMA   Dma::Channel3_USART3_RX;
 #define USART3_TX_DMA   Dma::Channel2_USART3_TX;
 
+#elif defined (STM32F0)
+#define USART1_RX_DMA   Dma::Channel3_USART1_RX_1;
+#define USART1_TX_DMA   Dma::Channel2_USART1_TX_1;
+#define USART2_RX_DMA   Dma::Channel5_USART2_RX;
+#define USART2_TX_DMA   Dma::Channel4_USART2_TX;
+#define USART3_RX_DMA   Dma::Channel3_USART3_RX_2;
+#define USART3_TX_DMA   Dma::Channel2_USART3_TX_2;
+
 #endif
 
 #if defined(STM32F4)
@@ -106,21 +114,22 @@ void Usart::commonConstructor(int number)
         mDmaChannelTx = USART1_TX_DMA;
         mIrq = USART1_IRQn;
         break;
-
+#if defined(USART2)
       case 2:
         mDev = USART2;
         mDmaChannelRx = USART2_RX_DMA;
         mDmaChannelTx = USART2_TX_DMA;
         mIrq = USART2_IRQn;
         break;
-
+#endif
+#if defined(USART3)
       case 3:
         mDev = USART3;
         mDmaChannelRx = USART3_RX_DMA;
         mDmaChannelTx = USART3_TX_DMA;
         mIrq = USART3_IRQn;
         break;
-
+#endif
 #if defined(STM32F4) || defined(STM32L4) || defined(STM32G4) || defined(STM32F7)
       case 4:
         mDev = UART4;
@@ -147,20 +156,22 @@ void Usart::commonConstructor(int number)
 #endif
     }
 
-#if defined(STM32F3)
+#if defined(STM32F3) 
     switch(number)
     {
     case 1: RCC->APB2ENR |= RCC_APB2ENR_USART1EN; break;
     case 2: RCC->APB1ENR |= RCC_APB1ENR_USART2EN; break;
     case 3: RCC->APB1ENR |= RCC_APB1ENR_USART3EN; break;
     }
+#elif defined(STM32F0)
+   RCC->APB2ENR |= RCC_APB2ENR_USART1EN; 
 #else
     rcc().setPeriphEnabled(mDev);
 #endif
     mUsarts[number - 1] = this;
 
     setConfig(Mode8N1);
-    setBaudrate(57600);
+    setBaudrate(19200);
 }
 
 Usart::~Usart()

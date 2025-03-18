@@ -10,6 +10,13 @@ const unsigned long * const  CpuId::mSignature = (const unsigned long*) 0x1FF0F4
 const unsigned short * const CpuId::mFlashSize = (const unsigned short*)0x1FF0F442;
 const unsigned short * const CpuId::mPackage   = (const unsigned short*)0x1FFF7BF0;
 const unsigned long * const  CpuId::mCpuId     = (const unsigned long*) 0xE0042000;
+
+#elif defined(STM32F0)
+const unsigned long * const  CpuId::mSignature = (const unsigned long*) 0x1FFFF7AC;
+const unsigned short * const CpuId::mFlashSize = (const unsigned short*)0x1FFFF7CC;
+const unsigned short * const CpuId::mPackage   = (const unsigned short*)0x1FFFF7AC;
+const unsigned long * const  CpuId::mCpuId     = (const unsigned long*) 0xE0042000;
+
 #else
 const unsigned long * const  CpuId::mSignature = (const unsigned long*) 0x1FFF7A10;
 const unsigned short * const CpuId::mFlashSize = (const unsigned short*)0x1FFF7A22;
@@ -68,6 +75,8 @@ const char *CpuId::name()
         case 0x434: return "STM32F469_479";
         case 0x438: return "STM32F303x6/8"; // and STM32F328
         case 0x446: return "STM32F303xD/E"; // and STM32F398xE
+        case 0x440: return "STM32F030x8";
+        case 0x448: return "STM32F030xC";
         case 0x458: return "STM32F410";
 #if defined(STM32F4)
         default:    return "STM32F4 family";
@@ -79,6 +88,8 @@ const char *CpuId::name()
         default:    return "STM32F3 family";
 #elif defined(STM32F7)
         default:    return "STM32F7 family"; 
+#elif defined(STM32F0)
+        default:    return "STM32F0 family";
 #endif
     }
 }

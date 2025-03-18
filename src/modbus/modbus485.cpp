@@ -7,8 +7,13 @@ Modbus485::Modbus485(Device *dev) :
     m_dev(dev),
     m_timeout(0)
 {
+#if defined(STM32F0)
+    m_buffer.resize(48);
+    m_outBuffer.resize(48);
+#else
     m_buffer.resize(255);
     m_outBuffer.resize(255);
+#endif
     m_buffer.resize(0);
     m_outBuffer.resize(0);
     m_dev->open(Device::ReadWrite);

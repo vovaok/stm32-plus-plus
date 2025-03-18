@@ -34,7 +34,7 @@
 
 #include "../lib/CMSIS/Device/ST/cmsis_device_f3/Include/stm32f3xx.h"
         
-#elif defined (STM32F030x6)
+#elif defined (STM32F0)
           
 #include "../lib/CMSIS/Device/ST/STM32F0xx/Include/stm32f0xx.h"     
       
