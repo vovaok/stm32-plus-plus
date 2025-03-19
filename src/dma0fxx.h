@@ -14,9 +14,9 @@
             
 
 
-extern "C" void DMA1_Channel1_IRQnHandler();
-extern "C" void DMA1_Channel2_3_IRQnHandler();
-extern "C" void DMA1_Channel4_5_IRQnHandler();
+extern "C" void DMA1_Channel1_IRQHandler();
+extern "C" void DMA1_Channel2_3_IRQHandler();
+extern "C" void DMA1_Channel4_5_IRQHandler();
 
 
 //---------------------------------------------------------------------------
@@ -99,9 +99,9 @@ private:
     bool testFlag(uint32_t flag) const;
     void clearFlag(uint32_t flag);
     
-   friend void DMA1_Channel1_IRQnHandler();
-   friend void DMA1_Channel2_3_IRQnHandler();
-   friend void DMA1_Channel4_5_IRQnHandler();
+   friend void DMA1_Channel1_IRQHandler();
+   friend void DMA1_Channel2_3_IRQHandler();
+   friend void DMA1_Channel4_5_IRQHandler();
     
     void handleInterrupt();
     

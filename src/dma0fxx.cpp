@@ -247,21 +247,21 @@ void Dma::handleInterrupt()
  extern "C" {
 #endif 
    
-   void DMA1_Channel1_IRQnHandler()
+   void DMA1_Channel1_IRQHandler()
    {
      Dma::mChannels[0]->handleInterrupt();
    }
    
-   void DMA1_Channel2_3_IRQnHandler()
+   void DMA1_Channel2_3_IRQHandler()
    {
-     if(1<<5 && DMA1->ISR) Dma::mChannels[1]->handleInterrupt();
-     if(1<<9 && DMA1->ISR) Dma::mChannels[2]->handleInterrupt();
+     if((1<<5) & DMA1->ISR) Dma::mChannels[1]->handleInterrupt();
+     if((1<<9) & DMA1->ISR) Dma::mChannels[2]->handleInterrupt();
    }
    
-   void DMA1_Channel4_5_IRQnHandler()
+   void DMA1_Channel4_5_IRQHandler()
    {
-     if(1<<13 && DMA1->ISR) Dma::mChannels[3]->handleInterrupt();
-     if(1<<17 && DMA1->ISR) Dma::mChannels[4]->handleInterrupt();
+     if((1<<13) & DMA1->ISR) Dma::mChannels[3]->handleInterrupt();
+     if((1<<17) & DMA1->ISR) Dma::mChannels[4]->handleInterrupt();
    }
 
   
