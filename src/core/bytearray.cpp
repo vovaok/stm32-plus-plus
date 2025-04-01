@@ -591,6 +591,15 @@ int ByteArray::toInt() const
     return value;
 }
 
+int ByteArray::toInt(int base) const
+{
+    if (!mSize)
+        return 0; // alarm
+    char *end = nullptr;
+    int value = strtol(mData, &end, base);
+    return value;
+}
+
 float ByteArray::toFloat() const
 {
     if (!mSize)
@@ -628,6 +637,18 @@ ByteArray ByteArray::toHex(char separator)
     return ba;
 }
 //---------------------------------------------------------------------------
+
+ByteArray ByteArray::fromHex(const ByteArray &ba)
+{
+    ByteArray out;
+    char *ptr = ba.mData;
+    for (int i=0; i<ba.mSize; i+=2)
+    {
+        out.append(readHex(ptr));
+        ptr += 2;
+    }
+    return out;
+}
 
 ByteArray ByteArray::fromStdString(const std::string &str)
 {
