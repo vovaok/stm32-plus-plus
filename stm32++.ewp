@@ -16514,6 +16514,9 @@
             <name>$PROJ_DIR$\src\device\as5047d.h</name>
         </file>
         <file>
+            <name>$PROJ_DIR$\src\device\battery.h</name>
+        </file>
+        <file>
             <name>$PROJ_DIR$\src\device\bmx055.cpp</name>
         </file>
         <file>
@@ -16619,6 +16622,12 @@
         </file>
         <file>
             <name>$PROJ_DIR$\src\device\stmpe811.h</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\device\tm7711.cpp</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\device\tm7711.h</name>
         </file>
         <file>
             <name>$PROJ_DIR$\src\device\touchpanel.cpp</name>
