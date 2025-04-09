@@ -5435,7 +5435,7 @@
                 </option>
                 <option>
                     <name>OGLastSavedByProductVersion</name>
-                    <state>7.40.7.9864</state>
+                    <state>9.30.1.50052</state>
                 </option>
                 <option>
                     <name>OGChipSelectEditMenu</name>
@@ -5459,7 +5459,7 @@
                 </option>
                 <option>
                     <name>RTConfigPath2</name>
-                    <state>$TOOLKIT_DIR$\INC\c\DLib_Config_Full.h</state>
+                    <state>$TOOLKIT_DIR$\inc\c\DLib_Config_Full.h</state>
                 </option>
                 <option>
                     <name>GBECoreSlave</name>
@@ -5545,7 +5545,7 @@
                 </option>
                 <option>
                     <name>DSPExtension</name>
-                    <state>0</state>
+                    <state>1</state>
                 </option>
                 <option>
                     <name>TrustZone</name>
@@ -6059,7 +6059,7 @@
                 </option>
                 <option>
                     <name>IlinkOutputFile</name>
-                    <state>###Unitialized###</state>
+                    <state>stm32++.out</state>
                 </option>
                 <option>
                     <name>IlinkDebugInfoEnable</name>
@@ -13093,6 +13093,7 @@
                 <option>
                     <name>CCDefines</name>
                     <state>STM32F030x6</state>
+                    <state>STM32F0</state>
                 </option>
                 <option>
                     <name>CCPreprocFile</name>
@@ -13213,6 +13214,7 @@
                 </option>
                 <option>
                     <name>CCIncludePath2</name>
+                    <state>$PROJ_DIR$\lib\CMSIS\Device\ST\STM32F0xx\Include</state>
                     <state>$PROJ_DIR$\src</state>
                 </option>
                 <option>
@@ -16196,9 +16198,16 @@
     <group>
         <name>__startup</name>
         <file>
-            <name>$PROJ_DIR$\lib\CMSIS\Device\ST\cmsis_device_f0\Source\Templates\iar\startup_stm32f030x6.s</name>
+            <name>$PROJ_DIR$\lib\CMSIS\Device\ST\STM32F0xx\Source\Templates\iar\startup_stm32f030x6.s</name>
             <excluded>
+                <configuration>stm32f373xB</configuration>
+                <configuration>stm32f373xB_no-exceptions_no-rtti</configuration>
                 <configuration>stm32f407vg</configuration>
+                <configuration>stm32f429zi</configuration>
+                <configuration>stm32g474</configuration>
+                <configuration>stm32f303x8</configuration>
+                <configuration>stm32f767</configuration>
+                <configuration>stm32f405xx</configuration>
             </excluded>
         </file>
         <file>
@@ -16231,7 +16240,6 @@
             <name>$PROJ_DIR$\lib\CMSIS\Device\ST\STM32F4xx\Source\Templates\iar\startup_stm32f40xx.s</name>
             <excluded>
                 <configuration>stm32f373xB</configuration>
-                <configuration>stm32f407vg</configuration>
                 <configuration>stm32f429zi</configuration>
                 <configuration>stm32l476rg</configuration>
                 <configuration>stm32g474</configuration>
@@ -16258,10 +16266,10 @@
             <name>$PROJ_DIR$\lib\CMSIS\Device\ST\cmsis_device_f7\Source\Templates\iar\startup_stm32f767xx.s</name>
             <excluded>
                 <configuration>stm32f373xB</configuration>
+                <configuration>stm32f407vg</configuration>
                 <configuration>stm32f429zi</configuration>
                 <configuration>stm32g474</configuration>
                 <configuration>stm32f303x8</configuration>
-                <configuration>stm32f030x6</configuration>
                 <configuration>stm32f405xx</configuration>
             </excluded>
         </file>
@@ -17567,10 +17575,17 @@
         <name>$PROJ_DIR$\src\dma0fxx.cpp</name>
         <excluded>
             <configuration>stm32f407vg</configuration>
+            <configuration>stm32f429zi</configuration>
+            <configuration>stm32f767</configuration>
         </excluded>
     </file>
     <file>
         <name>$PROJ_DIR$\src\dma0fxx.h</name>
+        <excluded>
+            <configuration>stm32f407vg</configuration>
+            <configuration>stm32f429zi</configuration>
+            <configuration>stm32f767</configuration>
+        </excluded>
     </file>
     <file>
         <name>$PROJ_DIR$\src\dma303x8.cpp</name>
