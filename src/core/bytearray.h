@@ -22,6 +22,7 @@ public:
     ByteArray(const void *data, unsigned int size);
     ByteArray(const char *str);
     ByteArray(int size, char ch);
+    ByteArray(std::initializer_list<char> il);
     ~ByteArray();
     ByteArray(const ByteArray &other);
     ByteArray &operator=(const ByteArray &other);
