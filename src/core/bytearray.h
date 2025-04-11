@@ -22,6 +22,7 @@ public:
     ByteArray(const void *data, unsigned int size);
     ByteArray(const char *str);
     ByteArray(int size, char ch);
+    ByteArray(std::initializer_list<char> il);
     ~ByteArray();
     ByteArray(const ByteArray &other);
     ByteArray &operator=(const ByteArray &other);
@@ -105,11 +106,13 @@ public:
     ByteArray &replace(char from, char to);
 
     int toInt() const;
+    int toInt(int base) const;
     float toFloat() const;
     std::string toStdString() const;
     ByteArray toHex();
     ByteArray toHex(char separator);
 
+    static ByteArray fromHex(const ByteArray &ba);
     static ByteArray fromStdString(const std::string &str);
     static ByteArray fromRawData(const char *data, int size);
     static ByteArray fromPercentEncoding(const ByteArray &ba);

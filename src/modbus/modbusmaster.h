@@ -19,11 +19,14 @@ public:
     void bindProxy(ModbusProxy *proxy);
     ModbusProxy *getProxy(uint8_t slaveaddr);
 
-    bool isBusy() const {return m_timer->isActive();}
+    bool isBusy() const {return m_busy;}
+    
+    void setTimeout(int ms) {m_timer->setInterval(ms);}
 
 protected:
     void writeADU(const Modbus::ADU &adu);
     void parseADU(const Modbus::ADU &adu);
+    virtual void requestSent() override;
     virtual void responseUpdated() override;
     uint16_t getCurrentRequestAddress();
     uint16_t getCurrentRequestQuantity();
@@ -66,6 +69,7 @@ private:
     std::vector<ModbusProxy*> m_proxies;
     RingBuffer<Packet> m_queue;
     Timer *m_timer;
+    bool m_busy = false;
 //    PreciseTimer precise;
 
     void writeNextAdu();
