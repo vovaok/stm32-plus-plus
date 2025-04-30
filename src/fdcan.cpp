@@ -106,6 +106,14 @@ int FdCan::pendingMessageLength(int fifoChannel)
     return -1;
 }
 
+int FdCan::pendingMessageFilterIdx(int fifoChannel)
+{
+    RxFifoElement *elem = nextRxMessage(fifoChannel);
+    if (elem)
+        return elem->FIDX;
+    return -1;
+}
+
 int FdCan::receiveMessage(uint32_t *id, uint8_t *data, uint8_t maxsize, int fifoChannel)
 {
     RxFifoElement *elem = nextRxMessage(fifoChannel);
