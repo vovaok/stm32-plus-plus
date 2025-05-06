@@ -13,11 +13,11 @@ Dma *Dma::mChannels[DMA_CHANNEL_COUNT] {0};
 Dma::Dma(Channel channelName)
 {
 
-    int dma_num = channelName >> 8;
+    int dma_num = (channelName >> 8) +1;
     mChannelNum  = channelName & 0x07; // 0...6
     mChannelSel = channelName & 7;
       
-    int idx = mChannelNum ;
+    int idx = mChannelNum + 7 * (dma_num - 1);
     if (mChannels[idx])
         THROW(Exception::ResourceBusy);
     
@@ -26,12 +26,23 @@ Dma::Dma(Channel channelName)
     mChannels[idx] = this;
     
    
+    if(dma_num==1)
+    {
         mDma = DMA1;
         mChannel = (DMA_Channel_TypeDef *)((uint32_t *)DMA1_Channel1 + mChannelNum * 5);
         
         RCC->AHBENR |= RCC_AHBENR_DMA1EN;
-
-
+    }
+    
+#if defined (DMA2)
+    if(dma_num==2)
+    {
+        mDma = DMA2;
+        mChannel = (DMA_Channel_TypeDef *)((uint32_t *)DMA2_Channel1 + mChannelNum * 5);
+        
+        RCC->AHBENR |= RCC_AHBENR_DMA2EN;
+    }
+#endif
     
     static const IRQn_Type irq[DMA_CHANNEL_COUNT] = {FOR_EACH_DMA(DMA_IRQn)};
     mIrq = irq[idx];
@@ -41,11 +52,11 @@ Dma::Dma(Channel channelName)
 
 Dma *Dma::instance(Channel channelName)
 {
-     int dma_num = channelName >> 8;
+    int dma_num = (channelName >> 8) +1;
     int stream_num   = channelName & 0x07; // 0...6
     int channel_num = channelName & 7;
       
-    int idx = channel_num ;
+    int idx = channel_num + 7 * (dma_num - 1);
      Dma *dma = mChannels[idx];
     if (!dma)
         dma = new Dma(channelName); // this updates mStream[idx]
@@ -240,7 +251,7 @@ void Dma::handleInterrupt()
 #endif 
    
 #define DEFINE_DMA_IRQ_HANDLER(x,y) \
-    void DMA##x##_Channel##y##_IRQHandler() {Dma::mChannels[CH_PER_DMA*(x-1)+(y-1)]->handleInterrupt();}
+    void DMA##x##_Channel##y##_IRQHandler() {Dma::mChannels[7*(x-1)+(y-1)]->handleInterrupt();}
     
 FOR_EACH_DMA(DEFINE_DMA_IRQ_HANDLER)    
   

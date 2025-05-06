@@ -1110,7 +1110,7 @@ void Rcc::setPeriphEnabled(void *periphBase, bool enabled)
     default:
         if (bus == APB1PERIPH_BASE)
         {
-#if defined(STM32F4) || defined(STM32F7)
+#if defined(STM32F4) || defined(STM32F7)  || defined(STM32F3)
             RCC->APB1ENR |= mask1;
 #elif defined(STM32G4) || defined(STM32L4)
             RCC->APB1ENR1 |= mask1;

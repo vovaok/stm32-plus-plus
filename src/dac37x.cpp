@@ -15,12 +15,14 @@ Dac::Dac(Gpio::Config out1, Gpio::Config out2) :
         mDac = DAC1;
         mChannels = Channel2;
         break;
-        
+#if defined (DAC2)     
     case Gpio::DAC2_OUT1_PA6:
         mDac = DAC2;
         mChannels = Channel1;
         break;
+#endif
     }
+
     
     if (out2 == out1)
         THROW(Exception::ResourceBusy);
@@ -44,12 +46,14 @@ Dac::Dac(Gpio::Config out1, Gpio::Config out2) :
         break;
     }
     
-#if defined(STM32F303x8) || defined(STM32F328xx) 
+#if defined(STM32F303x8) || defined(STM32F328xx) || defined(STM32F303xC)
     
 if (mDac == DAC1)
         RCC->APB1ENR |= RCC_APB1ENR_DAC1EN;
+    #if !defined(STM32F303xC)  
     else
         RCC->APB1ENR |= RCC_APB1ENR_DAC2EN;
+    #endif 
 
 #else  
     if (mDac == DAC1)

@@ -177,7 +177,7 @@ void PwmOutput::setAllChannelsEnabled(bool enabled)
 
 void PwmOutput::setDutyCycle(ChannelNumber channel, int value)
 {
-    int pwm = value * mPeriod >> 16;
+    unsigned int pwm = ((unsigned int)value * (unsigned int)mPeriod) >> 16;
     setCompareValue(channel, pwm);
     generateComEvent();
 }
