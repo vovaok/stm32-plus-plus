@@ -56,9 +56,11 @@ Ethernet::Ethernet(const RMII &rmii)
         Gpio::config(rmii.pinTXD1);
         Gpio *pinReset = new Gpio(rmii.pinReset, Gpio::Output);
         pinReset->write(0);
-        for (int w=20000; --w;);
+        for (int w=1000; --w;)
+            pinReset->write(0);
         pinReset->write(1);
-        for (int w=20000; --w;);
+        for (int w=1000; --w;)
+            pinReset->write(1);
 
         bool result = ethConfig(rmii.phyAddress);
         if (!result)

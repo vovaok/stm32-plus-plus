@@ -192,6 +192,8 @@ public:
     // array binding:
     template<typename T, int N>
     ObjectInfo(string name, T (&var)[N], Flags flags=ReadWrite);
+    template<typename T, int N>
+    ObjectInfo(string name, const T (&var)[N], Flags flags=ReadWrite);
     
 //#if __cplusplus > 199711L
 //    // struct binding:
@@ -409,6 +411,32 @@ ObjectInfo::ObjectInfo(string name, T (&var)[N], Flags flags) :
         mDesc.wType = t;
     }
     mDesc.flags = flags | Array;
+    mDesc.name = name;
+    mDesc.id = mAssignId++;
+}
+
+template<typename T, int N>
+ObjectInfo::ObjectInfo(string name, const T (&var)[N], Flags flags) :
+    mReadPtr(0), mWritePtr(0),
+    mAutoPeriod(0), mAutoTime(0), mAutoReceiverAddr(0),
+    mIsDevice(false),
+    mValid(true),
+    m_parentObject(0L)
+{
+    Type t = typeOfVar(var[0]);
+    size_t sz = sizeof(T) * N;
+    mArrayItemCount = N;
+//    if (sz > 255)
+//        sz = 0; // can't :c
+    if (t == String)
+        sz = N;
+    if (flags & Read)
+    {
+        mReadPtr = &var;
+        mDesc.readSize = sz;
+        mDesc.rType = t;
+    }
+    mDesc.flags = (flags & ~(Write | Save)) | Array;
     mDesc.name = name;
     mDesc.id = mAssignId++;
 }

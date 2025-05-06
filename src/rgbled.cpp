@@ -21,11 +21,11 @@ RgbLed::RgbLed(Gpio::Config pinR, Gpio::Config pinG, Gpio::Config pinB, int pwmF
   
     pwm = new PwmOutput(tim, 1000);
     if (chR != HardwareTimer::ChNone)
-        pwm->configChannel(pinR, Gpio::NoConfig, inverted); 
+        pwm->configChannel(pinR, inverted); 
     if (chG != HardwareTimer::ChNone)
-        pwm->configChannel(pinG, Gpio::NoConfig, inverted);
+        pwm->configChannel(pinG, inverted);
     if (chB != HardwareTimer::ChNone)
-        pwm->configChannel(pinB, Gpio::NoConfig, inverted);
+        pwm->configChannel(pinB, inverted);
 
     //for (int i=0; i<30000; i++);
     pwm->setAllChannelsEnabled(true);
