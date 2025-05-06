@@ -33,7 +33,7 @@
 #define SPI4_DMA_CHANNEL_RX     Dma::SPI4_RX;
 #define SPI4_DMA_CHANNEL_TX     Dma::SPI4_TX;
 
-#elif defined(STM32F303x8)
+#elif defined(STM32F303x8) || defined(STM32F303xC)
 #define SPI1_DMA_CHANNEL_RX     Dma::Channel2_SPI1_RX;
 #define SPI1_DMA_CHANNEL_TX     Dma::Channel3_SPI1_TX;
 #endif

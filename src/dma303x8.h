@@ -7,12 +7,18 @@
 #include "stm32.h"
 #include "core/core.h"
 
-
+#if defined(STM32F303x8)
     #define DMA_CHANNEL_COUNT   7
     #define FOR_EACH_DMA(f) \
         f(1,1) f(1,2) f(1,3) f(1,4) f(1,5) f(1,6) f(1,7) 
-            
 
+#elif defined(STM32F303xC)
+      #define DMA_CHANNEL_COUNT   12
+     #define FOR_EACH_DMA(f) \
+    f(1,1) f(1,2) f(1,3) f(1,4) f(1,5) f(1,6) f(1,7)\
+    f(2,1) f(2,2) f(2,3) f(2,4) f(2,5)
+            
+#endif
 
 #define DECLARE_DMA_IRQ_HANDLER(x,y) extern "C" void DMA##x##_Channel##y##_IRQHandler();
 #define DECLARE_FRIEND(x,y) friend void DMA##x##_Channel##y##_IRQHandler();
@@ -162,7 +168,9 @@ private:
         Channel7_TIM2_CH4   = 0x16,      
         Channel7_TIM17_CH1  = 0x16,
         Channel7_TIM17_UP   = 0x16,
-        Channel1_SPI1_TX    = 0x16,       
+        Channel1_SPI1_TX    = 0x16,     
+        
+        Channel1_2_ADC2     = 0x100,                // канал дл€ 303хcb когда нибудь тут по€в€тс€ все каналы и дефайн раздел€ющий процы
 
 };
 
