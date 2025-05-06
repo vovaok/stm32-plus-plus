@@ -141,7 +141,7 @@ int Can::configureFilter(Flags flags, uint32_t id, uint32_t mask, int fifoChanne
         can->FFA1R |= filterBit;
     else
         can->FFA1R &= ~filterBit;
-    
+
     // set ID and mask
     if (flags & ExtId)
     {
@@ -214,6 +214,13 @@ int Can::pendingMessageLength(int fifoChannel)
     return m_can->sFIFOMailBox[fifoChannel].RDTR & CAN_RDT0R_DLC;
 }
 
+int Can::pendingMessageFilterIdx(int fifoChannel)
+{
+    if (!isRxMessagePending(fifoChannel))
+        return -1;
+    return ((m_can->sFIFOMailBox[fifoChannel].RDTR & CAN_RDT0R_FMI) >> CAN_RDT0R_FMI_Pos) - m_firstFilterIdx;
+}
+
 int Can::receiveMessage(uint32_t *id, uint8_t *data, uint8_t maxsize, int fifoChannel)
 {
     if (!isRxMessagePending(fifoChannel))
@@ -275,7 +282,7 @@ bool Can::transmitMessage(Flags flags, uint32_t id, const uint8_t *data, uint8_t
     uint32_t rtr = 0;
     if (flags & RTR)
         rtr = CAN_TI0R_RTR;
-    
+
     // fill the mailbox
     if (flags & ExtId)
         mb->TIR = (id << CAN_TI0R_EXID_Pos) | CAN_TI0R_IDE | rtr;

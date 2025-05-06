@@ -49,6 +49,11 @@ ByteArray::ByteArray(int size, char ch) :
     mData[mSize] = '\0';
 }
 
+ByteArray::ByteArray(std::initializer_list<char> il) :
+    ByteArray(std::data(il), il.size())
+{
+}
+
 ByteArray::~ByteArray()
 {
     if (mAllocSize)

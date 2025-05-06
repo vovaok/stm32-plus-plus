@@ -25,6 +25,7 @@ public:
     virtual bool removeFilter(int index) override;
 
     virtual int pendingMessageLength(int fifoChannel) override;
+    virtual int pendingMessageFilterIdx(int fifoChannel) override;
     virtual int receiveMessage(uint32_t *id, uint8_t *data, uint8_t maxsize, int fifoChannel) override;
     virtual bool transmitMessage(Flags flags, uint32_t id, const uint8_t *data, uint8_t size) override;
 

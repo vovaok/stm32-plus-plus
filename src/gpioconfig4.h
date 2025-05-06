@@ -186,6 +186,9 @@ enum Config
     CAN2_TX_PB13 =      PINCONFIG(PB13, modeAF | outPushPull | pullUp | speed50MHz, afCan2, 0x20), //!<.
 
     //I2C
+    I2C2_SDA_PF0 =      PINCONFIG(PF0,  modeAF | outOpenDrain| pullUp | speed50MHz, afI2C2, 0x20), //!<.
+    I2C2_SCL_PF1 =      PINCONFIG(PF1,  modeAF | outOpenDrain| pullUp | speed50MHz, afI2C2, 0x20), //!<.
+    I2C2_SMBA_PF2 =     PINCONFIG(PF2,  modeAF | outOpenDrain| pullUp | speed50MHz, afI2C2, 0x20), //!<.
     I2C2_SCL_PH4 =      PINCONFIG(PH4,  modeAF | outOpenDrain| pullUp | speed50MHz, afI2C2, 0x20), //!<.
     I2C2_SDA_PH5 =      PINCONFIG(PH5,  modeAF | outOpenDrain| pullUp | speed50MHz, afI2C2, 0x20), //!<.
     I2C2_SCL_PB10 =     PINCONFIG(PB10,  modeAF | outOpenDrain| pullUp | speed50MHz, afI2C2, 0x20), //!<.
