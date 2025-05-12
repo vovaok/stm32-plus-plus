@@ -9,24 +9,27 @@ CanInterface::CanInterface(int fifoCount) :
 
 int CanInterface::acquireFifoChannel(CanSocket *socket)
 {
-    bool share = false;
     for (int i=0; i<m_fifoCount; i++)
     {
-        if (!share && m_sharedFifo & (1 << i))
-            share = true;
-        if (m_availFifo & (1 << i))
+        uint32_t mask = 1 << i;
+        if (m_availFifo & mask)
         {
-            m_availFifo &= ~(1 << i);
-            if (share)
+            m_availFifo &= ~mask;
+            
+            if (m_sockets.size() <= i)
             {
-                if (m_sockets[i])
-                    m_sockets[i]->m_shareChannel = true;
+                m_sockets.resize(i + 1);
+                m_sockets[i] = nullptr;
+            }
+            
+            if (m_sockets[i])
+            {
+                m_sockets[i]->m_shareChannel = true;
                 socket->m_shareChannel = true;
+                m_sharedFifo |= mask;
             }
             else
             {
-                if (m_sockets.size() <= i)
-                    m_sockets.resize(i + 1);
                 m_sockets[i] = socket;
             }
             return i;
@@ -35,14 +38,12 @@ int CanInterface::acquireFifoChannel(CanSocket *socket)
 
     // reset available FIFOs
     m_availFifo = (1 << m_fifoCount) - 1;
-    // make the first FIFO shared (access by filter index only)
-    m_sharedFifo |= 1;
-
+    // should return with no more recursion
+    return acquireFifoChannel(socket);
+    
     /*! @todo make resource counter for each FIFO instead of bit mask
               to properly release them later
     */
-
-    return 0;
 }
 
 void CanInterface::releaseFifoChannel(int fifoChannel)
