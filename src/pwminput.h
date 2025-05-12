@@ -10,6 +10,8 @@ public:
     void setMinFrequency(unsigned int freq);
 
     using HardwareTimer::setEnabled;
+    using HardwareTimer::setPrescaler;
+    using HardwareTimer::setAutoReloadRegister;
 
 #if __FPU_PRESENT
     float read();             // call this function to do sample
