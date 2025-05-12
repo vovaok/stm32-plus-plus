@@ -17,12 +17,18 @@ public:
     
     const Quaternion &quat() {return m_quat;}
     
-    const float *acc() const {return m_acc;}
+    typedef const float (&Triplet)[3];
+    
+//    const float *acc() const {return m_acc;}
+    Triplet acc() const {return m_acc;}
+//    const float (&acc)[3] = m_acc;
     float accX() const {return m_acc[0];}
     float accY() const {return m_acc[1];}
     float accZ() const {return m_acc[2];}
     
-    const float *gyro() const {return m_gyro;}
+//    const float *gyro() const {return m_gyro;}
+    Triplet gyro() const {return m_gyro;}
+//    const float (&gyro)[3] = m_gyro;
     float gyroX() const {return m_gyro[0];}
     float gyroY() const {return m_gyro[1];}
     float gyroZ() const {return m_gyro[2];}
