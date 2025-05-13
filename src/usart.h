@@ -61,6 +61,8 @@ public:
     int baudrate() const {return mBaudrate;}
     void setConfig(Config config);
     
+    void resetTxBuffer() {mTxPos = mTxReadPos = 0;}
+    
 //    unsigned char getErrorCode() const;
     
     void setClockPin(Gpio::Config pinCk, bool inverted = false);
