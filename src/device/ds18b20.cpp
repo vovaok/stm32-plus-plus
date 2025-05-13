@@ -60,16 +60,9 @@ void DS18B20::onTransferComplete()
         
     case WaitConvert:
         m_usart->read(buf, 1);
-        if (buf[0] & 1) // conversion completed
-        {
-            m_fsm = InitRead;
-            initTransfer();
-        }
-        else // request again
-        {
-            buf[0] = 0xFF;
-            m_usart->write(buf, 1); // issue read slot
-        }
+        m_fsm = InitRead;
+        initTransfer();
+
         break;
         
     case InitRead:
