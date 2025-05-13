@@ -14,7 +14,7 @@ class Led : private Gpio
 public:
     Led(Gpio::PinName pin, bool inverted=false);
     Led(GPIO_TypeDef *gpio, int pin, bool inverted=false);
-    Led(char portLetter, int pinNumber); // DEPRECATED
+//    Led(char portLetter, int pinNumber); // DEPRECATED
     virtual ~Led();
 
     inline void on() {setState(true);}
