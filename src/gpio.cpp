@@ -337,7 +337,8 @@ void Gpio::configInterrupt(std::function<void(void)> event, InterruptMode mode)
         THROW(Exception::ResourceBusy);
 
     rcc().setPeriphEnabled(SYSCFG);
-    SYSCFG->EXTICR[line >> 2] = mConfig.portNumber << ((line & 3) << 2);
+    SYSCFG->EXTICR[line >> 2] &= ~(1 << ((line & 3) << 2));
+    SYSCFG->EXTICR[line >> 2] |= mConfig.portNumber << ((line & 3) << 2);
 
     if (mode & 1)
         EXTI->RTSR |= mask;
