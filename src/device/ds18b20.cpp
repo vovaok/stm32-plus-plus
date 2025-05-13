@@ -41,16 +41,14 @@ void DS18B20::onTransferComplete()
     {
     case InitConvert:
         checkPresence();
+        if (!m_presence)
+        {
+            m_fsm = Idle;
+            break;
+        }
         // Skip ROM, Convert T
         write({0xCC, 0x44});
         m_fsm = Convert;
-        break;
-        
-    case InitRead:
-        checkPresence();
-        // Skip ROM, Read Scratchpad, issue 16 read slots
-        write({0xCC, 0xBE, 0xFF, 0xFF});
-        m_fsm = Read;
         break;
         
     case Convert:
@@ -67,6 +65,18 @@ void DS18B20::onTransferComplete()
             m_fsm = InitRead;
             initTransfer();
         }
+        else // request again
+        {
+            buf[0] = 0xFF;
+            m_usart->write(buf, 1); // issue read slot
+        }
+        break;
+        
+    case InitRead:
+        checkPresence();
+        // Skip ROM, Read Scratchpad, issue 16 read slots
+        write({0xCC, 0xBE, 0xFF, 0xFF});
+        m_fsm = Read;
         break;
         
     case Read:
@@ -74,6 +84,8 @@ void DS18B20::onTransferComplete()
         m_usart->read(buf, 16); // read result;
         readResult(buf);
         m_fsm = Idle;
+        if (onReadyRead)
+            onReadyRead();
         break;
         
     default:

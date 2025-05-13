@@ -14,6 +14,8 @@ public:
     int value() const {return m_value;}
     float temperature() const {return m_temp;}
     
+    NotifyEvent onReadyRead;
+    
 private:
     Usart *m_usart = nullptr;
     Timer *m_timer = nullptr;
