@@ -603,11 +603,14 @@ void Usart::handleInterrupt()
     if (sr & USART_SR_TC)
     {
         mDev->CR1 &= ~USART_CR1_TCIE;
-        if (mDmaTx && m_halfDuplex)
+        if (mDmaTx)
         {
-            if (m_pinDE)
-                m_pinDE->reset();
-            mDev->CR1 |= USART_CR1_RE;
+            if (m_halfDuplex)
+            {
+                if (m_pinDE)
+                    m_pinDE->reset();
+                mDev->CR1 |= USART_CR1_RE;
+            }
 
             if (onBytesWritten)
                 onBytesWritten();

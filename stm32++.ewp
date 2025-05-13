@@ -16487,7 +16487,6 @@
     <group>
         <name>device</name>
         <excluded>
-            <configuration>stm32f303xC</configuration>
             <configuration>stm32f303x8</configuration>
             <configuration>stm32f030x6</configuration>
         </excluded>
@@ -16537,6 +16536,12 @@
             <name>$PROJ_DIR$\src\device\drv8320.h</name>
         </file>
         <file>
+            <name>$PROJ_DIR$\src\device\ds18b20.cpp</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\device\ds18b20.h</name>
+        </file>
+        <file>
             <name>$PROJ_DIR$\src\device\eeprom24c.h</name>
             <excluded>
                 <configuration>stm32f303x8</configuration>
@@ -16568,6 +16573,7 @@
                 <configuration>stm32f446</configuration>
                 <configuration>stm32l476rg</configuration>
                 <configuration>stm32g474</configuration>
+                <configuration>stm32f303xC</configuration>
                 <configuration>stm32f405xx</configuration>
             </excluded>
         </file>

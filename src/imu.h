@@ -47,10 +47,12 @@ protected:
     bool m_magValid = false;
     bool m_valid = false;
     
+    // call it if IMU doesn't calculate the quaternion by itself
     void calcQuat(float dt);
-    
-private:    
+    // or just complete this field
     Quaternion m_quat;
+    
+private:     
     float q0=1.0f, q1=0.0f, q2=0.0f, q3=0.0f;
     
     const float twoKp = 2.0f * 0.5f;											// 2 * proportional gain (Kp)
