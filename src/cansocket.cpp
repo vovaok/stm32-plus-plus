@@ -36,11 +36,11 @@ int CanSocket::bytesAvailable() const
     {
         int fidx = m_can->pendingMessageFilterIdx(m_fifoChannel);
         if (!m_can->fmiSocketMap.count(fidx) || m_can->fmiSocketMap.at(fidx) != this)
-            return -1;
+            return 0;
     }
     int len = m_can->pendingMessageLength(m_fifoChannel);
     if (len < 0)
-        return -1;
+        return 0;
     if (m_flags & CanInterface::ExtId)
         return len + 4;
     else

@@ -218,7 +218,8 @@ int Can::pendingMessageFilterIdx(int fifoChannel)
 {
     if (!isRxMessagePending(fifoChannel))
         return -1;
-    return ((m_can->sFIFOMailBox[fifoChannel].RDTR & CAN_RDT0R_FMI) >> CAN_RDT0R_FMI_Pos) - m_firstFilterIdx;
+    int fmi = (m_can->sFIFOMailBox[fifoChannel].RDTR & CAN_RDT0R_FMI) >> CAN_RDT0R_FMI_Pos;
+    return (fmi << 1) + fifoChannel;
 }
 
 int Can::receiveMessage(uint32_t *id, uint8_t *data, uint8_t maxsize, int fifoChannel)

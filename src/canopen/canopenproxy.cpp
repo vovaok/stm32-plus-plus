@@ -1,4 +1,5 @@
 #include "canopenproxy.h"
+#include "core/application.h"
 
 CanOpenProxy::CanOpenProxy(CanInterface *device, uint8_t nodeId) :
     m_nodeId(nodeId & 0x7F)
@@ -10,11 +11,32 @@ CanOpenProxy::CanOpenProxy(CanInterface *device, uint8_t nodeId) :
     
     m_resendTimer = new Timer();
     m_resendTimer->setInterval(50);
-    m_resendTimer->onTimeout = EVENT(&CanOpenProxy::task);
+    m_resendTimer->onTimeout = EVENT(&CanOpenProxy::resendSdo);
+    
+    stmApp()->registerTaskEvent(EVENT(&CanOpenProxy::task));
 }
 
 void CanOpenProxy::task()
 {
+    if (m_nmtErrorControl)
+        nmtErrorControl();
+    
+    while (!m_nmtQueue.empty())
+    {
+        uint8_t cmd = m_nmtQueue.front();
+        ByteArray ba(2, 0);
+        ba[0] = cmd;
+        ba[1] = m_nodeId;
+        bool success = sendPacket(NMT_ModuleControl, ba);
+        if (success)
+            m_nmtQueue.pop();
+        else
+            break;
+    }
+}
+
+void CanOpenProxy::resendSdo()
+{    
     while (!m_sdoQueue.empty())
     {
         SDO &sdo = m_sdoQueue.front();
@@ -30,15 +52,16 @@ void CanOpenProxy::task()
 
 void CanOpenProxy::nmtModuleControl(NMTControl cmd)
 {
-    ByteArray ba(2, 0);
-    ba[0] = cmd;
-    ba[1] = m_nodeId;
-    sendPacket(NMT_ModuleControl, ba);
+    m_nmtQueue.push(cmd);
+//    ByteArray ba(2, 0);
+//    ba[0] = cmd;
+//    ba[1] = m_nodeId;
+//    sendPacket(NMT_ModuleControl, ba);
 }
 
 void CanOpenProxy::nmtErrorControl() // request node state
 {
-    m_can->interface()->transmitMessage(CanInterface::RTR, NMT_ErrorControl | m_nodeId, nullptr, 0);
+    m_nmtErrorControl = !m_can->interface()->transmitMessage(CanInterface::RTR, NMT_ErrorControl | m_nodeId, nullptr, 0);
 }
 
 void CanOpenProxy::pdoWrite(uint8_t pdo, const ByteArray &value)
