@@ -16536,6 +16536,12 @@
             <name>$PROJ_DIR$\src\device\drv8320.h</name>
         </file>
         <file>
+            <name>$PROJ_DIR$\src\device\drv8711.cpp</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\device\drv8711.h</name>
+        </file>
+        <file>
             <name>$PROJ_DIR$\src\device\ds18b20.cpp</name>
         </file>
         <file>
@@ -18029,7 +18035,6 @@
         <excluded>
             <configuration>stm32f373xB</configuration>
             <configuration>stm32f373xB_no-exceptions_no-rtti</configuration>
-            <configuration>stm32f303xC</configuration>
             <configuration>stm32f030x6</configuration>
         </excluded>
     </file>
@@ -18038,7 +18043,6 @@
         <excluded>
             <configuration>stm32f373xB</configuration>
             <configuration>stm32f373xB_no-exceptions_no-rtti</configuration>
-            <configuration>stm32f303xC</configuration>
             <configuration>stm32f030x6</configuration>
         </excluded>
     </file>
