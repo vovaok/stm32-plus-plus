@@ -292,7 +292,7 @@ union DecayRegister {
 
 union StallRegister {
     uint16_t reg;
-    struct {
+    struct StallReg{
         uint16_t SDTHR   : 8;  // Stall detect threshold
         uint16_t SDCNT   : 2;  // Stall detect count
         uint16_t VDIV    : 2;  // Back EMF divider
@@ -302,7 +302,7 @@ union StallRegister {
 
 union DriveRegister {
     uint16_t reg;
-    struct {
+    struct DriveReg{
         uint16_t OCPTH   : 2;  // OCP threshold
         uint16_t OCPDEG  : 2;  // OCP deglitch time
         uint16_t TDRIVEN : 2;  // Low-side gate drive time
@@ -315,7 +315,7 @@ union DriveRegister {
 
 union StatusRegister {
     uint16_t reg;
-    struct {
+    struct StatusReg{
         uint16_t OTS     : 1;  // Overtemperature shutdown
         uint16_t AOCP    : 1;  // Channel A overcurrent
         uint16_t BOCP    : 1;  // Channel B overcurrent
