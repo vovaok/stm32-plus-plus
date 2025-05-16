@@ -13,7 +13,7 @@ Dma *Dma::mChannels[DMA_CHANNEL_COUNT] {0};
 Dma::Dma(Channel channelName)
 {
 
-    int dma_num = (channelName >> 8) +1;
+    int dma_num = (channelName >> 5) +1;
     mChannelNum  = channelName & 0x07; // 0...6
     mChannelSel = channelName & 7;
       
