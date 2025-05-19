@@ -40,6 +40,7 @@ public:
 //    void setVolume(unsigned char volume_percent);
     void setFrequency(int f_Hz);
     void setEnabled(bool enabled);
+    bool isEnabled() const;
     void on() {setEnabled(true);}
     void off() {setEnabled(false);}
     void beep(int duration_ms);

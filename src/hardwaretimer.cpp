@@ -434,6 +434,12 @@ void HardwareTimer::setChannelEnabled(ChannelNumber ch, bool enabled)
 //    mTim->EGR = 1; // generate update event
 }
 
+bool HardwareTimer::isChannelEnabled(ChannelNumber ch) const
+{
+    uint16_t mask = (uint16_t)ch & 0x1111;
+    return mTim->CCER & mask;
+}
+
 void HardwareTimer::setChannelInverted(ChannelNumber ch, bool inverted)
 {
     uint16_t mask = ((uint16_t)ch & 0x1111) << 1;
