@@ -149,7 +149,7 @@ public:
     bool bindVariable(_String name, T &var)
     {
         ObjectInfo &info = mObjMap[_fromString(name)];
-        ObjectInfo::Type t = typeOfVar(var);
+        ObjectInfo::Type t = ObjectInfo::typeValue<T>();
         if ((t == info.mDesc.wType) || !info.mDesc.flags)
         {
             info.mWritePtr = &var;
@@ -164,7 +164,7 @@ public:
     bool bindVariable(_String name, T (&var)[N])
     {
         ObjectInfo &info = mObjMap[_fromString(name)];
-        ObjectInfo::Type t = typeOfVar(var[0]);
+        ObjectInfo::Type t = ObjectInfo::typeValue<T>();
         if ((t == info.mDesc.wType && sizeof(var) == info.mDesc.writeSize) || !info.mDesc.flags)
         {
             info.mWritePtr = &var;
@@ -179,8 +179,8 @@ public:
     bool bindVariable(_String name, Tr &rVar, Tw &wVar)
     {
         ObjectInfo &info = mObjMap[_fromString(name)];
-        ObjectInfo::Type rt = typeOfVar(rVar);
-        ObjectInfo::Type wt = typeOfVar(wVar);
+        ObjectInfo::Type rt = ObjectInfo::typeValue<Tr>();
+        ObjectInfo::Type wt = ObjectInfo::typeValue<Tw>();
         if ((((sizeof(rVar) == info.mDesc.readSize)) && (sizeof(wVar) == info.mDesc.writeSize)) || !info.mDesc.flags)
         {
             info.mWritePtr = &wVar;

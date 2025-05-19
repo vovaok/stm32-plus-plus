@@ -56,7 +56,7 @@ void ObjnetMaster::task()
     }
 }
 
-void ObjnetMaster::onNak(unsigned char mac)
+void ObjnetMaster::onNak(unsigned char /*mac*/)
 {
 //    if (mLocalnetDevices[mac])
 //    {
@@ -420,7 +420,7 @@ bool ObjnetMaster::parseServiceMessage(const CommonMessage &msg)
         {
 //#warning TODO!! implement ONB devices recursive search
             ObjnetDevice *foundDev = 0L;
-            for (int i=0; i<dev->mChildren.size() && !foundDev; i++)
+            for (size_t i=0; i<dev->mChildren.size() && !foundDev; i++)
             {
                 ObjnetDevice *child = dev->mChildren[i];
                 if (location.size() == 2) // subnet level
@@ -430,7 +430,7 @@ bool ObjnetMaster::parseServiceMessage(const CommonMessage &msg)
                 }
                 else if (location.size() == 3)
                 {
-                    for (int i=0; i<child->mChildren.size() && !foundDev; i++)
+                    for (size_t i=0; i<child->mChildren.size() && !foundDev; i++)
                     {
                         ObjnetDevice *grandchild = child->mChildren[i];
                         if (grandchild->busAddress() == mac)
@@ -499,7 +499,7 @@ bool ObjnetMaster::parseServiceMessage(const CommonMessage &msg)
                 // TODO: send dev's class & name somehow
                 mAdjacentNode->sendServiceMessage(netaddr, svcConnected, supernetaddr); // a la echo
                 
-                for (int i=0; i<dev->mChildren.size(); i++)
+                for (size_t i=0; i<dev->mChildren.size(); i++)
                 {
                     ObjnetDevice *child = dev->mChildren[i];
                     ByteArray location;

@@ -4,9 +4,10 @@ using namespace Objnet;
 
 OnbUpgrader::OnbUpgrader(ObjnetMaster *master) :
     mMaster(master),
-    mState(sIdle),
-    mSize(0), mPageSize(0),
     mAppinfoIdx(0),
+    mState(sIdle),
+    mSize(0),
+    mPageSize(0),
     mCount(0), mCurBytes(0),
     mPageDone(false), mPageTransferred(false), mPageRepeat(false)
 {
@@ -221,7 +222,7 @@ void OnbUpgrader::onTimer()
             {
                 int ci = mCount + i;
                 int ai = ci - mAppinfoIdx;
-                if (ai >= 0 && ai < sizeof(__appinfo_t__))
+                if (ai >= 0 && ai < (int)sizeof(__appinfo_t__))
                     ba[i] = reinterpret_cast<unsigned char*>(&mInfo)[ai];
                 else if (ci < mSize)
                     ba[i] = mData[ci];
@@ -288,6 +289,7 @@ void OnbUpgrader::onMessage(const CommonMessage &msg)
         
       case svcUpgradeRepeat:
         mPageRepeat = true;
+        [[fallthrough]];
       case svcUpgradePageDone:
         mDevices[addr] = true;
         logEvent("+1 ");

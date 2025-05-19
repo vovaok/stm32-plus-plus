@@ -420,7 +420,7 @@ bool ObjnetNode::parseServiceMessage(const CommonMessage &msg)
         else if (mBusType == BusRadio)
         {
             /// @todo Add support of subobjects in the Radio bus
-            for (int i=0; i<mObjects.size(); i++)
+            for (size_t i=0; i<mObjects.size(); i++)
             {
                 sendObjectInfo(remoteAddr, &mObjects[i]);
 //                ByteArray ba;
