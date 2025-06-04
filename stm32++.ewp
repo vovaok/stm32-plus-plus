@@ -16626,6 +16626,12 @@
             <name>$PROJ_DIR$\src\device\shiftregister.h</name>
         </file>
         <file>
+            <name>$PROJ_DIR$\src\device\st7735.cpp</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\device\st7735.h</name>
+        </file>
+        <file>
             <name>$PROJ_DIR$\src\device\st7796.cpp</name>
         </file>
         <file>
@@ -16717,7 +16723,6 @@
         <name>gfx</name>
         <excluded>
             <configuration>stm32f446</configuration>
-            <configuration>stm32f303xC</configuration>
             <configuration>stm32f303x8</configuration>
             <configuration>stm32f030x6</configuration>
         </excluded>
