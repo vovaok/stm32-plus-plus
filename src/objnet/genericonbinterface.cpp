@@ -66,7 +66,8 @@ void GenericOnbInterface::receiveHandler()
     sz -= 4;
     if (testFilter(id))
     {
-        ByteArray ba = ByteArray::fromRawData(reinterpret_cast<const char *>(data), sz);
+//        ByteArray ba = ByteArray::fromRawData(reinterpret_cast<const char *>(data), sz);
+        ByteArray ba(reinterpret_cast<const char *>(data), sz); // data should be copied!
         CommonMessage msg(id, std::move(ba));
         receive(std::move(msg));
     }
