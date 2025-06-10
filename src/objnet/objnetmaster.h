@@ -38,15 +38,15 @@ private:
     void removeDevice(unsigned char netaddr);
 
 protected:
-    void task();
+    void task() override;
     
     virtual bool parseServiceMessage(const CommonMessage &msg) override;
-    void parseMessage(const CommonMessage &msg);
+    void parseMessage(const CommonMessage &msg) override;
 
-    unsigned char route(unsigned char netAddress) {return netAddress<0x7F? mRouteTable[netAddress]: 0;}
+    unsigned char route(unsigned char netAddress) override {return netAddress<0x7F? mRouteTable[netAddress]: 0;}
     unsigned char createNetAddress(unsigned char mac);
     
-    void adjacentConnected();
+    void adjacentConnected() override;
 
 public:
     Closure<void(const CommonMessage&)> onServiceMessage;
@@ -84,7 +84,7 @@ public:
     void setSwonbMode(bool enabled) {mSwonbMode = enabled;}
     void setPollingInterval(int ms) {mTimer.setInterval(ms);}
 
-    bool isConnected() const {return !mDevices.empty();}
+    bool isConnected() const override {return !mDevices.empty();}
 
     const DeviceMap &devices() const {return mDevices;}
     ObjnetDevice *device(int netaddr) {return mDevices.count(netaddr)? mDevices[netaddr]: 0L;}

@@ -63,15 +63,15 @@ protected:
 #else
 protected slots:
 #endif
-    void task();
+    void task() override;
 
 protected:
-    void acceptServiceMessage(unsigned char sender, SvcOID oid, ByteArray *ba=0L){}
+//    void acceptServiceMessage(unsigned char sender, SvcOID oid, ByteArray *ba=0L){}
     virtual bool parseServiceMessage(const CommonMessage &msg) override;
 
-    void parseMessage(const CommonMessage &msg);
+    void parseMessage(const CommonMessage &msg) override;
 
-    unsigned char route(unsigned char netAddress) {(void)netAddress; return 0;}
+    unsigned char route(unsigned char netAddress) override {(void)netAddress; return 0;}
 
     void setSerial(uint32_t serial) {mSerial = serial;}
 
@@ -101,7 +101,7 @@ public:
     int burnCount() const {return mBurnCount;}
     unsigned char objectCount() const {return (unsigned char)mObjects.size();}
 
-    bool isConnected() const {return mNetState > netnConnecting;}
+    bool isConnected() const override {return mNetState > netnConnecting;}
 
     ObjectInfo &bindObject(const ObjectInfo &info);
     #define BindObject(obj) bindObject(ObjectInfo(#obj, obj)) // convenient macro

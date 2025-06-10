@@ -87,6 +87,7 @@ public:
         Compound = 0x80, // bits 0...6 reflect subobject count
     } Type; // KAK B Qt!!!
 
+    typedef void Void_t;
     typedef bool Bool_t;
     typedef int Int_t;
     typedef unsigned int UInt_t;
@@ -148,7 +149,7 @@ private:
     const void *mReadPtr;
     void *mWritePtr;
     int mAutoPeriod, mAutoTime; // automatic transmission period
-    unsigned char mAutoReceiverAddr; // address of receiver for automatic transmission
+    unsigned char mAutoReceiverAddr = 0; // address of receiver for automatic transmission
     bool mTimedRequest; // если синхронизованный объект
     Description mDesc;
     bool mIsDevice;
@@ -164,7 +165,7 @@ private:
     friend class ObjnetDevice;
     friend class ObjnetStorage;
 
-    int sizeofType(Type type) const;
+    static constexpr int sizeofType(Type type);
     
     uint8_t *nextReadPtr() const;
     uint8_t *nextWritePtr() const;
@@ -270,32 +271,56 @@ public:
     ObjectInfo &subobject(uint8_t idx);
     uint8_t subobjectCount() const {return m_subobjects.size();}
     ObjectInfo *parentObject() {return m_parentObject;}
+    
+    template <typename T>
+    static constexpr Type typeValue() {return Common;} // by default
 };
 
-template<typename T> static ObjectInfo::Type typeOfVar(T &var) {(void)var; return ObjectInfo::Common;}
-template<typename T> static ObjectInfo::Type typeOfVar(const T &var) {(void)var; return ObjectInfo::Common;}
-#define DeclareTypeOfVar(Tp) \
-    template<> ObjectInfo::Type typeOfVar<ObjectInfo::Tp##_t>(ObjectInfo::Tp##_t &var) {(void)var; return ObjectInfo::Tp;} \
-    template<> ObjectInfo::Type typeOfVar<ObjectInfo::Tp##_t>(const ObjectInfo::Tp##_t &var) {(void)var; return ObjectInfo::Tp;}
-//DeclareTypeOfVar(void, Void)
-DeclareTypeOfVar(Bool)
-DeclareTypeOfVar(Int)
-DeclareTypeOfVar(UInt)
-DeclareTypeOfVar(LongLong)
-DeclareTypeOfVar(ULongLong)
-DeclareTypeOfVar(Double)
-DeclareTypeOfVar(Long)
-DeclareTypeOfVar(Short)
-DeclareTypeOfVar(Char)
-DeclareTypeOfVar(ULong)
-DeclareTypeOfVar(UShort)
-DeclareTypeOfVar(UChar)
-DeclareTypeOfVar(Float)
-DeclareTypeOfVar(SChar)
-template<> ObjectInfo::Type typeOfVar<_String>(_String &) {return ObjectInfo::String;}
-DeclareTypeOfVar(StringList)
-DeclareTypeOfVar(QVector3D)
-DeclareTypeOfVar(QQuaternion)
+#define DeclareTypeValueSpec(T) \
+    template <> constexpr ObjectInfo::Type ObjectInfo::typeValue<ObjectInfo::T##_t>() \
+    {return ObjectInfo::T;}
+    
+DeclareTypeValueSpec(Void)
+DeclareTypeValueSpec(Bool)
+DeclareTypeValueSpec(Int)
+DeclareTypeValueSpec(UInt)
+DeclareTypeValueSpec(LongLong)
+DeclareTypeValueSpec(ULongLong)
+DeclareTypeValueSpec(Double)
+DeclareTypeValueSpec(Long)
+DeclareTypeValueSpec(Short)
+DeclareTypeValueSpec(Char)
+DeclareTypeValueSpec(ULong)
+DeclareTypeValueSpec(UShort)
+DeclareTypeValueSpec(UChar)
+DeclareTypeValueSpec(Float)
+DeclareTypeValueSpec(SChar)
+template <> constexpr ObjectInfo::Type ObjectInfo::typeValue<_String>() {return ObjectInfo::String;}
+DeclareTypeValueSpec(StringList)
+DeclareTypeValueSpec(QVector3D)
+DeclareTypeValueSpec(QQuaternion)
+
+constexpr int ObjectInfo::sizeofType(ObjectInfo::Type type)
+{
+    switch (type)
+    {
+        case Bool:      return 1;
+        case Int:       return 4;
+        case UInt:      return 4;
+        case LongLong:  return 8;
+        case ULongLong: return 8;
+        case Double:    return 8;
+        case Long:      return 4;
+        case Short:     return 2;
+        case Char:      return 1;
+        case ULong:     return 4;
+        case UShort:    return 2;
+        case UChar:     return 1;
+        case Float:     return 4;
+        case SChar:     return 1;
+        default:        return 0;
+    }
+}
 
 //#if __cplusplus > 199711L
 //template<typename T, typename std::enable_if<!std::is_class<T>::value, bool>::type>
@@ -310,7 +335,7 @@ ObjectInfo::ObjectInfo(string name, T &var, Flags flags) :
     m_parentObject(0L)
 {
     size_t sz = sizeof(T);
-    Type t = typeOfVar(var);
+    Type t = typeValue<T>();
     if (flags & Read)
     {
         mReadPtr = &var;
@@ -345,7 +370,7 @@ ObjectInfo::ObjectInfo(string name, const T &var, Flags flags) :
     flags = static_cast<Flags>(flags & (~Write));
     flags = static_cast<Flags>(flags & (~Save));
     size_t sz = sizeof(T);
-    Type t = typeOfVar(var);
+    Type t = typeValue<T>();
     if (flags & Read)
     {
         mReadPtr = &var;
@@ -370,13 +395,13 @@ ObjectInfo::ObjectInfo(string name, const Tr &varRead, Tw &varWrite, Flags flags
     {
         mReadPtr = &varRead;
         mDesc.readSize = sizeof(Tr);
-        mDesc.rType = typeOfVar(varRead);
+        mDesc.rType = typeValue<Tr>();
     }
     if (flags & Write)
     {
         mWritePtr = &varWrite;
         mDesc.writeSize = sizeof(Tw);
-        mDesc.wType = typeOfVar(varWrite);
+        mDesc.wType = typeValue<Tw>();
     }
     mDesc.flags = flags | Dual;
     mDesc.name = name;
@@ -391,7 +416,7 @@ ObjectInfo::ObjectInfo(string name, T (&var)[N], Flags flags) :
     mValid(true),
     m_parentObject(0L)
 {
-    Type t = typeOfVar(var[0]);
+    Type t = typeValue<T>();
     size_t sz = sizeof(T) * N;
     mArrayItemCount = N;
 //    if (sz > 255)
@@ -423,7 +448,7 @@ ObjectInfo::ObjectInfo(string name, const T (&var)[N], Flags flags) :
     mValid(true),
     m_parentObject(0L)
 {
-    Type t = typeOfVar(var[0]);
+    Type t = typeValue<T>();
     size_t sz = sizeof(T) * N;
     mArrayItemCount = N;
 //    if (sz > 255)
@@ -451,7 +476,7 @@ ObjectInfo::ObjectInfo(string name, const T (&var)[N], Flags flags) :
 //    m_parentObject(0L)
 //{
 //    size_t sz = sizeof(T);
-//    Type t = typeOfVar(var);
+//    Type t = typeValue<T>();
 //    if (flags & Read)
 //    {
 //        mReadPtr = &var;
@@ -492,8 +517,8 @@ ObjectInfo &ObjectInfo::field(string name)
     /// @todo Test the fix of the bug with m_parentObject!
 //    obj.m_parentObject = this;
     size_t sz = sizeof(T);
-    T var;
-    Type t = typeOfVar(var);
+//    T var;
+    Type t = typeValue<T>();
     if (t == String)
         sz = 0;
     if (mDesc.flags & Read)
@@ -545,7 +570,7 @@ ObjectInfo &ObjectInfo::field(string name)
 ////    obj.m_parentObject = this;
 //    size_t sz = sizeof(T);
 //    T var;
-//    Type t = typeOfVar(var);
+//    Type t = typeValue<T>();
 //    if (t == String)
 //        sz = 0;
 //    if (mDesc.flags & Read)
@@ -592,8 +617,8 @@ ObjectInfo::ObjectInfo(string name, Closure<R(void)> event, ObjectInfo::Flags fl
     // mReadPtr:mWritePtr contains variable of Closure<> type, not the pointer!!!
     *reinterpret_cast<Closure<R(void)>*>(&mReadPtr) = event;
 
-    R var;
-    mDesc.rType = typeOfVar(var); // return type
+//    R var;
+    mDesc.rType = typeValue<R>(); // return type
     mDesc.wType = Void; // param type
     mDesc.flags = (flags | Function) & ~(Save | Write);
     mDesc.name = name;
@@ -623,9 +648,9 @@ ObjectInfo::ObjectInfo(string name, Closure<void(P0)> event, ObjectInfo::Flags f
     // mReadPtr:mWritePtr contains variable of Closure<> type, not the pointer!!!
     *reinterpret_cast<Closure<void(P0)>*>(&mReadPtr) = event;
 
-    P0 param;
+//    P0 param;
     mDesc.rType = Void; // return type;
-    mDesc.wType = typeOfVar(param); // param type
+    mDesc.wType = typeValue<P0>(); // param type
     mDesc.flags = (flags | Function) & ~(Save | Read);
     mDesc.name = name;
     mDesc.id = mAssignId++;
@@ -650,10 +675,10 @@ ObjectInfo::ObjectInfo(string name, Closure<R(P0)> event, ObjectInfo::Flags flag
     // mReadPtr:mWritePtr contains variable of Closure<> type, not the pointer!!!
     *reinterpret_cast<Closure<R(P0)>*>(&mReadPtr) = event;
 
-    R ret;
-    P0 param;
-    mDesc.rType = typeOfVar(ret); // return type;
-    mDesc.wType = typeOfVar(param); // param type
+//    R ret;
+//    P0 param;
+    mDesc.rType = typeValue<R>(); // return type;
+    mDesc.wType = typeValue<P0>(); // param type
     mDesc.flags = (flags | Function) & ~(Save);
     mDesc.name = name;
     mDesc.id = mAssignId++;
@@ -674,11 +699,11 @@ ObjectInfo::ObjectInfo(string name, RingBuffer<T> &buffer, Flags flags) :
     mReadPtr = &buffer;
     mWritePtr = &buffer;
     
-    T var;
+//    T var;
     if (flags & Read)
-        mDesc.rType = typeOfVar(var);
+        mDesc.rType = typeValue<T>();
     if (flags & Write)
-        mDesc.wType = typeOfVar(var);
+        mDesc.wType = typeValue<T>();
     mDesc.flags = (flags | Array) & ~Save;
     mDesc.name = name;
     mDesc.id = mAssignId++;

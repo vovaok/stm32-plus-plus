@@ -5,17 +5,17 @@
 using namespace Objnet;
 
 ObjnetDevice::ObjnetDevice(unsigned char netaddr) :
-    mMaster(0L),
     mInfoValidFlags(0),
+    mMaster(0L),
     mParent(0L),
     mNetAddress(netaddr),
     mPresent(false),
-    mConnectionError(false),
-    mTimeout(5), mTempTimeout(1),
-    mAutoDelete(false),
+    mTimeout(5),
+    mTempTimeout(1), mAutoDelete(false),
     mIsLocal(false),
-    mBusType(BusUnknown),
-    mObjectCount(0)
+    mConnectionError(false),
+    mObjectCount(0),
+    mBusType(BusUnknown)
 //    mStateChanged(false),
 //    mOrphanCount(0),
 //    mChildrenCount(0)
@@ -38,7 +38,7 @@ void ObjnetDevice::parseObjectInfo(const ByteArray &ba)
     ByteArray idba;
     if ((uint8_t)ba[0] != 0xFF)
     {
-        obj = prepareObject(ba);
+        /*obj =*/ prepareObject(ba);
     }
     else
     {
@@ -65,21 +65,21 @@ void ObjnetDevice::parseObjectInfo(const ByteArray &ba)
                     ObjectInfo &prev = obj->subobject(i-1);
                     if (!prev.isValid())
                         break;
-                    if (obj->mDesc.flags | ObjectInfo::ReadOnly)
+                    if (obj->mDesc.flags & ObjectInfo::ReadOnly)
                         roff += obj->subobject(i).mDesc.readSize;
-                    if (obj->mDesc.flags | ObjectInfo::WriteOnly)
+                    if (obj->mDesc.flags & ObjectInfo::WriteOnly)
                         woff += obj->subobject(i).mDesc.writeSize;
                 }
                 // update all pointers
                 ObjectInfo &cur = obj->subobject(i);
-                if (obj->mDesc.flags | ObjectInfo::ReadOnly)
+                if (obj->mDesc.flags & ObjectInfo::ReadOnly)
                     cur.mReadPtr = (uint8_t*)obj->mReadPtr + roff;
-                if (obj->mDesc.flags | ObjectInfo::WriteOnly)
+                if (obj->mDesc.flags & ObjectInfo::WriteOnly)
                     cur.mWritePtr = (uint8_t*)obj->mWritePtr + woff;
             }
-//            if (obj->mDesc.flags | ObjectInfo::ReadOnly)
+//            if (obj->mDesc.flags & ObjectInfo::ReadOnly)
 //                sub.mReadPtr = (uint8_t*)obj->mReadPtr + roff;
-//            if (obj->mDesc.flags | ObjectInfo::WriteOnly)
+//            if (obj->mDesc.flags & ObjectInfo::WriteOnly)
 //                sub.mWritePtr = (uint8_t*)obj->mWritePtr + woff;
             
             if (sub.isCompound())
@@ -91,7 +91,7 @@ void ObjnetDevice::parseObjectInfo(const ByteArray &ba)
             sub.mIsDevice = true;
             sub.mValid = true;
             sub.m_parentObject = obj;
-            obj = &sub;
+            /*obj = &sub;*/
         }
     }
 
@@ -465,7 +465,7 @@ void ObjnetDevice::receiveTimedObject(const ByteArray &ba)
         ObjectInfo *obj = mObjects[oid];
         if (obj)
         {
-            bool res = obj->write(objba);
+            /*bool res =*/ obj->write(objba);
 //            if (!res)
 //                qDebug() << "failed to write obj" << obj->name();
             #ifndef QT_CORE_LIB
@@ -505,7 +505,7 @@ void ObjnetDevice::receiveGroupedObject(const ByteArray &ba)
                 int sz = obj->description().writeSize;
                 ByteArray objBa = ba.mid(idx, sz);
                 idx += sz;
-                bool res = obj->write(objBa);
+                /*bool res =*/ obj->write(objBa);
                 #ifndef QT_CORE_LIB
                 if (onObjectReceived)
                     onObjectReceived(obj->name());
