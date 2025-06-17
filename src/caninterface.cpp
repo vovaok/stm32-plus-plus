@@ -15,6 +15,8 @@ int CanInterface::acquireFifoChannel(CanSocket *socket)
         if (m_availFifo & mask)
         {
             m_availFifo &= ~mask;
+            if (!socket)
+                return i;
             
             if (m_sockets.size() <= i)
             {
