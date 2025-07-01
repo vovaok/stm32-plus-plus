@@ -17604,6 +17604,7 @@
             <configuration>stm32f303xC</configuration>
             <configuration>stm32f303x8</configuration>
             <configuration>stm32f767</configuration>
+            <configuration>stm32f405xx</configuration>
         </excluded>
     </file>
     <file>
@@ -17613,6 +17614,7 @@
             <configuration>stm32f303xC</configuration>
             <configuration>stm32f303x8</configuration>
             <configuration>stm32f767</configuration>
+            <configuration>stm32f405xx</configuration>
         </excluded>
     </file>
     <file>
