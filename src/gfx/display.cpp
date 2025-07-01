@@ -17,18 +17,59 @@ void Display::drawString(int x, int y, int w, int h, int flags, const char *s)
     if (!fi)
         return;
 
-    struct Line
-    {
-        const char *s;
-        int w;
-        int len;
-        int wcnt; // word count
-    };
-
-    std::vector<Line> lines;
-
     const char *line = s;
+    int linecnt = 0;
 
+    // count lines:    
+    do
+    {
+        int wcnt = 0;
+
+        const char *word = line;
+        bool flag = true;
+        do
+        {
+            const char *nextword = nullptr;
+            if (flags & TextWordWrap)
+                nextword = strpbrk(word, " \t\n");
+            else
+                nextword = strchr(word, '\n');
+            if (!nextword)
+                nextword = line + strlen(line);
+
+            flag = *nextword && *nextword != '\n';
+
+            int lw = fi->width(line, nextword - line);
+            if (lw <= w || !wcnt)
+            {
+                wcnt++;
+                if (*nextword)
+                    word = nextword + 1;
+                else
+                    word = nullptr;
+            }
+
+            if (lw > w)
+                break;
+
+            if (!flag)
+                wcnt = 0;
+        }
+        while (flag);
+
+        linecnt++;
+        line = word;
+    } while (line);
+
+    int th = linecnt * fi->height();
+    int ypos = y + fi->ascent();
+    if (flags & AlignBottom)
+        ypos += h - th;
+    else if (flags & AlignVCenter)
+        ypos += (h - th) / 2;
+
+    // now render:    
+    line = s;
     do
     {
         int linew = 0;
@@ -70,44 +111,31 @@ void Display::drawString(int x, int y, int w, int h, int flags, const char *s)
         }
         while (flag);
 
-        lines.push_back({line, linew, len, wcnt});
-        line = word;
-    } while (line);
-
-    int th = lines.size() * fi->height();
-    int ypos = y + fi->ascent();
-    if (flags & AlignBottom)
-        ypos += h - th;
-    else if (flags & AlignVCenter)
-        ypos += (h - th) / 2;
-
-    for (Line &ln: lines)
-    {
         int xpos = x;
         if (flags & AlignRight)
-            xpos += w - ln.w;
+            xpos += w - linew;
         else if (flags & AlignHCenter)
-            xpos += (w - ln.w) / 2;
+            xpos += (w - linew) / 2;
 
-        int space = ((flags & AlignJustify) && ln.wcnt > 1)? (w - ln.w): 0;
-        int wcnt = (ln.wcnt);// - 1);
+        int space = ((flags & AlignJustify) && wcnt > 1)? (w - linew): 0;
 
-        const char *s = ln.s;
-        for (int i=0; i<ln.len; i++)
+        for (int i=0; i<len; i++)
         {
-            if ((flags & TextWordWrap) && *s == ' ' || *s == '\t')
+            if ((flags & TextWordWrap) && *line == ' ' || *line == '\t')
             {
                 int sp = space / --wcnt;
                 xpos += sp;
                 space -= sp;
             }
-            renderChar(*s++, xpos, ypos);
+            renderChar(*line++, xpos, ypos);
         }
 
         ypos += fi->height();
         if (ypos >= y + h)
             break;
-    }
+        
+        line = word;
+    } while (line);
 
 }
 
