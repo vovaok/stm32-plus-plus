@@ -146,7 +146,7 @@ public:
     };
 
 private:
-    const void *mReadPtr;
+    void *mReadPtr;
     void *mWritePtr;
     int mAutoPeriod, mAutoTime; // automatic transmission period
     unsigned char mAutoReceiverAddr = 0; // address of receiver for automatic transmission
@@ -267,6 +267,9 @@ public:
     QVariant toVariant();
     bool fromVariant(QVariant &v);
     #endif
+    
+    ByteArray toString();
+    bool fromString(const ByteArray &s);
     
     ObjectInfo &subobject(uint8_t idx);
     uint8_t subobjectCount() const {return m_subobjects.size();}

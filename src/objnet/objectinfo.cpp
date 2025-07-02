@@ -673,6 +673,224 @@ bool ObjectInfo::fromVariant(QVariant &v)
 #endif
 //---------------------------------------------------------
 
+ByteArray ObjectInfo::toString()
+{
+    switch (mDesc.wType)
+    {
+    case Bool:
+        if (*reinterpret_cast<const bool *>(mWritePtr))
+            return "true";
+        else
+            return "false";
+        
+    case Int:
+        return ByteArray::number(*reinterpret_cast<const int*>(mWritePtr));
+        
+    case UInt:
+        return ByteArray::number(*reinterpret_cast<const unsigned int*>(mWritePtr));
+        
+    case LongLong:
+        return ByteArray::number(*reinterpret_cast<const long long*>(mWritePtr));
+        
+    case ULongLong:
+        return ByteArray::number(*reinterpret_cast<const unsigned long long*>(mWritePtr));
+        
+    case Double:
+        return ByteArray::number(*reinterpret_cast<const double*>(mWritePtr));
+        
+    case Long:
+        return ByteArray::number((int)*reinterpret_cast<const long*>(mWritePtr));
+        
+    case Short:
+        return ByteArray::number(*reinterpret_cast<const short*>(mWritePtr));
+        
+    case Char:
+        return ByteArray(reinterpret_cast<const char *>(mWritePtr), 1);
+        
+    case ULong:
+        return ByteArray::number((unsigned int)*reinterpret_cast<const unsigned long*>(mWritePtr));
+        
+    case UShort:
+        return ByteArray::number(*reinterpret_cast<const unsigned short*>(mWritePtr));
+        
+    case UChar:
+        return ByteArray::number(*reinterpret_cast<const unsigned char*>(mWritePtr));
+        
+    case Float:
+        return ByteArray::number(*reinterpret_cast<const float*>(mWritePtr));
+        
+    case SChar:
+        return ByteArray::number(*reinterpret_cast<const signed char*>(mWritePtr));
+    
+//    // Qt-specific types
+//    case QTransform:
+//        // Обработка QTransform (80)
+//        break;
+//    case QMatrix4x4:
+//        // Обработка QMatrix4x4 (81)
+//        break;
+//    case QVector2D:
+//        // Обработка QVector2D (82)
+//        break;
+//    case QVector3D:
+//        // Обработка QVector3D (83)
+//        break;
+//    case QVector4D:
+//        // Обработка QVector4D (84)
+//        break;
+//    case QQuaternion:
+//        // Обработка QQuaternion (85)
+//        break;
+
+    case String:
+        return ByteArray::fromStdString(_fromString(*reinterpret_cast<const _String *>(mWritePtr)));
+        
+    case StringList:
+      {
+        ByteArray ba;
+        const StringList_t &v = *reinterpret_cast<const StringList_t *>(mWritePtr);
+        for (const string &s: v)
+        {
+            ba.append(ByteArray::fromStdString(s));
+            ba.append(',');
+        }
+        ba.chop(1);
+        return ba;
+      }
+        
+    case Common:
+        return reinterpret_cast<const ByteArray *>(mWritePtr)->toHex();
+        break;
+    
+    case Compound:
+        // Обработка Compound (0x80)
+        /// @todo Dopilit conversion of ObjectInfo compound object to string
+        return "<compound>";
+        break;
+    
+    default:
+        // Обработка неизвестного типа
+        return ByteArray();
+        break;
+    }
+}
+
+bool ObjectInfo::fromString(const ByteArray &s)
+{
+    bool ok = true;
+    switch (mDesc.rType)
+    {
+    case Bool:
+        if (s == "true")
+            *reinterpret_cast<bool *>(mReadPtr) = true;
+        else if (s == "false")
+            *reinterpret_cast<bool *>(mReadPtr) = false;
+        else
+            *reinterpret_cast<bool *>(mReadPtr) = s.toInt();
+        break;
+        
+    case Int:
+        *reinterpret_cast<int*>(mReadPtr) = s.toInt();
+        break;
+        
+    case UInt:
+        *reinterpret_cast<unsigned int*>(mReadPtr) = s.toInt();
+        break;
+        
+    case LongLong:
+        *reinterpret_cast<long long*>(mReadPtr) = s.toLongLong();
+        break;
+        
+    case ULongLong:
+        *reinterpret_cast<unsigned long long*>(mReadPtr) = s.toLongLong(); /// @todo unsigned long lng
+        break;
+        
+    case Double:
+        *reinterpret_cast<double*>(mReadPtr) = (double)s.toFloat(); /// @todo double
+        break;
+        
+    case Long:
+        *reinterpret_cast<long*>(mReadPtr) = s.toInt();
+        break;
+        
+    case Short:
+        *reinterpret_cast<short*>(mReadPtr) = s.toInt();
+        break;
+        
+    case Char:
+        *reinterpret_cast<char*>(mReadPtr) = s[0];
+        break;
+        
+    case ULong:
+        *reinterpret_cast<unsigned long*>(mReadPtr) = s.toInt();
+        break;
+        
+    case UShort:
+        *reinterpret_cast<unsigned short*>(mReadPtr) = s.toInt();
+        break;
+        
+    case UChar:
+        *reinterpret_cast<unsigned char*>(mReadPtr) = s.toInt();
+        break;
+        
+    case Float:
+        *reinterpret_cast<float*>(mReadPtr) = s.toFloat();
+        break;
+        
+    case SChar:
+        *reinterpret_cast<signed char*>(mReadPtr) = s.toInt();
+        break;
+    
+//    // Qt-specific types
+//    case QTransform:
+//        // Обработка QTransform (80)
+//        break;
+//    case QMatrix4x4:
+//        // Обработка QMatrix4x4 (81)
+//        break;
+//    case QVector2D:
+//        // Обработка QVector2D (82)
+//        break;
+//    case QVector3D:
+//        // Обработка QVector3D (83)
+//        break;
+//    case QVector4D:
+//        // Обработка QVector4D (84)
+//        break;
+//    case QQuaternion:
+//        // Обработка QQuaternion (85)
+//        break;
+
+    case String:
+        *reinterpret_cast<_String *>(mReadPtr) = _toString(s.toStdString());
+        break;
+        
+    case StringList:
+      {
+        StringList_t lst;
+        
+        /// @todo implement ObjectInfo fill from comma-separated string list
+
+        *reinterpret_cast<StringList_t *>(mReadPtr) = lst;
+      } break;
+        
+    case Common:
+        *reinterpret_cast<ByteArray *>(mReadPtr) = ByteArray::fromHex(s);
+        break;
+    
+    case Compound:
+        // Обработка Compound (0x80)
+        ok = false;
+        break;
+    
+    default:
+        // Обработка неизвестного типа
+        ok = false;
+        break;
+    }
+    return ok;
+}
+
 ObjectInfo &ObjectInfo::subobject(uint8_t idx)
 {
     if (idx < m_subobjects.size())
