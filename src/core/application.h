@@ -80,7 +80,7 @@ private:
     static const char *mDescription;
     static const char *mCompany;
 
-    volatile uint32_t mTimestamp;
+    volatile uint32_t mTimestamp = 0;
 
     static void sysTickHandler();
 
@@ -108,10 +108,10 @@ protected:
     }
     void setVersion(unsigned short ver) {mVersion = ver;}
     void setBurnCount(unsigned long cnt) {mBurnCount = cnt;}
-    
+
     /*! Enable sleeping between task sync intervals */
     void setSleeping(bool sleep) {m_sleeping = sleep;}
-    
+
     /*! Enable watchdog to prevent freezing */
     /*! Useful to reset into the bootloader */
     void enableWatchdog();
