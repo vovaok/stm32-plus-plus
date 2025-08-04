@@ -20,7 +20,8 @@ ObjnetCommonNode::ObjnetCommonNode(ObjnetInterface *iface) :
 
     QTimer *timer = new QTimer(this);
     QObject::connect(timer, SIGNAL(timeout()), SLOT(task()));
-    timer->start(0);
+//    timer->start(0); // this heats the CPU
+    timer->start(100);
 
 //    QtConcurrent::run([=](){
 //        task();
@@ -57,10 +58,11 @@ void ObjnetCommonNode::task()
 //    }
 
 //    CommonMessage msg;
-    
-    if (mInterface->peekNext()) // if there is unhandled msgs
+
+//    if (mInterface->peekNext()) // if there is unhandled msgs
+    while (mInterface->peekNext()) // if there is unhandled msgs
         onNewMessage();
-    
+
 //    m_receiveBusy = true;
 //    while (mInterface->read(m_currentMsg))
 //    {
@@ -77,7 +79,7 @@ void ObjnetCommonNode::onNewMessage()
         return; // already processing
 
     m_receiveBusy = true;
-    
+
     const CommonMessage *msg = mInterface->peekNext();
 
 //    if (mInterface->read(m_currentMsg))
@@ -86,7 +88,7 @@ void ObjnetCommonNode::onNewMessage()
         if (mBusAddress != 0xFF)
         {
 //#warning message is being taken from queue BEFORE it is used
-            
+
             //! @todo assemble fragmented messages here
 
             mInterface->discardNext();
@@ -105,7 +107,7 @@ void ObjnetCommonNode::onNewMessage()
 bool ObjnetCommonNode::handleMessage(const CommonMessage &msg)
 {
     bool success = true;
-    
+
     if (msg.isGlobal())
     {
         GlobalMsgId id = msg.globalId();
@@ -199,7 +201,7 @@ bool ObjnetCommonNode::handleMessage(const CommonMessage &msg)
                 if (buf.isReady())
                 {
                     //! @todo and what if buf is not sent??
-                    //             v    
+                    //             v
                     success &= mAdjacentNode->sendCommonMessage(buf);
                     mFragmentBuffer.erase(key);
                 }
@@ -213,7 +215,7 @@ bool ObjnetCommonNode::handleMessage(const CommonMessage &msg)
                 success &= mAdjacentNode->sendCommonMessage(newMsg);
             }
         }
-        
+
         mFragmentBuffer.damage(25);
 
 //            std::list<uint32_t> toRemove;
@@ -226,7 +228,7 @@ bool ObjnetCommonNode::handleMessage(const CommonMessage &msg)
 //                mFragmentBuffer.erase(*it);
 //            toRemove.clear();
     }
-    
+
     return success;
 }
 //---------------------------------------------------------------------------

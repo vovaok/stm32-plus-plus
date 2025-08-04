@@ -605,6 +605,15 @@ int ByteArray::toInt(int base) const
     return value;
 }
 
+long long ByteArray::toLongLong() const
+{
+    if (!mSize)
+        return 0; // alarm
+    long long value;
+    sscanf(mData, "%lld", &value);
+    return value;
+}
+
 float ByteArray::toFloat() const
 {
     if (!mSize)
@@ -619,7 +628,7 @@ std::string ByteArray::toStdString() const
     return std::string(mData, mSize);
 }
 
-ByteArray ByteArray::toHex()
+ByteArray ByteArray::toHex() const
 {
     ByteArray ba(mSize * 2, 0);
     char *src = mData;
@@ -629,7 +638,7 @@ ByteArray ByteArray::toHex()
     return ba;
 }
 
-ByteArray ByteArray::toHex(char separator)
+ByteArray ByteArray::toHex(char separator) const
 {
     ByteArray ba(mSize * 3, 0);
     char *src = mData;
@@ -693,6 +702,33 @@ ByteArray ByteArray::number(int n)
     ByteArray ba;
     ba.resize(16);
     sprintf(ba.data(), "%d", n);
+    ba.resize(strlen(ba.data()));
+    return ba;
+}
+
+ByteArray ByteArray::number(unsigned int n)
+{
+    ByteArray ba;
+    ba.resize(16);
+    sprintf(ba.data(), "%u", n);
+    ba.resize(strlen(ba.data()));
+    return ba;
+}
+
+ByteArray ByteArray::number(long long n)
+{
+    ByteArray ba;
+    ba.resize(16);
+    sprintf(ba.data(), "%lld", n);
+    ba.resize(strlen(ba.data()));
+    return ba;
+}
+
+ByteArray ByteArray::number(unsigned long long n)
+{
+    ByteArray ba;
+    ba.resize(16);
+    sprintf(ba.data(), "%llu", n);
     ba.resize(strlen(ba.data()));
     return ba;
 }

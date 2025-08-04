@@ -103,7 +103,7 @@ private:
     int m_x=0, m_y=0;
     /*Color*/ uint32_t m_color = 0, m_bgColor = 0;
 	Font m_font;
-
+    
     void renderChar(char c, int &x, int &y);
 
     void Draw_FastHLine(int x, int y, int length);

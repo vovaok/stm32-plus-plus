@@ -16701,6 +16701,12 @@
             <name>$PROJ_DIR$\src\ethernet\httpserver.h</name>
         </file>
         <file>
+            <name>$PROJ_DIR$\src\ethernet\jsonvalue.cpp</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\ethernet\jsonvalue.h</name>
+        </file>
+        <file>
             <name>$PROJ_DIR$\src\ethernet\tcpserver.cpp</name>
         </file>
         <file>
@@ -17600,10 +17606,12 @@
     <file>
         <name>$PROJ_DIR$\src\dma0fxx.cpp</name>
         <excluded>
+            <configuration>stm32f407vg</configuration>
             <configuration>stm32f429zi</configuration>
             <configuration>stm32f303xC</configuration>
             <configuration>stm32f303x8</configuration>
             <configuration>stm32f767</configuration>
+            <configuration>stm32f405xx</configuration>
         </excluded>
     </file>
     <file>
@@ -17613,6 +17621,7 @@
             <configuration>stm32f303xC</configuration>
             <configuration>stm32f303x8</configuration>
             <configuration>stm32f767</configuration>
+            <configuration>stm32f405xx</configuration>
         </excluded>
     </file>
     <file>

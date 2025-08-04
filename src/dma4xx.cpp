@@ -84,6 +84,9 @@ Dma *Dma::instance(Channel channelName)
     Dma *dma = mStreams[idx];
     if (!dma)
         dma = new Dma(channelName); // this updates mStream[idx]
+    
+//    if (dma->isEnabled())
+//        THROW(Exception::BadSoBad);
 
     // override channel for this instance
     dma->mConfig.CHSEL = channel_num;
@@ -108,9 +111,9 @@ void Dma::setSingleBuffer(void *buffer, int size)
     mConfig.MINC = 1;
     mConfig.CIRC = 0;
 
-    mStream->CR = mConfig.all;
     mStream->NDTR = size;
     mStream->M0AR = (uint32_t)buffer;
+    mStream->CR = mConfig.all;
 }
 
 void Dma::setCircularBuffer(void *buffer, int size)
@@ -244,6 +247,8 @@ void Dma::setTransferCompleteEvent(NotifyEvent event)
     NVIC_SetPriority(mIrq, NVIC_EncodePriority(NVIC_GetPriorityGrouping(), 1, 1));
     NVIC_EnableIRQ(mIrq);
 
+//    if (testFlag(TCIF))
+//        THROW(Exception::BadSoBad);
     clearFlag(AllFlags);
     // enable Transfer Complete interrupt
     mConfig.TCIE = 1;
