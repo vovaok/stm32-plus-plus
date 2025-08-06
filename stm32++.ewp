@@ -16491,6 +16491,12 @@
             <configuration>stm32f030x6</configuration>
         </excluded>
         <file>
+            <name>$PROJ_DIR$\src\device\ad5412.cpp</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\device\ad5412.h</name>
+        </file>
+        <file>
             <name>$PROJ_DIR$\src\device\ad7888.cpp</name>
         </file>
         <file>
