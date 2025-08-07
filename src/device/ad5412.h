@@ -80,7 +80,7 @@ public:
 private:
     Spi *mSpi;
     Gpio *mLatchPin;
-    Gpio *mClearPin;
+    Gpio *mClearPin = nullptr;
     bool mEnabled;
     bool mIs16Bit = false; // true for AD5422 (16-bit), false for AD5412 (12-bit)
 

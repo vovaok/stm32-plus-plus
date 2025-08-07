@@ -9,8 +9,9 @@ AD5412::AD5412(Spi *spi, Gpio::PinName latchPin, Gpio::PinName clearPin) :
         mLatchPin->setAsOutput();
          select();
         
-        if (mClearPin)
+         if (clearPin!=Gpio::noPin)
         {
+            mClearPin = new Gpio(clearPin);
             mClearPin->setAsOutput();
             mClearPin->reset(); // Deassert CLEAR
         }
