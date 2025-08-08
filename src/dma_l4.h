@@ -39,6 +39,8 @@ public:
      Dma(Channel channelName);
     ~Dma();
     
+    static Dma *instance(Channel channelName);
+    
     void setSingleBuffer(void *buffer, int size);
     void setCircularBuffer(void *buffer, int size);
     void setMemorySource(void *ptr, int dataSize);

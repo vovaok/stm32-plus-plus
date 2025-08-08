@@ -17600,7 +17600,9 @@
     <file>
         <name>$PROJ_DIR$\src\dma0fxx.cpp</name>
         <excluded>
+            <configuration>stm32f407vg</configuration>
             <configuration>stm32f429zi</configuration>
+            <configuration>stm32g474</configuration>
             <configuration>stm32f303xC</configuration>
             <configuration>stm32f303x8</configuration>
             <configuration>stm32f767</configuration>
@@ -17610,6 +17612,7 @@
     <file>
         <name>$PROJ_DIR$\src\dma0fxx.h</name>
         <excluded>
+            <configuration>stm32f407vg</configuration>
             <configuration>stm32f429zi</configuration>
             <configuration>stm32f303xC</configuration>
             <configuration>stm32f303x8</configuration>
