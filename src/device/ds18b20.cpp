@@ -11,7 +11,7 @@ DS18B20::DS18B20(Usart *usart) :
     
     m_timer = new Timer();
     m_timer->onTimeout = EVENT(&DS18B20::update);
-    m_timer->start(500);
+    m_timer->start(1000);
 }
 
 void DS18B20::setUpdateInterval(int value_ms)
@@ -60,18 +60,18 @@ void DS18B20::onTransferComplete()
         
     case WaitConvert:      
         m_usart->read(buf, 1);
-        if (buf[1] & 1) // conversion completed
-        {
+      //  if (buf[1] & 1) // conversion completed
+      //  {
             m_fsm = InitRead;
             initTransfer();
-        }
-         else // request again
-        {
+      //  }
+     //    else // request again
+      //  {
         
-            buf[0] = 0xFF;
-            m_usart->write(buf, 1); // issue read slot
+       //     buf[0] = 0xFF;
+       //     m_usart->write(buf, 1); // issue read slot
             
-        }
+      //  }
 
         break;
         
@@ -84,11 +84,20 @@ void DS18B20::onTransferComplete()
         
     case Read:
         m_usart->read(buf, 16); // dummy read
+       
+        if(buf[0]!=0x00) 
+        {
+          m_usart->readAll();
+          m_fsm = Idle;
+        }
+        else
+        {
         m_usart->read(buf, 16); // read result;
         readResult(buf);
         m_fsm = Idle;
         if (onReadyRead)
             onReadyRead();
+        }
         break;
         
     default:
@@ -99,6 +108,7 @@ void DS18B20::onTransferComplete()
 
 void DS18B20::initTransfer()
 {    
+  m_usart->readAll();
     // Задаем значение сброса (reset pulse) в соответствии с протоколом DS18B20
     char tmp = 0xF0;
     

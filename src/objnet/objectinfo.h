@@ -71,7 +71,7 @@ public:
         UChar = 37,
         Float = 38,
         SChar = 40,
-        
+
         // Qt-specific types
         QTransform = 80,
         QMatrix4x4 = 81,
@@ -83,7 +83,7 @@ public:
         String = 10,  // QString B Qt, string B APMe
         StringList = 11, // QStringList | std::vector<std::string>
         Common = 12, // Common - this is (Q)ByteArray
-        
+
         Compound = 0x80, // bits 0...6 reflect subobject count
     } Type; // KAK B Qt!!!
 
@@ -156,7 +156,7 @@ private:
     bool mValid;
     static int mAssignId;
     uint8_t mArrayItemCount = 1;
-    
+
     ObjectInfo *m_parentObject;
     std::vector<ObjectInfo> m_subobjects;
 
@@ -166,7 +166,7 @@ private:
     friend class ObjnetStorage;
 
     static constexpr int sizeofType(Type type);
-    
+
     uint8_t *nextReadPtr() const;
     uint8_t *nextWritePtr() const;
 
@@ -176,14 +176,14 @@ public:
     // vars binding:
 //#if __cplusplus > 199711L
 //    template<typename T, typename std::enable_if<!std::is_class<T>::value, bool>::type = true>
-//    ObjectInfo(string name, T &var, Flags flags=ReadWrite);    
+//    ObjectInfo(string name, T &var, Flags flags=ReadWrite);
 //    template<typename T, typename std::enable_if<!std::is_class<T>::value, bool>::type = true>
 //    ObjectInfo(string name, const T &var, Flags flags=ReadOnly);
 //    template<typename Tr, typename Tw>
 //    ObjectInfo(string name, const Tr &varRead, Tw &varWrite, Flags flags=ReadWrite);
 //#else
     template<typename T>
-    ObjectInfo(string name, T &var, Flags flags=ReadWrite);    
+    ObjectInfo(string name, T &var, Flags flags=ReadWrite);
     template<typename T>
     ObjectInfo(string name, const T &var, Flags flags=ReadOnly);
     template<typename Tr, typename Tw>
@@ -195,15 +195,15 @@ public:
     ObjectInfo(string name, T (&var)[N], Flags flags=ReadWrite);
     template<typename T, int N>
     ObjectInfo(string name, const T (&var)[N], Flags flags=ReadWrite);
-    
+
 //#if __cplusplus > 199711L
 //    // struct binding:
 //    template<typename T, typename std::enable_if<std::is_class<T>::value, bool>::type = true>
-//    ObjectInfo(string name, T &var, Flags flags=ReadWrite);   
+//    ObjectInfo(string name, T &var, Flags flags=ReadWrite);
 //#endif
     template<typename T>
     ObjectInfo &field(string name);
-    
+
     ObjectInfo &group(string name); // for substructures
     ObjectInfo &endGroup();
 
@@ -214,7 +214,7 @@ public:
     ObjectInfo(string name, Closure<void(P0)> event, Flags flags=Write);
     template<class R, class P0>
     ObjectInfo(string name, Closure<R(P0)> event, Flags flags=ReadWrite);
-    
+
     // buffer binding:
     template<typename T>
     ObjectInfo(string name, RingBuffer<T> &buffer, Flags flags=ReadWrite);
@@ -231,7 +231,7 @@ public:
     int writeSize() const {return mDesc.writeSize;}
 
     bool isValid() const;
-    
+
     inline bool isVolatile() const {return mDesc.flags & Volatile;}
     inline bool isReadable() const {return mDesc.flags & Read;}
     inline bool isWritable() const {return mDesc.flags & Write;}
@@ -260,21 +260,21 @@ public:
 
     inline const Description &description() {return mDesc;}
     inline uint8_t id() const {return mDesc.id;}
-    
+
     Closure<void(unsigned char)> onValueChanged;
 
     #ifdef QT_CORE_LIB
     QVariant toVariant();
     bool fromVariant(QVariant &v);
     #endif
-    
+
     ByteArray toString();
     bool fromString(const ByteArray &s);
-    
+
     ObjectInfo &subobject(uint8_t idx);
     uint8_t subobjectCount() const {return m_subobjects.size();}
     ObjectInfo *parentObject() {return m_parentObject;}
-    
+
     template <typename T>
     static constexpr Type typeValue() {return Common;} // by default
 };
@@ -282,7 +282,7 @@ public:
 #define DeclareTypeValueSpec(T) \
     template <> constexpr ObjectInfo::Type ObjectInfo::typeValue<ObjectInfo::T##_t>() \
     {return ObjectInfo::T;}
-    
+
 DeclareTypeValueSpec(Void)
 DeclareTypeValueSpec(Bool)
 DeclareTypeValueSpec(Int)
@@ -504,10 +504,10 @@ ObjectInfo &ObjectInfo::field(string name)
     // if this is the first field, clear size
 //    if (!subobjectCount())
 //        mDesc.readSize = mDesc.writeSize = 0;
-    
+
     if (isArray())
         mDesc.readSize = mDesc.writeSize = mArrayItemCount;
-    
+
     ObjectInfo info;
     m_subobjects.push_back(info);
     ObjectInfo &obj = m_subobjects.back();
@@ -545,7 +545,7 @@ ObjectInfo &ObjectInfo::field(string name)
     obj.mDesc.flags = mDesc.flags;
     obj.mDesc.name = name;
     obj.mDesc.id = m_subobjects.size() - 1;
-    
+
     if (!sz)
     {
         for (ObjectInfo *o = this; o; o = o->m_parentObject)
@@ -554,7 +554,7 @@ ObjectInfo &ObjectInfo::field(string name)
             o->mDesc.writeSize = 0;//+= obj.mDesc.writeSize;
         }
     }
-    
+
     mDesc.rType = (uint8_t)Compound + m_subobjects.size();
     mDesc.wType = (uint8_t)Compound + m_subobjects.size();
     return *this;
@@ -562,7 +562,7 @@ ObjectInfo &ObjectInfo::field(string name)
 
 //template<typename T, int N>
 //ObjectInfo &ObjectInfo::array(string name)
-//{  
+//{
 //    ObjectInfo info;
 //    m_subobjects.push_back(info);
 //    ObjectInfo &obj = m_subobjects.back();
@@ -597,7 +597,7 @@ ObjectInfo &ObjectInfo::field(string name)
 //        o->mDesc.readSize = 0;// += obj.mDesc.readSize;
 //        o->mDesc.writeSize = 0;//+= obj.mDesc.writeSize;
 //    }
-//    
+//
 //    mDesc.rType = (uint8_t)Compound + m_subobjects.size();
 //    mDesc.wType = (uint8_t)Compound + m_subobjects.size();
 //    return *this;
@@ -627,7 +627,7 @@ ObjectInfo::ObjectInfo(string name, Closure<R(void)> event, ObjectInfo::Flags fl
     mDesc.name = name;
     mDesc.id = mAssignId++;
 }
-   
+
 #ifndef QT_CORE_LIB
 template<> ObjectInfo::ObjectInfo<void>(string name, Closure<void(void)> event, ObjectInfo::Flags flags);
 template<> ObjectInfo::ObjectInfo(string name, Closure<ByteArray(void)> event, ObjectInfo::Flags flags);
@@ -698,10 +698,10 @@ ObjectInfo::ObjectInfo(string name, RingBuffer<T> &buffer, Flags flags) :
 {
     mDesc.readSize = 0;
     mDesc.writeSize = 0;
-    
+
     mReadPtr = &buffer;
     mWritePtr = &buffer;
-    
+
 //    T var;
     if (flags & Read)
         mDesc.rType = typeValue<T>();
