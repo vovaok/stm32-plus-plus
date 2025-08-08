@@ -294,12 +294,12 @@ bool FdCan::close()
     return true;
 }
 
-bool FdCan::isOpen()
+bool FdCan::isOpen() const
 {
     return !(m_dev->CCCR & FDCAN_CCCR_INIT);
 }
 
-void setRxInterruptEnabled(int fifoChannel, bool enabled)
+void FdCan::setRxInterruptEnabled(int fifoChannel, bool enabled)
 {
     //! @todo todo todotodotodto
 
