@@ -376,7 +376,7 @@ ObjectInfo::ObjectInfo(string name, const T &var, Flags flags) :
     Type t = typeValue<T>();
     if (flags & Read)
     {
-        mReadPtr = const_cast<T *>(&var);
+        mReadPtr = const_cast<T*>(&var);
         mDesc.readSize = sz;
         mDesc.rType = t;
     }
