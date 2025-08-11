@@ -16103,6 +16103,9 @@
             <group>
                 <name>ipv4</name>
                 <file>
+                    <name>$PROJ_DIR$\lib\stm32_mw_lwip\src\core\ipv4\acd.c</name>
+                </file>
+                <file>
                     <name>$PROJ_DIR$\lib\stm32_mw_lwip\src\core\ipv4\autoip.c</name>
                 </file>
                 <file>
