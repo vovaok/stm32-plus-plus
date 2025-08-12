@@ -36,11 +36,11 @@
                 </option>
                 <option>
                     <name>Input description</name>
-                    <state>Automatic choice of formatter.</state>
+                    <state>Automatic choice of formatter, without multibyte support.</state>
                 </option>
                 <option>
                     <name>Output description</name>
-                    <state>Automatic choice of formatter.</state>
+                    <state>Automatic choice of formatter, without multibyte support.</state>
                 </option>
                 <option>
                     <name>GOutputBinary</name>
@@ -62,7 +62,7 @@
                 </option>
                 <option>
                     <name>RTDescription</name>
-                    <state>To be used with the full configuration of the C/C++ runtime library. Full locale interface, C locale, file descriptor support, multibytes in printf and scanf, and hex floats in strtod.</state>
+                    <state>To be used with a complete configuration of the C/C++14 runtime library. Full locale interface, C locale, file descriptor support, multibytes in printf and scanf, and hex floats in strtod.</state>
                 </option>
                 <option>
                     <name>OGProductVersion</name>
@@ -350,6 +350,11 @@
                     <state>$PROJ_DIR$\lib\CMSIS\Device\ST\STM32F2xx\Include</state>
                     <state>$PROJ_DIR$\lib\STM32F207_StdPeriph_Driver\inc</state>
                     <state>$PROJ_DIR$\src</state>
+                    <state>C:\Users\tndrd\Projects\WaveLab\stm32-plus-plus\src\ethernet</state>
+                    <state>C:\Users\tndrd\Projects\WaveLab\stm32-plus-plus\src</state>
+                    <state>C:\Users\tndrd\Projects\WaveLab\stm32-plus-plus\src\core</state>
+                    <state>C:\Users\tndrd\Projects\WaveLab\stm32-plus-plus\lib\stm32_mw_lwip\src\include</state>
+                    <state>C:\Users\tndrd\Projects\WaveLab\stm32-plus-plus\lib\stm32_mw_lwip\system</state>
                 </option>
                 <option>
                     <name>CCStdIncCheck</name>
@@ -1068,7 +1073,7 @@
                 </option>
                 <option>
                     <name>IarchiveOutput</name>
-                    <state>D:\projects\iar\components\stm32++\bin\stm32f207\stm32++.a</state>
+                    <state>C:\Users\tndrd\Projects\WaveLab\stm32-plus-plus\bin\stm32f207\stm32++.a</state>
                 </option>
             </data>
         </settings>
@@ -16102,6 +16107,9 @@
             <name>lwip</name>
             <group>
                 <name>ipv4</name>
+                <file>
+                    <name>$PROJ_DIR$\lib\stm32_mw_lwip\src\core\ipv4\acd.c</name>
+                </file>
                 <file>
                     <name>$PROJ_DIR$\lib\stm32_mw_lwip\src\core\ipv4\autoip.c</name>
                 </file>
