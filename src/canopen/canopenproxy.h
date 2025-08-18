@@ -4,6 +4,8 @@
 #include "canopencommon.h"
 #include "cansocket.h"
 #include <queue>
+#include <initializer_list>
+#include <utility>
 #include "core/timer.h"
 
 using namespace CanOpen;
@@ -29,6 +31,15 @@ public:
     void sdoWrite8(uint16_t id, uint8_t subid, uint8_t value);
     void sdoWrite16(uint16_t id, uint8_t subid, uint16_t value);
     void sdoWrite32(uint16_t id, uint8_t subid, uint32_t value);
+    
+    /// Configure PDO
+    /// @attention Event-driven transmission and reception ONLY!
+    /// @param func must be one of: PDOn_TX, PDOn_RX (n=1...4)
+    /// @param sdo_list is the list of SDO entries
+    /// @param interval_ms is the transmit interval for TPDO
+    /// @return true if success
+    /// @todo maybe refactor this?
+    bool configPdo(FunctionCode func, std::initializer_list<uint32_t> sdo_list, int interval_ms=0);
   
 protected:
     virtual void nmtStateChanged() {}
