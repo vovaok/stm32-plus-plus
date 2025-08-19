@@ -6,12 +6,25 @@
 #include <queue>
 #include <initializer_list>
 #include <utility>
+#include <type_traits>
+
 #include "core/timer.h"
 
 using namespace CanOpen;
 
 class CanOpenProxy
 {
+public:
+    /* Object Dictionary entry template */
+    template<typename T, uint16_t Id, uint8_t Sid = 0>
+    struct ODEntry
+    {
+        static_assert(std::is_integral_v<T> && sizeof(T) <= 4, "Type mismatch");
+        using Type = T;
+        uint16_t id = Id;
+        uint8_t sid = Sid;
+    };
+    
 public:
     CanOpenProxy(CanInterface *can, uint8_t nodeId);
     uint8_t nodeId() const {return m_nodeId;}
@@ -32,6 +45,14 @@ public:
     void sdoWrite16(uint16_t id, uint8_t subid, uint16_t value);
     void sdoWrite32(uint16_t id, uint8_t subid, uint32_t value);
     
+    /// @brief Generic interface for sdoWrite.
+    /// @param entry is Object Dictionary entry defined as ODEntry struct
+    /// @param value to be sent of a corresponding type
+    /// @note Always inlined to prevent generating symbols on every instantiation
+    template<typename Entry>
+    inline void sdoWrite(const Entry& entry, typename Entry::Type value)
+        __attribute__((always_inline));
+
     /// Configure PDO
     /// @attention Event-driven transmission and reception ONLY!
     /// @param func must be one of: PDOn_TX, PDOn_RX (n=1...4)
@@ -66,5 +87,11 @@ private:
     void readPacket();
     void handlePacket(uint16_t cob_id, const ByteArray &payload);
 };
+
+template<typename Entry>
+void CanOpenProxy::sdoWrite(const Entry& entry, typename Entry::Type value)
+{
+    sdoWrite(entry.id, entry.sid, value, sizeof(value));
+}
 
 #endif // _CANOPENPROXY_H
