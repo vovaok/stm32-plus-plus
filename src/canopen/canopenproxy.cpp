@@ -64,6 +64,11 @@ void CanOpenProxy::nmtErrorControl() // request node state
     m_nmtErrorControl = !m_can->interface()->transmitMessage(CanInterface::RTR, NMT_ErrorControl | m_nodeId, nullptr, 0);
 }
 
+void CanOpenProxy::sync()
+{
+    sendPacket(0x080);
+}
+
 void CanOpenProxy::pdoWrite(uint8_t pdo, const ByteArray &value)
 {
     uint16_t cob_id = m_nodeId;
@@ -135,7 +140,7 @@ void CanOpenProxy::sdoWrite32(uint16_t id, uint8_t subid, uint32_t value)
     sdoWrite(id, subid, value, 4);
 }
 
-bool CanOpenProxy::configPdo(FunctionCode func, std::initializer_list<uint32_t> sdo_list, int interval_ms)
+bool CanOpenProxy::configPdo(FunctionCode func, std::initializer_list<uint32_t> sdo_list, int interval, bool use_sync)
 {
     uint16_t comm, map;
     switch (func)
@@ -156,12 +161,16 @@ bool CanOpenProxy::configPdo(FunctionCode func, std::initializer_list<uint32_t> 
     // 1. deactivate PDO
     sdoWrite32(comm, 0x01, 0x80000000 | cob_id);
 
-    if (interval_ms)
+    if (use_sync)
+    {
+        sdoWrite8(comm, 0x02, interval);
+    }
+    else if (interval)
     {
         // Set Transmission Type = 0xFE (Cyclic mode)
         sdoWrite8(comm, 0x02, 0xFE);
         // Set Event Timer interval (WUT?? ought to be 0.1ms step)
-        sdoWrite16(comm, 0x05, interval_ms);
+        sdoWrite16(comm, 0x05, interval);
     }
     else
     {
