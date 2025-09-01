@@ -34,6 +34,9 @@ public:
     void nmtModuleControl(NMTControl cmd);
     void nmtErrorControl(); // request node state
     
+    /// Issue SYNC message
+    void sync();
+    
     void pdoWrite(uint8_t pdo, const ByteArray &value);
     
     void sdoRead(uint16_t id, uint8_t subid, uint8_t size);
@@ -60,7 +63,7 @@ public:
     /// @param interval_ms is the transmit interval for TPDO
     /// @return true if success
     /// @todo maybe refactor this?
-    bool configPdo(FunctionCode func, std::initializer_list<uint32_t> sdo_list, int interval_ms=0);
+    bool configPdo(FunctionCode func, std::initializer_list<uint32_t> sdo_list, int interval=0, bool use_sync=false);
   
 protected:
     virtual void nmtStateChanged() {}
