@@ -2,9 +2,10 @@
 #define _CIA402_H
 
 #include "canopenproxy.h"
+#include <array>
 
-#define ENTRY const struct : CanOpenProxy::ODEntry
-#define INHERITED(parent) const struct: parent, CanOpenProxy::ODEntry 
+#define ENTRY(name) struct name: public CanOpenProxy::ODEntryMeta
+#define INHERITED(name, parent) struct name: public parent, public CanOpenProxy::ODEntryMeta
 
 namespace CanOpen::CiA402
 {
@@ -27,7 +28,7 @@ namespace Common
 }
 
 // Maybe move to cia301dict.h?
-ENTRY<uint8_t, 0x1001>
+ENTRY(ErrorRegister)<uint8_t, 0x1001>
 {
     enum Bits: uint8_t
     {
@@ -39,9 +40,9 @@ ENTRY<uint8_t, 0x1001>
         Device        = 1 << 5,
         Manufacturer  = 1 << 7
     };
-} ErrorRegister;
+};
 
-ENTRY<uint16_t, 0x6040>
+ENTRY(ControlWord)<uint16_t, 0x6040>
 {
     enum Bits: uint16_t
     {
@@ -65,9 +66,9 @@ ENTRY<uint16_t, 0x6040>
         CMD_PowerOn  = SwitchOn | EnableVoltage | QuickStop | EnableOperation,
         CMD_PowerOff = EnableVoltage | QuickStop
     };
-} ControlWord;
+};
 
-ENTRY<uint16_t, 0x6041> 
+ENTRY(StatusWord)<uint16_t, 0x6041> 
 {
     enum Bits: uint16_t
     {
@@ -90,30 +91,30 @@ ENTRY<uint16_t, 0x6041>
         
         /* PT, PV, IP, etc profiles are WIP */  
     };
-} StatusWord;
+};
 
-INHERITED(Common::OperationMode)<int8_t, 0x6060> {} SetOpMode;
-INHERITED(Common::OperationMode)<int8_t, 0x6061> {} GetOpMode;
+INHERITED(SetOpMode, Common::OperationMode)<int8_t, 0x6060> {};
+INHERITED(GetOpMode, Common::OperationMode)<int8_t, 0x6061> {};
 
-ENTRY<uint32_t, 0x607B, 1> {} PosRangeLimitMin;
-ENTRY<uint32_t, 0x607B, 2> {} PosRangeLimitMax ;
+ENTRY(PosRangeLimitMin)<uint32_t, 0x607B, 1> {};
+ENTRY(PosRangeLimitMax)<uint32_t, 0x607B, 2> {};
 
-ENTRY<uint32_t, 0x607D, 1> {} PosSoftLimitMin;
-ENTRY<uint32_t, 0x607D, 2> {} PosSoftLimitMax;
+ENTRY(PosSoftLimitMin)<uint32_t, 0x607D, 1> {};
+ENTRY(PosSoftLimitMax)<uint32_t, 0x607D, 2> {};
 
-ENTRY<int32_t, 0x607A> {} TargetPos;
+ENTRY(TargetPos)<int32_t, 0x607A> {};
 
-ENTRY<uint32_t, 0x607F> {} MaxProfVelocity;
-ENTRY<uint32_t, 0x6081> {} ProfVelocity;
+ENTRY(MaxProfVelocity)<uint32_t, 0x607F> {};
+ENTRY(ProfVelocity)<uint32_t, 0x6081> {};
 
-ENTRY<uint32_t, 0x60C5> {} MaxAcceleration;
-ENTRY<uint32_t, 0x6083> {} ProfAcceleration;
+ENTRY(MaxAcceleration)<uint32_t, 0x60C5> {};
+ENTRY(ProfAcceleration)<uint32_t, 0x6083> {};
 
-ENTRY<uint32_t, 0x60C6> {} MaxDeceleration;
-ENTRY<uint32_t, 0x6084> {} ProfDeceleration;
-ENTRY<uint32_t, 0x6085> {} QStopDeceleration;
+ENTRY(MaxDeceleration)<uint32_t, 0x60C6> {};
+ENTRY(ProfDeceleration)<uint32_t, 0x6084> {};
+ENTRY(QStopDeceleration)<uint32_t, 0x6085> {};
 
-ENTRY<uint32_t, 0x6502>
+ENTRY(SupportedOpMode)<uint32_t, 0x6502>
 {
     enum Bits: uint32_t
     {
@@ -126,10 +127,59 @@ ENTRY<uint32_t, 0x6502>
         CVelocity = 1 << 8,
         CTorque   = 1 << 9
     };
-} SupportedOpMode;
+};
+
+template<uint32_t FunctionCode, uint32_t CommIndex, uint32_t MapIndex>
+struct PDOEntry
+{
+public:
+    using MapT = std::array<CanOpenProxy::ODEntry<uint32_t>, 8>;
+    
+private:
+    static constexpr MapT makeMap()
+    {
+        MapT map {};
+        
+        for (uint8_t i = 0; i < 8; ++i)
+            map[i] = {MapIndex, i + 1};
+        
+        return map;
+    }
+public:
+    ENTRY(cobId)<uint32_t, CommIndex, 1> {};
+    
+    // Communtication parameters
+    ENTRY(transmissonType)<uint8_t, CommIndex, 2>
+    {
+        enum Values: uint8_t {
+            ManufacturerAsync = 0xFE,
+            ProfileAsync = 0xFF
+        };
+    };
+    
+    ENTRY(mapLen)<uint8_t, MapIndex, 0> {};
+    
+    static constexpr MapT map = makeMap();
+};
+
+template<uint32_t FunctionCode, uint32_t CommIndex, uint32_t MapIndex>
+struct TPDOEntry: public PDOEntry<FunctionCode, CommIndex, MapIndex>
+{    
+    ENTRY(inhibitTime)<uint16_t, CommIndex, 3> {};
+    ENTRY(eventTimer)<uint16_t, CommIndex, 5> {};
+};
+
+using TPDO1 = TPDOEntry<PDO1_TX, 0x1800, 0x1A00>;
+using TPDO2 = TPDOEntry<PDO2_TX, 0x1801, 0x1A01>;
+using TPDO3 = TPDOEntry<PDO3_TX, 0x1802, 0x1A02>;
+using TPDO4 = TPDOEntry<PDO4_TX, 0x1803, 0x1A03>;
+
+using RPDO1 = PDOEntry<PDO1_RX, 0x1400, 0x1600>;
+using RPDO2 = PDOEntry<PDO2_RX, 0x1401, 0x1601>;
+using RPDO3 = PDOEntry<PDO3_RX, 0x1402, 0x1602>;
+using RPDO4 = PDOEntry<PDO4_RX, 0x1403, 0x1603>;
 
 }
-
 #undef ENTRY
 #undef INHERITED
 

@@ -16,13 +16,20 @@ class CanOpenProxy
 {
 public:
     /* Object Dictionary entry template */
-    template<typename T, uint16_t Id, uint8_t Sid = 0>
-    struct ODEntry
-    {
-        static_assert(std::is_integral_v<T> && sizeof(T) <= 4, "Type mismatch");
+    template<typename T> struct ODEntry {
         using Type = T;
-        uint16_t id = Id;
-        uint8_t sid = Sid;
+        static_assert(std::is_integral_v<T> && sizeof(T) <= 4, "Type mismatch");
+        
+        uint16_t id;
+        uint8_t sid;
+    };
+        
+    template<typename T, uint16_t Id_, uint8_t Sid_ = 0>
+    struct ODEntryMeta: public ODEntry<T> {
+        static constexpr uint16_t Id = Id_;
+        static constexpr uint8_t Sid = Sid_;
+        
+        ODEntryMeta(): ODEntry<T>{Id, Sid} {}
     };
     
 public:
@@ -49,13 +56,13 @@ public:
     void sdoWrite32(uint16_t id, uint8_t subid, uint32_t value);
     
     /// @brief Generic interface for sdoWrite.
-    /// @param entry is Object Dictionary entry defined as ODEntry struct
+    /// @param entry is Object Dictionary meta-entry defined as ODEntryMeta struct
     /// @param value to be sent of a corresponding type
     /// @note Always inlined to prevent generating symbols on every instantiation
-    template<typename Entry>
-    inline void sdoWrite(const Entry& entry, typename Entry::Type value)
+    template<typename EntryMeta>
+    inline void sdoWrite(typename EntryMeta::Type value)
         __attribute__((always_inline));
-
+    
     /// Configure PDO
     /// @attention Event-driven transmission and reception ONLY!
     /// @param func must be one of: PDOn_TX, PDOn_RX (n=1...4)
@@ -92,9 +99,9 @@ private:
 };
 
 template<typename Entry>
-void CanOpenProxy::sdoWrite(const Entry& entry, typename Entry::Type value)
+void CanOpenProxy::sdoWrite(typename Entry::Type value)
 {
-    sdoWrite(entry.id, entry.sid, value, sizeof(value));
+    sdoWrite(Entry::Id, Entry::Sid, value, sizeof(value));
 }
 
 #endif // _CANOPENPROXY_H
