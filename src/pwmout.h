@@ -24,6 +24,7 @@ public:
     
     void configChannel(Gpio::Config pin, Gpio::Config complementaryPin, bool invert = false);
     void configChannel(Gpio::Config pin, bool invert = false);
+    void configChannel(ChannelNumber ch, PwmMode pwmMode=PwmMode_PWM2, bool inverted=false) {configPwm(ch,pwmMode,inverted);}
     void configPwmMode(Gpio::Config pin, PwmMode mode);
     void configChannelToggleMode(ChannelNumber channel);
     void configChannelToggleMode(Gpio::Config pin);
