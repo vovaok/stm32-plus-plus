@@ -5361,7 +5361,7 @@
                 </option>
                 <option>
                     <name>IarchiveOutput</name>
-                    <state>D:\projects\iar\components\stm32++\bin\stm32f407vg\stm32++.a</state>
+                    <state>C:\Users\tndrd\Projects\WaveLab\stm32-plus-plus\bin\stm32f407vg\stm32++.a</state>
                 </option>
             </data>
         </settings>
@@ -16407,6 +16407,9 @@
         </file>
         <file>
             <name>$PROJ_DIR$\src\canopen\canopenproxy.h</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\canopen\cia402dict.h</name>
         </file>
     </group>
     <group>

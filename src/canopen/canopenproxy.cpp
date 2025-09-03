@@ -152,13 +152,18 @@ bool CanOpenProxy::configPdo(FunctionCode func, std::initializer_list<uint32_t> 
     case PDO3_TX: comm = 0x1802; map = 0x1A02; break;
     case PDO3_RX: comm = 0x1402; map = 0x1602; break;
     case PDO4_TX: comm = 0x1803; map = 0x1A03; break;
+    
+    // Should be comm = 0x1403
     case PDO4_RX: comm = 0x1404; map = 0x1603; break;
     default: return false;
     }
     
+    // I think it should be func + nodeId()
+    // (According to docs) 
     uint32_t cob_id = func | nodeId();
     
     // 1. deactivate PDO
+    // WAT, why 0x8000000000?
     sdoWrite32(comm, 0x01, 0x80000000 | cob_id);
 
     if (use_sync)
@@ -169,6 +174,7 @@ bool CanOpenProxy::configPdo(FunctionCode func, std::initializer_list<uint32_t> 
     {
         // Set Transmission Type = 0xFE (Cyclic mode)
         sdoWrite8(comm, 0x02, 0xFE);
+        
         // Set Event Timer interval (WUT?? ought to be 0.1ms step)
         sdoWrite16(comm, 0x05, interval);
     }
