@@ -63,8 +63,10 @@ ENTRY(ControlWord)<uint16_t, 0x6040>
         /* PT, PV, IP, etc profiles are WIP */
         
         /* Common shortcuts */
-        CMD_PowerOn  = SwitchOn | EnableVoltage | QuickStop | EnableOperation,
-        CMD_PowerOff = EnableVoltage | QuickStop
+        CmdPowerOff = EnableVoltage | QuickStop,
+        CmdPowerOn  = SwitchOn | EnableVoltage | QuickStop,
+        CmdEnable   = CmdPowerOn | EnableOperation,
+        CmdQuickStop = CmdEnable & ~QuickStop,
     };
 };
 
@@ -104,15 +106,28 @@ ENTRY(PosSoftLimitMax)<uint32_t, 0x607D, 2> {};
 
 ENTRY(TargetPos)<int32_t, 0x607A> {};
 
-ENTRY(MaxProfVelocity)<uint32_t, 0x607F> {};
-ENTRY(ProfVelocity)<uint32_t, 0x6081> {};
+ENTRY(MaxProfileVelocity)<uint32_t, 0x607F> {};
+ENTRY(ProfileVelocity)<uint32_t, 0x6081> {};
 
 ENTRY(MaxAcceleration)<uint32_t, 0x60C5> {};
-ENTRY(ProfAcceleration)<uint32_t, 0x6083> {};
+ENTRY(ProfileAcceleration)<uint32_t, 0x6083> {};
 
 ENTRY(MaxDeceleration)<uint32_t, 0x60C6> {};
-ENTRY(ProfDeceleration)<uint32_t, 0x6084> {};
+ENTRY(ProfileDeceleration)<uint32_t, 0x6084> {};
 ENTRY(QStopDeceleration)<uint32_t, 0x6085> {};
+
+// Profiled Torque Mode:
+ENTRY(TargetTorque)<int16_t, 0x6071> {};
+ENTRY(MaxTorque)<uint16_t, 0x6072> {};
+ENTRY(MaxCurrent)<uint16_t, 0x6073> {};
+ENTRY(TorqueDemandValue)<int16_t, 0x6074> {};
+ENTRY(MotorRatedCurrent)<uint32_t, 0x6075> {};
+ENTRY(MotorRatedTorque)<uint32_t, 0x6076> {};
+ENTRY(TorqueActualValue)<int16_t, 0x6077> {};
+ENTRY(CurrentActualValue)<int16_t, 0x6078> {};
+
+ENTRY(DcVoltage)<uint32_t, 0x6079> {};
+
 
 ENTRY(SupportedOpMode)<uint32_t, 0x6502>
 {
