@@ -54,6 +54,12 @@ private:
     // словарь объектов
     std::vector<ObjectInfo> mObjects;
     
+    // автоотправка группированных объектов (пока только одна группа)
+    ByteArray m_autoGroup;
+    uint16_t m_autoGroupInterval = 0;
+    int m_autoGroupTime = 0;
+    uint8_t m_autoGroupAddr = 0;
+    
     bool sendObjectInfo(uint8_t remoteAddr, ObjectInfo *obj, const ByteArray &loc=ByteArray());
     
     void objectValueChanged(unsigned char oid);

@@ -581,10 +581,8 @@ void ObjnetDevice::sendObject(_String name)
 void ObjnetDevice::groupedRequest(std::vector<_String> names)
 {   
     ByteArray ba;
-    int cnt = names.size();
-    for (int i=0; i<cnt; i++)
+    for (_String name: names)
     {
-        _String name = names[i];
         map<string, ObjectInfo>::iterator it = mObjMap.find(_fromString(name));
         if (it != mObjMap.end() && it->second.flags())
             ba.append(it->second.mDesc.id);
@@ -596,6 +594,33 @@ void ObjnetDevice::groupedRequest(std::vector<_String> names)
     #endif
     
     mTempTimeout = 1;
+}
+
+void ObjnetDevice::autoGroupRequest(uint16_t interval, std::vector<_String> names)
+{
+    ByteArray ba;
+    ba.append(reinterpret_cast<const char *>(&interval), sizeof(uint16_t));
+    for (_String name: names)
+    {
+        map<string, ObjectInfo>::iterator it = mObjMap.find(_fromString(name));
+        if (it != mObjMap.end() && it->second.flags())
+            ba.append(it->second.mDesc.id);
+    }
+    #ifdef QT_CORE_LIB
+    emit serviceRequest(mNetAddress, svcAutoGroupRequest, ba);
+    #else
+    masterServiceRequest(mNetAddress, svcAutoGroupRequest, ba);
+    #endif
+}
+
+void ObjnetDevice::clearAutoGroupRequest()
+{
+    ByteArray ba(2, '\0');
+    #ifdef QT_CORE_LIB
+    emit serviceRequest(mNetAddress, svcAutoGroupRequest, ba);
+    #else
+    masterServiceRequest(mNetAddress, svcAutoGroupRequest, ba);
+    #endif
 }
 
 void ObjnetDevice::autoRequest(_String name, int periodMs)

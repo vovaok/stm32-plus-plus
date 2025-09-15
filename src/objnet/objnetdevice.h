@@ -210,6 +210,8 @@ public:
     void autoRequest(_String name, int periodMs);
     void timedRequest(_String name, int periodMs);
     void groupedRequest(std::vector<_String> names);
+    void autoGroupRequest(uint16_t interval, std::vector<_String> names);
+    void clearAutoGroupRequest();
 
     void requestMetaInfo();
     void requestInfo(unsigned char oid);
