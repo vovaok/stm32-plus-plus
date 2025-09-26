@@ -1,3 +1,5 @@
+#include <stdint.h>
+
 #include "core/closure.h"
 #include "core/bytearray.h"
 #include "core/qvector3d.h"
