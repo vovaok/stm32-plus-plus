@@ -1,3 +1,5 @@
+#if defined(STM32F37X)
+
 #include "dac37x.h"
 
 Dac::Dac(Gpio::Config out1, Gpio::Config out2) :
@@ -164,3 +166,5 @@ void Dac::configDma(Dma *dma)
         mDac->CR |= DAC_CR_DMAEN2;
 }
 //---------------------------------------------------------------------------
+
+#endif

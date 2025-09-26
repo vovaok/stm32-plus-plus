@@ -1,3 +1,5 @@
+#if defined(STM32F0)
+
 #include "dma0fxx.h"
 
 #define DMA_FLAG_MASK(i) (DMA_FLAG_GIF##i | DMA_FLAG_TCIF##i | DMA_FLAG_HTIF##i | DMA_FLAG_TEIF##i)
@@ -267,4 +269,6 @@ void Dma::handleInterrupt()
   
 #ifdef __cplusplus
 }
+#endif
+
 #endif

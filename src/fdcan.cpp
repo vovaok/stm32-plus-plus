@@ -1,3 +1,5 @@
+#if defined(STM32G4)
+
 #include "fdcan.h"
 #include "rcc.h"
 
@@ -384,3 +386,5 @@ void FDCAN3_IT1_IRQHandler()
 }
 
 }
+
+#endif

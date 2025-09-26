@@ -1,7 +1,6 @@
 #include "compf3.h"
 
-
-
+#if defined(STM32F3)
 
 Comp::Comp(int no) :
     mDev(0L)    
@@ -107,3 +106,4 @@ void Comp::setEnable(bool en)
     
 }
 
+#endif

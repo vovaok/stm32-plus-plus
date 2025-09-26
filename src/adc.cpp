@@ -2,6 +2,8 @@
 #include "rcc.h"
 #include <math.h>
 
+#if !defined(STM32F3)
+
 Adc* Adc::mInstances[3] = {0L, 0L, 0L};
 
 Adc::Adc(int adcBase) :
@@ -366,3 +368,5 @@ void Adc::setCompleteEvent(NotifyEvent e)
     if (mDma)
         mDma->setTransferCompleteEvent(mCompleteEvent);
 }
+
+#endif
