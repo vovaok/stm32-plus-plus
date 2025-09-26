@@ -5,6 +5,8 @@
 #include "stm32.h"
 #include "core/coretypes.h"
 
+#include <functional>
+
 /*! Pin configuration macro.
     Intended for internal use.
 */
