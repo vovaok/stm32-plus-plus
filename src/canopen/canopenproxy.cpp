@@ -1,6 +1,8 @@
 #include "canopenproxy.h"
 #include "core/application.h"
 
+using namespace CanOpen;
+
 CanOpenProxy::CanOpenProxy(CanInterface *device, uint8_t nodeId) :
     m_nodeId(nodeId & 0x7F)
 {
@@ -83,118 +85,27 @@ void CanOpenProxy::pdoWrite(uint8_t pdo, const ByteArray &value)
     sendPacket(cob_id, value);
 }
 
-void CanOpenProxy::sdoRead(uint16_t id, uint8_t subid, uint8_t size)
+void CanOpenProxy::sendSdo(uint8_t cmd, uint16_t id, uint8_t sid, uint8_t size, uint32_t value)
 {
-    if (size > 4)
-        return;
+    assert(size <= 4);
+    
     SDO sdo;
-    sdo.cmd = cmdReadParam;
+    sdo.cmd = cmd;
     sdo.n = 4 - size;
     sdo.id = id;
-    sdo.subid = subid;
-    sdo.value = 0;
+    sdo.subid = sid;
+    sdo.value = value;
     sdoEnqueue(std::move(sdo));
 }
 
-void CanOpenProxy::sdoRead8(uint16_t id, uint8_t subid)
+void CanOpenProxy::sdoReadImpl(ODEntry e)
 {
-    sdoRead(id, subid, 1);
+    sendSdo(cmdReadParam, e.id, e.sid, e.size, 0);
 }
 
-void CanOpenProxy::sdoRead16(uint16_t id, uint8_t subid)
+void CanOpenProxy::sdoWriteImpl(ODEntry e, uint32_t value)
 {
-    sdoRead(id, subid, 2);
-}
-
-void CanOpenProxy::sdoRead32(uint16_t id, uint8_t subid)
-{
-    sdoRead(id, subid, 4);
-}
-
-void CanOpenProxy::sdoWrite(uint16_t id, uint8_t subid, uint32_t value, uint8_t size)
-{
-    if (size > 4)
-        return;
-    
-    SDO sdo;
-    sdo.cmd = cmdWriteParam;
-    sdo.n = 4 - size;
-    sdo.id = id;
-    sdo.subid = subid;
-    sdo.value = value;    
-    sdoEnqueue(std::move(sdo));
-}
-
-void CanOpenProxy::sdoWrite8(uint16_t id, uint8_t subid, uint8_t value)
-{
-    sdoWrite(id, subid, value, 1);
-}
-
-void CanOpenProxy::sdoWrite16(uint16_t id, uint8_t subid, uint16_t value)
-{
-    sdoWrite(id, subid, value, 2);
-}
-
-void CanOpenProxy::sdoWrite32(uint16_t id, uint8_t subid, uint32_t value)
-{
-    sdoWrite(id, subid, value, 4);
-}
-
-bool CanOpenProxy::configPdo(FunctionCode func, std::initializer_list<uint32_t> sdo_list, int interval, bool use_sync)
-{
-    uint16_t comm, map;
-    switch (func)
-    {
-    case PDO1_TX: comm = 0x1800; map = 0x1A00; break;
-    case PDO1_RX: comm = 0x1400; map = 0x1600; break;
-    case PDO2_TX: comm = 0x1801; map = 0x1A01; break;
-    case PDO2_RX: comm = 0x1401; map = 0x1601; break;
-    case PDO3_TX: comm = 0x1802; map = 0x1A02; break;
-    case PDO3_RX: comm = 0x1402; map = 0x1602; break;
-    case PDO4_TX: comm = 0x1803; map = 0x1A03; break;
-    
-    // Should be comm = 0x1403
-    case PDO4_RX: comm = 0x1404; map = 0x1603; break;
-    default: return false;
-    }
-    
-    // I think it should be func + nodeId()
-    // (According to docs) 
-    uint32_t cob_id = func | nodeId();
-    
-    // 1. deactivate PDO
-    // WAT, why 0x8000000000?
-    sdoWrite32(comm, 0x01, 0x80000000 | cob_id);
-
-    if (use_sync)
-    {
-        sdoWrite8(comm, 0x02, interval);
-    }
-    else if (interval)
-    {
-        // Set Transmission Type = 0xFE (Cyclic mode)
-        sdoWrite8(comm, 0x02, 0xFE);
-        
-        // Set Event Timer interval (WUT?? ought to be 0.1ms step)
-        sdoWrite16(comm, 0x05, interval);
-    }
-    else
-    {
-        // Set Transmission Type = 0xFF (Event mode)
-        sdoWrite8(comm, 0x02, 0xFF);
-    }
-
-    // configure SDO mapping
-    sdoWrite8(map, 0x00, 0x00);  // reset map
-    int cnt = 0;
-    for (uint32_t sdo: sdo_list)
-        sdoWrite32(map, ++cnt, sdo); // add SDO to the map
-    sdoWrite8(map, 0x00, cnt); // set map size
-
-    // enable PDO
-    sdoWrite32(comm, 0x01, cob_id | nodeId());
-    
-    return true;
+    sendSdo(cmdWriteParam, e.id, e.sid, e.size, value);
 }
 
 void CanOpenProxy::sdoEnqueue(SDO &&sdo)
@@ -288,3 +199,56 @@ void CanOpenProxy::handlePacket(uint16_t cob_id, const ByteArray &payload)
     default: return;
     }
 }
+
+void CanOpenProxy::configPDOImpl(PDOEntry entry, SDOList sdoList,
+                                 uint8_t tType, uint16_t eTime, uint8_t iTime)
+{
+    auto& isTx = entry.isTx;
+    auto& comm = entry.commIndex;
+    auto& map  = entry.mapIndex;
+    auto& func = entry.functionCode;
+    
+    uint32_t cob_id = func | nodeId();
+    
+    // Disable PDO
+    sdoWrite(comm, 0x01, 4, 0x80000000 | cob_id);
+    
+    // Set transmission type
+    sdoWrite(comm,  0x02, 1, tType);
+              
+    if (isTx)
+    {
+        // Set TPDO-exclusive parameters
+        sdoWrite(comm, 0x05, 2, eTime);
+        sdoWrite(comm, 0x03, 2, iTime);
+    }
+    
+    // Reset map counter
+    sdoWrite(map, 0x00, 1, 0x00);
+    
+    // Fill mapping table
+    int i = 0;
+    for (const auto& sdo: sdoList)
+    {
+        uint32_t mapval = (sdo.id << 16) | (sdo.sid << 8) | (sdo.size << 3);
+        sdoWrite(map, ++i, 4, mapval);
+    }
+
+    // Set map size
+    sdoWrite(map, 0x00, 1, i);
+
+    // Enable PDO
+    sdoWrite(comm, 0x01, 4, cob_id);
+}
+    
+void CanOpenProxy::sdoRead(uint16_t id, uint8_t sid, uint8_t size)
+{
+    sdoReadImpl({id, sid, size});
+}
+
+void CanOpenProxy::sdoWrite(uint16_t id, uint8_t sid, uint8_t size, uint32_t value)
+{
+    sdoWriteImpl({id, sid, size}, value);
+}
+
+    
