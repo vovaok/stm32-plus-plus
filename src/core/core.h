@@ -6,7 +6,17 @@
 
 #if defined(__ICCARM__)
 #include <intrinsics.h>
+#elif defined(__GNUC__)
+#include <cmsis_gcc.h>
+
+typedef uint32_t __istate_t;
+
+__istate_t __get_interrupt_state() __attribute__((alias(__get_PRIMASK)));
+void __set_interrupt_state(__istate_t) __attribute__((alias(__set_PRIMASK)));
+void __enable_interrupt() __attribute__((alias(__enable_irq)));
+void __disable_interrupt() __attribute__((alias(__disable_irq)));
 #endif
+
 // NDEBUG is IAR predefined symbol in Release configuration
 #ifndef NDEBUG
 #include "qdebug.h"
@@ -24,9 +34,11 @@
 unsigned long upper_power_of_two(unsigned long v);
 //int log2i(uint32_t value);
 
-#if defined(__ICCARM__)
 // inverse of operator <<
+#if defined(__ICCARM__)
 #define log2i(x)    (31 - __iar_builtin_CLZ(x))
+#elif defined(__GNUC__)
+#define log2i(x)    (31 - __builtin_clz(x))
 #endif
 
 constexpr int operator ""_k(unsigned long long int value)
