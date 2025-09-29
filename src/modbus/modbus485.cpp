@@ -7,10 +7,16 @@ Modbus485::Modbus485(Device *dev) :
     m_dev(dev),
     m_timeout(0)
 {
+#if defined(STM32F0)
+    m_buffer.resize(48);
+    m_outBuffer.resize(48);
+#else
     m_buffer.resize(255);
     m_outBuffer.resize(255);
+#endif
     m_buffer.resize(0);
     m_outBuffer.resize(0);
+    m_dev->onBytesWritten = EVENT(&Modbus485::requestSent);
     m_dev->open(Device::ReadWrite);
 
     stmApp()->registerTaskEvent(EVENT(&Modbus485::task));
@@ -23,7 +29,7 @@ void Modbus485::task()
     m_buffer.resize(m_buffer.size() + sz);
     if (sz)
     {
-        m_timeout = 2;
+        m_timeout = 5; // was 2 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         responseUpdated();
     }
 
@@ -68,5 +74,3 @@ void Modbus485::writeADU(const ADU &adu)
     m_outBuffer.append(crc >> 8);
     m_dev->write(m_outBuffer);
 }
-
-

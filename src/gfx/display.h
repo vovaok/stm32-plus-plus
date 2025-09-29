@@ -3,6 +3,7 @@
 
 #include "font.h"
 #include "color.h"
+#include "gradient.h"
 #include "rect.h"
 
 class Image;
@@ -36,7 +37,7 @@ public:
     int sizeInBytes() const {return m_bpl * m_height;}
 
     virtual void setPixel(int x, int y, uint32_t color) = 0;
-    virtual uint32_t pixel(int x, int y) const {return m_bgColor;}
+    virtual uint32_t pixel(int x, int y) const {(void)x, (void)y; return m_bgColor;}
     virtual bool isReadable() const {return false;}
 
 	void moveTo(int x, int y) {m_x = x; m_y = y;}
@@ -102,7 +103,7 @@ private:
     int m_x=0, m_y=0;
     /*Color*/ uint32_t m_color = 0, m_bgColor = 0;
 	Font m_font;
-
+    
     void renderChar(char c, int &x, int &y);
 
     void Draw_FastHLine(int x, int y, int length);

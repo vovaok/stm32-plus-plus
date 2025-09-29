@@ -64,6 +64,8 @@ public:
     int configLtdcClock(int frequency); //!< return real programmed frequency
 #endif
     
+    bool configRtc(ClockSource clock);
+    
 #if defined(STM32F4) || defined(STM32F7)
     struct PllCfgr
     {

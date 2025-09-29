@@ -72,15 +72,15 @@ private:
     bool m_tasksModified;
     bool m_sleeping;
 
-    static unsigned short mVersion;
-    static string mBuildDate;
+    static uint16_t mVersion;
+    static const char *mBuildDate;
     static string mCpuInfo;
-    static unsigned long mBurnCount;
-    static string mName;
-    static string mDescription;
-    static string mCompany;
+    static uint32_t mBurnCount;
+    static const char *mName;
+    static const char *mDescription;
+    static const char *mCompany;
 
-    volatile unsigned long mTimestamp;
+    volatile uint32_t mTimestamp = 0;
 
     static void sysTickHandler();
 
@@ -101,14 +101,20 @@ protected:
         mCompany = APP_COMPANY;
         mVersion = APP_VERSION;
         mBurnCount = APP_BURNCOUNT;
-        mBuildDate = string(__DATE__ " " __TIME__);
+        mBuildDate = __DATE__ " " __TIME__;
         char tempstr[64];
         sprintf(tempstr, "%s @ %d MHz, %dK flash", CpuId::name(), (int)(rcc().sysClk() / 1000000), CpuId::flashSizeK());
         mCpuInfo = string(tempstr);
     }
     void setVersion(unsigned short ver) {mVersion = ver;}
     void setBurnCount(unsigned long cnt) {mBurnCount = cnt;}
+
+    /*! Enable sleeping between task sync intervals */
     void setSleeping(bool sleep) {m_sleeping = sleep;}
+
+    /*! Enable watchdog to prevent freezing */
+    /*! Useful to reset into the bootloader */
+    void enableWatchdog();
 
     void systemReset();
 

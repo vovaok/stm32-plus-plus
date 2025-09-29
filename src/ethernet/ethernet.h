@@ -59,6 +59,7 @@ public:
     
     static bool netcmp(const ip_addr_t &addr);
     static ip_addr_t ipFromString(const char *s);
+    static ByteArray ipToString(const ip_addr_t &ip);
     
     static MacAddress_t defaultMacAddress;
     static int rxBufCount;

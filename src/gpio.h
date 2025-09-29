@@ -295,7 +295,7 @@ public:
     */
     void setAsOutputOpenDrain();
     
-    void configInterrupt(NotifyEvent event, InterruptMode mode = BothEdges);
+    void configInterrupt(std::function<void(void)> event, InterruptMode mode = BothEdges);
 
     /*! Чтение состояния ноги.
         \return \c true, если на ноге 1, \c false, если 0. Что логично.
@@ -366,8 +366,12 @@ private:
     } ConfigStruct;
 
     //! @todo obtain pin count from used controller
+#ifdef STM32F0
+    static uint8_t mPinsUsed[48];
+#else
     static uint8_t mPinsUsed[176];
-    static NotifyEvent m_interruptHandlers[16];
+    static std::function<void(void)> m_interruptHandlers[16];
+#endif
     static void usePin(const ConfigStruct &cfg);
 
     ConfigStruct mConfig;

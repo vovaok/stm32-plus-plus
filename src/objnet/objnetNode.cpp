@@ -36,6 +36,7 @@ ObjnetNode::ObjnetNode(ObjnetInterface *iface) :
     mBurnCount = stmApp()->burnCount();
     #endif
 
+    iface->setMasterMode(false);
     mBusType = iface->busType();
 
     // sendTimer must be running for mTimestamp++
@@ -419,7 +420,7 @@ bool ObjnetNode::parseServiceMessage(const CommonMessage &msg)
         else if (mBusType == BusRadio)
         {
             /// @todo Add support of subobjects in the Radio bus
-            for (int i=0; i<mObjects.size(); i++)
+            for (size_t i=0; i<mObjects.size(); i++)
             {
                 sendObjectInfo(remoteAddr, &mObjects[i]);
 //                ByteArray ba;
@@ -486,6 +487,22 @@ bool ObjnetNode::parseServiceMessage(const CommonMessage &msg)
         success &= sendServiceMessage(remoteAddr, svcGroupedObject, std::move(ba));
         break;
       }
+      
+      // 00 00 - reset auto group
+      case svcAutoGroupRequest:
+      {
+        m_autoGroupTime = 0;
+        m_autoGroupInterval = *reinterpret_cast<const uint16_t *>(msg.data().data());
+        m_autoGroup = msg.data().mid(2);
+        m_autoGroupAddr = remoteAddr;
+        ByteArray ba;
+        if (m_autoGroupInterval)
+            ba.append(0x01); // return auto group index (now there is only one group allowed!)
+        else
+            ba.append('\0');
+        success &= sendServiceMessage(remoteAddr, oid, std::move(ba));
+        break;
+      }
 
       case svcUpgradeRequest:
       {
@@ -550,7 +567,10 @@ void ObjnetNode::parseMessage(const CommonMessage &msg)
             emit globalMessage(msg.globalId().aid);
     #else
         if (msg.data().size())
-            onGlobalDataMessage(msg.globalId().aid, msg.data());
+        {
+            if (onGlobalDataMessage)
+                onGlobalDataMessage(msg.globalId().aid, msg.data());
+        }
         else if (onGlobalMessage)
             onGlobalMessage(msg.globalId().aid);
     #endif
@@ -621,6 +641,27 @@ void ObjnetNode::onSendTimer()
 {
     if (mBusType != BusSwonb && mBusType != BusRadio)
     {
+        if (m_autoGroup.size() > 0)
+        {
+            m_autoGroupTime++;
+            if (m_autoGroupTime >= m_autoGroupInterval)
+            {
+                m_autoGroupTime = 0;
+                ByteArray ba;
+                int cnt = m_autoGroup.size();
+                for (int i=0; i<cnt; i++)
+                {
+                    unsigned char local_oid = m_autoGroup[i];
+                    if (local_oid >= mObjects.size())
+                        continue;
+                    ObjectInfo &obj = mObjects[local_oid];
+                    ba.append(local_oid);
+                    ba.append(obj.read());
+                }
+                sendServiceMessage(m_autoGroupAddr, svcGroupedObject, std::move(ba));
+            }
+        }
+        
         for (unsigned char oid=0; oid<mObjects.size(); oid++)
         {
             ObjectInfo &obj = mObjects[oid];

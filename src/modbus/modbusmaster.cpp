@@ -48,11 +48,17 @@ void ModbusMaster::writeADU(const ADU &adu)
 void ModbusMaster::parseADU(const ADU &adu)
 {
     m_timer->stop();
+    m_busy = false;
     ModbusProxy *p = getProxy(adu.addr);
     if (p)
         p->parsePDU(adu.func, reinterpret_cast<const uint8_t *>(adu.data), adu.size);
     m_queue.pop_front();
     writeNextAdu();
+}
+
+void ModbusMaster::requestSent()
+{
+    m_timer->start();
 }
 
 void ModbusMaster::responseUpdated()
@@ -76,13 +82,15 @@ void ModbusMaster::writeNextAdu()
     if (!m_queue.isEmpty())
     {
         Modbus485::writeADU(m_queue.front().adu());
-        m_timer->start();
+        m_busy = true;
+//        m_timer->start(); // restart timer later, when request will be sent 
     }
 }
 
 void ModbusMaster::onTimeout()
 {
     m_timer->stop();
+    m_busy = false;
     const Packet &pkt = m_queue.front();
     ModbusProxy *p = getProxy(pkt.adu().addr);
     if (p)

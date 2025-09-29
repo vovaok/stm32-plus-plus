@@ -34,6 +34,13 @@ I2c::I2c(Gpio::Config pinSDA, Gpio::Config pinSCL)
         RCC->APB1ENR |= RCC_APB1ENR_I2C3EN;
         break;
 #endif
+        
+#if defined (I2C4)
+    case 4:
+        m_dev = I2C4;
+        RCC->APB1ENR |= RCC_APB1ENR_I2C4EN;
+        break;
+#endif
     }
 }
 
@@ -50,7 +57,7 @@ void I2c::setBusClock(int clk_Hz)   //fake settings
 
 void I2c::open()
 {
-    m_dev->CR1 |= I2C_CR1_PE; 
+    m_dev->CR1 |= I2C_CR1_PE;
 }
 
 void I2c::close()
@@ -62,23 +69,24 @@ void I2c::close()
 bool I2c::writeRegAddr(uint8_t address, uint32_t regAddr, int regSize)
 {
     bool r = true;
-    // Ждем окончания передачи
-    while (!(m_dev->ISR & I2C_ISR_TC));
+    // Ждем освобождения
+    while (m_dev->ISR & I2C_ISR_BUSY);
     // Шлем стартовый сигнал и адрес устройства
     m_dev->CR2 = address | (regSize << 16) | I2C_CR2_START;
     uint8_t *data = reinterpret_cast<uint8_t *>(&regAddr) + regSize;
     while (r && regSize--)
         r &= writeData(*--data);
+    // Ждем окончания передачи
+    while (!(m_dev->ISR & I2C_ISR_TC));
     return r;
 }
 
 bool I2c::write(uint8_t address, const uint8_t *data, int size)
 {
     bool r = true;
-    // Ждем окончания передачи
-    while (!(m_dev->ISR & I2C_ISR_TC));
-    // Шлем стартовый сигнал и адрес устройства
-    m_dev->CR2 = address | (size << 16) | I2C_CR2_START;
+    // Шлем стартовый сигнал и адрес устройства, но...
+    if (!(m_dev->ISR & I2C_ISR_BUSY)) // ...только если до этого не началась запись
+        m_dev->CR2 = address | (size << 16) | I2C_CR2_START;
     while (r && size--)
         r &= writeData(*data++);
     // Ждем завершения передачи
@@ -93,8 +101,6 @@ bool I2c::write(uint8_t address, const uint8_t *data, int size)
 bool I2c::read(uint8_t address, uint8_t *data, int size)
 {
     bool r = true;
-    // Ждем окончания передачи
-    while (!(m_dev->ISR & I2C_ISR_TC));
     // Шлем стартовый сигнал и адрес устройства
     m_dev->CR2 = address | I2C_CR2_RD_WRN | (size << 16) | I2C_CR2_START;
     while (r && size--)
@@ -112,16 +118,16 @@ bool I2c::read(uint8_t address, uint8_t *data, int size)
 
 //bool I2c::readReg(uint8_t hw_addr, uint8_t reg_addr, uint8_t *buffer, uint8_t size)
 //{
-//  
-//  
+//
+//
 //     m_dev->CR2 = (hw_addr ) | I2C_CR2_START   | (2 << 16);
-//     
+//
 //    writeData(reg_addr>>8);
 //    writeData(reg_addr&0xff);
-//     
+//
 //      // Ждем окончания передачи
 //    while (!(m_dev->ISR & I2C_ISR_TC));
-//    
+//
 //  // Шлем стартовый сигнал и адрес устройства на чтение
 //    m_dev->CR2 = (hw_addr) | I2C_CR2_RD_WRN; // 7-битный адрес, чтение (R/W = 1)
 //    m_dev->CR2 |= (size << 16); // Количество читаемых байт
@@ -142,16 +148,16 @@ bool I2c::read(uint8_t address, uint8_t *data, int size)
 //
 //bool I2c::writeReg(uint8_t hw_addr, uint8_t reg_addr, const uint8_t *buffer, uint8_t size)
 //{
-//  
+//
 //    m_dev->CR2 = (hw_addr ); // 7-битный адрес, запись (R/W = 0)
 //    m_dev->CR2 |=  ((size + 2) << 16); // Количество передаваемых байт (2 байта памяти + 1 байт данных)
 //    m_dev->CR2 |= I2C_CR2_START; // Старт
 //
 //    // Ожидаем завершения передачи адреса и данных
-//    
+//
 //     writeData(reg_addr>>8);
 //     writeData(reg_addr&0xff);
-//    
+//
 //     while (size--)
 //     {
 //       writeData(*buffer++);
@@ -165,18 +171,18 @@ bool I2c::read(uint8_t address, uint8_t *data, int size)
 //    // Ожидаем, пока стоп-сигнал не будет завершен
 //    while (m_dev->ISR & I2C_ISR_STOPF);
 //    return 1;
-//  
+//
 //}
 //---------------------------------------------------------------------------
 
 bool I2c::writeData(uint8_t data)
 {
     int timeout = I2C_TIMEOUT;
-  
+
     while (!(m_dev->ISR & I2C_ISR_TXIS) && timeout)
       timeout --;
-      m_dev->TXDR = data; 
-    
+      m_dev->TXDR = data;
+
     return timeout;
 }
 
@@ -186,7 +192,7 @@ bool I2c::readData(uint8_t *buf)
     while (!(m_dev->ISR & I2C_ISR_RXNE) && timeout)
       timeout --;
      *buf = m_dev->RXDR;
-   
+
     return timeout;
 }
 

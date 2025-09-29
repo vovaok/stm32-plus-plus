@@ -135,7 +135,7 @@ protected:
         
         if (!r)        // если во время чтения что-то пошло не так
             return -1; // возвращаем ошибку
-        return dst - data; // а если всё ок, возвращаем размер считанных данных
+        return size; // а если всё ок, возвращаем размер считанных данных
     }
     
     // Реализация функции записи данных
@@ -156,7 +156,7 @@ protected:
             page = m_ptr >> m_addrSize; // рассчитываем текущую страницу
             addr = m_ptr;// & m_addrMask; // рассчитываем адрес внутри этой страницы
             // рассчитываем размер блока...
-            uint32_t maxsz =  16; //m_chunkSize - (addr & (m_chunkSize - 1));   !!!фикс костыль!!
+            uint32_t maxsz = m_chunkSize - (addr & (m_chunkSize - 1));
             if (size < maxsz)
                 sz = size; 
             else
@@ -169,12 +169,11 @@ protected:
             {
                 if (writeChunk(page, addr, src, sz))
                     break;
-                stmApp()->delay(10);
+                stmApp()->delay(1);
             }
             // если не записалось за 10 мс, значит действительно всё плохо...
             if (!retries)
                 break;
-            stmApp()->delay(10);
             m_ptr += sz; // текущий адрес увеличивается на размер записанных данных
             src += sz;   // также двигаем буфер
             size -= sz;  // и уменьшаем оставшийся размер
@@ -192,36 +191,20 @@ private:
     static constexpr int m_addrSize = 8 * sizeof(AddrType); // размер адреса (8 или 16 бит)
 //    static constexpr AddrType m_addrMask = (1 << m_addrSize) - 1; // маска адреса (0xFF или 0xFFFF)
     uint8_t m_chipAddress; // адрес устройства на шине I2C
+    bool m_busy = false;
     
     // Функция записи блока в EEPROM, реализует собственно запись, согласно даташиту:
     // START -> DEVICE_ADDRESS(R/W=0) -> WORD_ADDRESS -> DATA(n) -> DATA(n+1) ... -> DATA(n+x) -> STOP
     // При этом номер страницы задаётся в младших битах адреса устройства.
     bool writeChunk(uint8_t page, AddrType wordAddress, const char *data, int size)
     {
-         bool r;
+        bool r;
         uint8_t deviceAddress = m_chipAddress | (page << 1);
-        r = m_i2c->startTransmission(I2c::DirectionTransmitter, deviceAddress);
+        r = m_i2c->writeRegAddr(deviceAddress, wordAddress, sizeof(AddrType));
         if (r)
-        {
-            m_i2c->setAcknowledge(false);
-            if (sizeof(AddrType) == 2)
-                r &= m_i2c->writeData(wordAddress >> 8);
-             stmApp()->delay(1);
-          
-            r &= m_i2c->writeData(wordAddress & 0xFF);
-            do
-            {
-                r &= m_i2c->writeData(*data++);
-                 stmApp()->delay(1);
-              
-            }
-            while (--size);
-        }
-//        if (r)
-            r = m_i2c->stopTransmission();
+            r = m_i2c->write(deviceAddress, reinterpret_cast<const uint8_t *>(data), size);
         return r;
-    }
-    
+    }    
 };
 
 // Реализация шаблонов для различных вариантов микросхем

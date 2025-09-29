@@ -27,7 +27,7 @@ class ObjnetDevice : public QObject
 #endif
 private:
     // mask should be 0x3FF but now we have this shit for backward compatibility
-    static const uint32_t mInfoValidMask = 0x000000FF;
+    static const uint32_t mInfoValidMask = 0x000001FF;
     uint32_t mInfoValidFlags;
 
     void onObjectValueChanged(unsigned char id);
@@ -89,6 +89,7 @@ protected:
     void receiveGlobalMessage(unsigned char aid);
     
     virtual void readyEvent() {}
+    virtual void disconnectEvent() {}
     
 #ifdef QT_CORE_LIB
 protected slots:
@@ -148,7 +149,7 @@ public:
     bool bindVariable(_String name, T &var)
     {
         ObjectInfo &info = mObjMap[_fromString(name)];
-        ObjectInfo::Type t = typeOfVar(var);
+        ObjectInfo::Type t = ObjectInfo::typeValue<T>();
         if ((t == info.mDesc.wType) || !info.mDesc.flags)
         {
             info.mWritePtr = &var;
@@ -163,7 +164,7 @@ public:
     bool bindVariable(_String name, T (&var)[N])
     {
         ObjectInfo &info = mObjMap[_fromString(name)];
-        ObjectInfo::Type t = typeOfVar(var[0]);
+        ObjectInfo::Type t = ObjectInfo::typeValue<T>();
         if ((t == info.mDesc.wType && sizeof(var) == info.mDesc.writeSize) || !info.mDesc.flags)
         {
             info.mWritePtr = &var;
@@ -178,8 +179,8 @@ public:
     bool bindVariable(_String name, Tr &rVar, Tw &wVar)
     {
         ObjectInfo &info = mObjMap[_fromString(name)];
-        ObjectInfo::Type rt = typeOfVar(rVar);
-        ObjectInfo::Type wt = typeOfVar(wVar);
+        ObjectInfo::Type rt = ObjectInfo::typeValue<Tr>();
+        ObjectInfo::Type wt = ObjectInfo::typeValue<Tw>();
         if ((((sizeof(rVar) == info.mDesc.readSize)) && (sizeof(wVar) == info.mDesc.writeSize)) || !info.mDesc.flags)
         {
             info.mWritePtr = &wVar;
@@ -209,6 +210,8 @@ public:
     void autoRequest(_String name, int periodMs);
     void timedRequest(_String name, int periodMs);
     void groupedRequest(std::vector<_String> names);
+    void autoGroupRequest(uint16_t interval, std::vector<_String> names);
+    void clearAutoGroupRequest();
 
     void requestMetaInfo();
     void requestInfo(unsigned char oid);

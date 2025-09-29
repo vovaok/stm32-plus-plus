@@ -56,13 +56,18 @@ Ethernet::Ethernet(const RMII &rmii)
         Gpio::config(rmii.pinTXD1);
         Gpio *pinReset = new Gpio(rmii.pinReset, Gpio::Output);
         pinReset->write(0);
-        for (int w=20000; --w;);
+        for (int w=1000; --w;)
+            pinReset->write(0);
         pinReset->write(1);
-        for (int w=20000; --w;);
+        for (int w=1000; --w;)
+            pinReset->write(1);
 
         bool result = ethConfig(rmii.phyAddress);
         if (!result)
+        {
+            THROW(Exception::BadSoBad);
             return;
+        }
 
         m_DMARxDscrTab = new ETH_DMADESCTypeDef[rxBufCount];
         m_DMATxDscrTab = new ETH_DMADESCTypeDef[txBufCount];
@@ -173,6 +178,16 @@ ip_addr_t Ethernet::ipFromString(const char *s)
         i1 = i2 + 1;
     }
     return ipaddr;
+}
+
+ByteArray Ethernet::ipToString(const ip_addr_t &ip)
+{
+    char buf[16];
+    const uint8_t *b = reinterpret_cast<const uint8_t *>(&ip.addr);
+    sprintf(buf, "%d.%d.%d.%d", b[0], b[1], b[2], b[3]);
+    ByteArray ba;
+    ba.append(buf);
+    return ba;
 }
 
 ip_addr_t Ethernet::broadcast() const

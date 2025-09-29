@@ -34,9 +34,14 @@
 
 #include "../lib/CMSIS/Device/ST/cmsis_device_f3/Include/stm32f3xx.h"
         
-#elif defined (STM32F030x6)
+#elif defined (STM32F030x6) || defined (STM32F030x8) ||                          \
+      defined (STM32F031x6) || defined (STM32F038xx) ||                          \
+      defined (STM32F042x6) || defined (STM32F048xx) || defined (STM32F070x6) || \
+      defined (STM32F051x8) || defined (STM32F058xx) ||                          \
+      defined (STM32F071xB) || defined (STM32F072xB) || defined (STM32F078xx) || defined (STM32F070xB) || \
+      defined (STM32F091xC) || defined (STM32F098xx) || defined (STM32F030xC)
           
-#include "../lib/CMSIS/Device/ST/STM32F0xx/Include/stm32f0xx.h"     
+#include "../lib/CMSIS/Device/ST/cmsis_device_f0/Include/stm32f0xx.h"     
       
 #elif defined (STM32F756xx) || defined (STM32F746xx) || defined (STM32F745xx) || defined (STM32F765xx) || \
       defined (STM32F767xx) || defined (STM32F769xx) || defined (STM32F777xx) || defined (STM32F779xx) || \

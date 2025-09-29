@@ -76,6 +76,32 @@ Dma::~Dma()
     mChannel->CMAR = 0;
     clearFlag(AllFlags);
 }
+
+Dma *Dma::instance(Channel channelName)
+{
+    Dma *dma = nullptr;
+    int idx;
+    
+#if defined(STM32L4)    
+    #warning Dma::instance() is not implemented!!!
+    /// @todo implement Dma::instance() for STM32L4
+    
+#elif defined(STM32G4)
+    for (idx=0; idx<DMA_CHANNEL_COUNT; idx++)
+    {
+        Dma *dma = mChannels[idx];
+        if (!dma)
+        {
+            dma = new Dma(channelName);
+            break;
+        }
+        if (dma->mChannelSel == channelName)
+            break;
+    }
+#endif
+    
+    return dma;
+}
 //---------------------------------------------------------------------------
 
 bool Dma::testFlag(uint32_t flag) const

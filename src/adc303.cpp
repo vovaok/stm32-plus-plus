@@ -29,7 +29,11 @@ Adc::Adc(int adcBase) :
       case 2:
         mAdc = ADC2;
         RCC->AHBENR |= RCC_AHBENR_ADC12EN;
-        mDmaChannel = Dma::Channel4_ADC2 ; // Dma::ADC2_Stream3
+#if defined(STM32F303xC)
+        mDmaChannel = Dma::Channel1_2_ADC2 ; // Dma::ADC2_Stream3
+#else
+        mDmaChannel = Dma::Channel4_ADC2 ;
+#endif        
         break;     
 
       default:
@@ -290,7 +294,7 @@ float Adc::averageByIndex(uint8_t index)
             return (sum / mSampleCount);
         }
     }
-    return NAN;
+    return 0.NaN;
 }
 
 int Adc::lastResultByIndex(unsigned char index)

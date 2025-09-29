@@ -35,8 +35,9 @@ void SerialFrame::task()
 
 //    char buferok[16];
 //    int sz = m_device->read(buferok, 16);
+    int sz = m_device->bytesAvailable();
 
-//    for (int i=0; i<sz; i++)
+    for (int i=0; i<sz; i++)
     {
 //        uint8_t byte = buferok[i];
         uint8_t byte;
@@ -65,6 +66,7 @@ void SerialFrame::task()
                     m_ready = true;
                     if (onReadyRead)
                         onReadyRead();
+                    break;
 //                    dataReceived(m_buffer);
                 }
                 else

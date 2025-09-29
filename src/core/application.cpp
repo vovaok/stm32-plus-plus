@@ -3,13 +3,13 @@
 Application *Application::self = 0L;
 bool Application::m_tickFlag = false;
 
-string Application::mName = APP_NAME;
-string Application::mDescription = APP_DESCRIPTION;
-string Application::mCompany = APP_COMPANY;
-unsigned short Application::mVersion = 0x0000;
-string Application::mBuildDate = __DATE__ " " __TIME__;
+const char *Application::mName = APP_NAME;
+const char *Application::mDescription = APP_DESCRIPTION;
+const char *Application::mCompany = APP_COMPANY;
+uint16_t Application::mVersion = 0x0000;
+uint32_t Application::mBurnCount = 0;
+const char * Application::mBuildDate = __DATE__ " " __TIME__;
 string Application::mCpuInfo = "unknown";
-unsigned long Application::mBurnCount = 0;
 //---------------------------------------------------------------------------
 
 void Application::sysTickHandler()
@@ -48,13 +48,17 @@ void Application::exec()
     if (SysTick_Config((rcc().sysClk() / 1000) * mSysClkPeriod) != 0)
         THROW(Exception::BadSoBad);
 
-//    NVIC_SetPriorityGrouping(0);
+//    NVIC_SetPriorityGrouping(4);
 
     __enable_interrupt();
 
     // main loop
     while(1)
     {
+        // update watchdog
+//        if (m_watchdogEnabled) // dummy write to the register if it is not initialized
+            IWDG->KR = 0xAAAA;
+        
 #if __cplusplus > 199711L
         for (TaskEvent &e: mTaskEvents)
         {
@@ -124,6 +128,14 @@ void Application::systemReset()
     NVIC_SystemReset();
 }
 
+void Application::enableWatchdog()
+{
+    IWDG->KR = 0x5555;
+    IWDG->PR = 1; 
+    IWDG->RLR = 0xfff;  
+    IWDG->KR = 0xCCCC;
+}
+
 bool Application::startOnbBootloader()
 {
     unsigned long *ptr = (unsigned long*)0x08000000;
@@ -178,7 +190,7 @@ void SysTick_Handler(void)
 //}
 
 void SystemInit(void) // on Reset_Handler
-{
+{ 
     #if (__FPU_PRESENT == 1) && (__FPU_USED == 1)
     SCB->CPACR |= ((3UL << 10*2)|(3UL << 11*2));  /* set CP10 and CP11 Full Access */
     #endif
@@ -245,12 +257,33 @@ void SystemInit(void) // on Reset_Handler
   RCC->CIER = 0x00000000;
 #endif
 
+#if !defined(STM32F0)
     /* Configure the Vector Table location add offset address ------------------*/
     #ifdef VECT_TAB_SRAM
     SCB->VTOR = SRAM_BASE;// | VECT_TAB_OFFSET; /* Vector Table Relocation in Internal SRAM */
     #else
     SCB->VTOR = FLASH_BASE;// | VECT_TAB_OFFSET; /* Vector Table Relocation in Internal FLASH */
     #endif
+
+#else
+   // 2. Настройка источника тактового сигнала (HSI - внутренний генератор 8 МГц)
+    RCC->CR |= RCC_CR_HSION;            // Включаем HSI
+    while (!(RCC->CR & RCC_CR_HSIRDY)); // Ждем, пока HSI стабилизируется
+
+    // 3. Настройка системного тактового сигнала (SYSCLK)
+    RCC->CFGR &= ~RCC_CFGR_SW;          // Очищаем биты выбора источника SYSCLK
+    RCC->CFGR |= RCC_CFGR_SW_HSI;       // Выбираем HSI как источник SYSCLK
+    while ((RCC->CFGR & RCC_CFGR_SWS) != RCC_CFGR_SWS_HSI); // Ждем переключения
+
+    // 4. Настройка делителей для шин
+    RCC->CFGR &= ~(RCC_CFGR_HPRE | RCC_CFGR_PPRE); // Сбрасываем делители
+    RCC->CFGR |= RCC_CFGR_HPRE_DIV1;    // HCLK = SYSCLK (без деления)
+    RCC->CFGR |= RCC_CFGR_PPRE_DIV1;    // PCLK = HCLK (без деления)    
+
+    
+#endif
+    
+   
 }
 
 #ifdef __cplusplus

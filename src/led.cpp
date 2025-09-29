@@ -19,17 +19,17 @@ Led::Led(GPIO_TypeDef *gpio, int pin, bool inverted) :
         write(1);
 }
 
-Led::Led(char portLetter, int pinNumber) :
-    Gpio((Gpio::PinName)((((portLetter>='a'?portLetter-'a':portLetter>='A'?portLetter-'A':noPort) & 0x0F) << 4) | (pinNumber & 0x0F)), Gpio::modeOut),
-    mCountMig(0),
-    mInverted(false)
-{
-}
+//Led::Led(char portLetter, int pinNumber) :
+//    Gpio((Gpio::PinName)((((portLetter>='a'?portLetter-'a':portLetter>='A'?portLetter-'A':noPort) & 0x0F) << 4) | (pinNumber & 0x0F)), Gpio::modeOut),
+//    mCountMig(0),
+//    mInverted(false)
+//{
+//}
 
 Led::~Led()
 {
-    if (m_blinkTimer)
-        delete m_blinkTimer;
+//    if (m_blinkTimer)
+    delete m_blinkTimer;
 }
 //---------------------------------------------------------------------------
 

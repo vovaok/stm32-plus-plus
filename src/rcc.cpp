@@ -65,6 +65,7 @@ Rcc::ClockSource Rcc::systemClockSource() const
 bool Rcc::setEnabled(ClockSource src, bool enabled)
 {
     uint32_t mask = 0;
+    volatile uint32_t *CR = &RCC->CR;
     switch (src)
     {
 #if defined(STM32L4)
@@ -79,20 +80,29 @@ bool Rcc::setEnabled(ClockSource src, bool enabled)
 #if defined(RCC_CR_PLLSAION)
     case PLLSAI: mask = RCC_CR_PLLSAION; break;
 #endif
+#if !defined(STM32L4)
+    case LSE:
+        CR = &RCC->BDCR;
+        mask = RCC_BDCR_LSEON;
+        break;
+    case LSI:
+        CR = &RCC->CSR;
+        mask = RCC_CSR_LSION;
+#endif
     default: return false;
     };
 
     if (enabled)
     {
-        RCC->CR |= mask;
+        *CR |= mask;
         uint32_t timeout = 50000;
         while (!isReady(src) && timeout--);
         if (!timeout)
-            RCC->CR &= ~mask;
+            *CR &= ~mask;
         return timeout;
     }
 
-    RCC->CR &= ~mask;
+    *CR &= ~mask;
     return true;
 }
 
@@ -111,6 +121,10 @@ bool Rcc::isReady(ClockSource src)
 #endif
 #if defined(RCC_CR_PLLSAION)
     case PLLSAI: return RCC->CR & RCC_CR_PLLSAIRDY;
+#endif
+#if !defined(STM32L4)
+    case LSE: return RCC->BDCR & RCC_BDCR_LSERDY;
+    case LSI: return RCC->CSR & RCC_CSR_LSIRDY;
 #endif
     default: return false;
     };
@@ -487,6 +501,25 @@ void Rcc::configClockOutput(Gpio::Config mco, ClockSource clk, int prescaler)
     Gpio::config(mco);
 }
 
+bool Rcc::configRtc(ClockSource clock)
+{   
+    bool r = true;
+    if (!isReady(clock))
+        r &= setEnabled(clock, true);
+    if (!r)
+        return false;
+    RCC->BDCR &= ~RCC_BDCR_RTCSEL_Msk;
+    switch (clock)
+    {
+    case LSE: RCC->BDCR |= RCC_BDCR_RTCSEL_0; break;
+    case LSI: RCC->BDCR |= RCC_BDCR_RTCSEL_1; break;
+//    case HSE: RCC->BDCR |= RCC_BDCR_RTCSEL_0 | RCC_BDCR_RTCSEL_1; break;
+    /// @todo config HSE prescaler to enable HSE as source clock!
+    default: return false;
+    }
+    RCC->BDCR |= RCC_BDCR_RTCEN;
+}
+
 #elif defined(STM32L4)
 
 bool Rcc::configPll(uint32_t sysClk)
@@ -716,9 +749,10 @@ bool Rcc::configPll(uint32_t sysClk)
 //    else
 //        THROW(Exception::BadSoBad);
 /////////*********************
-  mSysClk  = 68812800;
-  mAPB1Clk = 68812800;         // только под кварц 14.7456
-  mAPB2Clk = 68812800/2;
+  
+  mSysClk  = mHseValue == 16000000? sysClk: 68812800;
+  mAPB1Clk = mSysClk;         // только под кварц 14.7456
+  mAPB2Clk = mSysClk;
 /////////////////*************
       RCC->CR |= RCC_CR_HSEON;
   while(!(RCC->CR & RCC_CR_HSERDY));
@@ -728,13 +762,19 @@ bool Rcc::configPll(uint32_t sysClk)
 
   // Настройка коэффициентов PLL
   RCC->CFGR &= ~RCC_CFGR_PLLMUL; // Сброс множителя PLL
+  if(mHseValue==16000000)
+    // Для HSE 14.7456 МГц, чтобы получить SYSCLK = 72 МГц, множитель PLL должен быть 14\3 (PLLMUL x 5)
+     RCC->CFGR |= RCC_CFGR_PLLMUL9;
+    else
   // Для HSE 14.7456 МГц, чтобы получить SYSCLK = 72 МГц, множитель PLL должен быть 14\3 (PLLMUL x 5)
   RCC->CFGR |= RCC_CFGR_PLLMUL14;
 
   RCC->CFGR &= ~RCC_CFGR_PLLSRC; // Выбор HSE как источника для PLL
   RCC->CFGR |= RCC_CFGR_PLLSRC_HSE_PREDIV;
  
-  
+  if(mHseValue==16000000)
+    RCC->CFGR2 |= RCC_CFGR2_PREDIV_DIV2;
+    else
   RCC->CFGR2 |= RCC_CFGR2_PREDIV_DIV3;
 
   // Включение PLL и ожидание его готовности
@@ -771,6 +811,7 @@ bool Rcc::configPll(uint32_t sysClk)
   mSysClk  = 47923200;
   mAPB1Clk = 47923200;         // только под кварц 14.7456
   mAPB2Clk = 47923200;
+  mAHBClk  = 47923200;
 /////////////////*************
       RCC->CR |= RCC_CR_HSEON;
   while(!(RCC->CR & RCC_CR_HSERDY));
@@ -1102,7 +1143,7 @@ void Rcc::setPeriphEnabled(void *periphBase, bool enabled)
     default:
         if (bus == APB1PERIPH_BASE)
         {
-#if defined(STM32F4) || defined(STM32F7)
+#if defined(STM32F4) || defined(STM32F7)  || defined(STM32F3)
             RCC->APB1ENR |= mask1;
 #elif defined(STM32G4) || defined(STM32L4)
             RCC->APB1ENR1 |= mask1;

@@ -13,6 +13,7 @@ protected:
     void writeADU(const Modbus::ADU &adu);
     // changed to ModbusTransport::receiveAdu()
 //    virtual void parseADU(const Modbus::ADU &adu) = 0;
+    virtual void requestSent() {}
     virtual void responseUpdated() {}
 
     bool isOpen() const {return m_dev->isOpen();}

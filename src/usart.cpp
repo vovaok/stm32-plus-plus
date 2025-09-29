@@ -46,6 +46,14 @@
 #define USART3_RX_DMA   Dma::Channel3_USART3_RX;
 #define USART3_TX_DMA   Dma::Channel2_USART3_TX;
 
+#elif defined (STM32F0)
+#define USART1_RX_DMA   Dma::Channel3_USART1_RX_1;
+#define USART1_TX_DMA   Dma::Channel2_USART1_TX_1;
+#define USART2_RX_DMA   Dma::Channel5_USART2_RX;
+#define USART2_TX_DMA   Dma::Channel4_USART2_TX;
+#define USART3_RX_DMA   Dma::Channel3_USART3_RX_2;
+#define USART3_TX_DMA   Dma::Channel2_USART3_TX_2;
+
 #endif
 
 #if defined(STM32F4)
@@ -106,21 +114,22 @@ void Usart::commonConstructor(int number)
         mDmaChannelTx = USART1_TX_DMA;
         mIrq = USART1_IRQn;
         break;
-
+#if defined(USART2)
       case 2:
         mDev = USART2;
         mDmaChannelRx = USART2_RX_DMA;
         mDmaChannelTx = USART2_TX_DMA;
         mIrq = USART2_IRQn;
         break;
-
+#endif
+#if defined(USART3)
       case 3:
         mDev = USART3;
         mDmaChannelRx = USART3_RX_DMA;
         mDmaChannelTx = USART3_TX_DMA;
         mIrq = USART3_IRQn;
         break;
-
+#endif
 #if defined(STM32F4) || defined(STM32L4) || defined(STM32G4) || defined(STM32F7)
       case 4:
         mDev = UART4;
@@ -147,20 +156,22 @@ void Usart::commonConstructor(int number)
 #endif
     }
 
-#if defined(STM32F3)
+#if defined(STM32F3) 
     switch(number)
     {
     case 1: RCC->APB2ENR |= RCC_APB2ENR_USART1EN; break;
     case 2: RCC->APB1ENR |= RCC_APB1ENR_USART2EN; break;
     case 3: RCC->APB1ENR |= RCC_APB1ENR_USART3EN; break;
     }
+#elif defined(STM32F0)
+   RCC->APB2ENR |= RCC_APB2ENR_USART1EN; 
 #else
     rcc().setPeriphEnabled(mDev);
 #endif
     mUsarts[number - 1] = this;
 
     setConfig(Mode8N1);
-    setBaudrate(57600);
+    setBaudrate(19200);
 }
 
 Usart::~Usart()
@@ -231,7 +242,8 @@ bool Usart::open(OpenMode mode)
     // enable interrupt if necessary
     if (enableIrq)
     {
-        NVIC_SetPriority(mIrq, 1);
+//        NVIC_SetPriority(mIrq, 1);
+        NVIC_SetPriority(mIrq, NVIC_EncodePriority(NVIC_GetPriorityGrouping(), 0, 0));
         NVIC_EnableIRQ(mIrq);
     }
 
@@ -372,17 +384,18 @@ int Usart::writeData(const char *data, int size)
     int sz = writeBuffer(data, size);
     if (sz < 0)
         return -1;
-    if(sz ==0)
+    
+    int mask = mTxBuffer.size() - 1;
+    int curPos = (mTxReadPos - mDmaTx->dataCounter()) & mask;
+    sz = (mTxPos - curPos) & mask;
+    if (sz == 0)
         return 0;
-
-//    sz = (mTxPos - curPos) & mask;
 
 //    if (mDmaTx->dataCounter() > 0) // if transmission in progress...
     if (mDmaTx->isEnabled() || !(mDev->SR & USART_SR_TC))
         return sz; // dma restarts in irq handler
 
     // otherwise start new dma transfer
-    int mask = mTxBuffer.size() - 1;
     mDmaTx->stop(true);
     if (sz > mTxBufferSize - mTxReadPos)
         sz = mTxBufferSize - mTxReadPos;
@@ -405,6 +418,8 @@ int Usart::writeData(const char *data, int size)
 //        while (!(mDev->SR & USART_SR_IDLE));
 //    }
 
+//    (void)mDev->SR; // read SR to clear TC flag
+    
     mDmaTx->start();
     return sz;
 }
@@ -486,6 +501,8 @@ void Usart::dmaTxComplete()
     }
     mDmaTx->setSingleBuffer(mTxBuffer.data() + mTxReadPos, sz);
     mTxReadPos = (mTxReadPos + sz) & mask;
+    
+    (void)mDev->SR; // read status register to clear the TC flag (this is important!)
     mDmaTx->start();
 }
 //---------------------------------------------------------------------------
@@ -586,11 +603,14 @@ void Usart::handleInterrupt()
     if (sr & USART_SR_TC)
     {
         mDev->CR1 &= ~USART_CR1_TCIE;
-        if (mDmaTx && m_halfDuplex)
+        if (mDmaTx)
         {
-            if (m_pinDE)
-                m_pinDE->reset();
-            mDev->CR1 |= USART_CR1_RE;
+            if (m_halfDuplex)
+            {
+                if (m_pinDE)
+                    m_pinDE->reset();
+                mDev->CR1 |= USART_CR1_RE;
+            }
 
             if (onBytesWritten)
                 onBytesWritten();
@@ -612,12 +632,10 @@ void Usart::handleInterrupt()
         {
             if (mDev->RDR == m_characterMatch)
             {
-    //            GPIOA->BSRR = 1; // this is for performance tests only!
                 if (m_characterMatchEvent)
                     m_characterMatchEvent();
                 else if (onReadyRead)
                     onReadyRead();
-    //            GPIOA->BSRR = 1 << 16;
             }
         }
         else if (onReadyRead)

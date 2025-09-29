@@ -111,7 +111,7 @@ public:
         TrgOC3Ref   = 0x0060,
         TrgOC4Ref   = 0x0070
     } TrgSource;
-#if defined (STM32F303x8) 
+#if defined (STM32F303x8) || defined(STM32F303xC)
     typedef enum
     {
         TRGO2_RESET                          = 0x000000,                  
@@ -202,7 +202,7 @@ public:
     void selectInputTrigger(InputTrigger trgi);
     void setSlaveMode(SlaveMode sms);
     void selectOutputTrigger(TrgSource source);
-#if defined (STM32F303x8)
+#if defined (STM32F303x8) || defined(STM32F303xC)
     void HardwareTimer::selectOutputTrigger2(TrgSource2 source);
 #endif
     void setFrequency(int frequency_Hz);
@@ -251,6 +251,7 @@ public:
     unsigned int captureValue(ChannelNumber ch) const;
     
     void setChannelEnabled(ChannelNumber ch, bool enabled);
+    bool isChannelEnabled(ChannelNumber ch) const;
     void setChannelInverted(ChannelNumber ch, bool inverted);
     void setComplementaryChannelEnabled(ChannelNumber ch, bool enabled);
     void setComplementaryChannelInverted(ChannelNumber ch, bool inverted);

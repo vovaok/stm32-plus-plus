@@ -27,7 +27,7 @@ public:
     void setSuffix(const ByteArray &s);
     const ByteArray &suffix() const {return m_suffix;}
     
-    Closure<void(int)> onValueChanged;
+    std::function<void(int)> onValueChanged;
     
     virtual void stepBy(int steps) override;
     virtual void reset() override;

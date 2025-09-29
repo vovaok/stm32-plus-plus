@@ -582,7 +582,7 @@ void ESP8266::onTimer()
 
     if (mState == ResetState)
     {
-        hardReset();
+        //hardReset();
     }
     else if (mState == ReadyState)
     {

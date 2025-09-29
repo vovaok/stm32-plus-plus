@@ -77,6 +77,11 @@ void Buzzer::setEnabled(bool enabled)
     mPwm->setChannelEnabled(mChan, enabled);
 }
 
+bool Buzzer::isEnabled() const
+{
+    return mPwm->isChannelEnabled(mChan);
+}
+
 void Buzzer::beep(int duration_ms)
 {
     if (mTime)

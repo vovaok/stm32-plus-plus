@@ -7,20 +7,25 @@ PowerManager::PowerManager(Adc *adc) :
 {
     if (!mAdc)
         mAdc = Adc::instance(1);
-    
+
     mAdc->setResolution(Adc::Res12bit);
     mAdc->addChannel(Adc::Vbat, Adc::SampleTime_56Cycles);
     mAdc->addChannel(Adc::TempSensor, Adc::SampleTime_56Cycles);
 //    mAdc->addChannel(Adc::VrefInt, Adc::SampleTime_56Cycles);
-    
+
     mAdc->setContinuousMode(true);
     mAdc->setMultisample(8);
     mAdc->start();
     mAdc->startConversion();
-    
-    Timer *timer = new Timer();
+
+    timer = new Timer();
     timer->onTimeout = EVENT(&PowerManager::onTimer);
     timer->start(10);
+}
+
+void PowerManager::setUpdateInterval(int value_ms)
+{
+    timer->setInterval(value_ms);
 }
 
 void PowerManager::addVoltageMeasurement(string name, Gpio::Config pin, float Rhigh, float Rlow)
@@ -30,17 +35,18 @@ void PowerManager::addVoltageMeasurement(string name, Gpio::Config pin, float Rh
 
 void PowerManager::addMeasurement(string name, Gpio::Config pin, float factor, float bias)
 {
-	mAdc->stop();
-	
+    mAdc->stop();
+
     Adc::Channel channel = mAdc->addChannel(pin, Adc::SampleTime_56Cycles);
     VoltageEntry entry;
     entry.channel = channel;
     entry.bias = bias;
-    entry.factor =  3.3f * factor / mAdc->maxValue();
+    entry.factor = 3.3f * factor / mAdc->maxValue();
+    entry.rawValue = 0;
     entry.value = 0;
     entry.Kf = 0.9;
     mVoltages[name] = entry;
-    
+
     mAdc->start();
     mAdc->startConversion();
 }
@@ -70,6 +76,7 @@ void PowerManager::onTimer()
     {
         VoltageEntry &entry = pair.second;
         float v = mAdc->result(entry.channel) * entry.factor + entry.bias;
+        entry.rawValue = v;
         if (!entry.value)
             entry.value = v;
         else

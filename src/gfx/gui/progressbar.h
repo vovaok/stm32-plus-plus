@@ -5,7 +5,8 @@
 class ProgressBar : public Widget
 {
 public:
-    ProgressBar(Widget *parent = nullptr);
+    ProgressBar(Orientation orient, Widget *parent = nullptr);
+    ProgressBar(Widget *parent = nullptr) : ProgressBar(Horizontal, parent) {}
 
     void setRange(float minimum, float maximum);
     void setMinimum(float value);
@@ -16,14 +17,17 @@ public:
     void setValue(float value);
     inline float value() const {return m_value;}
 
+    void setOrientation(Orientation orient);
+    Orientation orientation() const {return m_orientation;}
     void setTextVisible(bool visible);
     void setFormat(const ByteArray &fmt);
     const ByteArray &format() const {return m_format;}
-//    void setFormat(const ByteArray &fmt, int decimals); // DEPRECATED! use separately setFormat and setDecimals instead
     void setDecimals(int value);
     int decimals() const {return m_decimals;}
 
     void setFont(Font font);
+    
+    void useColorMap(Gradient *gradient);
 
 protected:
     void paintEvent(Display *d) override;
@@ -35,6 +39,8 @@ protected:
     int m_decimals = 0;
     bool m_textVisible = true;
     ByteArray m_format = "%p %";
+    Orientation m_orientation;
+    Gradient *m_colorMap = nullptr;
 
     //! @return x-coord of value in px;
     int map(float value);

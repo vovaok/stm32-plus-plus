@@ -49,6 +49,11 @@ ByteArray::ByteArray(int size, char ch) :
     mData[mSize] = '\0';
 }
 
+ByteArray::ByteArray(std::initializer_list<char> il) :
+    ByteArray(std::data(il), il.size())
+{
+}
+
 ByteArray::~ByteArray()
 {
     if (mAllocSize)
@@ -123,14 +128,15 @@ void ByteArray::allocMore(int size)
     __istate_t interrupt_state = __get_interrupt_state();
     __disable_interrupt();
 
+    if (!allocSize) // if first time alloc
+        allocSize = ((desiredSize - 1) | 3) + 1; // alloc exactly needed bytes (aligned to 4)
     if (desiredSize <= 16)
         allocSize = 16;
     if (desiredSize <= 512)
         allocSize = upper_power_of_two(desiredSize);
     else
-        allocSize = (desiredSize | 511) + 1;
-//    while (allocSize < desiredSize) // compute nearest allocation size
-//        allocSize = allocSize? (allocSize << 1): 16; // minimum size = 16 bytes
+        allocSize = ((desiredSize - 1) | 511) + 1;
+    
     char *temp = new char[allocSize]; // allocate new buffer
     if (mData)
     {
@@ -590,6 +596,24 @@ int ByteArray::toInt() const
     return value;
 }
 
+int ByteArray::toInt(int base) const
+{
+    if (!mSize)
+        return 0; // alarm
+    char *end = nullptr;
+    int value = strtol(mData, &end, base);
+    return value;
+}
+
+long long ByteArray::toLongLong() const
+{
+    if (!mSize)
+        return 0; // alarm
+    long long value;
+    sscanf(mData, "%lld", &value);
+    return value;
+}
+
 float ByteArray::toFloat() const
 {
     if (!mSize)
@@ -604,7 +628,7 @@ std::string ByteArray::toStdString() const
     return std::string(mData, mSize);
 }
 
-ByteArray ByteArray::toHex()
+ByteArray ByteArray::toHex() const
 {
     ByteArray ba(mSize * 2, 0);
     char *src = mData;
@@ -614,7 +638,7 @@ ByteArray ByteArray::toHex()
     return ba;
 }
 
-ByteArray ByteArray::toHex(char separator)
+ByteArray ByteArray::toHex(char separator) const
 {
     ByteArray ba(mSize * 3, 0);
     char *src = mData;
@@ -627,6 +651,18 @@ ByteArray ByteArray::toHex(char separator)
     return ba;
 }
 //---------------------------------------------------------------------------
+
+ByteArray ByteArray::fromHex(const ByteArray &ba)
+{
+    ByteArray out;
+    char *ptr = ba.mData;
+    for (int i=0; i<ba.mSize; i+=2)
+    {
+        out.append(readHex(ptr));
+        ptr += 2;
+    }
+    return out;
+}
 
 ByteArray ByteArray::fromStdString(const std::string &str)
 {
@@ -666,6 +702,33 @@ ByteArray ByteArray::number(int n)
     ByteArray ba;
     ba.resize(16);
     sprintf(ba.data(), "%d", n);
+    ba.resize(strlen(ba.data()));
+    return ba;
+}
+
+ByteArray ByteArray::number(unsigned int n)
+{
+    ByteArray ba;
+    ba.resize(16);
+    sprintf(ba.data(), "%u", n);
+    ba.resize(strlen(ba.data()));
+    return ba;
+}
+
+ByteArray ByteArray::number(long long n)
+{
+    ByteArray ba;
+    ba.resize(16);
+    sprintf(ba.data(), "%lld", n);
+    ba.resize(strlen(ba.data()));
+    return ba;
+}
+
+ByteArray ByteArray::number(unsigned long long n)
+{
+    ByteArray ba;
+    ba.resize(16);
+    sprintf(ba.data(), "%llu", n);
     ba.resize(strlen(ba.data()));
     return ba;
 }

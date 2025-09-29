@@ -56,7 +56,7 @@ void ObjnetMaster::task()
     }
 }
 
-void ObjnetMaster::onNak(unsigned char mac)
+void ObjnetMaster::onNak(unsigned char /*mac*/)
 {
 //    if (mLocalnetDevices[mac])
 //    {
@@ -124,6 +124,18 @@ void ObjnetMaster::onTimer()
     }
     else
     {
+        if (mSwonbMode)
+        {
+//            if (mLocalnetDevices[mSearchMac] && mLocalnetDevices[mSearchMac]->mConnectionError)
+//                sendServiceMessageToMac(mSearchMac, svcFail);
+//            else
+                sendServiceMessageToMac(mSearchMac, svcHello);
+            ObjnetDevice *dev = mLocalnetDevices[mSearchMac];
+            if (dev && dev->mTimeout)
+                --dev->mTimeout;
+            mSearchMac = (mSearchMac < 15)? mSearchMac + 1: 1;
+        }
+      
         // test local devices for presence
         for (unsigned char mac=1; mac<16; mac++)
         {
@@ -147,14 +159,7 @@ void ObjnetMaster::onTimer()
 //                    mSearchMac = (mSearchMac < 15)? mSearchMac + 1: 1;
 //            }
         }
-        if (mSwonbMode)
-        {
-//            if (mLocalnetDevices[mSearchMac] && mLocalnetDevices[mSearchMac]->mConnectionError)
-//                sendServiceMessageToMac(mSearchMac, svcFail);
-//            else
-                sendServiceMessageToMac(mSearchMac, svcHello);
-            mSearchMac = (mSearchMac < 15)? mSearchMac + 1: 1;
-        }
+        
     }
 }
 //---------------------------------------------------------------------------
@@ -286,6 +291,8 @@ void ObjnetMaster::disconnectDevice(unsigned char netaddr)
             mAdjacentNode->sendServiceMessage(svcDisconnected, supernetaddr);
     }
     
+    dev->disconnectEvent();
+    
     #ifdef QT_CORE_LIB
     emit devDisconnected(netaddr);
     #else
@@ -374,6 +381,23 @@ bool ObjnetMaster::parseServiceMessage(const CommonMessage &msg)
                 success &= sendServiceMessage(netaddr, svcName);
             }
         }
+        else if (!dev->isInfoValid())
+        {
+            dev->requestMetaInfo();
+            qDebug() << "[ObjnetMaster] info not valid, request it again";
+        }
+        else if (!dev->isReady())
+        {
+            for (int i=0; i<dev->objectCount(); i++)
+            {
+                if (!dev->objectInfo(i))
+                {
+                    dev->requestObjectInfo(i);
+                    qDebug() << "[ObjnetMaster] object #" << i << "was not obtained, request it again";
+                    break;
+                }
+            }
+        }
         else
         {
             dev->mTimeout = 5;
@@ -396,7 +420,7 @@ bool ObjnetMaster::parseServiceMessage(const CommonMessage &msg)
         {
 //#warning TODO!! implement ONB devices recursive search
             ObjnetDevice *foundDev = 0L;
-            for (int i=0; i<dev->mChildren.size() && !foundDev; i++)
+            for (size_t i=0; i<dev->mChildren.size() && !foundDev; i++)
             {
                 ObjnetDevice *child = dev->mChildren[i];
                 if (location.size() == 2) // subnet level
@@ -406,7 +430,7 @@ bool ObjnetMaster::parseServiceMessage(const CommonMessage &msg)
                 }
                 else if (location.size() == 3)
                 {
-                    for (int i=0; i<child->mChildren.size() && !foundDev; i++)
+                    for (size_t i=0; i<child->mChildren.size() && !foundDev; i++)
                     {
                         ObjnetDevice *grandchild = child->mChildren[i];
                         if (grandchild->busAddress() == mac)
@@ -475,7 +499,7 @@ bool ObjnetMaster::parseServiceMessage(const CommonMessage &msg)
                 // TODO: send dev's class & name somehow
                 mAdjacentNode->sendServiceMessage(netaddr, svcConnected, supernetaddr); // a la echo
                 
-                for (int i=0; i<dev->mChildren.size(); i++)
+                for (size_t i=0; i<dev->mChildren.size(); i++)
                 {
                     ObjnetDevice *child = dev->mChildren[i];
                     ByteArray location;

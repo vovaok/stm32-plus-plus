@@ -97,7 +97,7 @@ void Led7::write(unsigned short value)
 
 void Led7::write(unsigned char value)
 {
-    char s[5];
+    char s[6];
     sprintf(s, "% 4d", (int)value);
     setBuffer(s);
 }

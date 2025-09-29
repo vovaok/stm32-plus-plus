@@ -8,9 +8,11 @@ class PwmInput : private HardwareTimer
 public:
     PwmInput(Gpio::Config inputPin);
     void setMinFrequency(unsigned int freq);
-    
+
     using HardwareTimer::setEnabled;
-    
+    using HardwareTimer::setPrescaler;
+    using HardwareTimer::setAutoReloadRegister;
+
 #if __FPU_PRESENT
     float read();             // call this function to do sample
     float dutyCycle() const;  // duty cycle in range [0 ... 1]
@@ -25,13 +27,14 @@ public:
     int period_us() const;  // period, us
     int frequency() const;  // measured frequency, Hz
 #endif
-    
+
     int rawDutyCycle() const {return m_dutyCycle;}
     int rawPeriod() const {return m_period;}
-    
+
 private:
     uint32_t m_dutyCycle;
     uint32_t m_period;
+    bool m_flag = false;
 };
 
 #endif

@@ -84,6 +84,8 @@ enum Direction
     VerticalReversed
 };
 
+typedef Direction Orientation; // alias
+
 enum Language
 {
     AnyLanguage = 0,
