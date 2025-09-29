@@ -1,5 +1,5 @@
 #include "fakeeeprom.h"
-#include "core.h"
+#include "core/core.h"
 
 #include <map>
 

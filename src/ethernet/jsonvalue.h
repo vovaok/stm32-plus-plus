@@ -2,6 +2,8 @@
 #define _JSONVALUE_H
 
 #include "core/bytearray.h"
+
+#include <stdint.h>
 #include <vector>
 #include <map>
 

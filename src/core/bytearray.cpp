@@ -1,5 +1,6 @@
 #include "bytearray.h"
 #include "application.h"
+#include "cmsis.h"
 
 //#define ASSERT_SIZE()   if (mSize > mAllocSize) while (1)
 
