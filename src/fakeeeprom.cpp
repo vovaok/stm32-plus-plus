@@ -1,5 +1,5 @@
 #include "fakeeeprom.h"
-#include "core/core.h"
+#include "core/cmsis.h"
 
 #include <map>
 
@@ -96,11 +96,11 @@ FakeEeprom::Header FakeEeprom::readHeader(unsigned char sector)
 
 void FakeEeprom::writeHeader(unsigned char sector, Header h)
 {
-    __disable_irq();
+    __disable_interrupt();
     unlock();
     Flash::programWord(pageBase(sector), h.word);
     lock();
-    __enable_irq();
+    __enable_interrupt();
     mSectorState[sector] = h.state;
 }
 
@@ -109,9 +109,9 @@ void FakeEeprom::format(unsigned char sector)
     Header h = readHeader(sector);
     if (h.state != sBlank)
     {
-        __disable_irq();
+        __disable_interrupt();
         Flash::eraseSector(mSectors[mCurSector]);
-        __enable_irq();
+        __enable_interrupt();
     }
     h.state = sBlank;
     h.reserve = 0xFF;
@@ -177,9 +177,9 @@ void FakeEeprom::write(unsigned short addr, unsigned short data)
         if (word == 0xFFFFFFFF)
         {
             word = (data << 16) | addr;
-            __disable_irq();
+            __disable_interrupt();
             Flash::programWord(address, word);
-            __enable_irq();
+            __enable_interrupt();
             mNextOffset += 4;
             return;
         }
@@ -204,12 +204,12 @@ bool FakeEeprom::read(unsigned short addr, unsigned short &data)
 
 void FakeEeprom::eraseAll()
 {
-    __disable_irq();
+    __disable_interrupt();
     unlock();
     Flash::eraseSector(mSectors[0]);
     Flash::eraseSector(mSectors[1]);
     lock();
-    __enable_irq();
+    __enable_interrupt();
     mCurSector = -1;
     mNextOffset = 4;
     init();
