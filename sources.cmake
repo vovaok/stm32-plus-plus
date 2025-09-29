@@ -112,7 +112,7 @@ set(STM32PP_DEVICE_SOURCES
 set(STM32PP_ETHERNET_SOURCES 
   ${CMAKE_CURRENT_SOURCE_DIR}/src/ethernet/jsonvalue.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/ethernet/tcpsocket.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/ethernet/stm32f4x7_eth.c
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/ethernet/stm32f4x7_eth.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/ethernet/httpserver.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/ethernet/ethernet.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/ethernet/udpsocket.cpp
