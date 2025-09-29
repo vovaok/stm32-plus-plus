@@ -7,8 +7,8 @@ ObjnetStorage* ObjnetStorage::mSelf = 0L;
 Flash::Sector ObjnetStorage::mSector1 = (Flash::Sector)126;
 Flash::Sector ObjnetStorage::mSector2 = (Flash::Sector)127;
 #else
-Flash::Sector ObjnetStorage::mSector1 = Flash::Sector10;
-Flash::Sector ObjnetStorage::mSector2 = Flash::Sector11;
+Flash::Sector ObjnetStorage::mSector1 = Flash::Sector2;
+Flash::Sector ObjnetStorage::mSector2 = Flash::Sector3;
 #endif
 
 void ObjnetStorage::setFlashSectors(Flash::Sector sector1, Flash::Sector sector2)
@@ -17,16 +17,21 @@ void ObjnetStorage::setFlashSectors(Flash::Sector sector1, Flash::Sector sector2
     mSector2 = sector2;
 }
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-ObjnetStorage *objnetStorage()
+ObjnetStorage * ObjnetStorage::objnetStorageImpl()
 {
     if (!ObjnetStorage::mSelf)
     {
         new ObjnetStorage(ObjnetStorage::mSector1, ObjnetStorage::mSector2);
     }
     return ObjnetStorage::mSelf;
+}
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+ObjnetStorage *objnetStorage()
+{
+    return ObjnetStorage::objnetStorageImpl();
 }
 #ifdef __cplusplus
 }

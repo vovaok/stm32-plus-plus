@@ -1,3 +1,5 @@
+#if defined(STM32F37X)
+
 #include "dma37x.h"
 
 Dma *Dma::mDma1Channels[7] = {0, 0, 0, 0, 0, 0, 0};
@@ -149,4 +151,6 @@ FOR_EACH_DMA(DEFINE_DMA_IRQ_HANDLER)
   
 #ifdef __cplusplus
 }
+#endif
+
 #endif

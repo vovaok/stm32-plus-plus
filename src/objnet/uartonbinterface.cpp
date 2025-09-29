@@ -72,7 +72,12 @@ void UartOnbInterface::tick(int dt)
 }
 //---------------------------------------------------------------------------
 
+#if defined(__ICCARM__)
 __root static uint32_t ids[256];
+#elif defined(__GNUC__)
+static uint32_t ids[256] __attribute__((used));
+#endif
+
 static uint8_t ids_idx = 0;
 
 void UartOnbInterface::msgReceived(const ByteArray &ba)

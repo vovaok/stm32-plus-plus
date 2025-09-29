@@ -14,3 +14,4 @@
 	path = lib/stm32_mw_lwip
 	url = https://github.com/STMicroelectronics/stm32_mw_lwip.git
 	branch = master
+  ignore = dirty

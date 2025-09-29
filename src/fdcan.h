@@ -1,6 +1,8 @@
 #ifndef _FDCAN_H
 #define _FDCAN_H
 
+#if defined(STM32G4)
+
 #include "caninterface.h"
 #include "gpio.h"
 
@@ -162,4 +164,5 @@ private:
     static int sizeFromDLC(uint8_t DLC);
 };
 
+#endif
 #endif

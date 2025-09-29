@@ -1,6 +1,7 @@
 #include "fakeeeprom.h"
+#include "core/cmsis.h"
+
 #include <map>
-#include <intrinsics.h>
 
 FakeEeprom *FakeEeprom::mSelf = nullptr;
 

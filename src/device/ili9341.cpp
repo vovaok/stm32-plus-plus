@@ -1,5 +1,7 @@
 #include "ili9341.h"
 
+#if defined(LTDC)
+
 ILI9341::ILI9341(Spi *spi, Gpio::PinName cs, Gpio::PinName dc, int width, int height) :
     LcdDisplay(width, height),
     m_spi(spi)
@@ -170,3 +172,5 @@ void ILI9341::LCD_WriteData(uint8_t data)
     m_spi->write(data);
     m_cs->set();
 }
+
+#endif

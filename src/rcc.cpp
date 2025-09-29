@@ -326,6 +326,11 @@ bool Rcc::measureHseFreq()
     int loopCount = 10;
     int fr0, fr1;
     TIM_TypeDef *tim11 = TIM11;
+
+    /* Seems like IAR and GCC have different syntax for asm */
+    /* with the difference being register name case */
+
+    #if defined(__ICCARM__)
     asm("ADD  R1, %[tim], #16\n"        // R1 = TIM1->SR
         "ADD  R2, %[tim], #52\n"        // R2 = TIM1->CCR1
         "MOV  R3, %[cnt]\n"             // counter = 10
@@ -356,6 +361,40 @@ bool Rcc::measureHseFreq()
         : [f0]"=r"(fr0), [f1]"=r"(fr1)
         : [tim]"r"(tim11), [cnt]"r"(loopCount)
         : "cc", "R0", "R1", "R2", "R3");
+    
+    #elif defined(__GNUC__)
+    asm("ADD  r1, %[tim], #16\n"        // r1 = TIM1->SR
+        "ADD  r2, %[tim], #52\n"        // r2 = TIM1->CCR1
+        "MOV  r3, %[cnt]\n"             // counter = 10
+        "MOV  r0, #2\n"
+        "STRH r0, [%[tim], #80]\n"      // TIM11->OR = 0x0002; // HSE connect to TIM11_CH1 input
+        "MOVW r0, #65535\n"
+        "STR  r0, [%[tim], #44]\n"      // TIM11->ARR = 0xFFFF;
+        "MOV  r0, #1\n"
+        "STRH r0, [%[tim], #24]\n"      // TIM11->CCMR1 = 0x0001; // CC1 channel configured as input
+        "STRH r0, [%[tim], #32]\n"      // TIM11->CCER = 0x0001; // enable capture of rising edge
+        "STRH r0, [%[tim]]\n"           // TIM11->CR1 = 0x0001; // enable TIM11
+        "MOV  r0, #0\n"
+        "STRH r0, [r1]\n"               // TIM11->SR = 0;
+        "wait0:\n"
+        "LDR r0, [r1]\n"
+        "LSLS r0, r0, #30\n"            // test bit 2
+        "BPL wait0\n"                   // wait for bit 2
+        "LDR %[f0], [r2]\n"             // fr0 = TIM11->CCR1;
+        "wait1: LDR r0, [r1]\n"
+        "LSLS r0, r0, #30\n"            // test bit 2
+        "BPL wait1\n"                   // wait for bit 2
+        "LDR %[f1], [r2]\n"             // fr1 = TIM11->CCR1;
+        "SUBS r3, r3, #1\n"             // decrement counter
+        "BNE wait1\n"                   // continue loop
+        "MOVS r0, #0\n"
+        "STRH r0, [%[tim]]\n"           // TIM11->CR1 = 0x0000; // disable TIM11
+        "STRH r0, [r1]\n"               // TIM11->SR = 0;
+        : [f0]"=r"(fr0), [f1]"=r"(fr1)
+        : [tim]"r"(tim11), [cnt]"r"(loopCount)
+        : "cc", "r0", "r1", "r2", "r3");
+
+    #endif
 
     RCC->CFGR = rccCfgr;
     RCC->APB2ENR &= ~RCC_APB2ENR_TIM11EN; // disable peripheral clock to TIM11
@@ -518,6 +557,8 @@ bool Rcc::configRtc(ClockSource clock)
     default: return false;
     }
     RCC->BDCR |= RCC_BDCR_RTCEN;
+
+    return true;
 }
 
 #elif defined(STM32L4)
@@ -656,9 +697,9 @@ bool Rcc::configPll(uint32_t sysClk)
 //        }
 //        else
 //        {
-//            // влом пока продумывать расчёт коэффициентов PLL
-//            // если надо, придумайте сами
-//            // с USB ваще борода, там только 1/1 (sysClk=48 МГц) или 1/1.5 (sysClk=72 Мгц)
+//            // пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ PLL
+//            // пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
+//            // пїЅ USB пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ 1/1 (sysClk=48 пїЅпїЅпїЅ) пїЅпїЅпїЅ 1/1.5 (sysClk=72 пїЅпїЅпїЅ)
 //            THROW(Exception::BadSoBad);
 //        }
 //
@@ -751,25 +792,25 @@ bool Rcc::configPll(uint32_t sysClk)
 /////////*********************
   
   mSysClk  = mHseValue == 16000000? sysClk: 68812800;
-  mAPB1Clk = mSysClk;         // только под кварц 14.7456
+  mAPB1Clk = mSysClk;         // пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ 14.7456
   mAPB2Clk = mSysClk;
 /////////////////*************
       RCC->CR |= RCC_CR_HSEON;
   while(!(RCC->CR & RCC_CR_HSERDY));
 
-  // Настройка флэш-памяти на 2 цикла ожидания, если частота SYSCLK выше 48 МГц
+  // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ-пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ 2 пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ SYSCLK пїЅпїЅпїЅпїЅ 48 пїЅпїЅпїЅ
   FLASH->ACR |= FLASH_ACR_LATENCY_1;
 
-  // Настройка коэффициентов PLL
-  RCC->CFGR &= ~RCC_CFGR_PLLMUL; // Сброс множителя PLL
+  // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ PLL
+  RCC->CFGR &= ~RCC_CFGR_PLLMUL; // пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ PLL
   if(mHseValue==16000000)
-    // Для HSE 14.7456 МГц, чтобы получить SYSCLK = 72 МГц, множитель PLL должен быть 14\3 (PLLMUL x 5)
+    // пїЅпїЅпїЅ HSE 14.7456 пїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ SYSCLK = 72 пїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ PLL пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ 14\3 (PLLMUL x 5)
      RCC->CFGR |= RCC_CFGR_PLLMUL9;
     else
-  // Для HSE 14.7456 МГц, чтобы получить SYSCLK = 72 МГц, множитель PLL должен быть 14\3 (PLLMUL x 5)
+  // пїЅпїЅпїЅ HSE 14.7456 пїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ SYSCLK = 72 пїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ PLL пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ 14\3 (PLLMUL x 5)
   RCC->CFGR |= RCC_CFGR_PLLMUL14;
 
-  RCC->CFGR &= ~RCC_CFGR_PLLSRC; // Выбор HSE как источника для PLL
+  RCC->CFGR &= ~RCC_CFGR_PLLSRC; // пїЅпїЅпїЅпїЅпїЅ HSE пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ PLL
   RCC->CFGR |= RCC_CFGR_PLLSRC_HSE_PREDIV;
  
   if(mHseValue==16000000)
@@ -777,18 +818,18 @@ bool Rcc::configPll(uint32_t sysClk)
     else
   RCC->CFGR2 |= RCC_CFGR2_PREDIV_DIV3;
 
-  // Включение PLL и ожидание его готовности
+  // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ PLL пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
   RCC->CR |= RCC_CR_PLLON;
   while(!(RCC->CR & RCC_CR_PLLRDY));
 
-  // Выбор PLL как источника SYSCLK и ожидание его выбора
+  // пїЅпїЅпїЅпїЅпїЅ PLL пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ SYSCLK пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
   RCC->CFGR &= ~RCC_CFGR_SW;
   RCC->CFGR |= RCC_CFGR_SW_PLL;
   while((RCC->CFGR & RCC_CFGR_SWS) != RCC_CFGR_SWS_PLL);
 
-  // Настройка делителей AHB, APB1 и APB2
+  // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ AHB, APB1 пїЅ APB2
   RCC->CFGR &= ~RCC_CFGR_HPRE; // AHB prescaler = 1
-  RCC->CFGR &= ~RCC_CFGR_PPRE1; // APB1 prescaler = 2 (36 МГц максимум для APB1)
+  RCC->CFGR &= ~RCC_CFGR_PPRE1; // APB1 prescaler = 2 (36 пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ APB1)
   RCC->CFGR |= RCC_CFGR_PPRE1_DIV2;
   RCC->CFGR &= ~RCC_CFGR_PPRE2; // APB2 prescaler = 1
   
@@ -809,39 +850,39 @@ bool Rcc::configPll(uint32_t sysClk)
 {
   /////////*********************
   mSysClk  = 47923200;
-  mAPB1Clk = 47923200;         // только под кварц 14.7456
+  mAPB1Clk = 47923200;         // пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ 14.7456
   mAPB2Clk = 47923200;
   mAHBClk  = 47923200;
 /////////////////*************
       RCC->CR |= RCC_CR_HSEON;
   while(!(RCC->CR & RCC_CR_HSERDY));
 
-  // Настройка флэш-памяти на 2 цикла ожидания, если частота SYSCLK выше 48 МГц
+  // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ-пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ 2 пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ SYSCLK пїЅпїЅпїЅпїЅ 48 пїЅпїЅпїЅ
   FLASH->ACR |= FLASH_ACR_LATENCY;
 
-  // Настройка коэффициентов PLL
-  RCC->CFGR &= ~RCC_CFGR_PLLMUL; // Сброс множителя PLL
-  // Для HSE 14.7456 МГц, чтобы получить SYSCLK = 72 МГц, множитель PLL должен быть 14\3 (PLLMUL x 5)
+  // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ PLL
+  RCC->CFGR &= ~RCC_CFGR_PLLMUL; // пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ PLL
+  // пїЅпїЅпїЅ HSE 14.7456 пїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ SYSCLK = 72 пїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ PLL пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ 14\3 (PLLMUL x 5)
   RCC->CFGR |= RCC_CFGR_PLLMUL13;
 
-  RCC->CFGR &= ~RCC_CFGR_PLLSRC; // Выбор HSE как источника для PLL
+  RCC->CFGR &= ~RCC_CFGR_PLLSRC; // пїЅпїЅпїЅпїЅпїЅ HSE пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ PLL
   RCC->CFGR |= RCC_CFGR_PLLSRC_HSE_PREDIV;
  
   
   RCC->CFGR2 |= RCC_CFGR2_PREDIV_DIV4;
 
-  // Включение PLL и ожидание его готовности
+  // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ PLL пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
   RCC->CR |= RCC_CR_PLLON;
   while(!(RCC->CR & RCC_CR_PLLRDY));
 
-  // Выбор PLL как источника SYSCLK и ожидание его выбора
+  // пїЅпїЅпїЅпїЅпїЅ PLL пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ SYSCLK пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
   RCC->CFGR &= ~RCC_CFGR_SW;
   RCC->CFGR |= RCC_CFGR_SW_PLL;
   while((RCC->CFGR & RCC_CFGR_SWS) != RCC_CFGR_SWS_PLL);
 
-  // Настройка делителей AHB, APB1 и APB2
+  // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ AHB, APB1 пїЅ APB2
   RCC->CFGR &= ~RCC_CFGR_HPRE; // AHB prescaler = 1
-  RCC->CFGR &= ~RCC_CFGR_PPRE; // APB1 prescaler = 2 (36 МГц максимум для APB1)
+  RCC->CFGR &= ~RCC_CFGR_PPRE; // APB1 prescaler = 2 (36 пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ APB1)
  
   
     return true;

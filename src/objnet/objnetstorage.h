@@ -16,11 +16,11 @@ class ObjnetStorage;
 //! видимо из за экстерна
 //! Так как она нигде не используется, закомментил
 //! UPD: Теперь используется, ГЦЦ должен понять и простить
+//! UPD: ГЦЦ не простил. Сделал прослойку в виде статического метода. friendship is magic 
 extern "C" ObjnetStorage *objnetStorage();
-  
+
 class ObjnetStorage
 {
-    friend ObjnetStorage *objnetStorage();
 private:
     static ObjnetStorage *mSelf;
     static Flash::Sector mSector1, mSector2;
@@ -176,6 +176,8 @@ protected:
 public:
     static void setFlashSectors(Flash::Sector sector1, Flash::Sector sector2);
     
+    static ObjnetStorage* objnetStorageImpl();
+
     void save(ObjectInfo &info);
     void load(ObjectInfo &info);
     

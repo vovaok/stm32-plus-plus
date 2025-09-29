@@ -1,4 +1,5 @@
 #include "application.h"
+#include "cmsis.h"
 
 Application *Application::self = 0L;
 bool Application::m_tickFlag = false;
@@ -77,7 +78,7 @@ void Application::exec()
         m_tasksModified = false;
 
         if (m_sleeping)
-            __WFI(); // го слипать
+            __WFI(); // пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
     }
 }
 //---------------------------------------------------------------------------
@@ -266,19 +267,19 @@ void SystemInit(void) // on Reset_Handler
     #endif
 
 #else
-   // 2. Настройка источника тактового сигнала (HSI - внутренний генератор 8 МГц)
-    RCC->CR |= RCC_CR_HSION;            // Включаем HSI
-    while (!(RCC->CR & RCC_CR_HSIRDY)); // Ждем, пока HSI стабилизируется
+   // 2. пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ (HSI - пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ 8 пїЅпїЅпїЅ)
+    RCC->CR |= RCC_CR_HSION;            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ HSI
+    while (!(RCC->CR & RCC_CR_HSIRDY)); // пїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅ HSI пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 
-    // 3. Настройка системного тактового сигнала (SYSCLK)
-    RCC->CFGR &= ~RCC_CFGR_SW;          // Очищаем биты выбора источника SYSCLK
-    RCC->CFGR |= RCC_CFGR_SW_HSI;       // Выбираем HSI как источник SYSCLK
-    while ((RCC->CFGR & RCC_CFGR_SWS) != RCC_CFGR_SWS_HSI); // Ждем переключения
+    // 3. пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ (SYSCLK)
+    RCC->CFGR &= ~RCC_CFGR_SW;          // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ SYSCLK
+    RCC->CFGR |= RCC_CFGR_SW_HSI;       // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ HSI пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ SYSCLK
+    while ((RCC->CFGR & RCC_CFGR_SWS) != RCC_CFGR_SWS_HSI); // пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 
-    // 4. Настройка делителей для шин
-    RCC->CFGR &= ~(RCC_CFGR_HPRE | RCC_CFGR_PPRE); // Сбрасываем делители
-    RCC->CFGR |= RCC_CFGR_HPRE_DIV1;    // HCLK = SYSCLK (без деления)
-    RCC->CFGR |= RCC_CFGR_PPRE_DIV1;    // PCLK = HCLK (без деления)    
+    // 4. пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅ
+    RCC->CFGR &= ~(RCC_CFGR_HPRE | RCC_CFGR_PPRE); // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+    RCC->CFGR |= RCC_CFGR_HPRE_DIV1;    // HCLK = SYSCLK (пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ)
+    RCC->CFGR |= RCC_CFGR_PPRE_DIV1;    // PCLK = HCLK (пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ)    
 
     
 #endif

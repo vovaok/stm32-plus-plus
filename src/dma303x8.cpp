@@ -1,3 +1,5 @@
+#if defined(STM32F3)
+
 #include "dma303x8.h"
 
 #define DMA_FLAG_MASK(i) (DMA_FLAG_GIF##i | DMA_FLAG_TCIF##i | DMA_FLAG_HTIF##i | DMA_FLAG_TEIF##i)
@@ -257,4 +259,6 @@ FOR_EACH_DMA(DEFINE_DMA_IRQ_HANDLER)
   
 #ifdef __cplusplus
 }
+#endif
+
 #endif

@@ -1,33 +1,15 @@
-#ifndef _CIA402_H
-#define _CIA402_H
+#ifndef _CANOPEN_OBJDICT_H
+#define _CANOPEN_OBJDICT_H
 
 #include "canopenproxy.h"
-#include <array>
 
+// Macros for a shoter syntax
 #define ENTRY(name) struct name: public CanOpenProxy::ODEntryMeta
 #define INHERITED(name, parent) struct name: public parent, public CanOpenProxy::ODEntryMeta
 
-namespace CanOpen::CiA402
+namespace CanOpen::ObjDict
 {
 
-namespace Common
-{
-    struct OperationMode {
-        enum Values: int8_t        
-        {
-            PPosition = 1,
-            PVelocity = 3,
-            PTorque   = 4,
-            Homing    = 6,
-            IPosition = 7,
-            CPosition = 8,
-            CVelocity = 9,
-            CTorque   = 10
-        };
-    };
-}
-
-// Maybe move to cia301dict.h?
 ENTRY(ErrorRegister)<uint8_t, 0x1001>
 {
     enum Bits: uint8_t
@@ -39,6 +21,37 @@ ENTRY(ErrorRegister)<uint8_t, 0x1001>
         Communication = 1 << 4,
         Device        = 1 << 5,
         Manufacturer  = 1 << 7
+    };
+};
+
+using TPDO1 = CanOpenProxy::PDOEntryMeta<PDO1_TX, 0x1800, 0x1A00, true>;
+using TPDO2 = CanOpenProxy::PDOEntryMeta<PDO2_TX, 0x1801, 0x1A01, true>;
+using TPDO3 = CanOpenProxy::PDOEntryMeta<PDO3_TX, 0x1802, 0x1A02, true>;
+using TPDO4 = CanOpenProxy::PDOEntryMeta<PDO4_TX, 0x1803, 0x1A03, true>;
+
+using RPDO1 = CanOpenProxy::PDOEntryMeta<PDO1_RX, 0x1400, 0x1600, false>;
+using RPDO2 = CanOpenProxy::PDOEntryMeta<PDO2_RX, 0x1401, 0x1601, false>;
+using RPDO3 = CanOpenProxy::PDOEntryMeta<PDO3_RX, 0x1402, 0x1602, false>;
+using RPDO4 = CanOpenProxy::PDOEntryMeta<PDO4_RX, 0x1403, 0x1603, false>;
+
+ENTRY(AnalogInputMiliVolts)<int16_t, 0x2205, 1> {};
+ENTRY(AnalogInputA2DTicks)<int16_t, 0x2205, 2> {};
+
+namespace CiA402
+{
+
+struct OperationMode
+{
+    enum Values: int8_t        
+    {
+        PPosition = 1,
+        PVelocity = 3,
+        PTorque   = 4,
+        Homing    = 6,
+        IPosition = 7,
+        CPosition = 8,
+        CVelocity = 9,
+        CTorque   = 10
     };
 };
 
@@ -63,9 +76,9 @@ ENTRY(ControlWord)<uint16_t, 0x6040>
         /* PT, PV, IP, etc profiles are WIP */
         
         /* Common shortcuts */
-        CmdPowerOff = EnableVoltage | QuickStop,
-        CmdPowerOn  = SwitchOn | EnableVoltage | QuickStop,
-        CmdEnable   = CmdPowerOn | EnableOperation,
+        CmdPowerOff  = EnableVoltage | QuickStop,
+        CmdPowerOn   = SwitchOn | EnableVoltage | QuickStop,
+        CmdEnable    = CmdPowerOn | EnableOperation,
         CmdQuickStop = CmdEnable & ~QuickStop,
     };
 };
@@ -95,8 +108,21 @@ ENTRY(StatusWord)<uint16_t, 0x6041>
     };
 };
 
-INHERITED(SetOpMode, Common::OperationMode)<int8_t, 0x6060> {};
-INHERITED(GetOpMode, Common::OperationMode)<int8_t, 0x6061> {};
+INHERITED(SetOpMode, OperationMode)<int8_t, 0x6060> {};
+INHERITED(GetOpMode, OperationMode)<int8_t, 0x6061> {};
+
+ENTRY(PositionActualValue)<int32_t, 0x6064> {};
+ENTRY(VelocityActualValue)<int32_t, 0x606C> {};
+
+// Profiled Torque Mode:
+ENTRY(TargetTorque)<int16_t, 0x6071> {};
+ENTRY(MaxTorque)<uint16_t, 0x6072> {};
+ENTRY(MaxCurrent)<uint16_t, 0x6073> {};
+ENTRY(TorqueDemandValue)<int16_t, 0x6074> {};
+ENTRY(MotorRatedCurrent)<uint32_t, 0x6075> {};
+ENTRY(MotorRatedTorque)<uint32_t, 0x6076> {};
+ENTRY(TorqueActualValue)<int16_t, 0x6077> {};
+ENTRY(CurrentActualValue)<int16_t, 0x6078> {};
 
 ENTRY(PosRangeLimitMin)<uint32_t, 0x607B, 1> {};
 ENTRY(PosRangeLimitMax)<uint32_t, 0x607B, 2> {};
@@ -116,18 +142,7 @@ ENTRY(MaxDeceleration)<uint32_t, 0x60C6> {};
 ENTRY(ProfileDeceleration)<uint32_t, 0x6084> {};
 ENTRY(QStopDeceleration)<uint32_t, 0x6085> {};
 
-// Profiled Torque Mode:
-ENTRY(TargetTorque)<int16_t, 0x6071> {};
-ENTRY(MaxTorque)<uint16_t, 0x6072> {};
-ENTRY(MaxCurrent)<uint16_t, 0x6073> {};
-ENTRY(TorqueDemandValue)<int16_t, 0x6074> {};
-ENTRY(MotorRatedCurrent)<uint32_t, 0x6075> {};
-ENTRY(MotorRatedTorque)<uint32_t, 0x6076> {};
-ENTRY(TorqueActualValue)<int16_t, 0x6077> {};
-ENTRY(CurrentActualValue)<int16_t, 0x6078> {};
-
 ENTRY(DcVoltage)<uint32_t, 0x6079> {};
-
 
 ENTRY(SupportedOpMode)<uint32_t, 0x6502>
 {
@@ -144,58 +159,9 @@ ENTRY(SupportedOpMode)<uint32_t, 0x6502>
     };
 };
 
-template<uint32_t FunctionCode, uint32_t CommIndex, uint32_t MapIndex>
-struct PDOEntry
-{
-public:
-    using MapT = std::array<CanOpenProxy::ODEntry<uint32_t>, 8>;
-    
-private:
-    static constexpr MapT makeMap()
-    {
-        MapT map {};
-        
-        for (uint8_t i = 0; i < 8; ++i)
-            map[i] = {MapIndex, i + 1};
-        
-        return map;
-    }
-public:
-    ENTRY(cobId)<uint32_t, CommIndex, 1> {};
-    
-    // Communtication parameters
-    ENTRY(transmissonType)<uint8_t, CommIndex, 2>
-    {
-        enum Values: uint8_t {
-            ManufacturerAsync = 0xFE,
-            ProfileAsync = 0xFF
-        };
-    };
-    
-    ENTRY(mapLen)<uint8_t, MapIndex, 0> {};
-    
-    static constexpr MapT map = makeMap();
-};
-
-template<uint32_t FunctionCode, uint32_t CommIndex, uint32_t MapIndex>
-struct TPDOEntry: public PDOEntry<FunctionCode, CommIndex, MapIndex>
-{    
-    ENTRY(inhibitTime)<uint16_t, CommIndex, 3> {};
-    ENTRY(eventTimer)<uint16_t, CommIndex, 5> {};
-};
-
-using TPDO1 = TPDOEntry<PDO1_TX, 0x1800, 0x1A00>;
-using TPDO2 = TPDOEntry<PDO2_TX, 0x1801, 0x1A01>;
-using TPDO3 = TPDOEntry<PDO3_TX, 0x1802, 0x1A02>;
-using TPDO4 = TPDOEntry<PDO4_TX, 0x1803, 0x1A03>;
-
-using RPDO1 = PDOEntry<PDO1_RX, 0x1400, 0x1600>;
-using RPDO2 = PDOEntry<PDO2_RX, 0x1401, 0x1601>;
-using RPDO3 = PDOEntry<PDO3_RX, 0x1402, 0x1602>;
-using RPDO4 = PDOEntry<PDO4_RX, 0x1403, 0x1603>;
-
+}
 }
 #undef ENTRY
 #undef INHERITED
 
-#endif // _CIA402_H
+#endif // _CANOPEN_OBJDICT_H

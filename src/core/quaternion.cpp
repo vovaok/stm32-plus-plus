@@ -77,23 +77,23 @@ void Quaternion::getEulerAngles(float *pitch, float *yaw, float *roll) const
     const float zw = zps * wps;
 
     const float sinp = -2.0f * (yz - xw);
-    if (std::abs(sinp) >= 1.0f)
-        *pitch = std::copysign(M_PI_2, sinp);
+    if (abs(sinp) >= 1.0f)
+        *pitch = copysign(M_PI_2, sinp);
     else
-        *pitch = std::asinf(sinp);
+        *pitch = asinf(sinp);
     if (*pitch < M_PI_2) {
         if (*pitch > -M_PI_2) {
-            *yaw = std::atan2f(2.0f * (xz + yw), 1.0f - 2.0f * (xx + yy));
-            *roll = std::atan2f(2.0f * (xy + zw), 1.0f - 2.0f * (xx + zz));
+            *yaw = atan2f(2.0f * (xz + yw), 1.0f - 2.0f * (xx + yy));
+            *roll = atan2f(2.0f * (xy + zw), 1.0f - 2.0f * (xx + zz));
         } else {
             // not a unique solution
             *roll = 0.0f;
-            *yaw = -std::atan2f(-2.0f * (xy - zw), 1.0f - 2.0f * (yy + zz));
+            *yaw = -atan2f(-2.0f * (xy - zw), 1.0f - 2.0f * (yy + zz));
         }
     } else {
         // not a unique solution
         *roll = 0.0f;
-        *yaw = std::atan2f(-2.0f * (xy - zw), 1.0f - 2.0f * (yy + zz));
+        *yaw = atan2f(-2.0f * (xy - zw), 1.0f - 2.0f * (yy + zz));
     }
 
     *pitch = *pitch * 180.0f / M_PI;

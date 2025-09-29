@@ -3,9 +3,7 @@
 
 #include "stm32.h"
 
-#if defined(STM32G4)
-
-#else
+#if !defined(STM32F3)
 
 #include "dma.h"
 #include "core/bytearray.h"

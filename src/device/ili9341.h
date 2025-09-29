@@ -1,5 +1,7 @@
 #pragma once
 
+#if defined(LTDC)
+
 #include "gfx/lcddisplay.h"
 #include "spi.h"
 
@@ -53,3 +55,5 @@ private:
         LCD_PRC             = 0xF7, // Pump ratio control register
     };
 };
+
+#endif

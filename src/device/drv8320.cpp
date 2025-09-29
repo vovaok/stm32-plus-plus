@@ -23,8 +23,12 @@ Drv8320::Drv8320(Spi *spi, Gpio::PinName csPin, Gpio::PinName enablePin) :
     m_spi->setDataSize(16);
     m_spi->open(); 
     
+    #if defined(__ICCARM__)
     __root static uint16_t jopa;
-    
+    #elif defined(__GNUC__)
+    static uint16_t jopa __attribute__((used));
+    #endif
+
     jopa = readReg(FaultStatus1);
     jopa = readReg(FaultStatus2);
     

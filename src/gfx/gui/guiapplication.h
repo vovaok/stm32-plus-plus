@@ -1,6 +1,8 @@
 #pragma once
 
-#if defined __ICCARM__
+
+
+#if defined(__ICCARM__) || defined(__GNUC__)
 #include "core/application.h"
 #include "core/timer.h"
 #else

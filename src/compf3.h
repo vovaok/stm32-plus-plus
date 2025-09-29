@@ -5,7 +5,7 @@
 #include "gpio.h"
 #include "rcc.h"
 
-
+#if defined(STM32F3)
 
 //---------------------------------------------------------------------------
 
@@ -101,5 +101,5 @@ public:
     void setConfig(Config cfg);
  
 };
-
+#endif
 #endif
