@@ -13214,8 +13214,9 @@
                 </option>
                 <option>
                     <name>CCIncludePath2</name>
-                    <state>$PROJ_DIR$\lib\CMSIS\Device\ST\STM32F0xx\Include</state>
+                    <state>$PROJ_DIR$\lib\CMSIS\Device\ST\cmsis_device_f0\Source\Templates\iar</state>
                     <state>$PROJ_DIR$\src</state>
+                    <state>$PROJ_DIR$\lib\CMSIS\Device\ST\cmsis_device_f0\Include</state>
                 </option>
                 <option>
                     <name>CCStdIncCheck</name>
@@ -16201,18 +16202,7 @@
     <group>
         <name>__startup</name>
         <file>
-            <name>$PROJ_DIR$\lib\CMSIS\Device\ST\STM32F0xx\Source\Templates\iar\startup_stm32f030x6.s</name>
-            <excluded>
-                <configuration>stm32f373xB</configuration>
-                <configuration>stm32f373xB_no-exceptions_no-rtti</configuration>
-                <configuration>stm32f407vg</configuration>
-                <configuration>stm32f429zi</configuration>
-                <configuration>stm32g474</configuration>
-                <configuration>stm32f303xC</configuration>
-                <configuration>stm32f303x8</configuration>
-                <configuration>stm32f767</configuration>
-                <configuration>stm32f405xx</configuration>
-            </excluded>
+            <name>$PROJ_DIR$\lib\CMSIS\Device\ST\cmsis_device_f0\Source\Templates\iar\startup_stm32f030x6.s</name>
         </file>
         <file>
             <name>$PROJ_DIR$\lib\CMSIS\Device\ST\cmsis_device_f3\Source\Templates\iar\startup_stm32f303x8.s</name>
@@ -16275,6 +16265,7 @@
                 <configuration>stm32g474</configuration>
                 <configuration>stm32f303xC</configuration>
                 <configuration>stm32f303x8</configuration>
+                <configuration>stm32f030x6</configuration>
                 <configuration>stm32f405xx</configuration>
             </excluded>
         </file>
