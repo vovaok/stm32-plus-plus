@@ -1,4 +1,4 @@
-#include "adc303.h"
+#include "adc030.h"
 
 Adc* Adc::mInstances[3] = {0L, 0L, 0L};
 
@@ -22,8 +22,8 @@ Adc::Adc(int adcBase) :
       case 1:
         mAdc = ADC1;
 
-        RCC->_APB2ENR |= RCC_AHBENR_ADC12EN;
-        mDmaChannel = Dma::Channel1_ADC1; // Dma::ADC1_Stream0
+        RCC->APB2ENR |= RCC_APB2ENR_ADC1EN;
+        mDmaChannel = Dma::Channel1_ADC_1; // Dma::ADC1_Stream0
         break;
 #if defined(ADC2)
       case 2:
@@ -40,15 +40,15 @@ Adc::Adc(int adcBase) :
         return;
     }
 
-    // ADC Common Init    
-    RCC->CFGR2|=RCC_CFGR2_ADCPRE12_DIV2;
-    mAdc->CR |= ADC_CR_ADVREGEN;
+    // ADC Common Init     
+  
   mAdc->CR |= ADC_CR_ADCAL;  
   while (mAdc->CR & ADC_CR_ADCAL);
 
+    mAdc->CR |= ADC_CR_ADEN;
     // Scan conversion mode is enabled
-    mAdc->CFGR = (mResolution & ADC_CFGR_RES_Msk);
-    mAdc->CFGR = (mResolution & ADC_CFGR_ALIGN_Msk);    
+    mAdc->CFGR1 = (mResolution & ADC_CFGR1_RES_Msk);
+    mAdc->CFGR1 = (mResolution & ADC_CFGR1_ALIGN_Msk);    
 
 }
 
@@ -71,31 +71,31 @@ Adc *Adc::instance(int periphNumber)
 void Adc::setResolution(Resolution resolution)
 {
     mResolution = resolution;
-    MODIFY_REG(mAdc->CFGR, ADC_CFGR_RES_Msk, (mResolution & ADC_CFGR_RES_Msk));
-    MODIFY_REG(mAdc->CFGR, ADC_CFGR_ALIGN_Msk, (mResolution & ADC_CFGR_ALIGN_Msk));
+    MODIFY_REG(mAdc->CFGR1, ADC_CFGR1_RES_Msk, (mResolution & ADC_CFGR1_RES_Msk));
+    MODIFY_REG(mAdc->CFGR1, ADC_CFGR1_ALIGN_Msk, (mResolution & ADC_CFGR1_ALIGN_Msk));
 }
 
 void Adc::selectTrigger(Trigger trigger, Edge edge)
 {
-    MODIFY_REG(mAdc->CFGR, ADC_CFGR_EXTEN_Msk | ADC_CFGR_EXTSEL_Msk, (uint32_t)trigger | (uint32_t)edge);
+    MODIFY_REG(mAdc->CFGR1, ADC_CFGR1_EXTEN_Msk | ADC_CFGR1_EXTSEL_Msk, (uint32_t)trigger | (uint32_t)edge);
 }
 //---------------------------------------------------------------------------
 
 void Adc::addChannel(Channel channel, SampleTime sampleTime)
 {
     if (channel == TempSensor)      
-        ADC12_COMMON->CCR |= ADC12_CCR_TSEN;
+        ADC->CCR |= ADC_CCR_TSEN;
     else if( channel == VrefInt)
-        ADC12_COMMON->CCR |= ADC12_CCR_VREFEN;
-    else if (channel == Vbat)
-        ADC12_COMMON->CCR |= ADC12_CCR_VBATEN;
+        ADC->CCR |= ADC_CCR_VREFEN;    
 
     if (mEnabled)
         THROW(Exception::ResourceBusy);
 
-    MODIFY_REG(mAdc->SQR1, ADC_SQR1_L_Msk, mChannelCount << ADC_SQR1_L_Pos);
+  //  MODIFY_REG(mAdc->CHSELR, ADC_CHSELR_CHSEL_Msk, mChannelCount << ADC_CHSELR_CHSEL_Pos);
+    mAdc->CHSELR |= 1<<channel;
     mChannelCount++;
-    regularChannelConfig(channel, mChannelCount, sampleTime);
+    //regularChannelConfig(channel, mChannelCount, sampleTime);
+    mAdc->SMPR = sampleTime;
     mBuffer.resize(mChannelCount*2*mSampleCount);
     mChannelResultMap[channel] = mChannelCount - 1;
    
@@ -121,43 +121,43 @@ Adc::Channel Adc::addChannel(Gpio::Config pin, SampleTime sampleTime)
 
 void Adc::regularChannelConfig(Channel channel, uint8_t rank, SampleTime sampleTime)
 {
-    __IO uint32_t *SMPR = &mAdc->SMPR2;
-    __IO uint32_t *SQR = 0L;
-    int smpr_pos = 0;
-    int sqr_pos = 0;
-
-    if (channel > Channel9)
-    {
-        SMPR = &mAdc->SMPR2;
-        smpr_pos = 3 * (channel - 10);
-    }
-    else
-    {
-        SMPR = &mAdc->SMPR1;
-        smpr_pos = 3 * channel;
-    }
-
-    if (rank < 5)
-    {
-        SQR = &mAdc->SQR1;
-        sqr_pos = (6 * (rank));
-    }
-    else if (rank < 10)
-    {
-        SQR = &mAdc->SQR2;
-        sqr_pos = 6 * (rank - 5);
-    }
-    else
-    {
-        SQR = &mAdc->SQR3;
-        sqr_pos = 6 * (rank - 10);
-    }
-
-    if (SMPR && SQR)
-    {
-        MODIFY_REG(*SMPR, 0x07 << smpr_pos, sampleTime << smpr_pos);
-        MODIFY_REG(*SQR, 0x1f << sqr_pos, channel << sqr_pos);
-    }
+//    __IO uint32_t *SMPR = &mAdc->SMPR;
+//    __IO uint32_t *SQR = 0L;
+//    int smpr_pos = 0;
+//    int sqr_pos = 0;
+//
+//    if (channel > Channel9)
+//    {
+//        SMPR = &mAdc->SMPR2;
+//        smpr_pos = 3 * (channel - 10);
+//    }
+//    else
+//    {
+//        SMPR = &mAdc->SMPR1;
+//        smpr_pos = 3 * channel;
+//    }
+//
+//    if (rank < 5)
+//    {
+//        SQR = &mAdc->SQR1;
+//        sqr_pos = (6 * (rank));
+//    }
+//    else if (rank < 10)
+//    {
+//        SQR = &mAdc->SQR2;
+//        sqr_pos = 6 * (rank - 5);
+//    }
+//    else
+//    {
+//        SQR = &mAdc->SQR3;
+//        sqr_pos = 6 * (rank - 10);
+//    }
+//
+//    if (SMPR && SQR)
+//    {
+//        MODIFY_REG(*SMPR, 0x07 << smpr_pos, sampleTime << smpr_pos);
+//        MODIFY_REG(*SQR, 0x1f << sqr_pos, channel << sqr_pos);
+//    }
 }
 //---------------------------------------------------------------------------
 
@@ -211,7 +211,7 @@ void Adc::setEnabled(bool enable)
 
 void Adc::configDma(Dma *dma)
 {
-    void *address = (unsigned char*)(mMode==ModeSingle? &mAdc->DR: &ADC12_COMMON->CDR);
+    void *address = (unsigned char*)( &mAdc->DR);
     int dataSize = mResolution==Res8bit? 1: 2;
 
     dma->setSource(address, dataSize);
@@ -224,9 +224,9 @@ void Adc::configDma(Dma *dma)
 
     // Enable the selected ADC DMA request after last transfer
     if (mMode == ModeSingle)
-        mAdc->CFGR |= ADC_CFGR_DMACFG;
+        mAdc->CFGR1 |= ADC_CFGR1_DMACFG;
 
-    mAdc->CFGR |= ADC_CFGR_DMAEN;
+    mAdc->CFGR1 |= ADC_CFGR1_DMAEN;
 }
 //---------------------------------------------------------------------------
 
@@ -250,9 +250,9 @@ bool Adc::isComplete() const
 void Adc::setContinuousMode(bool enabled)
 {
     if (enabled)
-        mAdc->CFGR |= ADC_CFGR_CONT;
+        mAdc->CFGR1 |= ADC_CFGR1_CONT;
     else
-        mAdc->CFGR &= ~ADC_CFGR_CONT;
+        mAdc->CFGR1 &= ~ADC_CFGR1_CONT;
 }
 //---------------------------------------------------------------------------
 

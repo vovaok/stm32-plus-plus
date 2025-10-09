@@ -5,7 +5,7 @@
 #include "rcc.h"
 
 //! @todo check I2C revision in other families
-#if defined(STM32F3) || defined(STM32F7)
+#if defined(STM32F3) || defined(STM32F7) || defined(STM32F0)
 #define I2C_REV03
 #endif
 

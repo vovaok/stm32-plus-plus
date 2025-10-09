@@ -16203,6 +16203,9 @@
         <name>__startup</name>
         <file>
             <name>$PROJ_DIR$\lib\CMSIS\Device\ST\cmsis_device_f0\Source\Templates\iar\startup_stm32f030x6.s</name>
+            <excluded>
+                <configuration>stm32f303xC</configuration>
+            </excluded>
         </file>
         <file>
             <name>$PROJ_DIR$\lib\CMSIS\Device\ST\cmsis_device_f3\Source\Templates\iar\startup_stm32f303x8.s</name>
@@ -17439,6 +17442,12 @@
         </excluded>
     </file>
     <file>
+        <name>$PROJ_DIR$\src\adc030.cpp</name>
+    </file>
+    <file>
+        <name>$PROJ_DIR$\src\adc030.h</name>
+    </file>
+    <file>
         <name>$PROJ_DIR$\src\adc303.cpp</name>
         <excluded>
             <configuration>stm32f407vg</configuration>
@@ -17451,6 +17460,9 @@
     </file>
     <file>
         <name>$PROJ_DIR$\src\adc303.h</name>
+        <excluded>
+            <configuration>stm32f030x6</configuration>
+        </excluded>
     </file>
     <file>
         <name>$PROJ_DIR$\src\analogservo.cpp</name>
@@ -17897,7 +17909,6 @@
         <excluded>
             <configuration>stm32f373xB</configuration>
             <configuration>stm32f373xB_no-exceptions_no-rtti</configuration>
-            <configuration>stm32f030x6</configuration>
         </excluded>
     </file>
     <file>
@@ -18054,7 +18065,6 @@
         <excluded>
             <configuration>stm32f373xB</configuration>
             <configuration>stm32f373xB_no-exceptions_no-rtti</configuration>
-            <configuration>stm32f030x6</configuration>
         </excluded>
     </file>
     <file>
@@ -18062,7 +18072,6 @@
         <excluded>
             <configuration>stm32f373xB</configuration>
             <configuration>stm32f373xB_no-exceptions_no-rtti</configuration>
-            <configuration>stm32f030x6</configuration>
         </excluded>
     </file>
     <file>

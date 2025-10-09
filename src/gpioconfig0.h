@@ -8,16 +8,16 @@ enum Config
      
     
       // ADC1
-    DECL_ADC_PIN(1, 1, PA0),
-    DECL_ADC_PIN(1, 2, PA1),
-    DECL_ADC_PIN(1, 3, PA2),
-    DECL_ADC_PIN(1, 4, PA3),
-    DECL_ADC_PIN(1, 5, PA4),
-    DECL_ADC_PIN(1, 6, PA5),
-    DECL_ADC_PIN(1, 7, PA6),
-    DECL_ADC_PIN(1, 8, PA7),  
-    DECL_ADC_PIN(1, 9, PB0),
-    DECL_ADC_PIN(1, 10, PB1),    
+    DECL_ADC_PIN(1, 0, PA0),
+    DECL_ADC_PIN(1, 1, PA1),
+    DECL_ADC_PIN(1, 2, PA2),
+    DECL_ADC_PIN(1, 3, PA3),
+    DECL_ADC_PIN(1, 4, PA4),
+    DECL_ADC_PIN(1, 5, PA5),
+    DECL_ADC_PIN(1, 6, PA6),
+    DECL_ADC_PIN(1, 7, PA7),  
+    DECL_ADC_PIN(1, 8, PB0),
+    DECL_ADC_PIN(1, 9, PB1),    
     
     
     #define _CURRENT_AF     0
