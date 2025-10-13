@@ -60,7 +60,7 @@ public:
     void setBaudrate(int baudrate);
     int baudrate() const {return mBaudrate;}
     void setConfig(Config config);
-    
+    void setOneSampleBit(bool en) {if(en) mDev->CR3 |=USART_CR3_ONEBIT; else mDev->CR3 &=~USART_CR3_ONEBIT;}
     void resetTxBuffer() {mTxPos = mTxReadPos = 0;}
     
 //    unsigned char getErrorCode() const;

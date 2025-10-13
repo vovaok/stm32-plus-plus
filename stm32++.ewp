@@ -17443,9 +17443,15 @@
     </file>
     <file>
         <name>$PROJ_DIR$\src\adc030.cpp</name>
+        <excluded>
+            <configuration>stm32f303xC</configuration>
+        </excluded>
     </file>
     <file>
         <name>$PROJ_DIR$\src\adc030.h</name>
+        <excluded>
+            <configuration>stm32f303xC</configuration>
+        </excluded>
     </file>
     <file>
         <name>$PROJ_DIR$\src\adc303.cpp</name>

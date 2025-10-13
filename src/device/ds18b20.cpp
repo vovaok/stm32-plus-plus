@@ -6,7 +6,8 @@ DS18B20::DS18B20(Usart *usart) :
     m_usart->setConfig(Usart::Mode8N1);
     m_usart->setUseDmaTx(true);
     m_usart->setUseDmaRx(true);
-    m_usart->onBytesWritten = EVENT(&DS18B20::onTransferComplete);
+    m_usart->onBytesWritten = EVENT(&DS18B20::onTransferComplete);   
+    m_usart->setOneSampleBit(true);
     m_usart->open();
     
     m_timer = new Timer();
