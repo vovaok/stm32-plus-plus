@@ -22,7 +22,7 @@ Adc::Adc(int adcBase) :
       case 1:
         mAdc = ADC1;
 
-        RCC->APB2ENR |= RCC_AHBENR_ADC12EN;
+        RCC->AHBENR |= RCC_AHBENR_ADC12EN;
         mDmaChannel = Dma::Channel1_ADC1; // Dma::ADC1_Stream0
         break;
 #if defined(ADC2)
