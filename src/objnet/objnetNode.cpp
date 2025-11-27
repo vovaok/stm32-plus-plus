@@ -699,6 +699,21 @@ void ObjnetNode::sendForced(unsigned char oid)
     sendMessage(0x00, oid, mObjects[oid].read());
 }
 
+ObjectInfo *ObjnetNode::object(string name)
+{
+    for (ObjectInfo &o: mObjects)
+        if (name == o.name())
+            return &o;
+    return nullptr;
+}
+
+void ObjnetNode::sendForced(string name)
+{
+    ObjectInfo *o = object(name);
+    if (o)
+        sendMessage(0x00, o->id(), o->read());
+}
+
 bool ObjnetNode::sendObjectInfo(uint8_t remoteAddr, ObjectInfo *obj, const ByteArray &loc)
 {
     ByteArray ba;

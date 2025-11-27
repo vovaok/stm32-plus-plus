@@ -150,6 +150,15 @@ public:
 //    }
 
     void sendForced(unsigned char oid);
+    
+    //! Get object by name
+    //! @param name The name of the object
+    //! @return found object or nullptr if no such name in the dictionary
+    ObjectInfo *object(string name);
+    
+    //! Immediately read and send the given object
+    //! This is convenient but slow
+    void sendForced(string name);
 
 #ifdef QT_CORE_LIB
 signals:

@@ -5361,7 +5361,7 @@
                 </option>
                 <option>
                     <name>IarchiveOutput</name>
-                    <state>C:\Users\tndrd\Projects\WaveLab\stm32-plus-plus\bin\stm32f407vg\stm32++.a</state>
+                    <state>D:\projects\iar\components\stm32++\bin\stm32f407vg\stm32++.a</state>
                 </option>
             </data>
         </settings>
@@ -16496,6 +16496,27 @@
             <configuration>stm32f303x8</configuration>
             <configuration>stm32f030x6</configuration>
         </excluded>
+        <group>
+            <name>mcp2518fd</name>
+            <file>
+                <name>$PROJ_DIR$\src\device\mcp2518fd\canfdspi.cpp</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\src\device\mcp2518fd\canfdspi.h</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\src\device\mcp2518fd\drv_canfdspi_api.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\src\device\mcp2518fd\drv_canfdspi_api.h</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\src\device\mcp2518fd\drv_canfdspi_defines.h</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\src\device\mcp2518fd\drv_canfdspi_register.h</name>
+            </file>
+        </group>
         <file>
             <name>$PROJ_DIR$\src\device\ad5412.cpp</name>
         </file>

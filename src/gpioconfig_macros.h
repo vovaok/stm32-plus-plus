@@ -34,11 +34,11 @@
 #pragma diag_suppress=Pe1665
 #define DECL_PIN_HELPER(x1, x2, x3, x4, x5, f, ...) f
 #define DECL_PIN(periph, ...) DECL_PIN_HELPER(__VA_ARGS__, \
-                                DECL_PIN_6(##periph, __VA_ARGS__), \
-                                DECL_PIN_5(##periph, __VA_ARGS__), \
-                                DECL_PIN_4(##periph, __VA_ARGS__), \
-                                DECL_PIN_3(##periph, __VA_ARGS__), \
-                                DECL_PIN_2(##periph, __VA_ARGS__))
+                                DECL_PIN_6(periph, __VA_ARGS__), \
+                                DECL_PIN_5(periph, __VA_ARGS__), \
+                                DECL_PIN_4(periph, __VA_ARGS__), \
+                                DECL_PIN_3(periph, __VA_ARGS__), \
+                                DECL_PIN_2(periph, __VA_ARGS__))
         
 //#define DECL_TIM_CH_PIN(num, ch, pin) \
 //    TIM##num##_CH##ch##_##pin = PINCONFIGAF(pin, _CURRENT_AF, num, ch)

@@ -28,6 +28,9 @@ public:
     struct ODEntryMeta: public ODEntry<T> {
         static constexpr uint16_t Id = Id_;
         static constexpr uint8_t Sid = Sid_;
+        static constexpr uint8_t Size = sizeof(T);
+        
+        static constexpr uint32_t SdoId = (Id_ << 16) | (Sid_ << 8) | (sizeof(T) * 8);
         
         ODEntryMeta(): ODEntry<T>{Id, Sid} {}
     };
