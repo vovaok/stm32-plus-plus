@@ -254,8 +254,27 @@ void SystemInit(void) // on Reset_Handler
   RCC->CR &= (uint32_t)0xFFFBFFFF;
 
   /* Disable all interrupts */
-  RCC->CIER = 0x00000000;
+  RCC->CIER = 0x00000000;#elif defined(STM32G4)
+
+#elif defined(STM32G4)   
+    
+    RCC->CR |= RCC_CR_HSEON;
+    while(!(RCC->CR & RCC_CR_HSERDY));
+ 
+    // Настройка PLL
+    RCC->PLLCFGR = 0;
+    RCC->PLLCFGR |= (5 << RCC_PLLCFGR_PLLM_Pos);    // PLLM = 6
+    RCC->PLLCFGR |= (85 << RCC_PLLCFGR_PLLN_Pos);   // PLLN = 85
+    RCC->PLLCFGR |= RCC_PLLCFGR_PLLPDIV_1;               // PLLP = /2 (01)
+    RCC->PLLCFGR |= RCC_PLLCFGR_PLLREN;                
+    RCC->PLLCFGR |= RCC_PLLCFGR_PLLSRC_HSE;         // Источник HSE
+    
+    // Включение PLL
+    RCC->CR |= RCC_CR_PLLON;
+    while(!(RCC->CR & RCC_CR_PLLRDY));    
+  
 #endif
+
 
 #if !defined(STM32F0)
     /* Configure the Vector Table location add offset address ------------------*/
