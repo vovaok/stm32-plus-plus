@@ -55,6 +55,16 @@ if (mDac == DAC1)
         RCC->APB1ENR |= RCC_APB1ENR_DAC2EN;
     #endif 
 
+#elif defined(STM32G474xx)
+    
+    if (mDac == DAC1)
+        RCC->AHB2ENR |= RCC_AHB2ENR_DAC1EN;
+   
+    else
+        RCC->AHB2ENR |= RCC_AHB2ENR_DAC2EN;
+   
+
+    
 #else  
     if (mDac == DAC1)
         RCC_APB1PeriphClockCmd(RCC_APB1Periph_DAC1, ENABLE);

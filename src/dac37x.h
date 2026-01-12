@@ -10,7 +10,7 @@ class Dac
 public:
   
   
-#if defined(STM32F303x8) || defined(STM32F328xx)  || defined(STM32F303xC)
+#if defined(STM32F303x8) || defined(STM32F328xx)  || defined(STM32F303xC)  || defined(STM32G4) 
   typedef enum
     {
         TriggerNone =     0,

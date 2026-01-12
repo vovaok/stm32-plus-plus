@@ -16204,7 +16204,9 @@
         <file>
             <name>$PROJ_DIR$\lib\CMSIS\Device\ST\cmsis_device_f0\Source\Templates\iar\startup_stm32f030x6.s</name>
             <excluded>
+                <configuration>stm32g474</configuration>
                 <configuration>stm32f303xC</configuration>
+                <configuration>stm32f767</configuration>
             </excluded>
         </file>
         <file>
@@ -17446,6 +17448,7 @@
         <excluded>
             <configuration>stm32g474</configuration>
             <configuration>stm32f303xC</configuration>
+            <configuration>stm32f767</configuration>
         </excluded>
     </file>
     <file>
@@ -17594,7 +17597,6 @@
             <configuration>stm32f429zi</configuration>
             <configuration>stm32f446</configuration>
             <configuration>stm32l476rg</configuration>
-            <configuration>stm32g474</configuration>
             <configuration>stm32f030x6</configuration>
             <configuration>stm32f767</configuration>
             <configuration>stm32f405xx</configuration>
@@ -17608,7 +17610,6 @@
             <configuration>stm32f429zi</configuration>
             <configuration>stm32f446</configuration>
             <configuration>stm32l476rg</configuration>
-            <configuration>stm32g474</configuration>
             <configuration>stm32f767</configuration>
             <configuration>stm32f405xx</configuration>
         </excluded>

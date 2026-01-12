@@ -49,9 +49,16 @@ void ModbusMaster::parseADU(const ADU &adu)
 {
     m_timer->stop();
     m_busy = false;
-    ModbusProxy *p = getProxy(adu.addr);
-    if (p)
-        p->parsePDU(adu.func, reinterpret_cast<const uint8_t *>(adu.data), adu.size);
+ 
+  //  ModbusProxy *p = getProxy(adu.addr);
+  //  if (p)
+  //      p->parsePDU(adu.func, reinterpret_cast<const uint8_t *>(adu.data), adu.size);
+    
+    for (ModbusProxy *proxy: m_proxies)
+    {
+        if (proxy->address() == adu.addr)
+            proxy->parsePDU(adu.func, reinterpret_cast<const uint8_t *>(adu.data), adu.size);
+    }
     m_queue.pop_front();
     writeNextAdu();
 }
@@ -92,9 +99,16 @@ void ModbusMaster::onTimeout()
     m_timer->stop();
     m_busy = false;
     const Packet &pkt = m_queue.front();
-    ModbusProxy *p = getProxy(pkt.adu().addr);
-    if (p)
-        p->errorEvent(eNone); // no exception, just slave is not responding...
+  //  ModbusProxy *p = getProxy(pkt.adu().addr);
+  //  if (p)
+   //     p->errorEvent(eNone); // no exception, just slave is not responding...
+    
+    for (ModbusProxy *proxy: m_proxies)
+    {
+        if (proxy->address() == pkt.adu().addr)
+            proxy->errorEvent(eNone);
+    }
+    
     m_queue.pop_front();
     writeNextAdu();
 }
