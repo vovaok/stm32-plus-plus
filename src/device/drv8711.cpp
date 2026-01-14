@@ -22,6 +22,10 @@ Drv8711::Drv8711(Spi *spi, Gpio::PinName csPin, Gpio::PinName enablePin) :
     m_spi->setConfig(conf);
     m_spi->setDataSize(16);
     m_spi->open();    
+    
+    mCtrlRegister.reg = readReg(CTRL_REG);
+    mTorqueRegister.reg = readReg(TORQUE_REG);
+    mStatusRegister.reg = readReg(STATUS_REG);
    
 }
 
@@ -62,6 +66,42 @@ uint16_t Drv8711::readReg(uint8_t reg)
     m_csPin->set();
     
     return tmp;
+}
+
+void Drv8711::setRevers(bool rev)
+{
+  mCtrlRegister.CtrlReg.RDIR = rev;
+  writeReg(CTRL_REG,mCtrlRegister.reg);
+}
+
+void Drv8711::setEnable(bool en)
+{
+  mCtrlRegister.CtrlReg.ENBL = en;
+  writeReg(CTRL_REG,mCtrlRegister.reg);
+}
+
+void Drv8711::setStepMode(DRV8711ControlRegister mode)
+{
+  mCtrlRegister.CtrlReg.MODE = mode;
+  writeReg(CTRL_REG,mCtrlRegister.reg);
+}
+
+void Drv8711::setTorq(char torq)
+{
+  mTorqueRegister.TorqueReg.TORQUE = torq;
+  writeReg(TORQUE_REG,mTorqueRegister.reg);
+}
+
+void Drv8711::setTorqPercent(float perc)
+{
+  mTorqueRegister.TorqueReg.TORQUE = perc <1? perc >0? perc*255: 0 :255 ;
+  writeReg(TORQUE_REG,mTorqueRegister.reg);
+}
+
+uint16_t Drv8711::status()
+{
+ mStatusRegister.reg = readReg(STATUS_REG);
+ return mStatusRegister.reg;
 }
 
 uint8_t Drv8711::calcBlankValue(uint16_t ns)

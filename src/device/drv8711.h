@@ -230,6 +230,13 @@ public:
     DTIME_650NS = 0x800,
     DTIME_850NS = 0xC00
 };
+
+void setRevers(bool rev);
+void setStepMode(DRV8711ControlRegister mode );
+void setTorq( char torq);
+void setTorqPercent( float perc); //0...1
+void setEnable(bool en);
+uint16_t status();
     
 private:
     Spi *m_spi;
@@ -250,7 +257,7 @@ union CtrlRegister {
         uint16_t DTIME   : 2;  // Dead time
         uint16_t         : 4;  // Reserved
     }CtrlReg;
-};
+}mCtrlRegister;
 
 union TorqueRegister
 {
@@ -261,7 +268,7 @@ union TorqueRegister
     uint16_t SMPLTH  : 3;  // Back EMF sample threshold
     uint16_t         : 5;  // Reserved
   }TorqueReg;
-};
+}mTorqueRegister;
 
 union OffRegister {
     uint16_t reg;
@@ -270,7 +277,7 @@ union OffRegister {
         uint16_t PWMMODE : 1;  // PWM mode select
         uint16_t         : 7;  // Reserved
     }OffReg;
-};
+}mOffRegister;
 
 union BlankRegister {
     uint16_t reg;
@@ -279,7 +286,7 @@ union BlankRegister {
         uint16_t ABT     : 1;  // Adaptive blanking time
         uint16_t         : 7;  // Reserved
     };
-};
+}mBlankRegister;
 
 union DecayRegister {
     uint16_t reg;
@@ -288,7 +295,7 @@ union DecayRegister {
         uint16_t DECMOD  : 3;  // Decay mode
         uint16_t         : 5;  // Reserved
     };
-};
+}mDecayRegister;
 
 union StallRegister {
     uint16_t reg;
@@ -298,7 +305,7 @@ union StallRegister {
         uint16_t VDIV    : 2;  // Back EMF divider
         uint16_t         : 4;  // Reserved
     };
-};
+}mStallRegister;
 
 union DriveRegister {
     uint16_t reg;
@@ -311,7 +318,7 @@ union DriveRegister {
         uint16_t IDRIVEP : 2;  // High-side gate peak current
         uint16_t         : 4;  // Reserved
     };
-};
+}mDriveRegister;
 
 union StatusRegister {
     uint16_t reg;
@@ -326,7 +333,7 @@ union StatusRegister {
         uint16_t STDLAT  : 1;  // Latched stall detect
         uint16_t         : 8;  // Reserved
     };
-};
+}mStatusRegister;
     
   
     void writeReg(uint8_t reg, uint16_t data);
