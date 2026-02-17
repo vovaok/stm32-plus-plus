@@ -7,7 +7,8 @@ HardwareTimer::HardwareTimer(TimerNumber timerNumber, unsigned int frequency_Hz)
     unsigned int hclk = rcc().hClk();
     unsigned int pclk1 = rcc().pClk1();
     unsigned int pclk2 = rcc().pClk2();
-#if defined(STM32F446xx)
+#ifndef STM32F0    
+#if defined(STM32F446xx) 
     if (RCC->DCKCFGR & RCC_DCKCFGR_TIMPRE)
     {
 //        if (RCC->CFGR & RCC_CFGR_PPRE1_Msk)
@@ -21,7 +22,7 @@ HardwareTimer::HardwareTimer(TimerNumber timerNumber, unsigned int frequency_Hz)
         if (RCC->CFGR & RCC_CFGR_PPRE2_Msk)
             pclk2 *= 2;
     }
-
+#endif
     mInputClk = pclk2;
     switch (timerNumber)
     {
@@ -29,7 +30,10 @@ HardwareTimer::HardwareTimer(TimerNumber timerNumber, unsigned int frequency_Hz)
       case 1:
         mTim = TIM1;
         m_caps = AdvancedControl;
+        #if defined(STM32F0) 
+        #else
         mIrq = TIM_IRQn(1_UP); // у этого таймера 4 прерывания, задаётся позже, когда нужно
+        #endif
         break;
 #endif
 #if defined(TIM2)
@@ -477,6 +481,15 @@ void HardwareTimer::enableInterrupt(InterruptSource source)
 
     if (mTim == TIM1)
     {
+       #if defined(STM32F0) 
+       switch (source)
+        {        
+          case isrcCC1: case isrcCC2: case isrcCC3: case isrcCC4: mIrq = TIM_IRQn(1_CC); break;
+           
+          case isrcBreak:  case isrcUpdate: case isrcCom: case isrcTrigger: mIrq = TIM_IRQn(1_BRK_UP_TRG_COM);  break;
+        }
+      
+       #else
         switch (source)
         {
           case isrcUpdate: mIrq = TIM_IRQn(1_UP); break;
@@ -484,6 +497,7 @@ void HardwareTimer::enableInterrupt(InterruptSource source)
           case isrcCom: case isrcTrigger: mIrq = TIM_IRQn(1_TRG_COM); break;
           case isrcBreak: mIrq = TIM_IRQn(1_BRK); break;
         }
+         #endif
     }
 #if defined(TIM8)
     else if (mTim == TIM8)
@@ -563,7 +577,7 @@ void HardwareTimer::handleInterrupt()
     f(1_BRK, 1, 9)  f(1_UP, 1, 10) f(1_TRG_COM, 1, 11) f(1_CC, 1, 0) \
     f(8_BRK, 8, 12) f(8_UP, 8, 13) f(8_TRG_COM, 8, 14) f(8_CC, 8, 0)
 
-#elif defined(STM32L4) || defined(STM32G4) || defined(STM32F3)
+#elif defined(STM32L4) || defined(STM32G4) || defined(STM32F3) || defined(STM32F0)
 #define FOREACH_SIMPLEX_TIM_IRQ(f) \
     f(2) f(3) f(4) f(5) f(6) f(7) f(9) f(10) f(11) // f(12) f(13) f(14)
 #define FOREACH_COMPLEX_TIM_IRQ(f) \

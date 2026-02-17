@@ -123,6 +123,7 @@ public:
     void setContinuousMode(bool enabled);
 
     void configDma(Dma *dma);
+    Dma* getDma () {return mDma;}
 
     int result(unsigned char channel);
     int resultByIndex(unsigned char index);

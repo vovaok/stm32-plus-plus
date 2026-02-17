@@ -254,7 +254,7 @@ void SystemInit(void) // on Reset_Handler
   RCC->CR &= (uint32_t)0xFFFBFFFF;
 
   /* Disable all interrupts */
-  RCC->CIER = 0x00000000;#elif defined(STM32G4)
+  RCC->CIER = 0x00000000;
 
 #elif defined(STM32G4)   
     
