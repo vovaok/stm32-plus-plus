@@ -49,11 +49,11 @@ void Drv8711::writeReg(uint8_t reg, uint16_t data)
     tmp |= (reg & 0x07) << 12;
     tmp |= data & 0x0fFF;
     
-    m_csPin->reset();
+    m_csPin->set();
     for (int w=0; w<100; w++);
     m_spi->write16(tmp);
     for (int w=0; w<100; w++);
-    m_csPin->set();
+    m_csPin->reset();
 }
 
 uint16_t Drv8711::readReg(uint8_t reg)
@@ -62,11 +62,11 @@ uint16_t Drv8711::readReg(uint8_t reg)
     tmp |= (1 << 15);
     tmp |= (reg & 0x07) << 12;
     
-    m_csPin->reset();
+    m_csPin->set();
     for (int w=0; w<100; w++);
     tmp = m_spi->write16(tmp);
     for (int w=0; w<100; w++);
-    m_csPin->set();
+    m_csPin->reset();
     
     return tmp;
 }
