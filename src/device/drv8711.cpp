@@ -7,12 +7,15 @@ Drv8711::Drv8711(Spi *spi, Gpio::PinName csPin, Gpio::PinName enablePin) :
     m_csPin->setAsOutput();
     m_csPin->set();
     
+    if(enablePin != Gpio::noPin)
+    {
     m_enablePin = new Gpio(enablePin);
     m_enablePin->setAsOutput();
     m_enablePin->reset();
     for (int w=0; w<10000; w++);
     m_enablePin->set();
     for (int w=0; w<200000; w++);
+    }
     
     Spi::Config conf; 
     conf.CPHA = 1;
