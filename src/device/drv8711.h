@@ -11,6 +11,101 @@ public:
     void setFaultPin(Gpio::PinName pin);    
     bool isFault() const;
     
+   
+       #pragma pack(push,1) 
+union CtrlRegister {
+    uint16_t reg;
+    struct {
+        uint16_t ENBL    : 1;  // Motor enable
+        uint16_t RDIR    : 1;  // Direction control
+        uint16_t RSTEP   : 1;  // Step command (write-only)
+        uint16_t MODE    : 4;  // Step mode
+        uint16_t EXSTALL : 1;  // External stall detect
+        uint16_t ISGAIN  : 2;  // Current sense gain
+        uint16_t DTIME   : 2;  // Dead time
+        uint16_t         : 4;  // Reserved
+    }CtrlReg;
+};
+
+union TorqueRegister
+{
+  uint16_t reg;
+  struct 
+  {
+    uint16_t TORQUE  : 8;  // Torque setting
+    uint16_t SMPLTH  : 3;  // Back EMF sample threshold
+    uint16_t         : 5;  // Reserved
+  }TorqueReg;
+};
+
+union OffRegister {
+    uint16_t reg;
+    struct {
+        uint16_t TOFF    : 8;  // Fixed off time
+        uint16_t PWMMODE : 1;  // PWM mode select
+        uint16_t         : 7;  // Reserved
+    }OffReg;
+};
+
+union BlankRegister {
+    uint16_t reg;
+    struct BlankReg{
+        uint16_t TBLANK  : 8;  // Current trip blanking time
+        uint16_t ABT     : 1;  // Adaptive blanking time
+        uint16_t         : 7;  // Reserved
+    };
+};
+
+union DecayRegister {
+    uint16_t reg;
+    struct DecayReg{
+        uint16_t TDECAY  : 8;  // Mixed decay transition time
+        uint16_t DECMOD  : 3;  // Decay mode
+        uint16_t         : 5;  // Reserved
+    };
+};
+
+union StallRegister {
+    uint16_t reg;
+    struct StallReg{
+        uint16_t SDTHR   : 8;  // Stall detect threshold
+        uint16_t SDCNT   : 2;  // Stall detect count
+        uint16_t VDIV    : 2;  // Back EMF divider
+        uint16_t         : 4;  // Reserved
+    };
+};
+
+union DriveRegister {
+    uint16_t reg;
+    struct DriveReg{
+        uint16_t OCPTH   : 2;  // OCP threshold
+        uint16_t OCPDEG  : 2;  // OCP deglitch time
+        uint16_t TDRIVEN : 2;  // Low-side gate drive time
+        uint16_t TDRIVEP : 2;  // High-side gate drive time
+        uint16_t IDRIVEN : 2;  // Low-side gate peak current
+        uint16_t IDRIVEP : 2;  // High-side gate peak current
+        uint16_t         : 4;  // Reserved
+    };
+};
+
+union StatusRegister {
+    uint16_t reg;
+    struct StatusReg{
+        uint16_t OTS     : 1;  // Overtemperature shutdown
+        uint16_t AOCP    : 1;  // Channel A overcurrent
+        uint16_t BOCP    : 1;  // Channel B overcurrent
+        uint16_t APDF    : 1;  // Channel A predriver fault
+        uint16_t BPDF    : 1;  // Channel B predriver fault
+        uint16_t UVLO    : 1;  // Undervoltage lockout
+        uint16_t STD     : 1;  // Stall detected
+        uint16_t STDLAT  : 1;  // Latched stall detect
+        uint16_t         : 8;  // Reserved
+    };
+};
+    
+ 
+    
+    
     
       enum DRV8711Registers {
     CTRL_REG    = 0x00,   // Control Register
@@ -231,6 +326,8 @@ public:
     DTIME_850NS = 0xC00
 };
 
+ #pragma pack(pop)
+
 void setRevers(bool rev);
 void setStepMode(DRV8711ControlRegister mode );
 void setTorq( char torq);
@@ -244,98 +341,15 @@ private:
     Gpio *m_enablePin;
     Gpio *m_faultPin;
     
+    CtrlRegister mCtrlRegister;
+    TorqueRegister mTorqueRegister;
+    OffRegister mOffRegister;
+    BlankRegister mBlankRegister;
+    DecayRegister mDecayRegister;
+    StallRegister mStallRegister;
+    DriveRegister mDriveRegister;
+    StatusRegister mStatusRegister;
     
-union CtrlRegister {
-    uint16_t reg;
-    struct {
-        uint16_t ENBL    : 1;  // Motor enable
-        uint16_t RDIR    : 1;  // Direction control
-        uint16_t RSTEP   : 1;  // Step command (write-only)
-        uint16_t MODE    : 4;  // Step mode
-        uint16_t EXSTALL : 1;  // External stall detect
-        uint16_t ISGAIN  : 2;  // Current sense gain
-        uint16_t DTIME   : 2;  // Dead time
-        uint16_t         : 4;  // Reserved
-    }CtrlReg;
-}mCtrlRegister;
-
-union TorqueRegister
-{
-  uint16_t reg;
-  struct 
-  {
-    uint16_t TORQUE  : 8;  // Torque setting
-    uint16_t SMPLTH  : 3;  // Back EMF sample threshold
-    uint16_t         : 5;  // Reserved
-  }TorqueReg;
-}mTorqueRegister;
-
-union OffRegister {
-    uint16_t reg;
-    struct {
-        uint16_t TOFF    : 8;  // Fixed off time
-        uint16_t PWMMODE : 1;  // PWM mode select
-        uint16_t         : 7;  // Reserved
-    }OffReg;
-}mOffRegister;
-
-union BlankRegister {
-    uint16_t reg;
-    struct BlankReg{
-        uint16_t TBLANK  : 8;  // Current trip blanking time
-        uint16_t ABT     : 1;  // Adaptive blanking time
-        uint16_t         : 7;  // Reserved
-    };
-}mBlankRegister;
-
-union DecayRegister {
-    uint16_t reg;
-    struct DecayReg{
-        uint16_t TDECAY  : 8;  // Mixed decay transition time
-        uint16_t DECMOD  : 3;  // Decay mode
-        uint16_t         : 5;  // Reserved
-    };
-}mDecayRegister;
-
-union StallRegister {
-    uint16_t reg;
-    struct StallReg{
-        uint16_t SDTHR   : 8;  // Stall detect threshold
-        uint16_t SDCNT   : 2;  // Stall detect count
-        uint16_t VDIV    : 2;  // Back EMF divider
-        uint16_t         : 4;  // Reserved
-    };
-}mStallRegister;
-
-union DriveRegister {
-    uint16_t reg;
-    struct DriveReg{
-        uint16_t OCPTH   : 2;  // OCP threshold
-        uint16_t OCPDEG  : 2;  // OCP deglitch time
-        uint16_t TDRIVEN : 2;  // Low-side gate drive time
-        uint16_t TDRIVEP : 2;  // High-side gate drive time
-        uint16_t IDRIVEN : 2;  // Low-side gate peak current
-        uint16_t IDRIVEP : 2;  // High-side gate peak current
-        uint16_t         : 4;  // Reserved
-    };
-}mDriveRegister;
-
-union StatusRegister {
-    uint16_t reg;
-    struct StatusReg{
-        uint16_t OTS     : 1;  // Overtemperature shutdown
-        uint16_t AOCP    : 1;  // Channel A overcurrent
-        uint16_t BOCP    : 1;  // Channel B overcurrent
-        uint16_t APDF    : 1;  // Channel A predriver fault
-        uint16_t BPDF    : 1;  // Channel B predriver fault
-        uint16_t UVLO    : 1;  // Undervoltage lockout
-        uint16_t STD     : 1;  // Stall detected
-        uint16_t STDLAT  : 1;  // Latched stall detect
-        uint16_t         : 8;  // Reserved
-    };
-}mStatusRegister;
-    
-  
     void writeReg(uint8_t reg, uint16_t data);
     uint16_t readReg(uint8_t reg);    
     uint8_t calcBlankValue(uint16_t ns); // Расчет значения для произвольного времени (в наносекундах)    

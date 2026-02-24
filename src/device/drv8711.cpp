@@ -5,7 +5,7 @@ Drv8711::Drv8711(Spi *spi, Gpio::PinName csPin, Gpio::PinName enablePin) :
 {
     m_csPin = new Gpio(csPin);
     m_csPin->setAsOutput();
-    m_csPin->set();
+    m_csPin->reset();
     
     if(enablePin != Gpio::noPin)
     {
@@ -19,15 +19,30 @@ Drv8711::Drv8711(Spi *spi, Gpio::PinName csPin, Gpio::PinName enablePin) :
     
     Spi::Config conf; 
     conf.CPHA = 1;
-    conf.CPOL = 0;
+    conf.CPOL = 1;
     conf.master = 1;
-    conf.baudrate = 5;
+    conf.baudrate = 2;
     m_spi->setConfig(conf);
     m_spi->setDataSize(16);
-    m_spi->open();    
+    m_spi->open();   
     
-    mCtrlRegister.reg = readReg(CTRL_REG);
-    mTorqueRegister.reg = readReg(TORQUE_REG);
+    mCtrlRegister.reg = DTIME_850NS | ISGAIN_5 | EXSTALL_INTERNAL | MODE_1_32_STEP | RSTEP_NO_ACTION | RDIR_DIR_PIN | ENBL_DISABLE;;
+    mTorqueRegister.reg = SMPLTH_100US | 0x40;
+    mOffRegister.reg = PWMMODE_INTERNAL | TOFF_MAX;
+    mBlankRegister.reg = ABT_DISABLED | 0x80;
+    mDecayRegister.reg = DECMOD_MIXED_INDEXER | 0x10;
+    mStallRegister.reg = VDIV_32 | SDCNT_8STEPS | SDTHR_DEFAULT;
+    mDriveRegister.reg = IDRIVEP_150MA | IDRIVEN_300MA | TDRIVEP_500NS | TDRIVEN_500NS | OCPDEG_4US | OCPTH_500MV;
+    
+    
+    
+    writeReg(0,mCtrlRegister.reg);
+    writeReg(1,mTorqueRegister.reg);
+    writeReg(2,mOffRegister.reg);
+    writeReg(3,mBlankRegister.reg);
+    writeReg(4,mDecayRegister.reg);
+    writeReg(5,mStallRegister.reg);
+    writeReg(6,mDriveRegister.reg); 
     mStatusRegister.reg = readReg(STATUS_REG);
    
 }
@@ -85,7 +100,7 @@ void Drv8711::setEnable(bool en)
 
 void Drv8711::setStepMode(DRV8711ControlRegister mode)
 {
-  mCtrlRegister.CtrlReg.MODE = mode;
+  mCtrlRegister.reg |= mode;
   writeReg(CTRL_REG,mCtrlRegister.reg);
 }
 
