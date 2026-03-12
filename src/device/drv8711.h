@@ -334,7 +334,7 @@ void setTorq( char torq);
 void setTorqPercent( float perc); //0...1
 void setEnable(bool en);
 uint16_t status();
-    
+bool isEnabled() { return mCtrlRegister.CtrlReg.ENBL; }    
 private:
     Spi *m_spi;
     Gpio *m_csPin;
