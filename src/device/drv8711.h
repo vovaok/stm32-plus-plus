@@ -183,7 +183,7 @@ union StatusRegister {
     enum DRV8711StallRegister {
     // Биты 7-0: Порог обнаружения стопора (SDTHR)
     SDTHR_MASK = 0xFF,
-    SDTHR_DEFAULT = 0x40, // Значение по умолчанию
+    SDTHR_DEFAULT = 0x20, // Значение по умолчанию
     
     // Биты 9-8: Количество шагов для подтверждения стопора (SDCNT)
     SDCNT_MASK = 0x300,
