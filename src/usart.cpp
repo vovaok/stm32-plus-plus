@@ -199,6 +199,17 @@ void Usart::configPinDE(Gpio::PinName pin)
 }
 //---------------------------------------------------------------------------
 
+
+void Usart::configPinDE_hw(Gpio::Config pinDE)
+{
+   #if !defined(STM32F4)
+   Gpio::config(pinDE);
+   mDev->CR3 |= USART_CR3_DEM;   
+   #endif
+}
+//---------------------------------------------------------------------------
+
+
 bool Usart::open(OpenMode mode)
 {
     if (isOpen())

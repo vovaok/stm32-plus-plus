@@ -44,8 +44,8 @@ public:
     Usart(Gpio::Config pinTx, Gpio::Config pinRx);
     virtual ~Usart();
     
-    void configPinDE(Gpio::PinName pin);
-    
+    void configPinDE(Gpio::PinName pin);     //manual control 
+    void configPinDE_hw(Gpio::Config pinDE); //RS485 Driver Enable hardware control
     void setBufferSize(int size_bytes);
     void setUseDmaRx(bool useDma);
     void setUseDmaTx(bool useDma);

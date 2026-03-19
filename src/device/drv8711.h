@@ -335,6 +335,15 @@ void setTorqPercent( float perc); //0...1
 void setEnable(bool en);
 uint16_t status();
 bool isEnabled() { return mCtrlRegister.CtrlReg.ENBL; }    
+void updateCtrlReg(uint16_t data);      
+void updateTorquelReg(uint16_t data);  
+void updateOffReg(uint16_t data);  
+void updateBlankReg(uint16_t data);  
+void updateDecayReg(uint16_t data);  
+void updateStallReg(uint16_t data);  
+void updateDriveReg(uint16_t data);  
+void resetErrors();
+    
 private:
     Spi *m_spi;
     Gpio *m_csPin;

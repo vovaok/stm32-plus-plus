@@ -21,7 +21,7 @@ Drv8711::Drv8711(Spi *spi, Gpio::PinName csPin, Gpio::PinName enablePin) :
     conf.CPHA = 1;
     conf.CPOL = 1;
     conf.master = 1;
-    conf.baudrate = 2;
+    conf.baudrate = 5;
     m_spi->setConfig(conf);
     m_spi->setDataSize(16);
     m_spi->open();   
@@ -46,6 +46,54 @@ Drv8711::Drv8711(Spi *spi, Gpio::PinName csPin, Gpio::PinName enablePin) :
     mStatusRegister.reg = readReg(STATUS_REG);
    
 }
+    
+void Drv8711::updateCtrlReg(uint16_t data)
+{
+   mCtrlRegister.reg = data;    
+   writeReg(CTRL_REG,  data);
+}
+
+void Drv8711::updateTorquelReg(uint16_t data)
+{
+   mTorqueRegister.reg = data;    
+   writeReg(TORQUE_REG,  data);
+}
+
+void Drv8711::updateOffReg(uint16_t data)
+{
+   mOffRegister.reg = data;    
+   writeReg(OFF_REG,  data);
+}
+    
+void Drv8711::updateBlankReg(uint16_t data)
+{
+   mBlankRegister.reg = data;    
+   writeReg(BLANK_REG,  data);
+}  
+    
+void Drv8711::updateDecayReg(uint16_t data)
+{
+   mDecayRegister.reg = data;    
+   writeReg(DECAY_REG,  data);
+}  
+  
+void Drv8711::updateStallReg(uint16_t data)
+{
+   mStallRegister.reg = data;    
+   writeReg(STALL_REG,  data);
+}  
+  
+void Drv8711::updateDriveReg(uint16_t data)
+{
+   mDriveRegister.reg = data;    
+   writeReg(DRIVE_REG,  data);
+}     
+   
+void Drv8711::resetErrors()
+{
+     
+   writeReg(STATUS_REG,  0x00);
+} 
 
 void Drv8711::setFaultPin(Gpio::PinName pin)
 {

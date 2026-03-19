@@ -306,6 +306,8 @@ public:
         \param value \c true, чтобы выставить 1, \c false - 0. И это нормально.
     */
     void write(bool value);
+    
+    static void configInterruptStatic(const Config &conf,std::function<void(void)> event, InterruptMode mode = BothEdges);
 
 #if defined (STM32F37X)
     /*! Установка ноги в 1 */
