@@ -699,7 +699,7 @@ void ObjnetNode::sendForced(unsigned char oid)
     sendMessage(0x00, oid, mObjects[oid].read());
 }
 
-ObjectInfo *ObjnetNode::object(string name)
+ObjectInfo *ObjnetNode::object(_String name)
 {
     for (ObjectInfo &o: mObjects)
         if (name == o.name())
@@ -707,7 +707,7 @@ ObjectInfo *ObjnetNode::object(string name)
     return nullptr;
 }
 
-void ObjnetNode::sendForced(string name)
+void ObjnetNode::sendForced(_String name)
 {
     ObjectInfo *o = object(name);
     if (o)

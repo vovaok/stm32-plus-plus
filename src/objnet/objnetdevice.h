@@ -78,7 +78,7 @@ protected:
 
     Closure<void(unsigned char, unsigned char)> masterRequestObject;
     Closure<void(unsigned char, unsigned char, const ByteArray&)> masterSendObject;
-    Closure<void(unsigned char, SvcOID, const ByteArray&)> masterServiceRequest;
+    Closure<void(unsigned char, unsigned char, const ByteArray&)> masterServiceRequest;
 
     friend class ObjnetMaster;
 
@@ -221,7 +221,7 @@ public:
 signals:
     void requestObject(unsigned char netAddress, unsigned char oid);
     void sendObject(unsigned char netAddress, unsigned char oid, const QByteArray &ba);
-    void serviceRequest(unsigned char netAddress, SvcOID oid, const QByteArray &ba);
+    void serviceRequest(unsigned char netAddress, unsigned char oid, const QByteArray &ba);
 
     void infoReceived(unsigned char oid);
     void objectReceived(QString name, QVariant value);

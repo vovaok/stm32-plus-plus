@@ -154,11 +154,11 @@ public:
     //! Get object by name
     //! @param name The name of the object
     //! @return found object or nullptr if no such name in the dictionary
-    ObjectInfo *object(string name);
+    ObjectInfo *object(_String name);
     
     //! Immediately read and send the given object
     //! This is convenient but slow
-    void sendForced(string name);
+    void sendForced(_String name);
 
 #ifdef QT_CORE_LIB
 signals:

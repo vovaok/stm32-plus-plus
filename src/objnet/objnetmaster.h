@@ -61,7 +61,7 @@ signals:
     void devConnected(unsigned char netAddress);
     void devDisconnected(unsigned char netAddress);
     void devRemoved(unsigned char netAddress);
-    void serviceMessageAccepted(unsigned char netAddress, SvcOID oid, const QByteArray &data);
+    void serviceMessageAccepted(unsigned char netAddress, unsigned char oid, const QByteArray &data);
 #else
     Closure<void(unsigned char, const ByteArray&)> onDevAdded;
     Closure<void(unsigned char)> onDevConnected;
@@ -103,7 +103,7 @@ public slots:
 #endif
     void requestObject(unsigned char netAddress, unsigned char oid);
     void sendObject(unsigned char netAddress, unsigned char oid, const ByteArray &ba);
-    void sendServiceRequest(unsigned char netAddress, SvcOID oid, const ByteArray &ba)
+    void sendServiceRequest(unsigned char netAddress, unsigned char oid, const ByteArray &ba)
     {
         #warning There is copying of the data!
         sendServiceMessage(netAddress, (SvcOID)oid, ByteArray(ba));
