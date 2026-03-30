@@ -10,7 +10,7 @@ ObjnetNode::ObjnetNode(ObjnetInterface *iface) :
     mNetTimeout(0),
     mCurrentRemoteAddress(0x00),
     mObjInfoSendCount(-1),
-    mTimestamp(0),
+    m_timestampOrigin(0),
     mClass(0xFFFF0000),
     mName("<node>"),
     mFullName("<Generic objnet node>"),
@@ -24,6 +24,7 @@ ObjnetNode::ObjnetNode(ObjnetInterface *iface) :
     #else
     QObject::connect(&mTimer, SIGNAL(timeout()), this, SLOT(onTimeoutTimer()));
     QObject::connect(&mSendTimer, SIGNAL(timeout()), this, SLOT(onSendTimer()));
+    etimer.start(); // high-precision timer for timestamp
     #endif
     mTimer.start(200);
     mSendTimer.start(1);
@@ -39,7 +40,6 @@ ObjnetNode::ObjnetNode(ObjnetInterface *iface) :
     iface->setMasterMode(false);
     mBusType = iface->busType();
 
-    // sendTimer must be running for mTimestamp++
 //    if (mBusType == BusSwonb || mBusType == BusRadio)
 //        mSendTimer.stop();
 
@@ -269,7 +269,7 @@ bool ObjnetNode::parseServiceMessage(const CommonMessage &msg)
           } break;
 
           case aidSync:
-            mTimestamp = 0;
+            m_timestampOrigin = getTimestamp();
             break;
 
           default:;
@@ -383,13 +383,14 @@ bool ObjnetNode::parseServiceMessage(const CommonMessage &msg)
       case svcGetTimedObject:
       {
         uint8_t _oid = msg.data()[0];
+        uint32_t ts = getTimestamp() - m_timestampOrigin;
         if (_oid < mObjects.size())
         {
             ByteArray ba;
             ObjectInfo &obj = mObjects[_oid];
             ba.append(reinterpret_cast<const char*>(&_oid), sizeof(unsigned char));
             ba.append('\0'); // reserved byte
-            ba.append(reinterpret_cast<const char*>(&mTimestamp), sizeof(uint32_t));
+            ba.append(reinterpret_cast<const char*>(&ts), sizeof(uint32_t));
             ba.append(obj.read());
             success &= sendServiceMessage(remoteAddr, svcTimedObject, std::move(ba));
         }
@@ -637,6 +638,15 @@ void ObjnetNode::onTimeoutTimer()
 }
 //---------------------------------------------------------
 
+uint32_t ObjnetNode::getTimestamp()
+{
+#ifndef QT_CORE_LIB
+    return stmApp()->timestamp();
+#else
+    return etimer.elapsed();
+#endif
+}
+
 void ObjnetNode::onSendTimer()
 {
     if (mBusType != BusSwonb && mBusType != BusRadio)
@@ -662,6 +672,8 @@ void ObjnetNode::onSendTimer()
             }
         }
         
+        uint32_t ts = getTimestamp() - m_timestampOrigin;
+        
         for (unsigned char oid=0; oid<mObjects.size(); oid++)
         {
             ObjectInfo &obj = mObjects[oid];
@@ -676,7 +688,7 @@ void ObjnetNode::onSendTimer()
                         ByteArray ba;
                         ba.append(reinterpret_cast<const char*>(&oid), sizeof(unsigned char));
                         ba.append('\0'); // reserved byte
-                        ba.append(reinterpret_cast<const char*>(&mTimestamp), sizeof(uint32_t));
+                        ba.append(reinterpret_cast<const char*>(&ts), sizeof(uint32_t));
 //                        __istate_t interrupt_state = __get_interrupt_state();
 //                        __disable_interrupt();
                         ba.append(obj.read());
@@ -691,7 +703,6 @@ void ObjnetNode::onSendTimer()
             }
         }
     }
-    mTimestamp++;
 }
 
 void ObjnetNode::sendForced(unsigned char oid)

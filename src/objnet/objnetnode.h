@@ -5,6 +5,8 @@
 #ifndef QT_CORE_LIB
 #include "cpuid.h"
 #include "objnetstorage.h"
+#else
+#include <QElapsedTimer>
 #endif
 
 #include <array>
@@ -33,7 +35,7 @@ private:
     int mNetTimeout;
     unsigned char mCurrentRemoteAddress;
     int mObjInfoSendCount; // variable for counting of info objects sended
-    uint32_t mTimestamp;
+    uint32_t m_timestampOrigin = 0; // timestamp to subtract
 
     // objnet related parameters:
     uint32_t mClass;
@@ -63,6 +65,10 @@ private:
     bool sendObjectInfo(uint8_t remoteAddr, ObjectInfo *obj, const ByteArray &loc=ByteArray());
     
     void objectValueChanged(unsigned char oid);
+    
+#ifdef QT_CORE_LIB
+    QElapsedTimer etimer;
+#endif
 
 #ifndef QT_CORE_LIB
 protected:
@@ -82,6 +88,8 @@ protected:
     void setSerial(uint32_t serial) {mSerial = serial;}
 
     void bindSvcObject(SvcOID oid, const ObjectInfo &obj);
+    
+    uint32_t getTimestamp();
 
 #ifdef QT_CORE_LIB
 protected slots:

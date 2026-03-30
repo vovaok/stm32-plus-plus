@@ -598,7 +598,6 @@ void ObjnetDevice::groupedRequest(std::vector<_String> names)
 
 void ObjnetDevice::autoGroupRequest(uint16_t interval, std::vector<_String> names)
 {
-    qDebug() << "autoGroupRequest" << names;
     ByteArray ba;
     ba.append(reinterpret_cast<const char *>(&interval), sizeof(uint16_t));
     for (_String name: names)
@@ -833,5 +832,4 @@ void ObjnetDevice::onSendTimer()
             }
         }
     }
-//    mTimestamp++;
 }
