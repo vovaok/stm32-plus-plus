@@ -65,6 +65,10 @@ public:
     template<typename EntryMeta>
     inline void sdoWrite(typename EntryMeta::Type value)
         __attribute__((always_inline));
+            
+    template<typename EntryMeta>
+    inline void sdoRead()
+        __attribute__((always_inline));
     
     /// Configure PDO
     /// @attention Event-driven transmission and reception ONLY!
@@ -105,6 +109,12 @@ template<typename Entry>
 void CanOpenProxy::sdoWrite(typename Entry::Type value)
 {
     sdoWrite(Entry::Id, Entry::Sid, value, sizeof(value));
+}
+
+template<typename Entry>
+void CanOpenProxy::sdoRead()
+{
+    sdoRead(Entry::Id, Entry::Sid, Entry::Size);
 }
 
 #endif // _CANOPENPROXY_H
