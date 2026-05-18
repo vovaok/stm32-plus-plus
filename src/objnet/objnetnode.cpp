@@ -553,6 +553,9 @@ bool ObjnetNode::parseServiceMessage(const CommonMessage &msg)
         }
     }
     
+    if (success && onServiceMessageAccepted)
+        onServiceMessageAccepted(oid);
+    
     return success;
 }
 //---------------------------------------------------------------------------

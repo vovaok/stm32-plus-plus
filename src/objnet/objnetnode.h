@@ -180,6 +180,7 @@ signals:
     GlobalMessageEvent onGlobalMessage;
     GlobalDataMessageEvent onGlobalDataMessage;
     Closure<void(string)> onObjectValueChanged;
+    Closure<void(uint8_t)> onServiceMessageAccepted;
 #endif
 };
 
