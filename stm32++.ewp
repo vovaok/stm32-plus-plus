@@ -16635,6 +16635,12 @@
             <name>$PROJ_DIR$\src\device\max31855.h</name>
         </file>
         <file>
+            <name>$PROJ_DIR$\src\device\max6675.cpp</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\device\max6675.h</name>
+        </file>
+        <file>
             <name>$PROJ_DIR$\src\device\mt6818.cpp</name>
         </file>
         <file>

@@ -26,7 +26,7 @@ Encoder::Encoder(Gpio::Config pinA, Gpio::Config pinB, Gpio::Config pinIdx) :
         tim()->SMCR |= 3; // Encoder mode 3 - Counter counts up/down on both TI1FP1 and TI2FP2 edges depending on the level of the other input.
         //TIM_EncoderInterfaceConfig(tim(), TIM_EncoderMode_TI12, TIM_ICPolarity_Rising, TIM_ICPolarity_Falling);
     }
-    tim()->CCMR1 |= (2<<4) | (2<<12); // filter
+    tim()->CCMR1 |= (3<<4) | (3<<12); // filter
 
 //    setUpdateEvent(EVENT(&Encoder::overflowHandler));
 
