@@ -37,17 +37,20 @@ void CanOpenProxy::task()
 
 void CanOpenProxy::resendSdo()
 {    
-    while (!m_sdoQueue.empty())
+    /*while*/ if (!m_sdoQueue.empty())
     {
         SDO &sdo = m_sdoQueue.front();
         ByteArray ba = ByteArray(reinterpret_cast<const char*>(&sdo), 8);
         bool success = sendPacket(SDO_Request | m_nodeId, ba);
         if (success)
             m_sdoQueue.pop();
-        else
-            return;
+//        else
+//            return;
     }
-    m_resendTimer->stop();
+    else
+    {
+        m_resendTimer->stop();
+    }
 }
 
 void CanOpenProxy::nmtModuleControl(NMTControl cmd)
