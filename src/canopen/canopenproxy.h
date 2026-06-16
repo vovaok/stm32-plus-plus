@@ -95,9 +95,9 @@ private:
     std::queue<SDO> m_sdoQueue;
     std::queue<uint8_t> m_nmtQueue;
     bool m_nmtErrorControl = false;
-    Timer *m_resendTimer;
+    Timer m_sdoTimer;
     void task();
-    void resendSdo();
+    void sendNextSdo();
     
     void sdoEnqueue(SDO &&sdo);
     bool sendPacket(uint16_t cob_id, const ByteArray &payload = ByteArray());
