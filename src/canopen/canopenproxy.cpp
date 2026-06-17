@@ -265,8 +265,8 @@ void CanOpenProxy::handlePacket(uint16_t cob_id, const ByteArray &payload)
         
         if (sdo.id == last_sdo.id && sdo.subid == last_sdo.subid)
         {
-            m_sdoTimer.stop();
             m_sdoQueue.pop();
+            m_sdoTimer.stop();
             sendNextSdo();
         }
         else
