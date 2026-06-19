@@ -124,6 +124,7 @@ enum Config
     USART1_RTS_PA12 =   PINCONFIG(PA12, modeAF | outPushPull | pullNone | speed50MHz, afUsart1, 0x10), //!<.
     USART1_TX_PB6 =     PINCONFIG(PB6,  modeAF | outPushPull | pullNone | speed50MHz, afUsart1, 0x10), //!<.
     USART1_RX_PB7  =    PINCONFIG(PB7,  modeAF | outPushPull | pullNone | speed50MHz, afUsart1, 0x10), //!<.
+    USART1_RX_PB15  =   PINCONFIG(PB15, modeAF | outPushPull | pullNone | speed50MHz, afUsart1_1, 0x10), //!<.
     // USART2
     USART2_CTS_PA0 =    PINCONFIG(PA0,  modeAF | outPushPull | pullNone | speed50MHz, afUsart2, 0x20), //!<.
     USART2_RTS_PA1 =    PINCONFIG(PA1,  modeAF | outPushPull | pullNone | speed50MHz, afUsart2, 0x20), //!<.
