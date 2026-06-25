@@ -6,6 +6,10 @@
 #include "core/application.h"
 #endif
 
+#ifdef QT_CORE_LIB
+typedef QTimer Timer;
+#endif
+
 namespace Objnet
 {
 
