@@ -28,6 +28,9 @@ public:
     void setFont(Font font);
     
     void useColorMap(Gradient *gradient);
+    
+    void setBatteryMode(bool enabled);
+    bool isBatteryMode() const {return m_batteryMode;}
 
 protected:
     void paintEvent(Display *d) override;
@@ -45,6 +48,7 @@ protected:
     //! @return x-coord of value in px;
     int map(float value);
 
-//private:
-
+private:
+    int m_marginEnd = 0; // for batteryMode
+    bool m_batteryMode = 0;
 };
