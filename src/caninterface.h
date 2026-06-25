@@ -50,6 +50,7 @@ protected:
     void messageReceived(int fifoChannel);
 
     static uint8_t dlcFromSize(uint8_t size);
+    static uint8_t dlcToSize(uint8_t dlc);
 
     std::map<uint8_t, CanSocket *> fmiSocketMap; // find socket by filter index
 
