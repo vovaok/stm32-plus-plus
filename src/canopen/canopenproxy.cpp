@@ -9,9 +9,8 @@ CanOpenProxy::CanOpenProxy(CanInterface *device, uint8_t nodeId) :
     m_can->onReadyRead = EVENT(&CanOpenProxy::readPacket);
     m_can->open();
     
-    m_resendTimer = new Timer();
-    m_resendTimer->setInterval(50);
-    m_resendTimer->onTimeout = EVENT(&CanOpenProxy::resendSdo);
+    m_sdoTimer.setSingleShot(true);
+    m_sdoTimer.onTimeout = EVENT(&CanOpenProxy::sendNextSdo);
     
     stmApp()->registerTaskEvent(EVENT(&CanOpenProxy::task));
 }
@@ -35,19 +34,23 @@ void CanOpenProxy::task()
     }
 }
 
-void CanOpenProxy::resendSdo()
+void CanOpenProxy::sendNextSdo()
 {    
-    while (!m_sdoQueue.empty())
-    {
-        SDO &sdo = m_sdoQueue.front();
-        ByteArray ba = ByteArray(reinterpret_cast<const char*>(&sdo), 8);
-        bool success = sendPacket(SDO_Request | m_nodeId, ba);
-        if (success)
-            m_sdoQueue.pop();
-        else
-            return;
-    }
-    m_resendTimer->stop();
+    if (m_sdoTimer.isRunning())
+        return;
+    
+    if (m_sdoQueue.empty())
+        return;
+    
+    SDO &sdo = m_sdoQueue.front();
+    ByteArray ba = ByteArray(reinterpret_cast<const char*>(&sdo), 8);
+    bool success = sendPacket(SDO_Request | m_nodeId, ba);
+    if (success)
+        m_sdoTimer.start(100); // timeout for response
+    else
+        m_sdoTimer.start(10); // timeout for resend
+    // pop SDO from the queue later, on successful response
+    // OR TRY TO SEND IT FOREVER!!
 }
 
 void CanOpenProxy::nmtModuleControl(NMTControl cmd)
@@ -200,8 +203,7 @@ bool CanOpenProxy::configPdo(FunctionCode func, std::initializer_list<uint32_t> 
 void CanOpenProxy::sdoEnqueue(SDO &&sdo)
 {
     m_sdoQueue.push(std::move(sdo));
-    if (!m_resendTimer->isRunning())
-        m_resendTimer->start();
+    sendNextSdo();
 }
 
 bool CanOpenProxy::sendPacket(uint16_t cob_id, const ByteArray &payload)
@@ -259,6 +261,18 @@ void CanOpenProxy::handlePacket(uint16_t cob_id, const ByteArray &payload)
     {
         const SDO &sdo = *reinterpret_cast<const SDO*>(payload.data());
         SDOAbortCode err = static_cast<SDOAbortCode>(payload[6]);
+        const SDO &last_sdo = m_sdoQueue.front();
+        
+        if (sdo.id == last_sdo.id && sdo.subid == last_sdo.subid)
+        {
+            m_sdoQueue.pop();
+            m_sdoTimer.stop();
+            sendNextSdo();
+        }
+        else
+        {
+            // WUT??? how is it possible?
+        }
 
         switch (sdo.cmd & 0xE3)
         {
