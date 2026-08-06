@@ -100,7 +100,7 @@ protected slots:
 public:
     ObjnetNode(ObjnetInterface *iface);
 
-#ifndef QT_CORE_LIB
+#if defined(APP_CLASS)
     void setClassId() {mClass = APP_CLASS;}
 #endif
     void setClassId(uint32_t classId) {mClass = classId;}
@@ -168,6 +168,9 @@ public:
     //! This is convenient but slow
     void sendForced(_String name);
 
+    NotifyEvent onPolling;
+    Closure<void(uint8_t)> onServiceMessageAccepted;    
+    
 #ifdef QT_CORE_LIB
 signals:
     void polling();
@@ -175,12 +178,12 @@ signals:
     void globalMessage(unsigned char aid);
     void globalDataMessage(unsigned char aid, const QByteArray &ba);
 #else
-    NotifyEvent onPolling;
     NotifyEvent onUpgradeRequest;
     GlobalMessageEvent onGlobalMessage;
     GlobalDataMessageEvent onGlobalDataMessage;
     Closure<void(string)> onObjectValueChanged;
 #endif
+    
 };
 
 }

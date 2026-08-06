@@ -89,3 +89,9 @@ uint8_t CanInterface::dlcFromSize(uint8_t size)
         return 14;
     return 15;
 }
+
+uint8_t CanInterface::dlcToSize(uint8_t dlc)
+{
+    static const uint8_t DLCtoBytes[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 12, 16, 20, 24, 32, 48, 64};
+    return DLCtoBytes[dlc];
+}

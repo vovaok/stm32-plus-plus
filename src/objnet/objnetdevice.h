@@ -250,6 +250,8 @@ signals:
 #endif
 };
 
+#undef Timer
+
 }
 
 #endif
