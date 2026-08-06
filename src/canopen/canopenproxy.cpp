@@ -277,6 +277,7 @@ void CanOpenProxy::handlePacket(uint16_t cob_id, const ByteArray &payload)
         switch (sdo.cmd & 0xE3)
         {
           case cmdReadParamResponse:
+            lastSdoValue = sdo.value;
             sdoReceived(sdo.id, sdo.subid, sdo.value);
             break;
 

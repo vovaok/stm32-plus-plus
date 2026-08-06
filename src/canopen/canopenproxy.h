@@ -78,6 +78,9 @@ public:
     /// @return true if success
     /// @todo maybe refactor this?
     bool configPdo(FunctionCode func, std::initializer_list<uint32_t> sdo_list, int interval=0, bool use_sync=false);
+    
+    // dirty hack for retrieving requested SDO:
+    uint32_t lastSdoValue = 0;
   
 protected:
     virtual void nmtStateChanged() {}
