@@ -4,7 +4,7 @@
 CanOpenProxy::CanOpenProxy(CanInterface *device, uint8_t nodeId) :
     m_nodeId(nodeId & 0x7F)
 {
-    m_can = new CanSocket(device);
+    m_can = new CanSocket(device, CanInterface::StdId);
     m_can->addFilter(nodeId, 0x7F);
     m_can->onReadyRead = EVENT(&CanOpenProxy::readPacket);
     m_can->open();

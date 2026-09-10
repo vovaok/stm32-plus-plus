@@ -85,8 +85,11 @@ bool CanFdSpi::transmitMessage(Flags flags, uint32_t id, const uint8_t *data, ui
     txObj.word[1] = 0;
 //    txObj.word[2] = 0;
     
-    if (flags & ExtId)
+    bool ide = (flags & ExtId) | (id & CAN_EFF_FLAG);
+        
+    if (ide)
     {
+        id &= 0x1FFFFFFF;
         txObj.bF.id.EID = id;
         txObj.bF.id.SID = id >> 18;
         txObj.bF.ctrl.IDE = 1;
@@ -242,7 +245,7 @@ void CanFdSpi::init()
     config.StoreInTEF = 0;
     DRV_CANFDSPI_Configure(m_chipId, &config);
     
-    configureTxFifo(APP_TX_FIFO, 7, 64);
+    configureTxFifo(APP_TX_FIFO, 2, 64);
 
     // Setup Bit Time
     DRV_CANFDSPI_BitTimeConfigure(m_chipId, selectedBitTime, CAN_SSP_MODE_AUTO, CAN_SYSCLK_40M);
@@ -335,31 +338,35 @@ int CanFdSpi::configureFilter(Flags flags, uint32_t id, uint32_t mask, int fifoC
     REG_CiMASK mObj;
     
     // Setup RX Filter
+    id &= 0x1FFFFFFF;
     fObj.word = 0;
-    if (flags & ExtId)
+    if (flags & StdId)
+    {
+        fObj.bF.SID = id;
+    }
+    else 
     {
         fObj.bF.EID = id;
         fObj.bF.SID = id >> 18;
-        fObj.bF.EXIDE = 1;
-    }
-    else
-    {
-        fObj.bF.SID = id;
+        if (flags & ExtId)
+            fObj.bF.EXIDE = 1;
     }
     DRV_CANFDSPI_FilterObjectConfigure(m_chipId, filterIdx, &fObj.bF);
 
     // Setup RX Mask
     mObj.word = 0;
-    if (flags & ExtId)
-    {
-        mObj.bF.MEID = mask;
-        mObj.bF.MSID = mask >> 18;
-        mObj.bF.MIDE = 1; // Only allow extended or standard IDs
-    }
-    else
+    if (flags & StdId)
     {
         mObj.bF.MSID = mask;
     }
+    else
+    {
+        mObj.bF.MEID = mask;
+        mObj.bF.MSID = mask >> 18;
+        if (flags & ExtId)
+            mObj.bF.MIDE = 1; // Only allow extended or standard IDs
+    }
+    
     DRV_CANFDSPI_FilterMaskConfigure(m_chipId, filterIdx, &mObj.bF);
 
     // Link FIFO and Filter
@@ -367,7 +374,7 @@ int CanFdSpi::configureFilter(Flags flags, uint32_t id, uint32_t mask, int fifoC
     
     /// @todo todo!! replace magic number 8 of FIFO depth with something more useful
     int maxsize = flags & FD? 64: 8;
-    int depth = maxsize == 8? 32: 8;
+    int depth = 4;//2;//maxsize == 8? 32: 8;
     configureRxFifo(fifoChannel, depth, maxsize);
     
     m_filterIdx++;

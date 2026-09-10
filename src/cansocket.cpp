@@ -41,10 +41,10 @@ int CanSocket::bytesAvailable() const
     int len = m_can->pendingMessageLength(m_fifoChannel);
     if (len < 0)
         return 0;
-    if (m_flags & CanInterface::ExtId)
-        return len + 4;
-    else
+    if (m_flags & CanInterface::StdId)
         return len + 2;
+    else
+        return len + 4;
 }
 
 int CanSocket::readData(char *data, int size)
@@ -57,41 +57,36 @@ int CanSocket::readData(char *data, int size)
             return -1;
     }
 
-    if (m_flags & CanInterface::ExtId)
-    {
-        if (size < 4)
-            return -1;
-        int len = m_can->receiveMessage(reinterpret_cast<uint32_t*>(data),
-                                        reinterpret_cast<uint8_t*>(data + 4),
-                                        size - 4, m_fifoChannel);
-        if (len < 0)
-            return 0;
-        return len + 4;
-    }
-
     if (size < 2)
         return -1;
+    if (m_flags & CanInterface::StdId)
+    {
+        int len = m_can->receiveMessage(reinterpret_cast<uint32_t*>(data),
+                                        reinterpret_cast<uint8_t*>(data + 2),
+                                        size - 2, m_fifoChannel);
+        if (len < 0)
+            return 0;
+        return len + 2;
+    }
+    
+    if (size < 4)
+        return -1;
     int len = m_can->receiveMessage(reinterpret_cast<uint32_t*>(data),
-                                    reinterpret_cast<uint8_t*>(data + 2),
-                                    size - 2, m_fifoChannel);
+                                    reinterpret_cast<uint8_t*>(data + 4),
+                                    size - 4, m_fifoChannel);
+    
+    if (m_flags & CanInterface::ExtId)
+        data[3] &= 0x1f; // remove all above 29 bit
+    
     if (len < 0)
         return 0;
-    return len + 2;
+    return len + 4;    
 }
 
 int CanSocket::writeData(const char *data, int size)
 {
     bool r;
-    if (m_flags & CanInterface::ExtId)
-    {
-        if (size < 4)
-            return -1;
-        r = m_can->transmitMessage(m_flags,
-                                   *reinterpret_cast<const uint32_t*>(data),
-                                   reinterpret_cast<const uint8_t*>(data) + 4,
-                                   size - 4);
-    }
-    else
+    if (m_flags & CanInterface::StdId)
     {
         if (size < 2)
             return -1;
@@ -99,6 +94,15 @@ int CanSocket::writeData(const char *data, int size)
                                    *reinterpret_cast<const uint16_t*>(data),
                                    reinterpret_cast<const uint8_t*>(data) + 2,
                                    size - 2);
+    }
+    else
+    {    
+        if (size < 4)
+            return -1;
+        r = m_can->transmitMessage(m_flags,
+                                   *reinterpret_cast<const uint32_t*>(data),
+                                   reinterpret_cast<const uint8_t*>(data) + 4,
+                                   size - 4);
     }
     if (r)
         return size;

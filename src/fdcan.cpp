@@ -36,26 +36,7 @@ FdCan::FdCan(Gpio::Config fdcanRx, Gpio::Config fdcanTx) :
 int FdCan::configureFilter(Flags flags, uint32_t id, uint32_t mask, int fifoChannel)
 {
     int idx = -1;
-    if (flags & ExtId)
-    {
-        // find free filter
-        for (idx=0; idx<8; idx++)
-        {
-            if (!msgRam->extFilters[idx].EFEC)
-                break;
-        }
-        if (idx >= 8)
-            return -1;
-
-        ExtFilterElement filt;
-        filt.EFID1 = id;
-        filt.EFID2 = mask;
-        filt.EFT = 0x2; // classic filter
-        filt.EFEC = fifoChannel + 1;
-        msgRam->extFilters[idx] = filt;
-        return idx;
-    }
-    else
+    if (flags & StdId)
     {
         // find free filter
         for (idx=0; idx<28; idx++)
@@ -73,6 +54,25 @@ int FdCan::configureFilter(Flags flags, uint32_t id, uint32_t mask, int fifoChan
         filt.SFEC = fifoChannel + 1;
         msgRam->stdFilters[idx] = filt;
         return 0x80 | idx;
+    }
+    else
+    {
+        // find free filter
+        for (idx=0; idx<8; idx++)
+        {
+            if (!msgRam->extFilters[idx].EFEC)
+                break;
+        }
+        if (idx >= 8)
+            return -1;
+
+        ExtFilterElement filt;
+        filt.EFID1 = id;
+        filt.EFID2 = mask;
+        filt.EFT = 0x2; // classic filter
+        filt.EFEC = fifoChannel + 1;
+        msgRam->extFilters[idx] = filt;
+        return idx;
     }
 }
 
@@ -175,22 +175,26 @@ bool FdCan::transmitMessage(Flags flags, uint32_t id, const uint8_t *data, uint8
 
     // retrieve index of next free element
     int idx = (m_dev->TXFQS & FDCAN_TXFQS_TFQPI) >> FDCAN_TXFQS_TFQPI_Pos;
+    
+    bool ide = (flags & ExtId) | (id & CAN_EFF_FLAG);
 
     TxBufferHeader hdr;
-    if (flags & ExtId)
+    
+    if (ide)
     {
         hdr.XTD = 1;
-        hdr.ID = id;
-    }
+        hdr.ID = id & 0x1FFFFFFF;
+    }    
     else
+    {
         hdr.ID = id << 18;
+    }
 
     if (flags & FD)
         hdr.FDF = 1;
     if (flags & BRS)
         hdr.BRS = 1;
     hdr.DLC = calcDLC(size);
-
 
     const uint32_t *src = reinterpret_cast<const uint32_t *>(data);
     uint32_t *dst = msgRam->txBuffers[idx].words;

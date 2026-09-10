@@ -7,6 +7,9 @@
 
 class CanSocket;
 
+
+#define CAN_EFF_FLAG    0x80000000U
+
 class CanInterface
 {
 public:
@@ -14,11 +17,12 @@ public:
 
     enum Flags
     {
-        StdId = 0x00,
-        ExtId = 0x01,
+        NoFlags = 0x00, // StdId and ExtId frames
+        ExtId = 0x01, // ExtId frames only
         FD    = 0x02, // CAN FD mode
         BRS   = 0x04, // bit rate switch
         RTR   = 0x08,
+        StdId = 0x10  // StdId frames only
     };
 
     virtual bool hasFD() {return false;}
