@@ -11,6 +11,12 @@
 
 #include <array>
 
+#if !defined(QT_CORE_LIB)
+    #include "core/timer.h"
+#else
+    #define Timer QTimer
+#endif
+
 namespace Objnet
 {
 
