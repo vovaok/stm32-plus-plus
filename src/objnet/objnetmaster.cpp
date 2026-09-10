@@ -271,6 +271,8 @@ void ObjnetMaster::connectDevice(unsigned char netaddr)
     if (onDevConnected)
         onDevConnected(netaddr);
     #endif
+    
+    dev->notifyReady();
 }
 
 void ObjnetMaster::disconnectDevice(unsigned char netaddr)
@@ -279,6 +281,7 @@ void ObjnetMaster::disconnectDevice(unsigned char netaddr)
         return;
     ObjnetDevice *dev = mDevices[netaddr];
     dev->mPresent = false;
+    dev->mAlreadyReady = false;
 
     // recursively disconnect children
     for (size_t i=0; i<dev->mChildren.size(); i++)

@@ -95,17 +95,7 @@ void ObjnetDevice::parseObjectInfo(const ByteArray &ba)
         }
     }
 
-    if (!mAlreadyReady && isReady())
-    {
-        mAlreadyReady = true;
-        readyEvent();
-#ifdef QT_CORE_LIB
-        emit ready();
-#else 
-        if (onReady)
-            onReady(this);
-#endif
-    }
+    notifyReady();
     
     // don't request subobjects! node should send it by own means
     
@@ -125,6 +115,21 @@ void ObjnetDevice::parseObjectInfo(const ByteArray &ba)
 //            #endif
 //        }
 //    }
+}
+
+void ObjnetDevice::notifyReady()
+{
+    if (!mAlreadyReady && isReady())
+    {
+        mAlreadyReady = true;
+        readyEvent();
+#ifdef QT_CORE_LIB
+        emit ready();
+#else 
+        if (onReady)
+            onReady(this);
+#endif
+    }
 }
 
 ObjectInfo *ObjnetDevice::prepareObject(const ObjectInfo::Description &desc)

@@ -88,6 +88,8 @@ protected:
     void receiveGroupedObject(const ByteArray &ba);
     void receiveGlobalMessage(unsigned char aid);
     
+    void notifyReady();
+    
     virtual void readyEvent() {}
     virtual void disconnectEvent() {}
     
