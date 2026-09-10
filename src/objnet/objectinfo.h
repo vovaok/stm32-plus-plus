@@ -460,7 +460,8 @@ ObjectInfo::ObjectInfo(string name, const T (&var)[N], Flags flags) :
         sz = N;
     if (flags & Read)
     {
-        mReadPtr = &var;
+//        mReadPtr = &var;
+        mReadPtr = (void *)(&var);
         mDesc.readSize = sz;
         mDesc.rType = t;
     }

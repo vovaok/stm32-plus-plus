@@ -78,6 +78,9 @@ public:
     /// @return true if success
     /// @todo maybe refactor this?
     bool configPdo(FunctionCode func, std::initializer_list<uint32_t> sdo_list, int interval=0, bool use_sync=false);
+    
+    // dirty hack for retrieving requested SDO:
+    uint32_t lastSdoValue = 0;
   
 protected:
     virtual void nmtStateChanged() {}
@@ -95,9 +98,9 @@ private:
     std::queue<SDO> m_sdoQueue;
     std::queue<uint8_t> m_nmtQueue;
     bool m_nmtErrorControl = false;
-    Timer *m_resendTimer;
+    Timer m_sdoTimer;
     void task();
-    void resendSdo();
+    void sendNextSdo();
     
     void sdoEnqueue(SDO &&sdo);
     bool sendPacket(uint16_t cob_id, const ByteArray &payload = ByteArray());
