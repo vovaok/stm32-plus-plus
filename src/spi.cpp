@@ -57,6 +57,9 @@ Spi::Spi(Gpio::Config sck, Gpio::Config miso, Gpio::Config mosi) :
 {
     int no = GpioConfigGetPeriphNumber(sck);
     if (no == 0)
+        no = GpioConfigGetPeriphNumber(mosi);
+    
+    if (no == 0)
         THROW(Exception::InvalidPin);
     if (miso != Gpio::NoConfig && no != GpioConfigGetPeriphNumber(miso))
         THROW(Exception::InvalidPin);

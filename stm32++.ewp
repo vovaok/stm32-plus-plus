@@ -16689,6 +16689,12 @@
             <name>$PROJ_DIR$\src\device\touchpanel.h</name>
         </file>
         <file>
+            <name>$PROJ_DIR$\src\device\ws2812b.cpp</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\device\ws2812b.h</name>
+        </file>
+        <file>
             <name>$PROJ_DIR$\src\device\xpt2046.cpp</name>
         </file>
         <file>
