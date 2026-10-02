@@ -170,6 +170,14 @@ enum Config
     USART6_CTS_PG13 =   PINCONFIG(PG13, modeAF | outPushPull | pullNone | speed50MHz, afUsart6, 0x60), //!<.
     USART6_TX_PG14 =    PINCONFIG(PG14, modeAF | outPushPull | pullNone | speed50MHz, afUsart6, 0x60), //!<.
     USART6_CTS_PG15 =   PINCONFIG(PG15, modeAF | outPushPull | pullNone | speed50MHz, afUsart6, 0x60), //!<.
+    // UART7
+    UART7_RX_PE7 =      PINCONFIG(PE7,  modeAF | outPushPull | pullNone | speed50MHz, afUart7, 0x70), //!<.
+    UART7_TX_PE8 =      PINCONFIG(PE8,  modeAF | outPushPull | pullNone | speed50MHz, afUart7, 0x70), //!<.
+    UART7_RX_PF6 =      PINCONFIG(PF6,  modeAF | outPushPull | pullNone | speed50MHz, afUart7, 0x70), //!<.
+    UART7_TX_PF7 =      PINCONFIG(PF7,  modeAF | outPushPull | pullNone | speed50MHz, afUart7, 0x70), //!<.
+    // UART8
+    UART8_RX_PE0 =      PINCONFIG(PE0,  modeAF | outPushPull | pullNone | speed50MHz, afUart8, 0x80), //!<.
+    UART8_TX_PE1 =      PINCONFIG(PE1,  modeAF | outPushPull | pullNone | speed50MHz, afUart8, 0x80), //!<.
     // CAN1
     CAN1_RX_PA11 =      PINCONFIG(PA11, modeAF | outPushPull | pullUp | speed50MHz, afCan1, 0x10), //!<.
     CAN1_TX_PA12 =      PINCONFIG(PA12, modeAF | outPushPull | pullUp | speed50MHz, afCan1, 0x10), //!<.

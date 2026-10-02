@@ -13,6 +13,11 @@
 #define UART5_TX_DMA    Dma::UART5_TX_Stream7;
 #define USART6_RX_DMA   Dma::USART6_RX_Stream1; //Dma::USART6_RX_Stream2
 #define USART6_TX_DMA   Dma::USART6_TX_Stream6; //Dma::USART6_TX_Stream7
+#define UART7_RX_DMA    Dma::UART7_RX_Stream3;
+#define UART7_TX_DMA    Dma::UART7_TX_Stream1;
+#define UART8_RX_DMA    Dma::UART8_RX_Stream6;
+#define UART8_TX_DMA    Dma::UART8_TX_Stream0;
+
 
 #elif defined(STM32L4)
 #define USART1_RX_DMA   Dma::USART1_RX_Channel5; // USART1_RX_Channel7
@@ -65,7 +70,7 @@
     #define USART_SR_RXNE           USART_ISR_RXNE
 #endif
 
-Usart *Usart::mUsarts[6] = {0L, 0L, 0L, 0L, 0L, 0L};
+Usart *Usart::mUsarts[8] = {0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L};
 //---------------------------------------------------------------------------
 
 Usart::Usart(Gpio::Config pinTx, Gpio::Config pinRx) :
@@ -106,53 +111,37 @@ void Usart::commonConstructor(int number)
 //    const uint32_t rcc[6] = {};
 //    const IRQn_Type irq[6] = {USART1_IRQn, USART2_IRQn, USART3_IRQn, UART4_IRQn, UART5_IRQn, USART6_IRQn};
 
+#define USE(usart) \
+        mDev = usart; \
+        mDmaChannelRx = usart##_RX_DMA; \
+        mDmaChannelTx = usart##_TX_DMA; \
+        mIrq = usart##_IRQn;
+    
     switch (number)
     {
-      case 1:
-        mDev = USART1;
-        mDmaChannelRx = USART1_RX_DMA;
-        mDmaChannelTx = USART1_TX_DMA;
-        mIrq = USART1_IRQn;
-        break;
+#if defined(USART1)
+      case 1: USE(USART1); break;
+#endif
 #if defined(USART2)
-      case 2:
-        mDev = USART2;
-        mDmaChannelRx = USART2_RX_DMA;
-        mDmaChannelTx = USART2_TX_DMA;
-        mIrq = USART2_IRQn;
-        break;
+      case 2: USE(USART2); break;
 #endif
 #if defined(USART3)
-      case 3:
-        mDev = USART3;
-        mDmaChannelRx = USART3_RX_DMA;
-        mDmaChannelTx = USART3_TX_DMA;
-        mIrq = USART3_IRQn;
-        break;
+      case 3: USE(USART3); break;
 #endif
-#if defined(STM32F4) || defined(STM32L4) || defined(STM32G4) || defined(STM32F7)
-      case 4:
-        mDev = UART4;
-        mDmaChannelRx = UART4_RX_DMA;
-        mDmaChannelTx = UART4_TX_DMA;
-        mIrq = UART4_IRQn;
-        break;
-
-      case 5:
-        mDev = UART5;
-        mDmaChannelRx = UART5_RX_DMA;
-        mDmaChannelTx = UART5_TX_DMA;
-        mIrq = UART5_IRQn;
-        break;
-
+#if defined(UART4)
+      case 4: USE(UART4); break;
 #endif
-#if defined(STM32F4)
-      case 6:
-        mDev = USART6;
-        mDmaChannelRx = USART6_RX_DMA;
-        mDmaChannelTx = USART6_TX_DMA;
-        mIrq = USART6_IRQn;
-        break;
+#if defined(UART5)
+      case 5: USE(UART5); break;
+#endif
+#if defined(USART6)
+      case 6: USE(USART6); break;
+#endif
+#if defined(UART7)
+      case 7: USE(UART7); break;
+#endif
+#if defined(UART8)
+      case 8: USE(UART8); break;
 #endif
     }
 
@@ -164,7 +153,7 @@ void Usart::commonConstructor(int number)
     case 3: RCC->APB1ENR |= RCC_APB1ENR_USART3EN; break;
     }
 #elif defined(STM32F0)
-   RCC->APB2ENR |= RCC_APB2ENR_USART1EN; 
+    RCC->APB2ENR |= RCC_APB2ENR_USART1EN; 
 #else
     rcc().setPeriphEnabled(mDev);
 #endif
@@ -683,6 +672,18 @@ void USART6_IRQHandler()
 {
     if (Usart::mUsarts[5])
         Usart::mUsarts[5]->handleInterrupt();
+}
+
+void UART7_IRQHandler()
+{
+    if (Usart::mUsarts[6])
+        Usart::mUsarts[6]->handleInterrupt();
+}
+
+void UART8_IRQHandler()
+{
+    if (Usart::mUsarts[7])
+        Usart::mUsarts[7]->handleInterrupt();
 }
 #endif
 
