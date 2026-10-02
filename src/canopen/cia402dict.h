@@ -163,7 +163,7 @@ private:
         MapT map {};
         
         for (uint8_t i = 0; i < 8; ++i)
-            map[i] = {MapIndex, i + 1};
+            map[i] = {MapIndex, (uint8_t)(i + 1)};
         
         return map;
     }
