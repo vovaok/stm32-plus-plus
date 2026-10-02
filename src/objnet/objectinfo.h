@@ -261,7 +261,8 @@ public:
     inline const Description &description() {return mDesc;}
     inline uint8_t id() const {return mDesc.id;}
 
-    Closure<void(unsigned char)> onValueChanged;
+//    Closure<void(unsigned char)> onValueChanged;
+    std::function<void(uint8_t)> onValueChanged;
 
     #ifdef QT_CORE_LIB
     QVariant toVariant();
