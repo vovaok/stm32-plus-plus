@@ -406,7 +406,7 @@ bool Ethernet::ethConfig(uint16_t phyAddress)
     /* Software reset */
     ETH_SoftwareReset();
 
-    uint32_t timeout = 1000;
+    uint32_t timeout = 100000;
     /* Wait for software reset */
     while (ETH_GetSoftwareResetStatus() == SET)
     {
