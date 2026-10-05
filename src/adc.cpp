@@ -55,7 +55,6 @@ Adc::Adc(int adcBase) :
     {
       case 1:
         mAdc = ADC1;
-
         RCC->APB2ENR |= RCC_APB2ENR_ADC1EN;
         mDmaChannel = Dma::ADC1_Stream4; // Dma::ADC1_Stream0
         break;

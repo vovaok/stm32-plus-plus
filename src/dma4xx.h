@@ -17,8 +17,9 @@ FOR_EACH_DMA(DECLARE_DMA_IRQ_HANDLER)
 class Dma
 {
 public:
-    typedef enum
+    enum Channel : uint16_t
     {
+        NoChannel           = 0x000,
         // DMA1
         SPI3_RX_Stream0     = 0x100,
         I2C1_RX_Stream0     = 0x101,
@@ -145,7 +146,7 @@ public:
         TIM8_CH4_Stream7    = 0x277,
         TIM8_TRIG_Stream7   = 0x277,
         TIM8_COM_Stream7    = 0x277
-    } Channel;
+    };
 
 private:
     static Dma *mStreams[16];
@@ -156,6 +157,7 @@ private:
     volatile uint32_t *mISR = nullptr; // LISR or HISR depending on stream number
     volatile uint32_t *mIFCR = nullptr; // LIFCR or HIFCR depending on stream number
     int mFlagsOffset = 0;
+    bool m_resourceBusy = false;
 
 #pragma pack(push,1)
     union
@@ -215,10 +217,14 @@ public:
     Dma(Channel channelName);
     ~Dma();
     
-    //! Get DMA instance
+    //! Acquire DMA instance
     //! Use it to obtain the instance of the DMA stream for desired channel
     //! in case of several periperals share the same stream
-    static Dma *instance(Channel channelName);
+    static Dma *acquire(Channel channelName);
+    
+    //! Release DMA instance
+    //! Must be called after acquire() to enable reuse of the stream
+    void release();
 
     void setSingleBuffer(void *buffer, int size);
     void setCircularBuffer(void *buffer, int size);
@@ -242,6 +248,7 @@ public:
     inline int dataCounter() const {return mStream->NDTR;}
 
     void setTransferCompleteEvent(NotifyEvent event);
+    void clearTransferCompleteEvent();
 };
 
 #endif

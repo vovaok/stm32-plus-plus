@@ -60,6 +60,8 @@ Dma::Dma(Channel channelName)
     mConfig.PINCOS = 0;
 
     mStream->CR = mConfig.all;
+    
+    m_resourceBusy = true;
 }
 
 Dma::~Dma()
@@ -72,10 +74,22 @@ Dma::~Dma()
     mStream->M1AR = 0;
     mStream->FCR = 0x00000021;
     clearFlag(AllFlags);
+    
+    for (int i=0; i<16; i++)
+    {
+        if (this == mStreams[i])
+        {
+            mStreams[i] = nullptr;
+            break;
+        }
+    }
 }
 
-Dma *Dma::instance(Channel channelName)
+Dma *Dma::acquire(Channel channelName)
 {
+    if (!channelName)
+        return nullptr;
+    
     int dma_num = channelName >> 8;
     int stream_num  = (channelName >> 4) & 7;
     int channel_num = channelName & 7;
@@ -84,13 +98,22 @@ Dma *Dma::instance(Channel channelName)
     Dma *dma = mStreams[idx];
     if (!dma)
         dma = new Dma(channelName); // this updates mStream[idx]
+    else if (dma->m_resourceBusy)
+        return nullptr;
+//        THROW(Exception::ResourceBusy);
     
-//    if (dma->isEnabled())
-//        THROW(Exception::BadSoBad);
+    dma->m_resourceBusy = true;
 
     // override channel for this instance
     dma->mConfig.CHSEL = channel_num;
     return dma;
+}
+
+void Dma::release()
+{
+    stop(true);
+    clearTransferCompleteEvent();
+    m_resourceBusy = false;
 }
 //---------------------------------------------------------------------------
 
@@ -252,6 +275,15 @@ void Dma::setTransferCompleteEvent(NotifyEvent event)
     clearFlag(AllFlags);
     // enable Transfer Complete interrupt
     mConfig.TCIE = 1;
+    mStream->CR = mConfig.all;
+}
+
+void Dma::clearTransferCompleteEvent()
+{
+    mOnTransferComplete = NotifyEvent();
+    NVIC_DisableIRQ(mIrq);
+    clearFlag(AllFlags);
+    mConfig.TCIE = 0;
     mStream->CR = mConfig.all;
 }
 

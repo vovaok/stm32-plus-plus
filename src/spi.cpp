@@ -2,48 +2,82 @@
 #include "rcc.h"
 
 #if defined(STM32F4) || defined(STM32F7)
-#define SPI1_DMA_CHANNEL_RX     Dma::SPI1_RX_Stream2; // Dma::SPI1_RX_Stream0;
-#define SPI1_DMA_CHANNEL_TX     Dma::SPI1_TX_Stream3; // Dma::SPI1_TX_Stream5;
-#define SPI2_DMA_CHANNEL_RX     Dma::SPI2_RX_Stream3;
-#define SPI2_DMA_CHANNEL_TX     Dma::SPI2_TX_Stream4;
-#define SPI3_DMA_CHANNEL_RX     Dma::SPI3_RX_Stream0; // Dma::SPI3_RX_Stream2;
-#define SPI3_DMA_CHANNEL_TX     Dma::SPI3_TX_Stream7; // DMa::SPI3_TX_Stream5;
-#define SPI4_DMA_CHANNEL_RX     Dma::SPI4_RX_Stream0; // Dma::SPI4_RX_Stream3;
-#define SPI4_DMA_CHANNEL_TX     Dma::SPI4_TX_Stream1; // Dma::SPI4_TX_Stream4;
-#define SPI5_DMA_CHANNEL_RX     Dma::SPI5_RX_Stream5; // Dma::SPI5_RX_Stream3;
-#define SPI5_DMA_CHANNEL_TX     Dma::SPI5_TX_Stream6; // Dma::SPI5_TX_Stream4;
-#define SPI6_DMA_CHANNEL_RX     Dma::SPI6_RX_Stream6; // SHARE with SPI5_DMA_CHANNEL_TX!
-#define SPI6_DMA_CHANNEL_TX     Dma::SPI6_TX_Stream5; // SHARE with SPI5_DMA_CHANNEL_RX!
+#define SPI1_DMA_CHANNEL_RX     Dma::SPI1_RX_Stream2
+#define SPI1_DMA_CHANNEL_TX     Dma::SPI1_TX_Stream3
+#define SPI2_DMA_CHANNEL_RX     Dma::SPI2_RX_Stream3
+#define SPI2_DMA_CHANNEL_TX     Dma::SPI2_TX_Stream4
+#define SPI3_DMA_CHANNEL_RX     Dma::SPI3_RX_Stream0
+#define SPI3_DMA_CHANNEL_TX     Dma::SPI3_TX_Stream7
+#define SPI4_DMA_CHANNEL_RX     Dma::SPI4_RX_Stream0
+#define SPI4_DMA_CHANNEL_TX     Dma::SPI4_TX_Stream1
+#define SPI5_DMA_CHANNEL_RX     Dma::SPI5_RX_Stream5 // SHARE with SPI6_DMA_CHANNEL_TX
+#define SPI5_DMA_CHANNEL_TX     Dma::SPI5_TX_Stream6 // SHARE with SPI6_DMA_CHANNEL_RX
+#define SPI6_DMA_CHANNEL_RX     Dma::SPI6_RX_Stream6 // SHARE with SPI5_DMA_CHANNEL_TX
+#define SPI6_DMA_CHANNEL_TX     Dma::SPI6_TX_Stream5 // SHARE with SPI5_DMA_CHANNEL_RX
+#define SPI1_DMA_CHANNEL_RX_ALT Dma::SPI1_RX_Stream0
+#define SPI1_DMA_CHANNEL_TX_ALT Dma::SPI1_TX_Stream5
+#define SPI2_DMA_CHANNEL_RX_ALT Dma::NoChannel
+#define SPI2_DMA_CHANNEL_TX_ALT Dma::NoChannel
+#define SPI3_DMA_CHANNEL_RX_ALT Dma::SPI3_RX_Stream2
+#define SPI3_DMA_CHANNEL_TX_ALT Dma::SPI3_TX_Stream5
+#define SPI4_DMA_CHANNEL_RX_ALT Dma::SPI4_RX_Stream3 // SHARE with SPI5_DMA_CHANNEL_RX_ALT
+#define SPI4_DMA_CHANNEL_TX_ALT Dma::SPI4_TX_Stream4 // SHARE with SPI5_DMA_CHANNEL_TX_ALT
+#define SPI5_DMA_CHANNEL_RX_ALT Dma::SPI5_RX_Stream3 // SHARE with SPI4_DMA_CHANNEL_RX_ALT
+#define SPI5_DMA_CHANNEL_TX_ALT Dma::SPI5_TX_Stream4 // SHARE with SPI4_DMA_CHANNEL_TX_ALT
+#define SPI6_DMA_CHANNEL_RX_ALT Dma::NoChannel 
+#define SPI6_DMA_CHANNEL_TX_ALT Dma::NoChannel 
 
 #elif defined(STM32L4)
-#define SPI1_DMA_CHANNEL_RX     Dma::SPI1_RX_Channel2; // Dma::SPI1_RX_Channel3;
-#define SPI1_DMA_CHANNEL_TX     Dma::SPI1_TX_Channel3; // Dma::SPI1_TX_Channel4;
-#define SPI2_DMA_CHANNEL_RX     Dma::SPI2_RX_Channel4;
-#define SPI2_DMA_CHANNEL_TX     Dma::SPI2_TX_Channel5;
-#define SPI3_DMA_CHANNEL_RX     Dma::SPI3_RX_Channel1;
-#define SPI3_DMA_CHANNEL_TX     Dma::SPI3_TX_Channel2;
+#define SPI1_DMA_CHANNEL_RX     Dma::SPI1_RX_Channel2
+#define SPI1_DMA_CHANNEL_TX     Dma::SPI1_TX_Channel3
+#define SPI2_DMA_CHANNEL_RX     Dma::SPI2_RX_Channel4
+#define SPI2_DMA_CHANNEL_TX     Dma::SPI2_TX_Channel5
+#define SPI3_DMA_CHANNEL_RX     Dma::SPI3_RX_Channel1
+#define SPI3_DMA_CHANNEL_TX     Dma::SPI3_TX_Channel2
+#define SPI1_DMA_CHANNEL_RX_ALT Dma::SPI1_RX_Channel3
+#define SPI1_DMA_CHANNEL_TX_ALT Dma::SPI1_TX_Channel4
+#define SPI2_DMA_CHANNEL_RX_ALT Dma::NoChannel
+#define SPI2_DMA_CHANNEL_TX_ALT Dma::NoChannel
+#define SPI3_DMA_CHANNEL_RX_ALT Dma::NoChannel
+#define SPI3_DMA_CHANNEL_TX_ALT Dma::NoChannel
 
 #elif defined(STM32G4)
-#define SPI1_DMA_CHANNEL_RX     Dma::SPI1_RX;
-#define SPI1_DMA_CHANNEL_TX     Dma::SPI1_TX;
-#define SPI2_DMA_CHANNEL_RX     Dma::SPI2_RX;
-#define SPI2_DMA_CHANNEL_TX     Dma::SPI2_TX;
-#define SPI3_DMA_CHANNEL_RX     Dma::SPI3_RX;
-#define SPI3_DMA_CHANNEL_TX     Dma::SPI3_TX;
-#define SPI4_DMA_CHANNEL_RX     Dma::SPI4_RX;
-#define SPI4_DMA_CHANNEL_TX     Dma::SPI4_TX;
+#define SPI1_DMA_CHANNEL_RX     Dma::SPI1_RX
+#define SPI1_DMA_CHANNEL_TX     Dma::SPI1_TX
+#define SPI2_DMA_CHANNEL_RX     Dma::SPI2_RX
+#define SPI2_DMA_CHANNEL_TX     Dma::SPI2_TX
+#define SPI3_DMA_CHANNEL_RX     Dma::SPI3_RX
+#define SPI3_DMA_CHANNEL_TX     Dma::SPI3_TX
+#define SPI4_DMA_CHANNEL_RX     Dma::SPI4_RX
+#define SPI4_DMA_CHANNEL_TX     Dma::SPI4_TX
+#define SPI1_DMA_CHANNEL_RX_ALT Dma::NoChannel
+#define SPI1_DMA_CHANNEL_TX_ALT Dma::NoChannel
+#define SPI2_DMA_CHANNEL_RX_ALT Dma::NoChannel
+#define SPI2_DMA_CHANNEL_TX_ALT Dma::NoChannel
+#define SPI3_DMA_CHANNEL_RX_ALT Dma::NoChannel
+#define SPI3_DMA_CHANNEL_TX_ALT Dma::NoChannel
+#define SPI4_DMA_CHANNEL_RX_ALT Dma::NoChannel
+#define SPI4_DMA_CHANNEL_TX_ALT Dma::NoChannel
 
 #elif defined(STM32F303x8)
-#define SPI1_DMA_CHANNEL_RX     Dma::Channel2_SPI1_RX;
-#define SPI1_DMA_CHANNEL_TX     Dma::Channel3_SPI1_TX;
+#define SPI1_DMA_CHANNEL_RX     Dma::Channel2_SPI1_RX
+#define SPI1_DMA_CHANNEL_TX     Dma::Channel3_SPI1_TX
+#define SPI1_DMA_CHANNEL_RX_ALT Dma::NoChannel
+#define SPI1_DMA_CHANNEL_TX_ALT Dma::NoChannel
 
 #elif defined(STM32F303xC)
-#define SPI1_DMA_CHANNEL_RX     Dma::Channel2_SPI1_RX;
-#define SPI1_DMA_CHANNEL_TX     Dma::Channel3_SPI1_TX;
-#define SPI2_DMA_CHANNEL_RX     Dma::Channel4_SPI2_RX;
-#define SPI2_DMA_CHANNEL_TX     Dma::Channel5_SPI2_TX;
-#define SPI3_DMA_CHANNEL_RX     Dma::Channel1_2_SPI3_RX;
-#define SPI3_DMA_CHANNEL_TX     Dma::Channel2_2_SPI3_TX;
+#define SPI1_DMA_CHANNEL_RX     Dma::Channel2_SPI1_RX
+#define SPI1_DMA_CHANNEL_TX     Dma::Channel3_SPI1_TX
+#define SPI2_DMA_CHANNEL_RX     Dma::Channel4_SPI2_RX
+#define SPI2_DMA_CHANNEL_TX     Dma::Channel5_SPI2_TX
+#define SPI3_DMA_CHANNEL_RX     Dma::Channel1_2_SPI3_RX
+#define SPI3_DMA_CHANNEL_TX     Dma::Channel2_2_SPI3_TX
+#define SPI1_DMA_CHANNEL_RX_ALT Dma::NoChannel
+#define SPI1_DMA_CHANNEL_TX_ALT Dma::NoChannel
+#define SPI2_DMA_CHANNEL_RX_ALT Dma::NoChannel
+#define SPI2_DMA_CHANNEL_TX_ALT Dma::NoChannel
+#define SPI3_DMA_CHANNEL_RX_ALT Dma::NoChannel
+#define SPI3_DMA_CHANNEL_TX_ALT Dma::NoChannel
 
 #endif
 
@@ -72,55 +106,39 @@ Spi::Spi(Gpio::Config sck, Gpio::Config miso, Gpio::Config mosi) :
     Gpio::config(miso);
     Gpio::config(mosi);
 
+#define CASE_SPI(n) \
+    case n: \
+        mDev = SPI##n; \
+        mIrq = SPI##n##_IRQn; \
+        mDmaChannelRx[0] = SPI##n##_DMA_CHANNEL_RX; \
+        mDmaChannelRx[1] = SPI##n##_DMA_CHANNEL_RX_ALT; \
+        mDmaChannelTx[0] = SPI##n##_DMA_CHANNEL_TX; \
+        mDmaChannelTx[1] = SPI##n##_DMA_CHANNEL_TX_ALT; \
+        break;
+    
     switch (no)
     {
-      case 1:
-        mDev = SPI1;
-        mIrq = SPI1_IRQn;
-        mDmaChannelRx = SPI1_DMA_CHANNEL_RX;
-        mDmaChannelTx = SPI1_DMA_CHANNEL_TX;
-        break;
+#if defined(SPI1)
+        CASE_SPI(1)
+#endif
 #if defined(SPI2)
-      case 2:
-        mDev = SPI2;
-        mIrq = SPI2_IRQn;
-        mDmaChannelRx = SPI2_DMA_CHANNEL_RX;
-        mDmaChannelTx = SPI2_DMA_CHANNEL_TX;
-        break;
+        CASE_SPI(2)
 #endif
 #if defined(SPI3)
-      case 3:
-        mDev = SPI3;
-        mIrq = SPI3_IRQn;
-        mDmaChannelRx = SPI3_DMA_CHANNEL_RX;
-        mDmaChannelTx = SPI3_DMA_CHANNEL_TX;
-        break;
+        CASE_SPI(3)
 #endif
 #if defined(SPI4)
-      case 4:
-        mDev = SPI4;
-        mIrq = SPI4_IRQn;
-        mDmaChannelRx = SPI4_DMA_CHANNEL_RX;
-        mDmaChannelTx = SPI4_DMA_CHANNEL_TX;
-        break;
+        CASE_SPI(4)
 #endif
 #if defined(SPI5)
-      case 5:
-        mDev = SPI5;
-        mIrq = SPI5_IRQn;
-        mDmaChannelRx = SPI5_DMA_CHANNEL_RX;
-        mDmaChannelTx = SPI5_DMA_CHANNEL_TX;
-        break;
+        CASE_SPI(5)
 #endif
 #if defined(SPI6)
-      case 6:
-        mDev = SPI6;
-        mIrq = SPI6_IRQn;
-        mDmaChannelRx = SPI6_DMA_CHANNEL_RX;
-        mDmaChannelTx = SPI6_DMA_CHANNEL_TX;
-        break;
+        CASE_SPI(6)
 #endif
     }
+    
+#undef CASE_SPI
 
     if (!mDev)
         THROW(Exception::InvalidPeriph);
@@ -210,7 +228,12 @@ void Spi::open()
 
     if (mUseDmaRx)
     {
-        mDmaRx = Dma::instance(mDmaChannelRx);
+        mDmaRx = Dma::acquire(mDmaChannelRx[0]);
+        if (!mDmaRx)
+            mDmaRx = Dma::acquire(mDmaChannelRx[1]);
+        if (!mDmaRx)
+            THROW(Exception::ResourceBusy);
+        
         int dataSize = (m_dataSize > 8)? 2: 1;
 //        size /= dataSize;
         mDmaRx->setSource(&mDev->DR, dataSize);
@@ -227,7 +250,12 @@ void Spi::open()
 
     if (mUseDmaTx)
     {
-        mDmaTx = Dma::instance(mDmaChannelTx);
+        mDmaTx = Dma::acquire(mDmaChannelTx[0]);
+        if (!mDmaTx)
+            mDmaTx = Dma::acquire(mDmaChannelTx[1]);
+        if (!mDmaTx)
+            THROW(Exception::ResourceBusy);
+        
         if (onBytesWritten)
             mDmaTx->setTransferCompleteEvent(EVENT(&Spi::handleDmaInterrupt));
         if (m_dataSize <= 8)
@@ -247,7 +275,7 @@ void Spi::close()
 {
     if (mUseDmaRx)
     {
-        mDmaRx->stop(true);
+        mDmaRx->release();
         mConfig.RXDMAEN = 0;
         updateConfig();
 //        delete mDmaRx;
@@ -255,7 +283,8 @@ void Spi::close()
     }
     if (mUseDmaTx)
     {
-        mDmaTx->stop(true);
+        mDmaTx->release();
+        mDmaTx->setTransferCompleteEvent(NotifyEvent());
         mConfig.TXDMAEN = 0;
         updateConfig();
 //        delete mDmaTx;
@@ -459,9 +488,14 @@ bool Spi::write(const uint8_t *data, int size)
 void Spi::setRxBuffer(uint8_t *data, int size, bool circular)
 {
     if (mDmaRx)
-        mDmaRx->stop(true);
-    else
-        mDmaRx = new Dma(mDmaChannelRx);
+        mDmaRx->release();
+    
+    mDmaRx = Dma::acquire(mDmaChannelRx[0]);
+    if (!mDmaRx)
+        mDmaRx = Dma::acquire(mDmaChannelRx[1]);
+    if (!mDmaRx)
+        THROW(Exception::ResourceBusy);
+    
     int dataSize = (m_dataSize > 8)? 2: 1;
     size /= dataSize;
     mDmaRx->setSource(&mDev->DR, dataSize);

@@ -81,8 +81,8 @@ private:
     SpiDataEvent onTransferComplete;
     NotifyEvent onTxEnd;
 
-    Dma::Channel mDmaChannelRx;
-    Dma::Channel mDmaChannelTx;
+    Dma::Channel mDmaChannelRx[2];
+    Dma::Channel mDmaChannelTx[2];
     Dma *mDmaRx;
     Dma *mDmaTx;
     bool mUseDmaRx, mUseDmaTx;

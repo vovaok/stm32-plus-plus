@@ -201,7 +201,9 @@ bool Usart::open(OpenMode mode)
         mRxBuffer.resize(mRxBufferSize); ///////////////////////////////!!!!!! power of two only!!!!
         if (mUseDmaRx)
         {
-            mDmaRx = Dma::instance(mDmaChannelRx);
+            mDmaRx = Dma::acquire(mDmaChannelRx);
+            if (!mDmaRx)
+                THROW(Exception::ResourceBusy);
 //            if (!mDmaRx)
 //                mDmaRx = new Dma(mDmaChannelRx);
             mDmaRx->setCircularBuffer(mRxBuffer.data(), mRxBuffer.size());
@@ -219,7 +221,9 @@ bool Usart::open(OpenMode mode)
         mTxBuffer.resize(mTxBufferSize);
         if (mUseDmaTx)
         {
-            mDmaTx = Dma::instance(mDmaChannelTx);
+            mDmaTx = Dma::acquire(mDmaChannelTx);
+            if (!mDmaTx)
+                THROW(Exception::ResourceBusy);
 //            if (!mDmaTx)
 //                mDmaTx = new Dma(mDmaChannelTx);
             mDmaTx->setSink((void*)&mDev->TDR, 1);
@@ -264,14 +268,14 @@ void Usart::close()
 {
     if (mDmaRx)
     {
-        mDmaRx->stop(true);
+        mDmaRx->release();
         mDev->CR3 &= ~USART_CR3_DMAR;
 //        delete mDmaRx;
 //        mDmaRx = 0L;
     }
     if (mDmaTx)
     {
-        mDmaTx->stop(true);
+        mDmaTx->release();
         mDev->CR3 &= ~USART_CR3_DMAT;
 //        delete mDmaTx;
 //        mDmaTx = 0L;
