@@ -122,7 +122,7 @@ public:
     bool isComplete() const;
     void setContinuousMode(bool enabled);
 
-    void configDma(Dma *dma);
+    void configDma(Dma *dma, bool owner=false);
 
     int result(unsigned char channel);
     int resultByIndex(unsigned char index);

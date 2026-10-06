@@ -28,23 +28,34 @@ void PowerManager::setUpdateInterval(int value_ms)
     timer->setInterval(value_ms);
 }
 
+void PowerManager::addVbus(Gpio::Config pin, float Rhigh, float Rlow)
+{
+    addVoltageMeasurement("Vbus", pin, Rhigh, Rlow);
+    mVbus = &mVoltages["Vbus"];
+}
+
+void PowerManager::addIbus(Gpio::Config pin, float sensitivity, float zeroOffset)
+{
+    addMeasurement("Ibus", pin, 1000.f / sensitivity, zeroOffset * 0.001f);
+    mIbus = &mVoltages["Ibus"];
+}
+
 void PowerManager::addVoltageMeasurement(string name, Gpio::Config pin, float Rhigh, float Rlow)
 {
     addMeasurement(name, pin, (Rlow + Rhigh) / Rlow);
 }
 
-void PowerManager::addMeasurement(string name, Gpio::Config pin, float factor, float bias)
+void PowerManager::addMeasurement(string name, Gpio::Config pin, float factor, float zeroOffset)
 {
     mAdc->stop();
 
     Adc::Channel channel = mAdc->addChannel(pin, Adc::SampleTime_56Cycles);
     VoltageEntry entry;
     entry.channel = channel;
-    entry.bias = bias;
+    entry.zeroOffset = zeroOffset * mAdc->maxValue() / 3.3f;
     entry.factor = 3.3f * factor / mAdc->maxValue();
-    entry.rawValue = 0;
     entry.value = 0;
-    entry.Kf = 0.9;
+    entry.Kf = 0.1f;
     mVoltages[name] = entry;
 
     mAdc->start();
@@ -55,6 +66,32 @@ void PowerManager::setFilter(string name, float Kf)
 {
     mVoltages[name].Kf = Kf;
 }
+
+float PowerManager::Vbus() const
+{
+    return mVbus? mVbus->value: 0;
+}
+
+float PowerManager::Ibus() const
+{
+    return mIbus? mIbus->value: 0;
+}
+
+float PowerManager::power() const
+{
+    return Vbus() * Ibus();
+}
+
+float PowerManager::consumption() const
+{
+    return m_consumptionCounter * 1e-9f;
+}
+
+void PowerManager::initConsumption(float value)
+{
+    m_consumptionCounter = static_cast<int64_t>(value * 1e9f);
+}
+
 
 void PowerManager::onTimer()
 {
@@ -75,11 +112,13 @@ void PowerManager::onTimer()
     for (auto &pair: mVoltages)
     {
         VoltageEntry &entry = pair.second;
-        float v = mAdc->result(entry.channel) * entry.factor + entry.bias;
+        float v = (mAdc->result(entry.channel) - entry.zeroOffset) * entry.factor;
         entry.rawValue = v;
         if (!entry.value)
             entry.value = v;
         else
-            entry.value = entry.Kf * entry.value + (1.0f - entry.Kf) * v;
+            entry.value += entry.Kf * (v - entry.value);
     }
+    
+    m_consumptionCounter += static_cast<int64_t>(power() * 10000 / 36 * updateInterval());
 }
