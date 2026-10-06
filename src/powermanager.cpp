@@ -36,7 +36,7 @@ void PowerManager::addVbus(Gpio::Config pin, float Rhigh, float Rlow)
 
 void PowerManager::addIbus(Gpio::Config pin, float sensitivity, float zeroOffset)
 {
-    addMeasurement("Ibus", pin, 1000.f / sensitivity, zeroOffset * 0.001f);
+    addMeasurement("Ibus", pin, 1000.f / sensitivity, zeroOffset);
     mIbus = &mVoltages["Ibus"];
 }
 

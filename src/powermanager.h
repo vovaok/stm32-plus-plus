@@ -53,7 +53,7 @@ public:
     //! This creates measurement channel with name "Ibus"
     //! @arg pin - pin config of ADC channel
     //! @arg sensitivity - the current sensor sensitivity [mV/A]
-    //! @arg zeroOffset - voltage level of zero current [mV]
+    //! @arg zeroOffset - voltage level of zero current [V]
     void addIbus(Gpio::Config pin, float sensitivity, float zeroOffset);
     
     //! Configure custom voltage measurement
