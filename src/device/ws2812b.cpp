@@ -7,11 +7,17 @@ WS2812B::WS2812B(Gpio::Config spi_mosi, int N)
     : m_size(N)
 {
     m_spi = new Spi(Gpio::NoConfig, Gpio::NoConfig, spi_mosi);
-    m_spi->setBaudrate(3'200'000);
+    m_spi->setMasterMode();
+    m_spi->setBaudrate(2'800'000); // should be 3'200'000 but this causes wrong prescaler
+    m_spi->setCPOL_CPHA(0, 0);
+    m_spi->setDataSize(8);
     m_spi->setUseDmaTx(true);
     m_spi->open();
     
     m_bits = ByteArray(m_size * 12 + PRE, 0x88);
+    m_bits[0] = 0xFF;
+    for (int i=0; i<PRE; i++)
+        m_bits[i] = 0x00;
 }
 
 void WS2812B::setLedCount(int N)
