@@ -236,7 +236,7 @@ public:
     void setSource(volatile void *periph, int dataSize);
     void setSink(volatile void *periph, int dataSize);
 
-    inline void start() {mStream->CR |= DMA_SxCR_EN;}
+    inline void start() {clearFlag(AllFlags); mStream->CR |= DMA_SxCR_EN;}
     void start(int size);
     void stop(bool wait=false);
     void setEnabled(bool enabled);

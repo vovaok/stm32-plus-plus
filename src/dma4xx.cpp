@@ -220,8 +220,8 @@ void Dma::setSink(volatile void *periph, int dataSize)
 void Dma::start(int size)
 {
     mStream->NDTR = size;
-//    // clearing flags is necessary for enabling dma streaming
-//    clearFlag(AllFlags);
+    // clearing flags is necessary for enabling dma streaming
+    clearFlag(AllFlags);
     // enable the stream
     mStream->CR |= DMA_SxCR_EN;
 }
