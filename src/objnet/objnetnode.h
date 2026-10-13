@@ -93,7 +93,7 @@ protected:
 
     void setSerial(uint32_t serial) {mSerial = serial;}
 
-    void bindSvcObject(SvcOID oid, const ObjectInfo &obj);
+    void bindSvcObject(SvcOID oid, ObjectInfo &&obj);
     
     uint32_t getTimestamp();
 
@@ -123,15 +123,16 @@ public:
 
     bool isConnected() const override {return mNetState > netnConnecting;}
 
-    ObjectInfo &bindObject(const ObjectInfo &info);
-    #define BindObject(obj) bindObject(ObjectInfo(#obj, obj)) // convenient macro
-    #define BindObjectEx(obj, flags) bindObject(ObjectInfo(#obj, obj, flags)) // convenient macro
-    #define BindDualObject(objRead, objWrite) bindObject(ObjectInfo(#objRead":"#objWrite, objRead, objWrite))
-    #define BindMethod(method) bindObject(ObjectInfo(#method, CLOSURE(this, &method)))
-    #define BindMethodHidden(method) bindObject(ObjectInfo(#method, CLOSURE(this, &method), ObjectInfo::Hidden))
-    #define BindMethodEx(name, object, method) bindObject(ObjectInfo(name, CLOSURE(object, method)))
-    #define BindMethodHiddenEx(name, object, method) bindObject(ObjectInfo(name, CLOSURE(object, &method), ObjectInfo::Hidden))
-    
+    ObjectInfo &bindObject(ObjectInfo &&info);
+
+//    #define BindObject(obj) bindObject(ObjectInfo(#obj, obj)) // convenient macro
+//    #define BindObjectEx(obj, flags) bindObject(ObjectInfo(#obj, obj, flags)) // convenient macro
+//    #define BindDualObject(objRead, objWrite) bindObject(ObjectInfo(#objRead":"#objWrite, objRead, objWrite))
+//    #define BindMethod(method) bindObject(ObjectInfo(#method, CLOSURE(this, &method)))
+//    #define BindMethodHidden(method) bindObject(ObjectInfo(#method, CLOSURE(this, &method), ObjectInfo::Hidden))
+//    #define BindMethodEx(name, object, method) bindObject(ObjectInfo(name, CLOSURE(object, method)))
+//    #define BindMethodHiddenEx(name, object, method) bindObject(ObjectInfo(name, CLOSURE(object, &method), ObjectInfo::Hidden))
+  
     template <typename T> ObjectInfo &bindVariable(string name, T &var)
     {
         return bindObject(ObjectInfo(name, var));
@@ -157,11 +158,23 @@ public:
         return bindObject(ObjectInfo(name, var, ObjectInfo::Storage));
     }
     
-//    template <class T> unsigned char bindMethod(string name, T *obj, void (T::*method)(void))
-//    {
-//        Closure<void(void)> c = CLOSURE(obj, method);
+    template <class R, class P> inline ObjectInfo &bindMethod(string name, std::function<R(P)> f)
+    {
+        return bindObject(ObjectInfo(name, f));
+    }
+    
+    template <class Obj, class R, class... Args>
+    inline ObjectInfo &bindMethod(string name, Obj *obj, R (Obj::*method)(Args...))
+    {
+        auto f = [obj, method](Args... args) -> R
+        {
+            return (obj->*method)(args...);
+        };
+        return bindObject(ObjectInfo(std::move(name), std::move(f)));
+    }
+    
+    //        Closure<void(void)> c = CLOSURE(obj, method);
 //        return bindObject(ObjectInfo(name, c));
-//    }
 
     void sendForced(unsigned char oid);
     

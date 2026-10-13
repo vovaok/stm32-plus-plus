@@ -6724,7 +6724,7 @@
                 <option>
                     <name>CCAllowList</name>
                     <version>1</version>
-                    <state>11111110</state>
+                    <state>00000000</state>
                 </option>
                 <option>
                     <name>CCDebugInfo</name>
@@ -6805,7 +6805,7 @@
                 </option>
                 <option>
                     <name>CCOptLevel</name>
-                    <state>3</state>
+                    <state>0</state>
                 </option>
                 <option>
                     <name>CCOptStrategy</name>
@@ -6814,7 +6814,7 @@
                 </option>
                 <option>
                     <name>CCOptLevelSlave</name>
-                    <state>3</state>
+                    <state>0</state>
                 </option>
                 <option>
                     <name>CCPosIndRopi</name>
@@ -16427,6 +16427,12 @@
             <name>$PROJ_DIR$\src\core\application.h</name>
         </file>
         <file>
+            <name>$PROJ_DIR$\src\core\bitarray.cpp</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\core\bitarray.h</name>
+        </file>
+        <file>
             <name>$PROJ_DIR$\src\core\bytearray.cpp</name>
         </file>
         <file>
@@ -17044,6 +17050,9 @@
             <configuration>stm32f303x8</configuration>
             <configuration>stm32f030x6</configuration>
         </excluded>
+        <file>
+            <name>$PROJ_DIR$\src\objnet\callable.h</name>
+        </file>
         <file>
             <name>$PROJ_DIR$\src\objnet\canonbinterface.cpp</name>
             <excluded>

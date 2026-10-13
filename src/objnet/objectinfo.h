@@ -20,6 +20,8 @@
 #define _fromString(x) (x).toStdString()
 #endif
 
+#include "callable.h"
+
 using namespace std;
 
 namespace Objnet
@@ -32,6 +34,7 @@ class ObjectInfo
 public:
     typedef enum
     {
+        NoFlags = 0x00,
         Volatile= 0x01,
         Read    = 0x02,
         Write   = 0x04,
@@ -83,6 +86,7 @@ public:
         String = 10,  // QString B Qt, string B APMe
         StringList = 11, // QStringList | std::vector<std::string>
         Common = 12, // Common - this is (Q)ByteArray
+//        BitArray = 13, // not implemented yet!
 
         Compound = 0x80, // bits 0...6 reflect subobject count
     } Type; // KAK B Qt!!!
@@ -146,18 +150,18 @@ public:
     };
 
 private:
-    void *mReadPtr;
-    void *mWritePtr;
-    int mAutoPeriod, mAutoTime; // automatic transmission period
+    void *mReadPtr = nullptr;
+    void *mWritePtr = nullptr;
+    int mAutoPeriod = 0, mAutoTime = 0; // automatic transmission period
     unsigned char mAutoReceiverAddr = 0; // address of receiver for automatic transmission
-    bool mTimedRequest; // если синхронизованный объект
+    bool mTimedRequest = 0; // если синхронизованный объект
     Description mDesc;
-    bool mIsDevice;
-    bool mValid;
+    bool mIsDevice = false;
+    bool mValid = false;
     static int mAssignId;
     uint8_t mArrayItemCount = 1;
 
-    ObjectInfo *m_parentObject;
+    ObjectInfo *m_parentObject = nullptr;
     std::vector<ObjectInfo> m_subobjects;
 
     friend class ObjnetNode;
@@ -172,6 +176,43 @@ private:
 
 public:
     ObjectInfo();
+    ~ObjectInfo()
+    {
+        if (isInvokable())
+            delete static_cast<ICallable *>(mReadPtr);
+    }
+    
+    // запрет копирования — иначе double delete
+    ObjectInfo(const ObjectInfo&) = delete;
+    ObjectInfo& operator=(const ObjectInfo&) = delete;
+    ObjectInfo(ObjectInfo&& other) noexcept
+    {
+        swap(other);
+    }
+    
+    ObjectInfo& operator=(ObjectInfo&& other) noexcept
+    {
+        if (this != &other) {
+            ObjectInfo tmp(std::move(other));   // other → tmp
+            swap(tmp);                          // *this ↔ tmp
+        }                                       // tmp умирает → освобождает старый ресурс *this
+        return *this;
+    }
+    
+    void swap(ObjectInfo& other) noexcept
+    {
+        std::swap(mReadPtr, other.mReadPtr);
+        std::swap(mWritePtr, other.mWritePtr);
+        std::swap(mAutoPeriod, other.mAutoPeriod);
+        std::swap(mAutoTime, other.mAutoTime);
+        std::swap(mAutoReceiverAddr, other.mAutoReceiverAddr);
+        std::swap(mTimedRequest, other.mTimedRequest);
+        std::swap(mDesc, other.mDesc);
+        std::swap(mIsDevice, other.mIsDevice);
+        std::swap(mValid, other.mValid);
+        std::swap(mArrayItemCount, other.mArrayItemCount);
+    }
+
 
     // vars binding:
 //#if __cplusplus > 199711L
@@ -182,9 +223,15 @@ public:
 //    template<typename Tr, typename Tw>
 //    ObjectInfo(string name, const Tr &varRead, Tw &varWrite, Flags flags=ReadWrite);
 //#else
-    template<typename T>
+    
+    // data constructor
+    template<typename T,
+          typename = std::enable_if_t<!std::is_invocable_v<T>>>
     ObjectInfo(string name, T &var, Flags flags=ReadWrite);
-    template<typename T>
+
+    // const data constructor
+    template <typename T,
+          typename = std::enable_if_t<!std::is_invocable_v<T>>>
     ObjectInfo(string name, const T &var, Flags flags=ReadOnly);
     template<typename Tr, typename Tw>
     ObjectInfo(string name, const Tr &varRead, Tw &varWrite, Flags flags=ReadWrite);
@@ -208,12 +255,17 @@ public:
     ObjectInfo &endGroup();
 
     // methods binding:
-    template<class R>
-    ObjectInfo(string name, Closure<R(void)> event, Flags flags=Read);
-    template<class P0>
-    ObjectInfo(string name, Closure<void(P0)> event, Flags flags=Write);
-    template<class R, class P0>
-    ObjectInfo(string name, Closure<R(P0)> event, Flags flags=ReadWrite);
+//    template<class R>
+//    ObjectInfo(string name, Closure<R(void)> event, Flags flags=Read);
+//    template<class P0>
+//    ObjectInfo(string name, Closure<void(P0)> event, Flags flags=Write);
+//    template<class R, class P0>
+//    ObjectInfo(string name, Closure<R(P0)> event, Flags flags=ReadWrite);
+
+    // ЕДИНСТВЕННЫЙ конструктор для колбэков:
+    template <typename F,
+              typename = std::enable_if_t<std::is_invocable_v<std::decay_t<F>>>>
+    ObjectInfo(std::string name, F f, Flags flags=NoFlags);
 
     // buffer binding:
     template<typename T>
@@ -326,17 +378,8 @@ constexpr int ObjectInfo::sizeofType(ObjectInfo::Type type)
     }
 }
 
-//#if __cplusplus > 199711L
-//template<typename T, typename std::enable_if<!std::is_class<T>::value, bool>::type>
-//#else
-template<typename T>
-//#endif
-ObjectInfo::ObjectInfo(string name, T &var, Flags flags) :
-    mReadPtr(0), mWritePtr(0),
-    mAutoPeriod(0), mAutoTime(0), mAutoReceiverAddr(0),
-    mIsDevice(false),
-    mValid(true),
-    m_parentObject(0L)
+template<typename T, typename>
+ObjectInfo::ObjectInfo(string name, T &var, Flags flags)
 {
     size_t sz = sizeof(T);
     Type t = typeValue<T>();
@@ -355,21 +398,13 @@ ObjectInfo::ObjectInfo(string name, T &var, Flags flags) :
     mDesc.flags = flags;
     mDesc.name = name;
     mDesc.id = mAssignId++;
+    mValid = true;
 }
 
 template<> ObjectInfo::ObjectInfo(string name, ByteArray &var, Flags flags);
 
-//#if __cplusplus > 199711L
-//template<typename T, typename std::enable_if<!std::is_class<T>::value, bool>::type>
-//#else
-template<typename T>
-//#endif
-ObjectInfo::ObjectInfo(string name, const T &var, Flags flags) :
-    mReadPtr(0), mWritePtr(0),
-    mAutoPeriod(0), mAutoTime(0), mAutoReceiverAddr(0),
-    mIsDevice(false),
-    mValid(true),
-    m_parentObject(0L)
+template <typename T, typename>
+ObjectInfo::ObjectInfo(string name, const T &var, Flags flags)
 {
     flags = static_cast<Flags>(flags & (~Write));
     flags = static_cast<Flags>(flags & (~Save));
@@ -384,15 +419,11 @@ ObjectInfo::ObjectInfo(string name, const T &var, Flags flags) :
     mDesc.flags = flags;
     mDesc.name = name;
     mDesc.id = mAssignId++;
+    mValid = true;
 }
 
 template<typename Tr, typename Tw>
-ObjectInfo::ObjectInfo(string name, const Tr &varRead, Tw &varWrite, Flags flags) :
-    mReadPtr(0), mWritePtr(0),
-    mAutoPeriod(0), mAutoTime(0), mAutoReceiverAddr(0),
-    mIsDevice(false),
-    mValid(true),
-    m_parentObject(0L)
+ObjectInfo::ObjectInfo(string name, const Tr &varRead, Tw &varWrite, Flags flags)
 {
     flags = static_cast<Flags>(flags & (~Save));
     if (flags & Read)
@@ -410,15 +441,11 @@ ObjectInfo::ObjectInfo(string name, const Tr &varRead, Tw &varWrite, Flags flags
     mDesc.flags = flags | Dual;
     mDesc.name = name;
     mDesc.id = mAssignId++;
+    mValid = true;
 }
 
 template<typename T, int N>
-ObjectInfo::ObjectInfo(string name, T (&var)[N], Flags flags) :
-    mReadPtr(0), mWritePtr(0),
-    mAutoPeriod(0), mAutoTime(0), mAutoReceiverAddr(0),
-    mIsDevice(false),
-    mValid(true),
-    m_parentObject(0L)
+ObjectInfo::ObjectInfo(string name, T (&var)[N], Flags flags)
 {
     Type t = typeValue<T>();
     size_t sz = sizeof(T) * N;
@@ -442,15 +469,11 @@ ObjectInfo::ObjectInfo(string name, T (&var)[N], Flags flags) :
     mDesc.flags = flags | Array;
     mDesc.name = name;
     mDesc.id = mAssignId++;
+    mValid = true;
 }
 
 template<typename T, int N>
-ObjectInfo::ObjectInfo(string name, const T (&var)[N], Flags flags) :
-    mReadPtr(0), mWritePtr(0),
-    mAutoPeriod(0), mAutoTime(0), mAutoReceiverAddr(0),
-    mIsDevice(false),
-    mValid(true),
-    m_parentObject(0L)
+ObjectInfo::ObjectInfo(string name, const T (&var)[N], Flags flags)
 {
     Type t = typeValue<T>();
     size_t sz = sizeof(T) * N;
@@ -469,6 +492,7 @@ ObjectInfo::ObjectInfo(string name, const T (&var)[N], Flags flags) :
     mDesc.flags = (flags & ~(Write | Save)) | Array;
     mDesc.name = name;
     mDesc.id = mAssignId++;
+    mValid = true;
 }
 
 //#if __cplusplus > 199711L
@@ -510,8 +534,9 @@ ObjectInfo &ObjectInfo::field(string name)
     if (isArray())
         mDesc.readSize = mDesc.writeSize = mArrayItemCount;
 
-    ObjectInfo info;
-    m_subobjects.push_back(info);
+//    ObjectInfo info;
+//    m_subobjects.push_back(info);
+    m_subobjects.emplace_back();
     ObjectInfo &obj = m_subobjects.back();
     ObjectInfo *prev = nullptr;
     if (m_subobjects.size() > 1)
@@ -605,98 +630,154 @@ ObjectInfo &ObjectInfo::field(string name)
 //    return *this;
 //}
 
-template<class R>
-ObjectInfo::ObjectInfo(string name, Closure<R(void)> event, ObjectInfo::Flags flags) :
-    mReadPtr(0), mWritePtr(0),
-    mAutoPeriod(0), mAutoTime(0), mAutoReceiverAddr(0),
-    mIsDevice(false),
-    mValid(true),
-    m_parentObject(0L)
-{
-    mDesc.readSize = sizeof(R);
-    mDesc.writeSize = 0; // no param
+//template<class R>
+//ObjectInfo::ObjectInfo(string name, Closure<R(void)> event, ObjectInfo::Flags flags)
+//{
+//    mDesc.readSize = sizeof(R);
+//    mDesc.writeSize = 0; // no param
+//
+//    if (mDesc.readSize)
+//        flags = static_cast<ObjectInfo::Flags>(flags | Read);
+//
+//    // mReadPtr:mWritePtr contains variable of Closure<> type, not the pointer!!!
+//    *reinterpret_cast<Closure<R(void)>*>(&mReadPtr) = event;
+//
+////    R var;
+//    mDesc.rType = typeValue<R>(); // return type
+//    mDesc.wType = Void; // param type
+//    mDesc.flags = (flags | Function) & ~(Save | Write);
+//    mDesc.name = name;
+//    mDesc.id = mAssignId++;
+//    mValid = true;
+//}
 
+//#ifndef QT_CORE_LIB
+//template<> ObjectInfo::ObjectInfo<void>(string name, Closure<void(void)> event, ObjectInfo::Flags flags);
+//template<> ObjectInfo::ObjectInfo(string name, Closure<ByteArray(void)> event, ObjectInfo::Flags flags);
+//template<> ObjectInfo::ObjectInfo(string name, Closure<void(ByteArray)> event, ObjectInfo::Flags flags);
+//template<> ObjectInfo::ObjectInfo(string name, Closure<ByteArray(ByteArray)> event, ObjectInfo::Flags flags);
+//#endif
+
+//template<class P0>
+//ObjectInfo::ObjectInfo(string name, Closure<void(P0)> event, ObjectInfo::Flags flags)
+//{
+//    mDesc.readSize = 0;
+//    mDesc.writeSize = sizeof(P0); // no param
+//
+//    if (mDesc.writeSize)
+//        flags = static_cast<ObjectInfo::Flags>(flags | Write);
+//
+//    // mReadPtr:mWritePtr contains variable of Closure<> type, not the pointer!!!
+//    *reinterpret_cast<Closure<void(P0)>*>(&mReadPtr) = event;
+//
+////    P0 param;
+//    mDesc.rType = Void; // return type;
+//    mDesc.wType = typeValue<P0>(); // param type
+//    mDesc.flags = (flags | Function) & ~(Save | Read);
+//    mDesc.name = name;
+//    mDesc.id = mAssignId++;
+//    mValid = true;
+//}
+//
+//template<class R, class P0>
+//ObjectInfo::ObjectInfo(string name, Closure<R(P0)> event, ObjectInfo::Flags flags)
+//{
+//    mDesc.readSize = sizeof(R);
+//    mDesc.writeSize = sizeof(P0); // no param
+//
+//    if (mDesc.readSize)
+//        flags = static_cast<ObjectInfo::Flags>(flags | Read);
+//    if (mDesc.writeSize)
+//        flags = static_cast<ObjectInfo::Flags>(flags | Write);
+//
+//    // mReadPtr:mWritePtr contains variable of Closure<> type, not the pointer!!!
+//    *reinterpret_cast<Closure<R(P0)>*>(&mReadPtr) = event;
+//
+////    R ret;
+////    P0 param;
+//    mDesc.rType = typeValue<R>(); // return type;
+//    mDesc.wType = typeValue<P0>(); // param type
+//    mDesc.flags = (flags | Function) & ~(Save);
+//    mDesc.name = name;
+//    mDesc.id = mAssignId++;
+//    mValid = true;
+//}
+
+
+
+//template<class R, class P>
+//ObjectInfo::ObjectInfo(string name, std::function<R(P)> f, Flags flags)
+//{
+////    mReadPtr = new Callable<R, P>(std::move(f));
+//    if constexpr (std::is_void_v<P>)
+//        mReadPtr = new Callable<R, void>(std::function<R()>(std::move(f)));
+//    else
+//        mReadPtr = new Callable<R, P>(std::function<R(P)>(std::move(f)));
+//    
+//    mDesc.rType = typeValue<R>(); // return type
+//    mDesc.wType = typeValue<P>();
+//    
+//    mDesc.readSize = sizeof(R);
+//    mDesc.writeSize = sizeof(P);
+//
+//    if (mDesc.readSize)
+//        flags = static_cast<ObjectInfo::Flags>(flags | Read);
+//    if (mDesc.writeSize)
+//        flags = static_cast<ObjectInfo::Flags>(flags | Write);
+//    
+//    mDesc.rType = typeValue<R>(); // return type
+//    mDesc.wType = typeValue<P>(); // param type
+//    mDesc.flags = (flags | Function) & ~(Save); // ensure not to store 
+//    mDesc.name = name;
+//    mDesc.id = mAssignId++;
+//    
+//    mValid = true;
+//}
+
+template <typename F, typename>
+ObjectInfo::ObjectInfo(std::string name, F f, Flags flags)
+{
+    using T = fn_traits<std::decay_t<F>>;
+    using R = typename T::R_;
+    using P = typename T::P_;
+
+    if constexpr (std::is_void_v<P>)
+    {
+        mReadPtr = new Callable<R, void>(std::function<R()>(std::move(f)));
+        mDesc.writeSize = 0;
+    } 
+    else
+    {
+        mReadPtr = new Callable<R, P>(std::function<R(P)>(std::move(f)));
+        mDesc.writeSize = sizeof(P);
+    }
+    
+    if constexpr (!std::is_void_v<R>)
+    {
+        mDesc.readSize = sizeof(R);
+    }
+    else
+    {
+        mDesc.readSize = 0;
+    }
+
+    mDesc.rType = typeValue<R>();
+    mDesc.wType = typeValue<P>();
+    
     if (mDesc.readSize)
         flags = static_cast<ObjectInfo::Flags>(flags | Read);
-
-    // mReadPtr:mWritePtr contains variable of Closure<> type, not the pointer!!!
-    *reinterpret_cast<Closure<R(void)>*>(&mReadPtr) = event;
-
-//    R var;
-    mDesc.rType = typeValue<R>(); // return type
-    mDesc.wType = Void; // param type
-    mDesc.flags = (flags | Function) & ~(Save | Write);
-    mDesc.name = name;
-    mDesc.id = mAssignId++;
-}
-
-#ifndef QT_CORE_LIB
-template<> ObjectInfo::ObjectInfo<void>(string name, Closure<void(void)> event, ObjectInfo::Flags flags);
-template<> ObjectInfo::ObjectInfo(string name, Closure<ByteArray(void)> event, ObjectInfo::Flags flags);
-template<> ObjectInfo::ObjectInfo(string name, Closure<void(ByteArray)> event, ObjectInfo::Flags flags);
-template<> ObjectInfo::ObjectInfo(string name, Closure<ByteArray(ByteArray)> event, ObjectInfo::Flags flags);
-#endif
-
-template<class P0>
-ObjectInfo::ObjectInfo(string name, Closure<void(P0)> event, ObjectInfo::Flags flags) :
-    mAutoPeriod(0), mAutoTime(0), mAutoReceiverAddr(0),
-    mIsDevice(false),
-    mValid(true),
-    m_parentObject(0L)
-{
-    mDesc.readSize = 0;
-    mDesc.writeSize = sizeof(P0); // no param
-
     if (mDesc.writeSize)
         flags = static_cast<ObjectInfo::Flags>(flags | Write);
+    mDesc.flags = (flags | Function) & ~Save;
 
-    // mReadPtr:mWritePtr contains variable of Closure<> type, not the pointer!!!
-    *reinterpret_cast<Closure<void(P0)>*>(&mReadPtr) = event;
-
-//    P0 param;
-    mDesc.rType = Void; // return type;
-    mDesc.wType = typeValue<P0>(); // param type
-    mDesc.flags = (flags | Function) & ~(Save | Read);
-    mDesc.name = name;
-    mDesc.id = mAssignId++;
-}
-
-template<class R, class P0>
-ObjectInfo::ObjectInfo(string name, Closure<R(P0)> event, ObjectInfo::Flags flags) :
-    mReadPtr(0), mWritePtr(0),
-    mAutoPeriod(0), mAutoTime(0), mAutoReceiverAddr(0),
-    mIsDevice(false),
-    mValid(true),
-    m_parentObject(0L)
-{
-    mDesc.readSize = sizeof(R);
-    mDesc.writeSize = sizeof(P0); // no param
-
-    if (mDesc.readSize)
-        flags = static_cast<ObjectInfo::Flags>(flags | Read);
-    if (mDesc.writeSize)
-        flags = static_cast<ObjectInfo::Flags>(flags | Write);
-
-    // mReadPtr:mWritePtr contains variable of Closure<> type, not the pointer!!!
-    *reinterpret_cast<Closure<R(P0)>*>(&mReadPtr) = event;
-
-//    R ret;
-//    P0 param;
-    mDesc.rType = typeValue<R>(); // return type;
-    mDesc.wType = typeValue<P0>(); // param type
-    mDesc.flags = (flags | Function) & ~(Save);
-    mDesc.name = name;
-    mDesc.id = mAssignId++;
+    mDesc.name  = std::move(name);
+    mDesc.id    = mAssignId++;
+    mValid      = true;
 }
 
 
 template<typename T>
-ObjectInfo::ObjectInfo(string name, RingBuffer<T> &buffer, Flags flags) :
-    mReadPtr(0), mWritePtr(0),
-    mAutoPeriod(0), mAutoTime(0), mAutoReceiverAddr(0),
-    mIsDevice(false),
-    mValid(true),
-    m_parentObject(0L)
+ObjectInfo::ObjectInfo(string name, RingBuffer<T> &buffer, Flags flags)
 {
     mDesc.readSize = 0;
     mDesc.writeSize = 0;
@@ -712,6 +793,7 @@ ObjectInfo::ObjectInfo(string name, RingBuffer<T> &buffer, Flags flags) :
     mDesc.flags = (flags | Array) & ~Save;
     mDesc.name = name;
     mDesc.id = mAssignId++;
+    mValid = true;
 }
 
 

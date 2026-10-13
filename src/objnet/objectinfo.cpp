@@ -14,12 +14,7 @@ ObjectInfo::ObjectInfo() :
 {
 }
 
-template<> ObjectInfo::ObjectInfo(string name, ByteArray &var, Flags flags) :
-    mReadPtr(0), mWritePtr(0),
-    mAutoPeriod(0), mAutoTime(0), mAutoReceiverAddr(0),
-    mIsDevice(false),
-    mValid(true),
-    m_parentObject(0L)
+template<> ObjectInfo::ObjectInfo(string name, ByteArray &var, Flags flags)
 {
     if (flags & Read)
     {
@@ -36,104 +31,105 @@ template<> ObjectInfo::ObjectInfo(string name, ByteArray &var, Flags flags) :
     mDesc.flags = flags;
     mDesc.name = name;
     mDesc.id = mAssignId++;
+    mValid = true;
 }
 
-#ifndef QT_CORE_LIB
-template<> ObjectInfo::ObjectInfo<void>(string name, Closure<void(void)> event, ObjectInfo::Flags flags) :
-    mAutoPeriod(0), mAutoTime(0), mAutoReceiverAddr(0),
-    mTimedRequest(false),
-    mIsDevice(false),
-    mValid(true),
-    m_parentObject(0L)
-{
-    mDesc.readSize = 0; // no return
-    mDesc.writeSize = 0; // no param
-
-    // mReadPtr:mWritePtr contains variable of Closure<> type, not the pointer!!!
-    *reinterpret_cast<Closure<void(void)>*>(&mReadPtr) = event;
-
-    mDesc.rType = Void; // return type
-    mDesc.wType = Void; // param type
-    mDesc.flags = (flags | Function) & ~(Save | Write | Read);
-    mDesc.name = name;
-    mDesc.id = mAssignId++;
-}
-
-template<>
-ObjectInfo::ObjectInfo(string name, Closure<ByteArray(void)> event, ObjectInfo::Flags flags) :
-    mReadPtr(0), mWritePtr(0),
-    mAutoPeriod(0), mAutoTime(0), mAutoReceiverAddr(0),
-    mIsDevice(false),
-    mValid(true),
-    m_parentObject(0L)
-{
-    mDesc.readSize = 0; // pure ByteArray
-    mDesc.writeSize = 0; // no param
-
-    flags = static_cast<ObjectInfo::Flags>(flags | Read);
-
-    // mReadPtr:mWritePtr contains variable of Closure<> type, not the pointer!!!
-    *reinterpret_cast<Closure<ByteArray(void)>*>(&mReadPtr) = event;
-
-    mDesc.rType = Common; // return type
-    mDesc.wType = Void; // param type
-    mDesc.flags = (flags | Function) & ~(Save | Write);
-    mDesc.name = name;
-    mDesc.id = mAssignId++;
-}
-
-template<>
-ObjectInfo::ObjectInfo(string name, Closure<void(ByteArray)> event, ObjectInfo::Flags flags) :
-    mReadPtr(0), mWritePtr(0),
-    mAutoPeriod(0), mAutoTime(0), mAutoReceiverAddr(0),
-    mIsDevice(false),
-    mValid(true),
-    m_parentObject(0L)
-{
-    mDesc.readSize = 0; // no return
-    mDesc.writeSize = 0; // pure ByteArray
-
-    flags = static_cast<ObjectInfo::Flags>(flags | Write);
-
-    // mReadPtr:mWritePtr contains variable of Closure<> type, not the pointer!!!
-    *reinterpret_cast<Closure<void(ByteArray)>*>(&mReadPtr) = event;
-
-    mDesc.rType = Void; // return type
-    mDesc.wType = Common; // param type
-    mDesc.flags = (flags | Function) & ~(Save | Read);
-    mDesc.name = name;
-    mDesc.id = mAssignId++;
-}
-
-template<>
-ObjectInfo::ObjectInfo(string name, Closure<ByteArray(ByteArray)> event, ObjectInfo::Flags flags) :
-    mReadPtr(0), mWritePtr(0),
-    mAutoPeriod(0), mAutoTime(0), mAutoReceiverAddr(0),
-    mIsDevice(false),
-    mValid(true),
-    m_parentObject(0L)
-{
-    mDesc.readSize = 0; // pure ByteArray
-    mDesc.writeSize = 0; // pure ByteArray
-
-    flags = static_cast<ObjectInfo::Flags>(flags | Read | Write);
-
-    // mReadPtr:mWritePtr contains variable of Closure<> type, not the pointer!!!
-    *reinterpret_cast<Closure<ByteArray(ByteArray)>*>(&mReadPtr) = event;
-
-    mDesc.rType = Common; // return type
-    mDesc.wType = Common; // param type
-    mDesc.flags = (flags | Function) & ~(Save);
-    mDesc.name = name;
-    mDesc.id = mAssignId++;
-}
-#endif
+//#ifndef QT_CORE_LIB
+//template<> ObjectInfo::ObjectInfo<void>(string name, Closure<void(void)> event, ObjectInfo::Flags flags) :
+//    mAutoPeriod(0), mAutoTime(0), mAutoReceiverAddr(0),
+//    mTimedRequest(false),
+//    mIsDevice(false),
+//    mValid(true),
+//    m_parentObject(0L)
+//{
+//    mDesc.readSize = 0; // no return
+//    mDesc.writeSize = 0; // no param
+//
+//    // mReadPtr:mWritePtr contains variable of Closure<> type, not the pointer!!!
+//    *reinterpret_cast<Closure<void(void)>*>(&mReadPtr) = event;
+//
+//    mDesc.rType = Void; // return type
+//    mDesc.wType = Void; // param type
+//    mDesc.flags = (flags | Function) & ~(Save | Write | Read);
+//    mDesc.name = name;
+//    mDesc.id = mAssignId++;
+//}
+//
+//template<>
+//ObjectInfo::ObjectInfo(string name, Closure<ByteArray(void)> event, ObjectInfo::Flags flags) :
+//    mReadPtr(0), mWritePtr(0),
+//    mAutoPeriod(0), mAutoTime(0), mAutoReceiverAddr(0),
+//    mIsDevice(false),
+//    mValid(true),
+//    m_parentObject(0L)
+//{
+//    mDesc.readSize = 0; // pure ByteArray
+//    mDesc.writeSize = 0; // no param
+//
+//    flags = static_cast<ObjectInfo::Flags>(flags | Read);
+//
+//    // mReadPtr:mWritePtr contains variable of Closure<> type, not the pointer!!!
+//    *reinterpret_cast<Closure<ByteArray(void)>*>(&mReadPtr) = event;
+//
+//    mDesc.rType = Common; // return type
+//    mDesc.wType = Void; // param type
+//    mDesc.flags = (flags | Function) & ~(Save | Write);
+//    mDesc.name = name;
+//    mDesc.id = mAssignId++;
+//}
+//
+//template<>
+//ObjectInfo::ObjectInfo(string name, Closure<void(ByteArray)> event, ObjectInfo::Flags flags) :
+//    mReadPtr(0), mWritePtr(0),
+//    mAutoPeriod(0), mAutoTime(0), mAutoReceiverAddr(0),
+//    mIsDevice(false),
+//    mValid(true),
+//    m_parentObject(0L)
+//{
+//    mDesc.readSize = 0; // no return
+//    mDesc.writeSize = 0; // pure ByteArray
+//
+//    flags = static_cast<ObjectInfo::Flags>(flags | Write);
+//
+//    // mReadPtr:mWritePtr contains variable of Closure<> type, not the pointer!!!
+//    *reinterpret_cast<Closure<void(ByteArray)>*>(&mReadPtr) = event;
+//
+//    mDesc.rType = Void; // return type
+//    mDesc.wType = Common; // param type
+//    mDesc.flags = (flags | Function) & ~(Save | Read);
+//    mDesc.name = name;
+//    mDesc.id = mAssignId++;
+//}
+//
+//template<>
+//ObjectInfo::ObjectInfo(string name, Closure<ByteArray(ByteArray)> event, ObjectInfo::Flags flags) :
+//    mReadPtr(0), mWritePtr(0),
+//    mAutoPeriod(0), mAutoTime(0), mAutoReceiverAddr(0),
+//    mIsDevice(false),
+//    mValid(true),
+//    m_parentObject(0L)
+//{
+//    mDesc.readSize = 0; // pure ByteArray
+//    mDesc.writeSize = 0; // pure ByteArray
+//
+//    flags = static_cast<ObjectInfo::Flags>(flags | Read | Write);
+//
+//    // mReadPtr:mWritePtr contains variable of Closure<> type, not the pointer!!!
+//    *reinterpret_cast<Closure<ByteArray(ByteArray)>*>(&mReadPtr) = event;
+//
+//    mDesc.rType = Common; // return type
+//    mDesc.wType = Common; // param type
+//    mDesc.flags = (flags | Function) & ~(Save);
+//    mDesc.name = name;
+//    mDesc.id = mAssignId++;
+//}
+//#endif
 //---------------------------------------------------------
 
 ObjectInfo &ObjectInfo::group(string name)
 {
     ObjectInfo info;
-    m_subobjects.push_back(info);
+    m_subobjects.push_back(std::move(info));
     ObjectInfo &obj = m_subobjects.back();
     obj.m_parentObject = this;
     if (mDesc.flags & Read)
@@ -395,128 +391,130 @@ ByteArray ObjectInfo::invoke(const ByteArray &ba)
 {
     if (!(mDesc.flags & Function) || mIsDevice)
         return ByteArray();
+    
+    return static_cast<ICallable*>(mReadPtr)->call(ba);
 
-    ByteArray ret;
-    switch (mDesc.rType)
-    {
-        case Void: // just call the method
-            switch (mDesc.wType)
-            {
-                case Void: (*reinterpret_cast<Closure<void(void)>*>(&mReadPtr))(); break;
-                #define CASE(Tp) case Tp: (*reinterpret_cast<Closure<void(Tp##_t)>*>(&mReadPtr))(*reinterpret_cast<const Tp##_t*>(ba.data())); break
-                CASE(Bool);
-                CASE(Int);
-                CASE(UInt);
-                CASE(LongLong);
-                CASE(ULongLong);
-                CASE(Double);
-                CASE(Long);
-                CASE(Short);
-                CASE(Char);
-                CASE(ULong);
-                CASE(UShort);
-                CASE(UChar);
-                CASE(Float);
-                CASE(SChar);
-                case String: (*reinterpret_cast<Closure<void(string)>*>(&mReadPtr))(string(ba.data(), ba.size())); break;
-                case Common:
-                    if (!mDesc.writeSize)
-                        (*reinterpret_cast<Closure<void(ByteArray)>*>(&mReadPtr))(ba);
-                    break;
-                #undef CASE
-            }
-            break;
-
-        #define CASEw(Tr, Tp)  case Tp: result = (*reinterpret_cast<Closure<Tr##_t(Tp##_t)>*>(&mReadPtr))(*reinterpret_cast<const Tp##_t*>(ba.data())); break
-        #define CASE(Tr) case Tr: { \
-            Tr##_t result; \
-            switch (mDesc.wType) \
-            { \
-                case Void: result = (*reinterpret_cast<Closure<Tr##_t(void)>*>(&mReadPtr))(); break; \
-                CASEw(Tr, Bool); \
-                CASEw(Tr, Int); \
-                CASEw(Tr, UInt); \
-                CASEw(Tr, LongLong); \
-                CASEw(Tr, ULongLong); \
-                CASEw(Tr, Double); \
-                CASEw(Tr, Long); \
-                CASEw(Tr, Short); \
-                CASEw(Tr, Char); \
-                CASEw(Tr, ULong); \
-                CASEw(Tr, UShort); \
-                CASEw(Tr, UChar); \
-                CASEw(Tr, Float); \
-                CASEw(Tr, SChar); \
-                case String: result = (*reinterpret_cast<Closure<Tr##_t(string)>*>(&mReadPtr))(string(ba.data(), ba.size())); break; \
-                case Common: \
-                    if (!mDesc.writeSize) \
-                      result = (*reinterpret_cast<Closure<Tr##_t(ByteArray)>*>(&mReadPtr))(ba); \
-                    break; \
-            } \
-            ret.append(reinterpret_cast<const char*>(&result), sizeof(Tr##_t)); \
-        } break
-
-        CASE(Bool);
-        CASE(Int);
-        CASE(UInt);
-        CASE(LongLong);
-        CASE(ULongLong);
-        CASE(Double);
-        CASE(Long);
-        CASE(Short);
-        CASE(Char);
-        CASE(ULong);
-        CASE(UShort);
-        CASE(UChar);
-        CASE(Float);
-        CASE(SChar);
-
-        case String:
-          {
-            string result;
-            switch (mDesc.wType)
-            {
-                case Void: result = (*reinterpret_cast<Closure<string(void)>*>(&mReadPtr))(); break;
-                CASEw(String, Bool); \
-                CASEw(String, Int); \
-                CASEw(String, UInt); \
-                CASEw(String, LongLong); \
-                CASEw(String, ULongLong); \
-                CASEw(String, Double); \
-                CASEw(String, Long); \
-                CASEw(String, Short); \
-                CASEw(String, Char); \
-                CASEw(String, ULong); \
-                CASEw(String, UShort); \
-                CASEw(String, UChar); \
-                CASEw(String, Float); \
-                CASEw(String, SChar); \
-                case String: result = (*reinterpret_cast<Closure<string(string)>*>(&mReadPtr))(string(ba.data(), ba.size())); break;
-                case Common: \
-                    if (!mDesc.writeSize) \
-                      result = (*reinterpret_cast<Closure<string(ByteArray)>*>(&mReadPtr))(ba); \
-                    break; \
-            }
-            ret.append(result.c_str(), result.length());
-          } break;
-//                    Common = 12,
-
-        case Common:
-          if (!mDesc.writeSize)
-          {
-            ByteArray result;
-            switch (mDesc.wType)
-            {
-                case Void: result = (*reinterpret_cast<Closure<ByteArray(void)>*>(&mReadPtr))(); break;
-                case Common: result = (*reinterpret_cast<Closure<ByteArray(ByteArray)>*>(&mReadPtr))(ba); break;
-            }
-            ret.append(result);
-          }
-          break;
-    }
-    #undef CASE
-    #undef CASEw
-    return ret;
+//    ByteArray ret;
+//    switch (mDesc.rType)
+//    {
+//        case Void: // just call the method
+//            switch (mDesc.wType)
+//            {
+//                case Void: (*reinterpret_cast<Closure<void(void)>*>(&mReadPtr))(); break;
+//                #define CASE(Tp) case Tp: (*reinterpret_cast<Closure<void(Tp##_t)>*>(&mReadPtr))(*reinterpret_cast<const Tp##_t*>(ba.data())); break
+//                CASE(Bool);
+//                CASE(Int);
+//                CASE(UInt);
+//                CASE(LongLong);
+//                CASE(ULongLong);
+//                CASE(Double);
+//                CASE(Long);
+//                CASE(Short);
+//                CASE(Char);
+//                CASE(ULong);
+//                CASE(UShort);
+//                CASE(UChar);
+//                CASE(Float);
+//                CASE(SChar);
+//                case String: (*reinterpret_cast<Closure<void(string)>*>(&mReadPtr))(string(ba.data(), ba.size())); break;
+//                case Common:
+//                    if (!mDesc.writeSize)
+//                        (*reinterpret_cast<Closure<void(ByteArray)>*>(&mReadPtr))(ba);
+//                    break;
+//                #undef CASE
+//            }
+//            break;
+//
+//        #define CASEw(Tr, Tp)  case Tp: result = (*reinterpret_cast<Closure<Tr##_t(Tp##_t)>*>(&mReadPtr))(*reinterpret_cast<const Tp##_t*>(ba.data())); break
+//        #define CASE(Tr) case Tr: { \
+//            Tr##_t result; \
+//            switch (mDesc.wType) \
+//            { \
+//                case Void: result = (*reinterpret_cast<Closure<Tr##_t(void)>*>(&mReadPtr))(); break; \
+//                CASEw(Tr, Bool); \
+//                CASEw(Tr, Int); \
+//                CASEw(Tr, UInt); \
+//                CASEw(Tr, LongLong); \
+//                CASEw(Tr, ULongLong); \
+//                CASEw(Tr, Double); \
+//                CASEw(Tr, Long); \
+//                CASEw(Tr, Short); \
+//                CASEw(Tr, Char); \
+//                CASEw(Tr, ULong); \
+//                CASEw(Tr, UShort); \
+//                CASEw(Tr, UChar); \
+//                CASEw(Tr, Float); \
+//                CASEw(Tr, SChar); \
+//                case String: result = (*reinterpret_cast<Closure<Tr##_t(string)>*>(&mReadPtr))(string(ba.data(), ba.size())); break; \
+//                case Common: \
+//                    if (!mDesc.writeSize) \
+//                      result = (*reinterpret_cast<Closure<Tr##_t(ByteArray)>*>(&mReadPtr))(ba); \
+//                    break; \
+//            } \
+//            ret.append(reinterpret_cast<const char*>(&result), sizeof(Tr##_t)); \
+//        } break
+//
+//        CASE(Bool);
+//        CASE(Int);
+//        CASE(UInt);
+//        CASE(LongLong);
+//        CASE(ULongLong);
+//        CASE(Double);
+//        CASE(Long);
+//        CASE(Short);
+//        CASE(Char);
+//        CASE(ULong);
+//        CASE(UShort);
+//        CASE(UChar);
+//        CASE(Float);
+//        CASE(SChar);
+//
+//        case String:
+//          {
+//            string result;
+//            switch (mDesc.wType)
+//            {
+//                case Void: result = (*reinterpret_cast<Closure<string(void)>*>(&mReadPtr))(); break;
+//                CASEw(String, Bool); \
+//                CASEw(String, Int); \
+//                CASEw(String, UInt); \
+//                CASEw(String, LongLong); \
+//                CASEw(String, ULongLong); \
+//                CASEw(String, Double); \
+//                CASEw(String, Long); \
+//                CASEw(String, Short); \
+//                CASEw(String, Char); \
+//                CASEw(String, ULong); \
+//                CASEw(String, UShort); \
+//                CASEw(String, UChar); \
+//                CASEw(String, Float); \
+//                CASEw(String, SChar); \
+//                case String: result = (*reinterpret_cast<Closure<string(string)>*>(&mReadPtr))(string(ba.data(), ba.size())); break;
+//                case Common: \
+//                    if (!mDesc.writeSize) \
+//                      result = (*reinterpret_cast<Closure<string(ByteArray)>*>(&mReadPtr))(ba); \
+//                    break; \
+//            }
+//            ret.append(result.c_str(), result.length());
+//          } break;
+////                    Common = 12,
+//
+//        case Common:
+//          if (!mDesc.writeSize)
+//          {
+//            ByteArray result;
+//            switch (mDesc.wType)
+//            {
+//                case Void: result = (*reinterpret_cast<Closure<ByteArray(void)>*>(&mReadPtr))(); break;
+//                case Common: result = (*reinterpret_cast<Closure<ByteArray(ByteArray)>*>(&mReadPtr))(ba); break;
+//            }
+//            ret.append(result);
+//          }
+//          break;
+//    }
+//    #undef CASE
+//    #undef CASEw
+//    return ret;
 }
 //---------------------------------------------------------
 
