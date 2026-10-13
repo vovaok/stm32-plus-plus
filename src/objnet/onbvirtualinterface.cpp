@@ -34,7 +34,7 @@ bool OnbVirtualInterface::send(const CommonMessage &msg)
     return result;
 }
 
-int OnbVirtualInterface::addFilter(uint32_t id, uint32_t mask)
+int OnbVirtualInterface::addFilter(uint32_t id, uint32_t)
 {
     if (id & 0x10000000)
     {

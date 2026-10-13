@@ -105,7 +105,7 @@ public slots:
     void sendObject(unsigned char netAddress, unsigned char oid, const ByteArray &ba);
     void sendServiceRequest(unsigned char netAddress, unsigned char oid, const ByteArray &ba)
     {
-        #warning There is copying of the data!
+        /// @warning There is copying of the data!
         sendServiceMessage(netAddress, (SvcOID)oid, ByteArray(ba));
     }
     void sendGlobalRequest(StdAID aid, bool propagation, const ByteArray &ba=ByteArray())

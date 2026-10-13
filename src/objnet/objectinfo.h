@@ -173,7 +173,7 @@ private:
     uint8_t *nextWritePtr() const;
 
 public:
-    ObjectInfo();
+    ObjectInfo() = default;
     ~ObjectInfo()
     {
         if (isInvokable())
@@ -483,34 +483,6 @@ ObjectInfo::ObjectInfo(string name, const T (&var)[N], Flags flags)
     mValid = true;
 }
 
-//#if __cplusplus > 199711L
-//template<typename T, typename std::enable_if<std::is_class<T>::value, bool>::type>
-//ObjectInfo::ObjectInfo(string name, T &var, Flags flags) :
-//    mReadPtr(0), mWritePtr(0),
-//    mAutoPeriod(0), mAutoTime(0), mAutoReceiverAddr(0),
-//    mIsDevice(false),
-//    mValid(true),
-//    m_parentObject(0L)
-//{
-//    size_t sz = sizeof(T);
-//    Type t = typeValue<T>();
-//    if (flags & Read)
-//    {
-//        mReadPtr = &var;
-//        mDesc.readSize = sz;
-//        mDesc.rType = t;
-//    }
-//    if (flags & Write)
-//    {
-//        mWritePtr = &var;
-//        mDesc.writeSize = sz;
-//        mDesc.wType = t;
-//    }
-//    mDesc.flags = flags;
-//    mDesc.name = name;
-//    mDesc.id = mAssignId++;
-//}
-//#endif
 
 template<typename T>
 ObjectInfo &ObjectInfo::field(string name)
@@ -618,109 +590,6 @@ ObjectInfo &ObjectInfo::field(string name)
 //    return *this;
 //}
 
-//template<class R>
-//ObjectInfo::ObjectInfo(string name, Closure<R(void)> event, ObjectInfo::Flags flags)
-//{
-//    mDesc.readSize = sizeof(R);
-//    mDesc.writeSize = 0; // no param
-//
-//    if (mDesc.readSize)
-//        flags = static_cast<ObjectInfo::Flags>(flags | Read);
-//
-//    // mReadPtr:mWritePtr contains variable of Closure<> type, not the pointer!!!
-//    *reinterpret_cast<Closure<R(void)>*>(&mReadPtr) = event;
-//
-////    R var;
-//    mDesc.rType = typeValue<R>(); // return type
-//    mDesc.wType = Void; // param type
-//    mDesc.flags = (flags | Function) & ~(Save | Write);
-//    mDesc.name = name;
-//    mDesc.id = mAssignId++;
-//    mValid = true;
-//}
-
-//#ifndef QT_CORE_LIB
-//template<> ObjectInfo::ObjectInfo<void>(string name, Closure<void(void)> event, ObjectInfo::Flags flags);
-//template<> ObjectInfo::ObjectInfo(string name, Closure<ByteArray(void)> event, ObjectInfo::Flags flags);
-//template<> ObjectInfo::ObjectInfo(string name, Closure<void(ByteArray)> event, ObjectInfo::Flags flags);
-//template<> ObjectInfo::ObjectInfo(string name, Closure<ByteArray(ByteArray)> event, ObjectInfo::Flags flags);
-//#endif
-
-//template<class P0>
-//ObjectInfo::ObjectInfo(string name, Closure<void(P0)> event, ObjectInfo::Flags flags)
-//{
-//    mDesc.readSize = 0;
-//    mDesc.writeSize = sizeof(P0); // no param
-//
-//    if (mDesc.writeSize)
-//        flags = static_cast<ObjectInfo::Flags>(flags | Write);
-//
-//    // mReadPtr:mWritePtr contains variable of Closure<> type, not the pointer!!!
-//    *reinterpret_cast<Closure<void(P0)>*>(&mReadPtr) = event;
-//
-////    P0 param;
-//    mDesc.rType = Void; // return type;
-//    mDesc.wType = typeValue<P0>(); // param type
-//    mDesc.flags = (flags | Function) & ~(Save | Read);
-//    mDesc.name = name;
-//    mDesc.id = mAssignId++;
-//    mValid = true;
-//}
-//
-//template<class R, class P0>
-//ObjectInfo::ObjectInfo(string name, Closure<R(P0)> event, ObjectInfo::Flags flags)
-//{
-//    mDesc.readSize = sizeof(R);
-//    mDesc.writeSize = sizeof(P0); // no param
-//
-//    if (mDesc.readSize)
-//        flags = static_cast<ObjectInfo::Flags>(flags | Read);
-//    if (mDesc.writeSize)
-//        flags = static_cast<ObjectInfo::Flags>(flags | Write);
-//
-//    // mReadPtr:mWritePtr contains variable of Closure<> type, not the pointer!!!
-//    *reinterpret_cast<Closure<R(P0)>*>(&mReadPtr) = event;
-//
-////    R ret;
-////    P0 param;
-//    mDesc.rType = typeValue<R>(); // return type;
-//    mDesc.wType = typeValue<P0>(); // param type
-//    mDesc.flags = (flags | Function) & ~(Save);
-//    mDesc.name = name;
-//    mDesc.id = mAssignId++;
-//    mValid = true;
-//}
-
-
-
-//template<class R, class P>
-//ObjectInfo::ObjectInfo(string name, std::function<R(P)> f, Flags flags)
-//{
-////    mReadPtr = new Callable<R, P>(std::move(f));
-//    if constexpr (std::is_void_v<P>)
-//        mReadPtr = new Callable<R, void>(std::function<R()>(std::move(f)));
-//    else
-//        mReadPtr = new Callable<R, P>(std::function<R(P)>(std::move(f)));
-//    
-//    mDesc.rType = typeValue<R>(); // return type
-//    mDesc.wType = typeValue<P>();
-//    
-//    mDesc.readSize = sizeof(R);
-//    mDesc.writeSize = sizeof(P);
-//
-//    if (mDesc.readSize)
-//        flags = static_cast<ObjectInfo::Flags>(flags | Read);
-//    if (mDesc.writeSize)
-//        flags = static_cast<ObjectInfo::Flags>(flags | Write);
-//    
-//    mDesc.rType = typeValue<R>(); // return type
-//    mDesc.wType = typeValue<P>(); // param type
-//    mDesc.flags = (flags | Function) & ~(Save); // ensure not to store 
-//    mDesc.name = name;
-//    mDesc.id = mAssignId++;
-//    
-//    mValid = true;
-//}
 
 template <typename F, typename>
 ObjectInfo::ObjectInfo(std::string name, F f, Flags flags)
