@@ -301,7 +301,7 @@ ObjectInfo *ObjnetDevice::prepareObject(const ObjectInfo::Description &desc)
         }
         else if (desc.rType == ObjectInfo::StringList)
         {
-            new (readptr) ObjectInfo::StringList_t;
+            new (readptr) StringList_t;
         }
         else if (rIsCommonType && desc.readSize == 0)
         {

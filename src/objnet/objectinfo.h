@@ -26,6 +26,8 @@ using namespace std;
 
 namespace Objnet
 {
+    
+    typedef vector<string> StringList_t;
 
 class ObjectInfo
 {
@@ -89,26 +91,28 @@ public:
         Compound = 0x80, // bits 0...6 reflect subobject count
     } Type; // KAK B Qt!!!
 
-    typedef void Void_t;
-    typedef bool Bool_t;
-    typedef int Int_t;
-    typedef unsigned int UInt_t;
-    typedef long long LongLong_t;
-    typedef unsigned long long ULongLong_t;
-    typedef double Double_t;
-    typedef long Long_t;
-    typedef short Short_t;
-    typedef char Char_t;
-    typedef unsigned long ULong_t;
-    typedef unsigned short UShort_t;
-    typedef unsigned char UChar_t;
-    typedef float Float_t;
-    typedef signed char SChar_t;
-    typedef string String_t;
-    typedef vector<string> StringList_t;
-    typedef ::QVector3D QVector3D_t;
-    typedef ::QQuaternion QQuaternion_t;
+//    typedef void Void_t;
+//    typedef bool Bool_t;
+//    typedef int Int_t;
+//    typedef unsigned int UInt_t;
+//    typedef long long LongLong_t;
+//    typedef unsigned long long ULongLong_t;
+//    typedef double Double_t;
+//    typedef long Long_t;
+//    typedef short Short_t;
+//    typedef char Char_t;
+//    typedef unsigned long ULong_t;
+//    typedef unsigned short UShort_t;
+//    typedef unsigned char UChar_t;
+//    typedef float Float_t;
+//    typedef signed char SChar_t;
+//    typedef string String_t;
+//    typedef vector<string> StringList_t;
+//    typedef ::QVector3D QVector3D_t;
+//    typedef ::QQuaternion QQuaternion_t;
 
+    
+    
     struct Description
     {
         unsigned char id;
@@ -316,33 +320,33 @@ public:
     uint8_t subobjectCount() const {return m_subobjects.size();}
     ObjectInfo *parentObject() {return m_parentObject;}
 
-    template <typename T>
-    static constexpr Type typeValue() {return Common;} // by default
+    template <typename T> static constexpr Type typeValue = Common; // by default
 };
 
-#define DeclareTypeValueSpec(T) \
-    template <> constexpr ObjectInfo::Type ObjectInfo::typeValue<ObjectInfo::T##_t>() \
-    {return ObjectInfo::T;}
+#define DeclareTypeValueSpec(T, TypeValue) \
+    template <> inline constexpr ObjectInfo::Type ObjectInfo::typeValue<T> = ObjectInfo::TypeValue;
 
-DeclareTypeValueSpec(Void)
-DeclareTypeValueSpec(Bool)
-DeclareTypeValueSpec(Int)
-DeclareTypeValueSpec(UInt)
-DeclareTypeValueSpec(LongLong)
-DeclareTypeValueSpec(ULongLong)
-DeclareTypeValueSpec(Double)
-DeclareTypeValueSpec(Long)
-DeclareTypeValueSpec(Short)
-DeclareTypeValueSpec(Char)
-DeclareTypeValueSpec(ULong)
-DeclareTypeValueSpec(UShort)
-DeclareTypeValueSpec(UChar)
-DeclareTypeValueSpec(Float)
-DeclareTypeValueSpec(SChar)
-template <> constexpr ObjectInfo::Type ObjectInfo::typeValue<_String>() {return ObjectInfo::String;}
-DeclareTypeValueSpec(StringList)
-DeclareTypeValueSpec(QVector3D)
-DeclareTypeValueSpec(QQuaternion)
+DeclareTypeValueSpec(void,                  Void)
+DeclareTypeValueSpec(bool,                  Bool)
+DeclareTypeValueSpec(int,                   Int)
+DeclareTypeValueSpec(unsigned,              UInt)
+DeclareTypeValueSpec(long long,             LongLong)
+DeclareTypeValueSpec(unsigned long long,    ULongLong)
+DeclareTypeValueSpec(double,                Double)
+DeclareTypeValueSpec(long,                  Long)
+DeclareTypeValueSpec(short,                 Short)
+DeclareTypeValueSpec(char,                  Char)
+DeclareTypeValueSpec(unsigned long,         ULong)
+DeclareTypeValueSpec(unsigned short,        UShort)
+DeclareTypeValueSpec(unsigned char,         UChar)
+DeclareTypeValueSpec(float,                 Float)
+DeclareTypeValueSpec(signed char,           SChar)
+DeclareTypeValueSpec(_String,               String)
+DeclareTypeValueSpec(StringList_t,          StringList)
+DeclareTypeValueSpec(::QVector3D,           QVector3D)
+DeclareTypeValueSpec(::QQuaternion,         QQuaternion)
+
+#undef DeclareTypeValueSpec
 
 constexpr int ObjectInfo::sizeofType(ObjectInfo::Type type)
 {
@@ -370,7 +374,7 @@ template<typename T, typename>
 ObjectInfo::ObjectInfo(string name, T &var, Flags flags)
 {
     size_t sz = sizeof(T);
-    Type t = typeValue<T>();
+    Type t = typeValue<T>;
     if (flags & Read)
     {
         mReadPtr = &var;
@@ -389,7 +393,7 @@ ObjectInfo::ObjectInfo(string name, T &var, Flags flags)
     mValid = true;
 }
 
-template<> ObjectInfo::ObjectInfo<ByteArray, void>(string name, ByteArray &var, Flags flags);
+//template<> ObjectInfo::ObjectInfo<ByteArray, void>(string name, ByteArray &var, Flags flags);
 
 template <typename T, typename>
 ObjectInfo::ObjectInfo(string name, const T &var, Flags flags)
@@ -397,7 +401,7 @@ ObjectInfo::ObjectInfo(string name, const T &var, Flags flags)
     flags = static_cast<Flags>(flags & (~Write));
     flags = static_cast<Flags>(flags & (~Save));
     size_t sz = sizeof(T);
-    Type t = typeValue<T>();
+    Type t = typeValue<T>;
     if (flags & Read)
     {
         mReadPtr = const_cast<T*>(&var);
@@ -418,13 +422,13 @@ ObjectInfo::ObjectInfo(string name, const Tr &varRead, Tw &varWrite, Flags flags
     {
         mReadPtr = &varRead;
         mDesc.readSize = sizeof(Tr);
-        mDesc.rType = typeValue<Tr>();
+        mDesc.rType = typeValue<Tr>;
     }
     if (flags & Write)
     {
         mWritePtr = &varWrite;
         mDesc.writeSize = sizeof(Tw);
-        mDesc.wType = typeValue<Tw>();
+        mDesc.wType = typeValue<Tw>;
     }
     mDesc.flags = flags | Dual;
     mDesc.name = name;
@@ -435,7 +439,7 @@ ObjectInfo::ObjectInfo(string name, const Tr &varRead, Tw &varWrite, Flags flags
 template<typename T, int N>
 ObjectInfo::ObjectInfo(string name, T (&var)[N], Flags flags)
 {
-    Type t = typeValue<T>();
+    Type t = typeValue<T>;
     size_t sz = sizeof(T) * N;
     mArrayItemCount = N;
 //    if (sz > 255)
@@ -463,7 +467,7 @@ ObjectInfo::ObjectInfo(string name, T (&var)[N], Flags flags)
 template<typename T, int N>
 ObjectInfo::ObjectInfo(string name, const T (&var)[N], Flags flags)
 {
-    Type t = typeValue<T>();
+    Type t = typeValue<T>;
     size_t sz = sizeof(T) * N;
     mArrayItemCount = N;
 //    if (sz > 255)
@@ -508,7 +512,7 @@ ObjectInfo &ObjectInfo::field(string name)
 //    obj.m_parentObject = this;
     size_t sz = sizeof(T);
 //    T var;
-    Type t = typeValue<T>();
+    Type t = typeValue<T>;
     if (t == String)
         sz = 0;
     if (mDesc.flags & Read)
@@ -560,7 +564,7 @@ ObjectInfo &ObjectInfo::field(string name)
 ////    obj.m_parentObject = this;
 //    size_t sz = sizeof(T);
 //    T var;
-//    Type t = typeValue<T>();
+//    Type t = typeValue<T>;
 //    if (t == String)
 //        sz = 0;
 //    if (mDesc.flags & Read)
@@ -618,8 +622,8 @@ ObjectInfo::ObjectInfo(std::string name, F f, Flags flags)
         mDesc.readSize = 0;
     }
 
-    mDesc.rType = typeValue<R>();
-    mDesc.wType = typeValue<P>();
+    mDesc.rType = typeValue<R>;
+    mDesc.wType = typeValue<P>;
     
     if (mDesc.readSize)
         flags = static_cast<ObjectInfo::Flags>(flags | Read);
@@ -644,9 +648,9 @@ ObjectInfo::ObjectInfo(string name, RingBuffer<T> &buffer, Flags flags)
 
 //    T var;
     if (flags & Read)
-        mDesc.rType = typeValue<T>();
+        mDesc.rType = typeValue<T>;
     if (flags & Write)
-        mDesc.wType = typeValue<T>();
+        mDesc.wType = typeValue<T>;
     mDesc.flags = (flags | Array) & ~Save;
     mDesc.name = name;
     mDesc.id = mAssignId++;
