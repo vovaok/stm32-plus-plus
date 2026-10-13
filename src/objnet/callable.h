@@ -4,6 +4,7 @@
 #include "core/bytearray.h"
 #else
 #include <QByteArray>
+typedef QByteArray ByteArray;
 #endif
 #include <functional>
 
@@ -16,7 +17,7 @@ T fromBytes(const ByteArray& b)
 {
     T v;
     if (b.size() == int(sizeof(T)))    
-        std::memcpy(&v, b.data(), sizeof(T));
+        memcpy(&v, b.data(), sizeof(T));
     return v;
 }
 
@@ -87,31 +88,47 @@ struct Callable<R, void> : ICallable {
 };
 
 // трейты для лямбд:
-template <class F> struct fn_traits : fn_traits<decltype(&F::operator())> {};
+//template <class F> struct fn_traits : fn_traits<decltype(&F::operator())> {};
+template <class F, class = void>
+struct fn_traits {
+    static constexpr bool valid = false;
+};
+
+template <class F>
+struct fn_traits<F, std::void_t<decltype(&F::operator())>>
+    : fn_traits<decltype(&F::operator())> {};
 
 // с аргументом
 template <class F, class R, class P> struct fn_traits<R (F::*)(P) const> {
     using R_ = R; using P_ = P;
+    static constexpr bool valid = true;
 };
 template <class F, class R, class P> struct fn_traits<R (F::*)(P)> {
     using R_ = R; using P_ = P;
+    static constexpr bool valid = true;
 };
 
 // без аргумента
 template <class F, class R> struct fn_traits<R (F::*)() const> {
     using R_ = R; using P_ = void;
+    static constexpr bool valid = true;
 };
 template <class F, class R> struct fn_traits<R (F::*)()> {
     using R_ = R; using P_ = void;
+    static constexpr bool valid = true;
 };
 
 // указатель на функцию
 template <class R, class P> struct fn_traits<R(*)(P)> {
     using R_ = R; using P_ = P;
+    static constexpr bool valid = true;
 };
 template <class R> struct fn_traits<R(*)()> {
     using R_ = R; using P_ = void;
+    static constexpr bool valid = true;
 };
 
+template <class T>
+inline constexpr bool is_callable_v = fn_traits<std::decay_t<T>>::valid;
 
 }

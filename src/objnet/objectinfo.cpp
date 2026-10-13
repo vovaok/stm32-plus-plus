@@ -14,7 +14,7 @@ ObjectInfo::ObjectInfo() :
 {
 }
 
-template<> ObjectInfo::ObjectInfo(string name, ByteArray &var, Flags flags)
+template<> ObjectInfo::ObjectInfo<ByteArray, void>(string name, ByteArray &var, Flags flags)
 {
     if (flags & Read)
     {

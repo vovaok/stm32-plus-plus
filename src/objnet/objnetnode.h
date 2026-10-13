@@ -158,19 +158,19 @@ public:
         return bindObject(ObjectInfo(name, var, ObjectInfo::Storage));
     }
     
-    template <class R, class P> inline ObjectInfo &bindMethod(string name, std::function<R(P)> f)
+    template <class F> inline ObjectInfo &bindMethod(string name, F f, ObjectInfo::Flags flags=ObjectInfo::NoFlags)
     {
-        return bindObject(ObjectInfo(name, f));
+        return bindObject(ObjectInfo(name, f, flags));
     }
     
     template <class Obj, class R, class... Args>
-    inline ObjectInfo &bindMethod(string name, Obj *obj, R (Obj::*method)(Args...))
+        inline ObjectInfo &bindMethod(string name, Obj *obj, R (Obj::*method)(Args...), ObjectInfo::Flags flags=ObjectInfo::NoFlags)
     {
         auto f = [obj, method](Args... args) -> R
         {
             return (obj->*method)(args...);
         };
-        return bindObject(ObjectInfo(std::move(name), std::move(f)));
+        return bindObject(ObjectInfo(std::move(name), std::move(f), flags));
     }
     
     //        Closure<void(void)> c = CLOSURE(obj, method);

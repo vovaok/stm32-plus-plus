@@ -211,31 +211,30 @@ public:
         std::swap(mIsDevice, other.mIsDevice);
         std::swap(mValid, other.mValid);
         std::swap(mArrayItemCount, other.mArrayItemCount);
+        std::swap(m_subobjects, other.m_subobjects);
+        std::swap(m_parentObject, other.m_parentObject);
+        for (ObjectInfo &obj: m_subobjects)
+            obj.m_parentObject = this;
+        for (ObjectInfo &obj: other.m_subobjects)
+            obj.m_parentObject = &other;
     }
 
 
     // vars binding:
-//#if __cplusplus > 199711L
-//    template<typename T, typename std::enable_if<!std::is_class<T>::value, bool>::type = true>
-//    ObjectInfo(string name, T &var, Flags flags=ReadWrite);
-//    template<typename T, typename std::enable_if<!std::is_class<T>::value, bool>::type = true>
-//    ObjectInfo(string name, const T &var, Flags flags=ReadOnly);
-//    template<typename Tr, typename Tw>
-//    ObjectInfo(string name, const Tr &varRead, Tw &varWrite, Flags flags=ReadWrite);
-//#else
     
     // data constructor
-    template<typename T,
-          typename = std::enable_if_t<!std::is_invocable_v<T>>>
+    template <typename T, typename = std::enable_if_t<!is_callable_v<T>>>
     ObjectInfo(string name, T &var, Flags flags=ReadWrite);
 
     // const data constructor
-    template <typename T,
-          typename = std::enable_if_t<!std::is_invocable_v<T>>>
+    template <typename T, typename = std::enable_if_t<!is_callable_v<T>>>
     ObjectInfo(string name, const T &var, Flags flags=ReadOnly);
+    
+    // dual data constructor
+    /// @todo make this DEPRECATED
     template<typename Tr, typename Tw>
-    ObjectInfo(string name, const Tr &varRead, Tw &varWrite, Flags flags=ReadWrite);
-//#endif
+    [[deprecated]] ObjectInfo(string name, const Tr &varRead, Tw &varWrite, Flags flags=ReadWrite);
+
 
     // array binding:
     template<typename T, int N>
@@ -263,8 +262,7 @@ public:
 //    ObjectInfo(string name, Closure<R(P0)> event, Flags flags=ReadWrite);
 
     // ЕДИНСТВЕННЫЙ конструктор для колбэков:
-    template <typename F,
-              typename = std::enable_if_t<std::is_invocable_v<std::decay_t<F>>>>
+    template <typename F, typename = std::enable_if_t<is_callable_v<F>>>
     ObjectInfo(std::string name, F f, Flags flags=NoFlags);
 
     // buffer binding:
@@ -401,7 +399,7 @@ ObjectInfo::ObjectInfo(string name, T &var, Flags flags)
     mValid = true;
 }
 
-template<> ObjectInfo::ObjectInfo(string name, ByteArray &var, Flags flags);
+template<> ObjectInfo::ObjectInfo<ByteArray, void>(string name, ByteArray &var, Flags flags);
 
 template <typename T, typename>
 ObjectInfo::ObjectInfo(string name, const T &var, Flags flags)
