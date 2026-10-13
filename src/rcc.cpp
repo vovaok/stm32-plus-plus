@@ -518,6 +518,7 @@ bool Rcc::configRtc(ClockSource clock)
     default: return false;
     }
     RCC->BDCR |= RCC_BDCR_RTCEN;
+    return r;
 }
 
 #elif defined(STM32L4)
