@@ -1,6 +1,10 @@
 #pragma once
 
+#ifndef QT_CORE_LIB
 #include "core/bytearray.h"
+#else
+#include <QByteArray>
+#endif
 #include <functional>
 
 namespace Objnet

@@ -55,7 +55,7 @@ ObjnetNode::ObjnetNode(ObjnetInterface *iface) :
     bindSvcObject(svcBuildDate,   ObjectInfo("buildDate", mBuildDate, ObjectInfo::ReadOnly));
     bindSvcObject(svcCpuInfo,     ObjectInfo("cpuInfo", mCpuInfo, ObjectInfo::ReadOnly));
     bindSvcObject(svcBurnCount,   ObjectInfo("burnCount", mBurnCount, ObjectInfo::Storage));
-    bindSvcObject(svcObjectCount, ObjectInfo("objCount", [this](){return mObjects.size();}, ObjectInfo::ReadOnly));
+    bindSvcObject(svcObjectCount, ObjectInfo("objCount", [this](){return objectCount();}, ObjectInfo::ReadOnly));
     bindSvcObject(svcBusType,     ObjectInfo("busType", mBusType, ObjectInfo::ReadOnly));
     bindSvcObject(svcBusAddress,  ObjectInfo("busAddress", mBusAddress, ObjectInfo::Storage));
 
