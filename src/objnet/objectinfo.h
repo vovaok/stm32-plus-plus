@@ -27,8 +27,6 @@ using namespace std;
 namespace Objnet
 {
 
-
-
 class ObjectInfo
 {
 public:
@@ -252,14 +250,6 @@ public:
 
     ObjectInfo &group(string name); // for substructures
     ObjectInfo &endGroup();
-
-    // methods binding:
-//    template<class R>
-//    ObjectInfo(string name, Closure<R(void)> event, Flags flags=Read);
-//    template<class P0>
-//    ObjectInfo(string name, Closure<void(P0)> event, Flags flags=Write);
-//    template<class R, class P0>
-//    ObjectInfo(string name, Closure<R(P0)> event, Flags flags=ReadWrite);
 
     // ЕДИНСТВЕННЫЙ конструктор для колбэков:
     template <typename F, typename = std::enable_if_t<is_callable_v<F>>>

@@ -88,7 +88,6 @@ struct Callable<R, void> : ICallable {
 };
 
 // трейты для лямбд:
-//template <class F> struct fn_traits : fn_traits<decltype(&F::operator())> {};
 template <class F, class = void>
 struct fn_traits {
     static constexpr bool valid = false;
