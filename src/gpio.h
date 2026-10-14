@@ -250,6 +250,16 @@ public:
         \param conf1 Configuration of the first pin.
     */
     static void config(int count, Config conf1, ...);
+    
+    inline static bool isUsed(const PinName pin)
+    {
+        return mPinsUsed[static_cast<uint8_t>(pin)];
+    }
+    
+    inline static bool isConfigured(const Config &conf)
+    {
+        return mPinsUsed[reinterpret_cast<const ConfigStruct&>(conf).pin];
+    }
 
     /*! Получение номера блока периферии.
         Номер периферии определяется по конфигурации, переданной в конструктор.

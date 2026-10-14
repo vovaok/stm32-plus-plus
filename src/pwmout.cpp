@@ -81,7 +81,7 @@ void PwmOutput::setDeadtime(float deadtime_us)
         tim()->BDTR = (tim()->BDTR & ~0xFF) | dtg;
 }
 
-void PwmOutput::configChannel(Gpio::Config pin, Gpio::Config complementaryPin, bool invert)
+void PwmOutput::configChannel(Gpio::Config pin, Gpio::Config complementaryPin, bool inverted)
 {
     bool chEnabled = (pin != Gpio::NoConfig);
     bool chnEnabled = (complementaryPin != Gpio::NoConfig);
@@ -97,7 +97,7 @@ void PwmOutput::configChannel(Gpio::Config pin, Gpio::Config complementaryPin, b
     Gpio::config(pin);
     Gpio::config(complementaryPin);
 
-    configPwm(channel, PwmMode_PWM1, invert);
+    configPwm(channel, PwmMode_PWM1, inverted);
 
     if (chEnabled)
         m_chMask |= channel;
@@ -107,6 +107,8 @@ void PwmOutput::configChannel(Gpio::Config pin, Gpio::Config complementaryPin, b
 
 void PwmOutput::configChannel(Gpio::Config pin, bool invert)
 {
+    configPwm(pin, PwmMode_PWM1, invert);
+    
     if (pin == Gpio::NoConfig)
         return;
 
@@ -125,34 +127,40 @@ void PwmOutput::configChannel(Gpio::Config pin, bool invert)
         m_chMask |= channel;
 }
 
-void PwmOutput::configPwmMode(Gpio::Config pin, PwmMode mode)
+void PwmOutput::setChannelEnabled(Gpio::Config pin, bool enabled)
 {
     ChannelNumber channel = getChannelByPin(pin);
-    Gpio::config(pin);
-    configPwm(channel, mode);
-    m_chMask |= channel;
+    if (isComplementaryPin(pin))
+        setComplementaryChannelEnabled(channel, enabled);
+    else
+        HardwareTimer::setChannelEnabled(channel, enabled);
 }
 
-void PwmOutput::configChannelToggleMode(ChannelNumber channel)
+bool PwmOutput::isChannelEnabled(Gpio::Config pin)
 {
-    configPwm(channel, PwmMode_Toggle);
-}
-
-void PwmOutput::configChannelToggleMode(Gpio::Config pin)
-{
-    configPwmMode(pin, PwmMode_Toggle);
+    ChannelNumber channel = getChannelByPin(pin);
+    if (isComplementaryPin(pin))
+        return isComplementaryChannelEnabled(channel);
+    else
+        return HardwareTimer::isChannelEnabled(channel);
 }
 
 void PwmOutput::setChannelInverted(Gpio::Config pin, bool inverted)
 {
     ChannelNumber channel = getChannelByPin(pin);
-    setChannelInverted(channel, inverted);
+    if (isComplementaryPin(pin))
+        setComplementaryChannelInverted(channel, inverted);
+    else
+        HardwareTimer::setChannelInverted(channel, inverted);
 }
 
-void PwmOutput::setChannelEnabled(Gpio::Config pin, bool enabled)
+bool PwmOutput::isChannelInverted(Gpio::Config pin)
 {
     ChannelNumber channel = getChannelByPin(pin);
-    setChannelEnabled(channel, enabled);
+    if (isComplementaryPin(pin))
+        return isComplementaryChannelInverted(channel);
+    else
+        return HardwareTimer::isChannelInverted(channel);
 }
 
 void PwmOutput::setChannelEnabled(ChannelNumber channel, bool enabled)
@@ -175,6 +183,12 @@ void PwmOutput::setAllChannelsEnabled(bool enabled)
     generateComEvent();
 }
 
+void PwmOutput::setAllChannelsInverted(bool inverted)
+{
+    HardwareTimer::setChannelInverted((ChannelNumber)(m_chMask & 0xFFFF), inverted);
+    setComplementaryChannelInverted((ChannelNumber)(m_chMask >> 16), inverted);
+}
+
 void PwmOutput::setDutyCycle(ChannelNumber channel, int value)
 {
     unsigned int pwm = ((unsigned int)value * (unsigned int)mPeriod) >> 16;
@@ -191,6 +205,11 @@ void PwmOutput::setDutyCycle(Gpio::Config pin, int value)
 void PwmOutput::setDutyCyclePercent(ChannelNumber channel, float value)
 {
     setDutyCycle(channel, (int)(BOUND(0.0f, value, 100.0f) * 655.36f));
+}
+
+void PwmOutput::setDutyCyclePercent(Gpio::Config pin, float value)
+{
+    setDutyCycle(pin, (int)(BOUND(0.0f, value, 100.0f) * 655.36f));
 }
 
 void PwmOutput::setDutyCycle(int dutyCycle1, int dutyCycle2, int dutyCycle3, int dutyCycle4)
@@ -227,10 +246,4 @@ void PwmOutput::setPwmAlignMode(PwmAlignMode mode)
     int f = frequency();
     tim()->CR1 = tim()->CR1 & ~TIM_CR1_CMS | (mode & TIM_CR1_CMS);
     setFrequency(f);
-}
-
-void PwmOutput::setAllChannelsInverted(bool inverted)
-{
-    setChannelInverted((ChannelNumber)(m_chMask & 0xFFFF), inverted);
-    setComplementaryChannelInverted((ChannelNumber)(m_chMask >> 16), inverted);
 }

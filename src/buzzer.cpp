@@ -4,6 +4,7 @@
 unsigned short Buzzer::mNoteFreqs[12] = {8372, 8870, 9397, 9956, 10548, 11175, 11840, 12544, 13290, 14080, 14917, 15804};
 
 Buzzer::Buzzer(Gpio::Config pin) :
+    PwmPin(pin),
     mTime(0),
     mEndFlag(false),
     m_isPlaying(false),
@@ -11,19 +12,7 @@ Buzzer::Buzzer(Gpio::Config pin) :
     mPlaySize(0),
     mPlayCnt(0)
 {
-    HardwareTimer::TimerNumber tim = HardwareTimer::getTimerByPin(pin);
-    mChan = HardwareTimer::getChannelByPin(pin);
-
-    if (tim == HardwareTimer::TimNone)
-        THROW(Exception::InvalidPeriph);
-    if (mChan == HardwareTimer::ChNone)
-        THROW(Exception::InvalidPin);
-
-    mPwm = new PwmOutput(tim, 1000);
-    //mPwm->configChannel(mChan, pin);
-    mPwm->configChannelToggleMode(pin);
-//    mPwm->setDutyCycle(mChan, 32768);
-    mPwm->start();
+    setMode(HardwareTimer::PwmMode_Toggle);
 
     stmApp()->registerTaskEvent(EVENT(&Buzzer::task));
     stmApp()->registerTickEvent(EVENT(&Buzzer::tick));
@@ -69,17 +58,7 @@ void Buzzer::tick(int dt)
 
 void Buzzer::setFrequency(int f_Hz)
 {
-    mPwm->setFrequency(f_Hz * 4);
-}
-
-void Buzzer::setEnabled(bool enabled)
-{
-    mPwm->setChannelEnabled(mChan, enabled);
-}
-
-bool Buzzer::isEnabled() const
-{
-    return mPwm->isChannelEnabled(mChan);
+    device()->setFrequency(f_Hz * 4);
 }
 
 void Buzzer::beep(int duration_ms)
