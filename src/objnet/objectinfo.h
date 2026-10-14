@@ -213,6 +213,7 @@ public:
         std::swap(mIsDevice, other.mIsDevice);
         std::swap(mValid, other.mValid);
         std::swap(mArrayItemCount, other.mArrayItemCount);
+        std::swap(onValueChanged, other.onValueChanged);
         std::swap(m_subobjects, other.m_subobjects);
         std::swap(m_parentObject, other.m_parentObject);
         for (ObjectInfo &obj: m_subobjects)
