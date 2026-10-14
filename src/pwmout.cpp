@@ -134,6 +134,7 @@ void PwmOutput::setChannelEnabled(Gpio::Config pin, bool enabled)
         setComplementaryChannelEnabled(channel, enabled);
     else
         HardwareTimer::setChannelEnabled(channel, enabled);
+    generateComEvent();
 }
 
 bool PwmOutput::isChannelEnabled(Gpio::Config pin)
@@ -152,6 +153,7 @@ void PwmOutput::setChannelInverted(Gpio::Config pin, bool inverted)
         setComplementaryChannelInverted(channel, inverted);
     else
         HardwareTimer::setChannelInverted(channel, inverted);
+    generateComEvent();
 }
 
 bool PwmOutput::isChannelInverted(Gpio::Config pin)
