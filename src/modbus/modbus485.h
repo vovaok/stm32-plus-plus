@@ -6,6 +6,8 @@ class Modbus485 : public ModbusTransport
 {
 public:
     Modbus485(Device *dev);
+    
+    void setInterFrameDelay(int value) {m_ifd = value;}
 
 protected:
     friend class ModbusProxy;
@@ -22,7 +24,11 @@ private:
     Device *m_dev;
     ByteArray m_buffer;
     ByteArray m_outBuffer;
-    int m_timeout;
+    int m_timeout = 0;
+    
+    // inter-frame delay: timeout after last received byte
+    //                    to determine the end of received packet
+    int m_ifd = 5; //// was 2
 
     void task();
     void tick(int dt);
