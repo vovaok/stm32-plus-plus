@@ -14,14 +14,14 @@ public:
         // .. something else state
     };
     
-    const int &voltage() const {return m_voltage;} // [mV]
-    const int &current() const {return m_current;} // [mA]
-    const int &remainingCapacity() const {return m_remCap;} // [mAh] or [mWh]
+    int voltage() const {return m_voltage;} // [mV]
+    int current() const {return m_current;} // [mA]
+    int remainingCapacity() const {return m_remCap;} // [mAh] or [mWh]
     int totalCapacity() const {return m_totCap;} // [mAh] or [mWh]
     int designedCapacity() const {return m_desCap;} // [mAh] or [mWh]
-    const int8_t &percent() const {return m_percent;} // remaining capacity in percents
-    const State &state() const {return m_state;}
-    const float &temperature() const {return m_temperature;} // degrees of Celsium
+    int8_t percent() const {return m_percent;} // remaining capacity in percents
+    State state() const {return m_state;}
+    float temperature() const {return m_temperature;} // degrees of Celsium
     bool isPresent() const {return m_present;}
     
     uint8_t cellCount() const {return m_data.size() / 2;}
