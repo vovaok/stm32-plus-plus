@@ -1,4 +1,5 @@
 #include "sequencer.h"
+#include <math.h>
 
 float Sequencer::m_noteFreq[7] =
 {
@@ -36,8 +37,10 @@ void Sequencer::parseNext()
         return;
     
     char c;
+    float f = 0;   // current frequency
+    float len = 0; // current length
     
-    do switch (c = *m_seq++)
+    do switch (c = toupper(*m_seq++))
     {
     case ' ': continue;
     
@@ -46,65 +49,59 @@ void Sequencer::parseNext()
         stop();
         return;
         
-//    case 'V': m_seq++; continue; // VOICE not implemented yet
-        
     case 'O': // OCTAVE
         m_oct = readNum();
+        break;
+        
+    case '<': // octave down
+        --m_oct;
+        break;
+        
+    case '>': // octave up
+        ++m_oct;
         break;
         
     case 'T':
         m_tempo = readNum();
         break;
-    
-//    case 'U': m_seq++; continue; // VOLUME no implemented yet
+        
+    case 'U': // VOLUME no implemented yet
+        if (nextIsDigit())
+            readNum();
+        break;
+        
+    case 'V': // VOICE not implemented yet
+        if (nextIsDigit())
+            readNum();
+        break;
     
     case '1': case '2': case '3': case '4': case '5':
     case '6': case '7': case '8': case '9':
         --m_seq;
-        m_dur = readNum(); // numerator
+        m_len = readNum(); // numerator
         if (testNext('/'))
-            m_dur /= readNum(); // denominator
+            m_len /= readNum(); // denominator
         break;
         
     case '/':
-        m_dur = 1.f / readNum();
-        break;        
-    
-    case 'A': case 'B': case 'C': case 'D': case 'E': case 'F': case 'G':
-    {
-        float f = m_noteFreq[c - 'A'];
-        float d = 240.f / m_tempo * m_dur;
+    case 'L':
+        m_len = 1.f / readNum();
+        break; 
         
-        // apply octave
-        if (*m_seq >= '0' && *m_seq <= '9')
-            f *= 1 << readNum();
-        else
-            f *= 1 << m_oct;
-        
-        // apply halftone
-        if (testNext('#')) // sharp
-            f *= 1.0595f;
-        else if (testNext('b')) // flat
-            f *= 0.94383446f;
-        
-        // half a duration longer
-        if (testNext('.'))
-            d *= 1.5f;
-        
-        playToneFunc(f, d * 0.9f); // duration is truncated
-        wait(d);
-    } return;
-    
-    case '&': // pause
-        wait(240.f / m_tempo * m_dur);
-        return;
+    case 'M': // legato/normal/staccato
+        switch (*m_seq++)
+        {
+        case 'L': case 'l': m_dur = 1.f; break;
+        case 'N': case 'n': m_dur = 7.f/8.f; break;
+        case 'S': case 's': m_dur = 3.f/4.f; break;
+        }
+        break;
         
     case '(':
         m_stack.push_back(m_seq);
         break;
         
     case ')':
-    {
         if (m_stack.empty())
         {
             m_seq = m_buffer.data();
@@ -117,15 +114,53 @@ void Sequencer::parseNext()
                 m_stack.pop_back();
             m_seq = seq;
         }
-    } break;
+        break;
+    
+    case 'A': case 'B': case 'C': case 'D': case 'E': case 'F': case 'G': // plain note
+        // obtain frequency
+        f = m_noteFreq[c - 'A'] * (1 << m_oct);
+        
+        // apply halftone
+        if (testNext('#') || testNext('+')) // sharp
+            f *= 1.0595f;
+        else if (testNext('b') || testNext('-')) // flat
+            f *= 0.94383446f;
+        // fallthrough
+    
+    case 'P': case 'R': case '&': // pause
+        // default length
+        len = m_len;
+        
+        // ovveride length
+        if (nextIsDigit())
+            len = 1.f / readNum();
+        
+        // half a length longer
+        while (testNext('.'))
+            len *= 1.5f;
+        // fallthrough
+    
+    case 'N': // play arbitrary note
+        if (c == 'N' && nextIsDigit())
+        {
+            int num = readNum();
+            f = num? 16.352f * powf(1.0594631f, num - 1): 0;
+        }
+        
+        float d = 240.f / m_tempo * len;
+        if (f)
+            playToneFunc(f, d * m_dur);        
+        // wait for note is being played
+        wait(d);
+        return;
     }
     while (*m_seq);
 }
 
 int Sequencer::readNum()
 {
-    int num = *m_seq++ - '0';
-    while (*m_seq >= '0' && *m_seq <= '9')
+    int num = 0;
+    while (nextIsDigit())
         num = num * 10 + (*m_seq++ - '0');
     return num;
 }
@@ -136,6 +171,11 @@ bool Sequencer::testNext(char c)
         return false;    
     m_seq++;
     return true;
+}
+                     
+bool Sequencer::nextIsDigit()
+{
+    return *m_seq >= '0' && *m_seq <= '9';
 }
 
 void Sequencer::wait(float dur)
