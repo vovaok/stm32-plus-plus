@@ -78,9 +78,9 @@ void Sequencer::parseNext()
     case '1': case '2': case '3': case '4': case '5':
     case '6': case '7': case '8': case '9':
         --m_seq;
-        m_len = readNum(); // numerator
+        len = readNum(); // numerator
         if (testNext('/'))
-            m_len /= readNum(); // denominator
+            m_len = len/readNum(); // denominator
         break;
         
     case '/':
