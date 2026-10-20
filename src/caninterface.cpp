@@ -63,11 +63,15 @@ void CanInterface::messageReceived(int fifoChannel)
     {
         int fidx = pendingMessageFilterIdx(fifoChannel);
         if (fmiSocketMap.count(fidx) && fmiSocketMap.at(fidx))
-            fmiSocketMap.at(fidx)->onReadyRead();
+        {
+            auto f = fmiSocketMap.at(fidx)->onReadyRead;
+            if (f) f();
+        }
     }
     else if (fifoChannel < m_sockets.size() && m_sockets[fifoChannel])
     {
-        m_sockets[fifoChannel]->onReadyRead();
+        auto f = m_sockets[fifoChannel]->onReadyRead;
+        if (f) f();
     }
 }
 

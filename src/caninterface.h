@@ -42,13 +42,14 @@ public:
 
     virtual void setRxInterruptEnabled(int fifoChannel, bool enabled) {}
 
-//    virtual bool setBaudrate(int value) = 0;
+    virtual bool setBaudrate(int nominal, int data=0) {return false;}
 
 protected:
     friend class CanSocket;
 
     int acquireFifoChannel(CanSocket *socket = nullptr);
     void releaseFifoChannel(int fifoChannel);
+    uint32_t fifoChannelsMask() const {return ~m_availFifo;}
 
     // call this when new message is available
     void messageReceived(int fifoChannel);
