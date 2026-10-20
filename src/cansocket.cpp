@@ -13,6 +13,14 @@ CanSocket::~CanSocket()
     m_can->releaseFifoChannel(m_fifoChannel);
 }
 
+void CanSocket::setFixedId(int id, int recv_id)
+{
+    m_fixedId = id;
+    if (recv_id < 0)
+        recv_id = id;
+    addFilter(recv_id, 0xFFFFFFFF);
+}
+
 int CanSocket::addFilter(uint32_t id, uint32_t mask)
 {
     int filterIdx = m_can->configureFilter(m_flags, id, mask, m_fifoChannel);
@@ -41,7 +49,9 @@ int CanSocket::bytesAvailable() const
     int len = m_can->pendingMessageLength(m_fifoChannel);
     if (len < 0)
         return 0;
-    if (m_flags & CanInterface::StdId)
+    if (isFixedId())
+        return len;
+    else if (m_flags & CanInterface::StdId)
         return len + 2;
     else
         return len + 4;
@@ -57,6 +67,16 @@ int CanSocket::readData(char *data, int size)
             return -1;
     }
 
+    if (isFixedId())
+    {
+        uint32_t id; // for dummy read
+        int len = m_can->receiveMessage(
+            &id, reinterpret_cast<uint8_t*>(data), size, m_fifoChannel);
+        if (len < 0)
+            return 0;
+        return len;
+    }
+    
     if (size < 2)
         return -1;
     if (m_flags & CanInterface::StdId)
@@ -86,7 +106,14 @@ int CanSocket::readData(char *data, int size)
 int CanSocket::writeData(const char *data, int size)
 {
     bool r;
-    if (m_flags & CanInterface::StdId)
+    if (isFixedId())
+    {
+        if (size < 0)
+            return -1;
+        r = m_can->transmitMessage(
+            m_flags, m_fixedId, reinterpret_cast<const uint8_t*>(data), size);
+    }
+    else if (m_flags & CanInterface::StdId)
     {
         if (size < 2)
             return -1;

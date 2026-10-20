@@ -78,6 +78,8 @@ public:
     virtual bool open(Device::OpenMode mode=Device::ReadWrite) override; // set to normal mode
     virtual bool close() override; // set to init mode
     virtual bool isOpen() const override;
+    
+    virtual bool setBaudrate(int nominal, int data=0) override;
 
 //    /*! Send a message.
 //        \param [in] msg The message to be transmitted. You must complete ExtId, DLC and Data (optional) fields before passing it to the function.

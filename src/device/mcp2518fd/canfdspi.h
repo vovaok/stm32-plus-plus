@@ -33,6 +33,8 @@ public:
     virtual bool close() override; // set to init mode
     virtual bool isOpen() const override;
     
+    virtual bool setBaudrate(int nominal, int data) override;
+    
     bool configureRxFifo(int fifoChannel, int depth, int maxsize);
     bool configureTxFifo(int fifoChannel, int depth, int maxsize);
     
@@ -68,6 +70,8 @@ private:
 //    uint8_t m_chipId;
 //    Spi *m_spi;
 //    Gpio m_cs;
+    
+    void task();
     
     ByteArray m_buffer;
     

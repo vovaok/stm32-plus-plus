@@ -1,5 +1,6 @@
 #include "canfdspi.h"
 #include "drv_canfdspi_api.h"
+#include "core/timer.h"
 
 // Transmit Channels
 #define APP_TX_FIFO CAN_FIFO_CH31
@@ -7,6 +8,7 @@
 //#define APP_RX_FIFO CAN_FIFO_CH30
 
 CAN_BITTIME_SETUP selectedBitTime = CAN_1000K_5M; // CAN_500K_2M
+#define CAN_SYSCLK_MHZ  40
 
 
 CanFdSpi *CanFdSpi::m_handle[CANFDSPI_INSTANCES_MAX] {0};
@@ -43,6 +45,24 @@ CanFdSpi::CanFdSpi(uint8_t chipId, Spi *spi, Gpio::PinName chipSelect) :
     
     init();
     acquireFifoChannel(); // consume FIFO_CHANNEL_0
+    
+//    stmApp()->registerTaskEvent(EVENT(&CanFdSpi::task));
+    Timer *timer = new Timer();
+    timer->onTimeout = EVENT(&CanFdSpi::task);
+    timer->start(1);
+}
+
+void CanFdSpi::task()
+{
+    uint32_t fifos = fifoChannelsMask();
+    for (int i=1; i<31; i++)
+    {
+        if (fifos & (1<<i))
+        {
+            if (pendingMessageLength(i) >= 0)
+                messageReceived(i);
+        }
+    }
 }
 
 int CanFdSpi::pendingMessageLength(int fifoChannel)
@@ -255,6 +275,144 @@ void CanFdSpi::init()
 //    DRV_CANFDSPI_TransmitChannelEventEnable(m_chipId, APP_TX_FIFO, CAN_TX_FIFO_NOT_FULL_EVENT);
 //    DRV_CANFDSPI_ReceiveChannelEventEnable(m_chipId, APP_RX_FIFO, CAN_RX_FIFO_NOT_EMPTY_EVENT);
     DRV_CANFDSPI_ModuleEventEnable(m_chipId, (CAN_MODULE_EVENT)(CAN_TX_EVENT | CAN_RX_EVENT));
+}
+
+bool CanFdSpi::setBaudrate(int nominal, int data)
+{
+    bool reopen = isOpen();
+    close();
+    
+    int fsys_Hz = CAN_SYSCLK_MHZ * 1'000'000;
+    if (!data)
+        data = nominal;
+
+    // ============================================================
+    // NOMINAL BIT TIMING  (REG_CiNBTCFG)
+    // fields: SJW[7], TSEG2[7], TSEG1[8], BRP[8]
+    // Limits raw:  BRP<=255, TSEG1<=255, TSEG2<=127, SJW<=127
+    // ============================================================
+    REG_CiNBTCFG nbtcfg;
+    nbtcfg.word = canControlResetValues[cREGADDR_CiNBTCFG / 4];
+
+    bool nbt_found = false;
+    if (nominal != 0 && fsys_Hz != 0) {
+        for (uint32_t brp = 0; brp <= 255; brp++) {
+            uint64_t div = (uint64_t)nominal * (brp + 1);
+            if (fsys_Hz % div != 0) continue;
+
+            uint32_t N = (uint32_t)(fsys_Hz / div);   // TQ ? ????
+            if (N < 4) continue;                       // ??????? 1 sync + 1 + 1
+            if (N > 1 + 256 + 128) continue;           // TSEG1_h<=256, TSEG2_h<=128
+
+            // sample point 80%: tseg1_h = round(N * 80 / 100)
+            uint32_t tseg1_h = (N * 80u + 50u) / 100u;
+            if (tseg1_h < 1) tseg1_h = 1;
+            if (tseg1_h > 256) continue;
+            if (tseg1_h >= N) continue;
+
+            uint32_t tseg2_h = N - 1 - tseg1_h;        // sync = 1
+            if (tseg2_h < 1) continue;
+            if (tseg2_h > 128) continue;
+
+            uint32_t sjw_h = tseg2_h;
+            if (sjw_h > 128) sjw_h = 128;              // ???????? ???? SJW
+
+            nbtcfg.bF.BRP   = (uint32_t)brp;
+            nbtcfg.bF.TSEG1 = tseg1_h - 1;
+            nbtcfg.bF.TSEG2 = tseg2_h - 1;
+            nbtcfg.bF.SJW   = sjw_h   - 1;
+            nbt_found = true;
+            break;
+        }
+    }
+    if (!nbt_found)
+        return false;
+
+    writeReg(cREGADDR_CiNBTCFG, nbtcfg.word);
+    
+//    err = DRV_CANFDSPI_WriteWord(index, cREGADDR_CiNBTCFG, nbtcfg.word);
+//    if (err) return err;
+
+    // ============================================================
+    // DATA BIT TIMING  (REG_CiDBTCFG)
+    // ????: SJW[4], TSEG2[4], TSEG1[5], BRP[8]
+    // ?????? raw:  BRP<=255, TSEG1<=31, TSEG2<=15, SJW<=15
+    // ============================================================
+    REG_CiDBTCFG dbtcfg;
+    dbtcfg.word = canControlResetValues[cREGADDR_CiDBTCFG / 4];
+
+    REG_CiTDC tdc;
+    tdc.word = 0;
+
+    const bool autoTDC = (data >= 1000000u);
+    const uint32_t sp_num = autoTDC ? 75u : 80u;   // sample point %
+    const uint32_t sp_den = 100u;
+
+    bool dbt_found = false;
+    if (data != 0 && fsys_Hz != 0) {
+        for (uint32_t brp = 0; brp <= 255; brp++) {
+            uint64_t div = (uint64_t)data * (brp + 1);
+            if (fsys_Hz % div != 0) continue;
+
+            uint32_t N = (uint32_t)(fsys_Hz / div);
+            if (N < 4) continue;
+            if (N > 1 + 32 + 16) continue;            // TSEG1_h<=32, TSEG2_h<=16
+
+            // tseg1_h = round(N * sp_num / sp_den)
+            uint32_t tseg1_h =
+                (uint32_t)(((uint64_t)N * sp_num + sp_den / 2) / sp_den);
+            if (tseg1_h < 1) tseg1_h = 1;
+            if (tseg1_h > 32) continue;
+            if (tseg1_h >= N) continue;
+
+            uint32_t tseg2_h = N - 1 - tseg1_h;
+            if (tseg2_h < 1) continue;
+            if (tseg2_h > 16) continue;
+
+            uint32_t sjw_h = tseg2_h;
+            if (sjw_h > 16) sjw_h = 16;               // maximum of SJW
+
+            dbtcfg.bF.BRP   = (uint32_t)brp;
+            dbtcfg.bF.TSEG1 = tseg1_h - 1;
+            dbtcfg.bF.TSEG2 = tseg2_h - 1;
+            dbtcfg.bF.SJW   = sjw_h   - 1;
+
+            // SSP: offset = TSEG1_human + 1 (sync)
+            tdc.bF.TDCMode   = autoTDC ? CAN_SSP_MODE_AUTO : CAN_SSP_MODE_OFF;
+            tdc.bF.TDCOffset = tseg1_h + 1;
+            tdc.bF.TDCValue  = 0;
+
+            dbt_found = true;
+            break;
+        }
+    }
+    if (!dbt_found)
+        return false;
+
+    writeReg(cREGADDR_CiDBTCFG, dbtcfg.word);
+    
+//    err = DRV_CANFDSPI_WriteWord(index, cREGADDR_CiDBTCFG, dbtcfg.word);
+//    if (err)
+//        return false;
+
+    // ============================================================
+    // TRANSMITTER DELAY COMPENSATION  (REG_CiTDC)
+    // ============================================================
+#ifdef REV_A
+    tdc.bF.TDCOffset = 0;
+    tdc.bF.TDCValue  = 0;
+#endif
+    
+    writeReg(cREGADDR_CiTDC, tdc.word);
+    
+//    err = DRV_CANFDSPI_WriteWord(index, cREGADDR_CiTDC, tdc.word);
+//    if (err)
+//        return false;
+    
+    if (reopen)
+        open();
+    
+    return true;
 }
 
 bool CanFdSpi::open(Device::OpenMode mode)
