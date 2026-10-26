@@ -42,6 +42,7 @@ private:
     CanInterface::Flags m_flags;
     int m_fixedId = -1;
     int m_fifoChannel = -1;
+    int m_filterIdx = -1;
     bool m_shareChannel = false;
     
     inline bool isFixedId() const {return m_fixedId >= 0;}

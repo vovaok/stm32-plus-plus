@@ -18,7 +18,9 @@ void CanSocket::setFixedId(int id, int recv_id)
     m_fixedId = id;
     if (recv_id < 0)
         recv_id = id;
-    addFilter(recv_id, 0xFFFFFFFF);
+    if (m_filterIdx >= 0)
+        removeFilter(m_filterIdx);
+    m_filterIdx = addFilter(recv_id, 0xFFFFFFFF);
 }
 
 int CanSocket::addFilter(uint32_t id, uint32_t mask)
