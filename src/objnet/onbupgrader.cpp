@@ -179,7 +179,7 @@ void OnbUpgrader::onTimer()
                 sendMessageToDevices(svcUpgradeProbe);
                 //mMaster->sendGlobalRequest(aidUpgradeProbe, true);
                 logEvent("no response, probe request...\n");
-                mTimer->setInterval(200);
+                mTimer->setInterval(50);
                 return;
             }
             else
@@ -210,15 +210,24 @@ void OnbUpgrader::onTimer()
     }
     else if (mState == sTransferPage)
     {
-        mTimer->setInterval(16);
+        mTimer->setInterval(5);
 
         int seqcnt = mPageSize >> 3;
-        int maxseqs = 128 >> 3;
+//        int maxseqs = 128 >> 3;
+        int N = mMaster->objnetInterface()->maxFrameSize() & ~7;
+//        if (mCount + N >= mSize)
+//            N = (mSize - mCount + 7) >> 3;
+        
+//        int maxseqs = N >> 3;
+        // old conf:
+        // N = 8 && maxseqs = 128 >> 3
+        
+        // test bootldrVersion here!        
         logEvent(".");
-        for (int i=0; i<maxseqs; i++)
-        {
-            ByteArray ba(8, '\0');
-            for (int i=0; i<8; i++)
+//        for (int i=0; i<maxseqs; i++)
+//        {
+            ByteArray ba(N, '\0');
+            for (int i=0; i<N; i++)
             {
                 int ci = mCount + i;
                 int ai = ci - mAppinfoIdx;
@@ -232,14 +241,14 @@ void OnbUpgrader::onTimer()
             mMaster->sendUpgrageData(seq, ba);
             mCount += basz;
             mCurBytes += basz;
-        }
+//        }
 
         if (mCurBytes >= mPageSize || mCount >= mSize) // page transferred
             mState = sEndPage;
     }
     else if (mState == sEndPage)
     {
-        mTimer->setInterval(200); // wait ACK
+        mTimer->setInterval(50); // wait ACK
         mPageTransferred = true;
         sendMessageToDevices(svcUpgradeProbe);
         //master->sendGlobalRequest(aidUpgradeProbe, true);
@@ -271,6 +280,9 @@ void OnbUpgrader::onMessage(const CommonMessage &msg)
     
     switch (oid)
     {
+      case svcEcho:
+        break;
+        
       case svcUpgradeAccepted:
         mDevices[addr] = false;
         logEvent("+1 ");
