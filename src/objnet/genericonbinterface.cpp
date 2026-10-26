@@ -2,8 +2,8 @@
 
 using namespace Objnet;
 
-static char buf[1024];
-static char txBuf[1024];
+static char buf[1032];
+static char txBuf[1032];
 
 GenericOnbInterface::GenericOnbInterface(Device *dev, int framesize, BusType bus) :
     m_device(dev)
@@ -49,7 +49,7 @@ void GenericOnbInterface::receiveHandler()
 {
 //    if (!m_device->isOpen())
 //        return false;
-    int sz = m_device->read(buf, 1024);
+    int sz = m_device->read(buf, 1032);
     
     uint32_t *data = reinterpret_cast<uint32_t *>(buf);
     if (prefix)
