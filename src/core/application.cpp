@@ -141,36 +141,13 @@ bool Application::startOnbBootloader()
     unsigned long *ptr = (unsigned long*)0x08000000;
     if (*ptr == 0xFFFFFFFF)
         return false;
-    void (*f)(void) = reinterpret_cast<void(*)(void)>(*(ptr + 1));
-    __disable_irq();
-    for (int i=0; i<3; i++)
-    {
-        NVIC->ICER[i] = 0xFFFFFFFF;
-        NVIC->ICPR[i] = 0xFFFFFFFF;
-    }
-#define __DISABLE_GPIO(x) GPIO##x->MODER = 0; GPIO##x->PUPDR = 0
-    //__DISABLE_GPIO(A);
-    GPIOA->MODER &= 0x3C000000; GPIOA->PUPDR &= 0x3C000000;
-    //__DISABLE_GPIO(B);
-    GPIOB->MODER &= 0x000000C0; GPIOB->PUPDR &= 0x000000C0;
-    __DISABLE_GPIO(C);
-    __DISABLE_GPIO(D);
-#if defined(GPIOE)
-    __DISABLE_GPIO(E);
-#endif
-    __DISABLE_GPIO(F);
-#if defined(GPIOG)
-    __DISABLE_GPIO(G);
-#endif
-#if defined(GPIOH)
-    __DISABLE_GPIO(H);
-#endif
-#if defined(GPIOI)
-    __DISABLE_GPIO(I);
-#endif
-    __set_MSP(*ptr);
-    f();
-    return true; // po idee ne doljno suda zahodit
+    
+    rcc().setPeriphEnabled(PWR);
+    PWR->CR |= PWR_CR_DBP;
+    RTC->BKP0R = 0xb00710ad; // bootload
+    PWR->CR &= ~PWR_CR_DBP;
+    
+    NVIC_SystemReset();
 }
 //---------------------------------------------------------------------------
 
