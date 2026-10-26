@@ -1,3 +1,5 @@
+#if LWIP_TCP
+
 #include "httpserver.h"
 
 std::map<ByteArray, ByteArray> HttpServerTask::m_mimeMap =
@@ -201,3 +203,5 @@ HttpQuery::HttpQuery(const ByteArray &ba)
         m_path = ba;
     }
 }
+
+#endif

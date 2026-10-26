@@ -1,3 +1,5 @@
+#if LWIP_TCP
+
 #include "modbustcp.h"
 
 using namespace Modbus;
@@ -91,3 +93,5 @@ void ModbusTcp::writeADU(const ADU &adu)
     if (m_socket)
         m_socket->write(m_txBuffer);
 }
+
+#endif

@@ -19,7 +19,9 @@ extern __IO uint32_t LocalTime;
 Ethernet *Ethernet::m_self = nullptr;
 bool Ethernet::s_llInitCompleted = false;
 
+#if defined(LWIP_TCP) && LWIP_TCP == 1
 extern "C" void tcp_tmr();
+#endif
 
 Ethernet *Ethernet::instance()
 {
@@ -82,14 +84,18 @@ Ethernet::Ethernet(const RMII &rmii)
 
         lwip_init();
 
+#if defined(LWIP_TCP) && LWIP_TCP == 1
         m_tcpTimer.onTimeout = tcp_tmr;
         m_tcpTimer.start(250);
+#endif
 
         m_arpTimer.onTimeout = etharp_tmr;
         m_arpTimer.start(5000);
 
+#if defined(LWIP_IGMP) && LWIP_IGMP == 1        
         m_igmpTmr.onTimeout = igmp_tmr;
         m_igmpTmr.start(IGMP_TMR_INTERVAL);
+#endif
 
         stmApp()->registerTaskEvent(EVENT(&Ethernet::task));
 
@@ -115,13 +121,8 @@ const Ethernet::MacAddress_t &Ethernet::macAddress()
     return *reinterpret_cast<const MacAddress_t *>(m_netif.hwaddr);
 }
 
-void Ethernet::setupNetworkInterface(const char *ipaddr, const char *netmask, const char *gateway)
+void Ethernet::setupNetworkInterface(ip_addr_t ipaddr, ip_addr_t netmask, ip_addr_t gateway)
 {
-    ip_addr_t addr, mask, gw;
-    addr = ipFromString(ipaddr);
-    mask = ipFromString(netmask);
-    gw = ipFromString(gateway);
-
     /* - netif_add(struct netif *netif, struct ip_addr *ipaddr,
         struct ip_addr *netmask, struct ip_addr *gw,
         void *state, err_t (* init)(struct netif *netif),
@@ -134,7 +135,7 @@ void Ethernet::setupNetworkInterface(const char *ipaddr, const char *netmask, co
 
     The init function pointer must point to a initialization function for
     your ethernet netif interface. The following code illustrates it's use.*/
-    netif_add(&m_netif, &addr, &mask, &gw, NULL, &ethernetif_init, &ethernet_input);
+    netif_add(&m_netif, &ipaddr, &netmask, &gateway, NULL, &ethernetif_init, &ethernet_input);
 
     /*  Registers the default network interface.*/
     netif_set_default(&m_netif);
@@ -142,8 +143,24 @@ void Ethernet::setupNetworkInterface(const char *ipaddr, const char *netmask, co
     /*  When the netif is fully configured this function must be called.*/
     netif_set_up(&m_netif);
 
+#if defined(LWIP_IGMP) && LWIP_IGMP == 1
     m_netif.flags |= NETIF_FLAG_IGMP;
 //    igmp_start(&m_netif);
+#endif
+}
+
+void Ethernet::setupNetworkInterface(const char *ipaddr, const char *netmask, const char *gateway)
+{
+    setupNetworkInterface(
+        ipFromString(ipaddr),
+        ipFromString(netmask),
+        ipFromString(gateway)
+    );
+}
+
+void Ethernet::setAddress(ip_addr_t ipaddr, ip_addr_t netmask, ip_addr_t gateway)
+{
+    netif_set_addr(&m_netif, &ipaddr, &netmask, &gateway);
 }
 
 void Ethernet::setAddress(const char *ipaddr, const char *netmask, const char *gateway)

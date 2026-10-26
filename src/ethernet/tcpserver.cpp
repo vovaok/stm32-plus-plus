@@ -1,3 +1,5 @@
+#if LWIP_TCP
+
 #include "tcpserver.h"
 
 TcpServer::TcpServer() :
@@ -59,3 +61,5 @@ err_t TcpServer::s_accept(void *arg, struct tcp_pcb *newpcb, err_t err)
         return reinterpret_cast<TcpServer*>(arg)->accept(newpcb, err);
     return ERR_ARG;
 }
+
+#endif

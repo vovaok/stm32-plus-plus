@@ -1,3 +1,5 @@
+#if LWIP_TCP
+
 #include "tcpsocket.h"
 
 TcpSocket::TcpSocket() :
@@ -264,3 +266,5 @@ err_t TcpSocket::s_connected(void *arg, struct tcp_pcb *tpcb, err_t err)
         return reinterpret_cast<TcpSocket *>(arg)->connected(tpcb, err);
     return ERR_ARG;
 }
+
+#endif
