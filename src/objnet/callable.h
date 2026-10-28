@@ -117,31 +117,37 @@ struct fn_traits<F, std::void_t<decltype(&F::operator())>>
 
 // с аргументом
 template <class F, class R, class P> struct fn_traits<R (F::*)(P) const> {
-    using R_ = R; using P_ = P;
+    using R_ = std::decay_t<R>; 
+    using P_ = std::decay_t<P>;   // ← decay для аргумента
     static constexpr bool valid = true;
 };
 template <class F, class R, class P> struct fn_traits<R (F::*)(P)> {
-    using R_ = R; using P_ = P;
+    using R_ = std::decay_t<R>; 
+    using P_ = std::decay_t<P>;
     static constexpr bool valid = true;
 };
 
 // без аргумента
 template <class F, class R> struct fn_traits<R (F::*)() const> {
-    using R_ = R; using P_ = void;
+    using R_ = std::decay_t<R>; 
+    using P_ = void;
     static constexpr bool valid = true;
 };
 template <class F, class R> struct fn_traits<R (F::*)()> {
-    using R_ = R; using P_ = void;
+    using R_ = std::decay_t<R>; 
+    using P_ = void;
     static constexpr bool valid = true;
 };
 
 // указатель на функцию
 template <class R, class P> struct fn_traits<R(*)(P)> {
-    using R_ = R; using P_ = P;
+    using R_ = std::decay_t<R>; 
+    using P_ = std::decay_t<P>;
     static constexpr bool valid = true;
 };
 template <class R> struct fn_traits<R(*)()> {
-    using R_ = R; using P_ = void;
+    using R_ = std::decay_t<R>; 
+    using P_ = void;
     static constexpr bool valid = true;
 };
 

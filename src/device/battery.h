@@ -21,7 +21,7 @@ public:
     int designedCapacity() const {return m_desCap;} // [mAh] or [mWh]
     int8_t percent() const {return m_percent;} // remaining capacity in percents
     State state() const {return m_state;}
-    float temperature() const {return m_temperature;} // degrees of Celsium
+    int temperature() const {return m_temperature;} // degrees of Celsium
     bool isPresent() const {return m_present;}
     
     uint8_t cellCount() const {return m_data.size() / 2;}
@@ -42,7 +42,7 @@ protected:
     int8_t m_percent = 0;
     State m_state = UnknownState;
     bool m_present = false;
-    float m_temperature = 0;
+    int m_temperature = 0;
     
     void setCellCount(int value)
     {

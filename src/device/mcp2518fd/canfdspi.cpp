@@ -32,7 +32,8 @@ CanFdSpi::CanFdSpi(uint8_t chipId, Spi *spi, Gpio::PinName chipSelect) :
     if (!spi->isOpen())
     {
         spi->setMasterMode();
-        spi->setBaudrate(20000000);
+//        spi->setBaudrate(20000000);
+        spi->setBaudrate(10000000);
         spi->setCPOL_CPHA(0, 0);
         spi->setDataSize(8);
         spi->setUseDmaTx(true);
@@ -47,22 +48,23 @@ CanFdSpi::CanFdSpi(uint8_t chipId, Spi *spi, Gpio::PinName chipSelect) :
     acquireFifoChannel(); // consume FIFO_CHANNEL_0
     
 //    stmApp()->registerTaskEvent(EVENT(&CanFdSpi::task));
-    Timer *timer = new Timer();
-    timer->onTimeout = EVENT(&CanFdSpi::task);
-    timer->start(1);
+
+//    Timer *timer = new Timer();
+//    timer->onTimeout = EVENT(&CanFdSpi::task);
+//    timer->start(1);
 }
 
 void CanFdSpi::task()
 {
-    uint32_t fifos = fifoChannelsMask();
-    for (int i=1; i<31; i++)
-    {
-        if (fifos & (1<<i))
-        {
-            if (pendingMessageLength(i) >= 0)
-                messageReceived(i);
-        }
-    }
+//    uint32_t fifos = fifoChannelsMask();
+//    for (int i=1; i<31; i++)
+//    {
+//        if (fifos & (1<<i))
+//        {
+//            if (pendingMessageLength(i) >= 0)
+//                messageReceived(i);
+//        }
+//    }
 }
 
 int CanFdSpi::pendingMessageLength(int fifoChannel)
@@ -532,7 +534,7 @@ int CanFdSpi::configureFilter(Flags flags, uint32_t id, uint32_t mask, int fifoC
     
     /// @todo todo!! replace magic number 8 of FIFO depth with something more useful
     int maxsize = flags & FD? 64: 8;
-    int depth = 4;//2;//maxsize == 8? 32: 8;
+    int depth = 8;//2;//maxsize == 8? 32: 8;
     configureRxFifo(fifoChannel, depth, maxsize);
     
     m_filterIdx++;
@@ -574,6 +576,9 @@ bool CanFdSpi::receive(CAN_RX_MSGOBJ &rxObj, uint8_t *data, uint8_t maxsize, int
 //    return true;
     
     DRV_CANFDSPI_ReceiveChannelEventGet(m_chipId, (CAN_FIFO_CHANNEL)fifoChannel, &rxFlags);
+    if ((uint8_t)rxFlags == 0xFF) // SPI fail
+        return false;
+    
     if (rxFlags & CAN_RX_FIFO_NOT_EMPTY_EVENT)
     {
         DRV_CANFDSPI_ReceiveMessageGet(m_chipId, (CAN_FIFO_CHANNEL)fifoChannel, &rxObj, data, maxsize);
