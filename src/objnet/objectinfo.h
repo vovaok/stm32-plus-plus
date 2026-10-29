@@ -611,12 +611,14 @@ ObjectInfo::ObjectInfo(std::string name, F f, Flags flags)
     else
     {
         mReadPtr = new Callable<R, P>(std::function<R(P)>(std::move(f)));
-        mDesc.writeSize = sizeof(P);
+        mDesc.writeSize = descSize<P>;
+        flags = static_cast<ObjectInfo::Flags>(flags | Write);
     }
     
     if constexpr (!std::is_void_v<R>)
     {
-        mDesc.readSize = sizeof(R);
+        mDesc.readSize = descSize<R>;
+        flags = static_cast<ObjectInfo::Flags>(flags | Read);
     }
     else
     {
@@ -625,11 +627,7 @@ ObjectInfo::ObjectInfo(std::string name, F f, Flags flags)
 
     mDesc.rType = typeValue<R>;
     mDesc.wType = typeValue<P>;
-    
-    if (mDesc.readSize)
-        flags = static_cast<ObjectInfo::Flags>(flags | Read);
-    if (mDesc.writeSize)
-        flags = static_cast<ObjectInfo::Flags>(flags | Write);
+        
     mDesc.flags = (flags | Function) & ~Save;
 
     mDesc.name  = std::move(name);

@@ -154,4 +154,18 @@ template <class R> struct fn_traits<R(*)()> {
 template <class T>
 inline constexpr bool is_callable_v = fn_traits<std::decay_t<T>>::valid;
 
+template <class T>
+struct is_dynamic_type : std::false_type {};
+
+template <>
+struct is_dynamic_type<ByteArray> : std::true_type {};
+
+// Если у вас есть другие динамические типы (например, string), добавьте их сюда:
+// template <> struct is_dynamic_type<std::string> : std::true_type;
+
+template <class T>
+inline constexpr int descSize = is_dynamic_type<std::decay_t<T>>::value 
+                              ? 0 
+                              : int(sizeof(std::decay_t<T>));
+
 }
