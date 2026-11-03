@@ -69,7 +69,7 @@ void ObjnetNode::bindSvcObject(SvcOID oid, ObjectInfo &&obj)
 {
     mSvcObjects[oid] = std::move(obj);
     #ifndef QT_CORE_LIB
-    if (obj.isStorable())
+    if (mSvcObjects[oid].isStorable())
         objnetStorage()->load(mSvcObjects[oid]);
     #endif
 }
