@@ -20,7 +20,7 @@ CanFdSpi *CanFdSpi::instance(uint8_t id)
     return nullptr;
 }
 
-CanFdSpi::CanFdSpi(uint8_t chipId, Spi *spi, Gpio::PinName chipSelect) :
+CanFdSpi::CanFdSpi(uint8_t chipId, Spi *spi, Gpio::PinName chipSelect, int spiFreq) :
     CanInterface(CAN_FIFO_TOTAL_CHANNELS - 1), // 31 fifos
     m_chipId(chipId),
     m_spi(spi),
@@ -32,8 +32,8 @@ CanFdSpi::CanFdSpi(uint8_t chipId, Spi *spi, Gpio::PinName chipSelect) :
     if (!spi->isOpen())
     {
         spi->setMasterMode();
-//        spi->setBaudrate(20000000);
-        spi->setBaudrate(10000000);
+        spi->setBaudrate(spiFreq);
+//        spi->setBaudrate(10000000);
         spi->setCPOL_CPHA(0, 0);
         spi->setDataSize(8);
         spi->setUseDmaTx(true);

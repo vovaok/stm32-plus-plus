@@ -17,7 +17,7 @@ int8_t DRV_CANFDSPI_ReadByteArray(uint8_t chipId, uint16_t addr, uint8_t *data, 
 class CanFdSpi : public CanInterface
 {
 public:
-    CanFdSpi(uint8_t chipId, Spi *spi, Gpio::PinName chipSelect);
+    CanFdSpi(uint8_t chipId, Spi *spi, Gpio::PinName chipSelect, int spiFreq=20_M);
     static CanFdSpi *instance(uint8_t id);
     
     virtual bool hasFD() override {return true;}
