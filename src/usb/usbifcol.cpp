@@ -24,12 +24,12 @@ void UsbInterfaceCollection::addChild(UsbNode *child)
 {
     if (child->nodeType() == UsbNode::NodeTypeInterface)
     {
-        UsbInterface* iface = dynamic_cast<UsbInterface*>(child);
-        if (iface)
+        UsbInterface* iface = static_cast<UsbInterface*>(child);
+        if (iface && parent())
         {
-            UsbConfiguration *conf = dynamic_cast<UsbConfiguration*>(parent());
-            if (conf)
+            if (parent()->nodeType() == NodeTypeConfig)
             {
+                UsbConfiguration *conf = static_cast<UsbConfiguration*>(parent());
                 iface->setInterfaceNumber(conf->incrementNumInterfaces());
             }
         }
