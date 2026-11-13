@@ -45,7 +45,7 @@ public:
     int readLine(char *data, int maxsize);
     ByteArray readLine(int maxsize=0);
     
-    NotifyEvent onReadyRead;
+    std::function<void(void)> onReadyRead; // NotifyEvent
     NotifyEvent onBytesWritten;
     
     const ByteArray &errorString() const {return m_errorString;}
