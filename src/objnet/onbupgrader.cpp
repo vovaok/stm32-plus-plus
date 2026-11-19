@@ -43,7 +43,7 @@ void OnbUpgrader::load(const void *firmware, int size)
     mPageTransferred = false;
     mPageRepeat = false;
 
-    logEvent("firmware size = " + _number(mSize) + " bytes");
+    logEvent("firmware size = " + _number(mSize) + " bytes\n");
 
     unsigned char s[] = "__APPINFO__";
     for (int i=0; i<=mSize-11; i++)
@@ -59,7 +59,7 @@ void OnbUpgrader::load(const void *firmware, int size)
     
     if (mAppinfoIdx < 0)
     {
-        logEvent("no app info supplied. abort");
+        logEvent("no app info supplied. abort\n");
         return;
     }
 
