@@ -27,7 +27,8 @@ class ObjnetDevice : public QObject
 #endif
 private:
     // mask should be 0x3FF but now we have this shit for backward compatibility
-    static const uint32_t mInfoValidMask = 0x000001FF;
+    // fuck the compatibility
+    static const uint32_t mInfoValidMask = 0x000003FF;
     uint32_t mInfoValidFlags;
 
     void onObjectValueChanged(unsigned char id);
@@ -140,6 +141,8 @@ public:
     void changeBusAddress(unsigned char mac);
 
     ObjnetDevice *parentDevice() {return mParent;}
+    
+    ObjnetMaster *master() const {return mMaster;}
 
     #ifndef QT_CORE_LIB
 

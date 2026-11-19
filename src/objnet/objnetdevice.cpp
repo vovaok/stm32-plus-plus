@@ -424,6 +424,9 @@ void ObjnetDevice::receiveServiceObject(unsigned char oid, const ByteArray &ba)
       default:; // warning elimination
     }
     
+    if (oid < 32)
+        notifyReady();
+    
     #ifdef QT_CORE_LIB
     if (oid < svcObjectInfo)
         emit infoReceived(oid);
@@ -756,6 +759,7 @@ _String ObjnetDevice::busTypeName() const
         case BusSwonb:      return "SWONB";
         case BusVirtual:    return "virtual";
         case BusRadio:      return "radio";
+        case BusEthernet:   return "ethernet";
         default:            return "unknown";
     }
 }

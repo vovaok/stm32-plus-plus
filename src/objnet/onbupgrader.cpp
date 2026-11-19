@@ -213,19 +213,20 @@ void OnbUpgrader::onTimer()
         mTimer->setInterval(5);
 
         int seqcnt = mPageSize >> 3;
-//        int maxseqs = 128 >> 3;
-        int N = mMaster->objnetInterface()->maxFrameSize() & ~7;
+        int N = mChunkSize;
+        if (!N)
+            N = mMaster->objnetInterface()->maxFrameSize() & ~7;
 //        if (mCount + N >= mSize)
 //            N = (mSize - mCount + 7) >> 3;
         
-//        int maxseqs = N >> 3;
+        int maxseqs = std::min(16, mPageSize / N);
         // old conf:
         // N = 8 && maxseqs = 128 >> 3
         
         // test bootldrVersion here!        
         logEvent(".");
-//        for (int i=0; i<maxseqs; i++)
-//        {
+        for (int i=0; i<maxseqs; i++)
+        {
             ByteArray ba(N, '\0');
             for (int i=0; i<N; i++)
             {
@@ -241,7 +242,7 @@ void OnbUpgrader::onTimer()
             mMaster->sendUpgrageData(seq, ba);
             mCount += basz;
             mCurBytes += basz;
-//        }
+        }
 
         if (mCurBytes >= mPageSize || mCount >= mSize) // page transferred
             mState = sEndPage;
