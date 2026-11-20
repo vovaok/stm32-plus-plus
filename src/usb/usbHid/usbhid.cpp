@@ -25,9 +25,9 @@ void UsbHidInterface::setReport(const ByteArray &reportDescriptor)
 
 void UsbHidInterface::addChild(UsbNode *child)
 {
-    UsbEndpoint *ep = dynamic_cast<UsbEndpoint*>(child);
-    if (ep)
+    if (child->nodeType() == NodeTypeEndpoint)
     {
+        UsbEndpoint *ep = static_cast<UsbEndpoint*>(child);
         if (ep->isIn())
             mInEp = ep;
         else

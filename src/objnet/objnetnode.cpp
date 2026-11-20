@@ -55,7 +55,7 @@ ObjnetNode::ObjnetNode(ObjnetInterface *iface) :
     bindSvcObject(svcBuildDate,   ObjectInfo("buildDate", mBuildDate, ObjectInfo::ReadOnly));
     bindSvcObject(svcCpuInfo,     ObjectInfo("cpuInfo", mCpuInfo, ObjectInfo::ReadOnly));
     bindSvcObject(svcBurnCount,   ObjectInfo("burnCount", mBurnCount, ObjectInfo::Storage));
-    bindSvcObject(svcObjectCount, ObjectInfo("objCount", EVENT(&ObjnetNode::objectCount), ObjectInfo::ReadOnly));
+    bindSvcObject(svcObjectCount, ObjectInfo("objCount", [this](){return objectCount();}, ObjectInfo::ReadOnly));
     bindSvcObject(svcBusType,     ObjectInfo("busType", mBusType, ObjectInfo::ReadOnly));
     bindSvcObject(svcBusAddress,  ObjectInfo("busAddress", mBusAddress, ObjectInfo::Storage));
 
@@ -65,18 +65,18 @@ ObjnetNode::ObjnetNode(ObjnetInterface *iface) :
 }
 //---------------------------------------------------------------------------
 
-void ObjnetNode::bindSvcObject(SvcOID oid, const ObjectInfo &obj)
+void ObjnetNode::bindSvcObject(SvcOID oid, ObjectInfo &&obj)
 {
-    mSvcObjects[oid] = obj;
+    mSvcObjects[oid] = std::move(obj);
     #ifndef QT_CORE_LIB
-    if (obj.isStorable())
+    if (mSvcObjects[oid].isStorable())
         objnetStorage()->load(mSvcObjects[oid]);
     #endif
 }
 
-ObjectInfo &ObjnetNode::bindObject(const ObjectInfo &info)
+ObjectInfo &ObjnetNode::bindObject(ObjectInfo &&info)
 {
-    mObjects.push_back(info);
+    mObjects.push_back(std::move(info));
     ObjectInfo &obj = mObjects.back();
     obj.mDesc.id = mObjects.size() - 1;
     #ifdef __ICCARM__
@@ -552,6 +552,9 @@ bool ObjnetNode::parseServiceMessage(const CommonMessage &msg)
             success &= sendServiceMessage(remoteAddr, svcFail, oid);
         }
     }
+    
+    if (success && onServiceMessageAccepted)
+        onServiceMessageAccepted(oid);
     
     return success;
 }

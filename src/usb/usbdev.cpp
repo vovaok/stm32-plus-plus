@@ -71,9 +71,9 @@ UsbDevice::~UsbDevice()
 
 void UsbDevice::addChild(UsbNode* configuration)
 {
-    UsbConfiguration *config = dynamic_cast<UsbConfiguration*>(configuration);
-    if (config)
+    if (configuration->nodeType() == NodeTypeConfig)
     {
+        UsbConfiguration *config = static_cast<UsbConfiguration*>(configuration);
         unsigned char numCfg = mDeviceDescriptor->numConfigurations();
         mDeviceDescriptor->setNumConfigurations(++numCfg);
         config->setConfigurationValue(numCfg); // configuration 00 is null
@@ -686,7 +686,7 @@ void UsbDevice::setConfig(unsigned char cfgidx)
     UsbNode *cfg = getChildByNumber(cfgidx);
     if (cfg)
     {
-        mCurrentConfig = dynamic_cast<UsbConfiguration*>(cfg);
+        mCurrentConfig = static_cast<UsbConfiguration*>(cfg);
         cfg->init(); // recursively init the branch till endpoints
     }
 }

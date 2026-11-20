@@ -198,6 +198,10 @@ public:
     
     static TimerNumber getTimerByPin(Gpio::Config pinConfig);
     static ChannelNumber getChannelByPin(Gpio::Config pinConfig);
+    static constexpr bool isComplementaryPin(Gpio::Config pinConfig)
+    {
+        return GpioConfigGetPeriphChannel(pinConfig) & 8;
+    }
     
     void selectInputTrigger(InputTrigger trgi);
     void setSlaveMode(SlaveMode sms);
@@ -250,11 +254,14 @@ public:
     void configCapture(Gpio::Config pin, Polarity polarity = Rising, NotifyEvent event=NotifyEvent());
     unsigned int captureValue(ChannelNumber ch) const;
     
-    void setChannelEnabled(ChannelNumber ch, bool enabled);
-    bool isChannelEnabled(ChannelNumber ch) const;
-    void setChannelInverted(ChannelNumber ch, bool inverted);
-    void setComplementaryChannelEnabled(ChannelNumber ch, bool enabled);
-    void setComplementaryChannelInverted(ChannelNumber ch, bool inverted);
+    void setChannelEnabled(ChannelNumber ch, bool enabled) {applyMaskCCER(ch, 0, enabled);}
+    bool isChannelEnabled(ChannelNumber ch) const {return testMaskCCER(ch, 0);}
+    void setChannelInverted(ChannelNumber ch, bool inverted) {applyMaskCCER(ch, 1, inverted);}
+    bool isChannelInverted(ChannelNumber ch) const {return testMaskCCER(ch, 1);}
+    void setComplementaryChannelEnabled(ChannelNumber ch, bool enabled) {applyMaskCCER(ch, 2, enabled);}
+    bool isComplementaryChannelEnabled(ChannelNumber ch) const {return testMaskCCER(ch, 2);}
+    void setComplementaryChannelInverted(ChannelNumber ch, bool inverted) {applyMaskCCER(ch, 3, inverted);}
+    bool isComplementaryChannelInverted(ChannelNumber ch) const {return testMaskCCER(ch, 3);}
     
     inline void generateUpdateEvent() {mTim->EGR = TIM_EGR_UG;}
     inline void generateComEvent() {mTim->EGR = TIM_EGR_COMG;}
@@ -292,6 +299,9 @@ private:
     unsigned long mInputClk;
     
     static HardwareTimer* mTimers[20];
+    
+    void applyMaskCCER(ChannelNumber ch, int offset, bool value);
+    bool testMaskCCER(ChannelNumber ch, int offset) const;
     
     void enableInterrupt(InterruptSource source);
     void handleInterrupt();

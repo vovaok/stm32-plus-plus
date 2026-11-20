@@ -78,6 +78,7 @@ void UdpSocket::close()
     Device::close();
 }
 
+#if defined(LWIP_IGMP) && LWIP_IGMP == 1
 bool UdpSocket::joinMulticastGroup(ip_addr_t addr) const
 {
     err_t err;
@@ -89,6 +90,7 @@ bool UdpSocket::joinMulticastGroup(ip_addr_t addr) const
 
     return (err == ERR_OK);
 }
+#endif
 
 int UdpSocket::bytesAvailable() const
 {

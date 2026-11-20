@@ -4,7 +4,7 @@ CanOpenDevice::CanOpenDevice(CanInterface *can, uint8_t address) :
     m_led(nullptr),
     m_nodeId(address)
 {
-    m_can = new CanSocket(can);
+    m_can = new CanSocket(can, CanInterface::StdId);
     m_can->addFilter(0x600 | address, 0x07F);
     m_can->onReadyRead = EVENT(&CanOpenDevice::readPacket);//bindReceiveEvent(recv_id, EVENT(&CanOpenDevice::receiveStdPacket));
     m_can->open();

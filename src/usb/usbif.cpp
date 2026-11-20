@@ -23,9 +23,6 @@ UsbInterface::~UsbInterface()
 
 void UsbInterface::addChild(UsbNode *child)
 {
-//    UsbCsInterface *csInterface = dynamic_cast<UsbCsInterface*>(child);
-//    UsbAltSetting *altSetting = dynamic_cast<UsbAltSetting*>(child);
-    UsbEndpoint *endpoint = dynamic_cast<UsbEndpoint*>(child);
     if (child->nodeType() == UsbNode::NodeTypeCsInterface)
     {
         mCsInterface = child;
@@ -36,6 +33,7 @@ void UsbInterface::addChild(UsbNode *child)
     }
     else if (child->nodeType() == UsbNode::NodeTypeEndpoint)
     {
+        UsbEndpoint *endpoint = static_cast<UsbEndpoint*>(child);
         mDescriptor->incrementNumEndpoints();
         if (endpoint)
         {

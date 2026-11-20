@@ -16,6 +16,8 @@ extern "C" void USART3_IRQHandler();
 extern "C" void UART4_IRQHandler();
 extern "C" void UART5_IRQHandler();
 extern "C" void USART6_IRQHandler();
+extern "C" void UART7_IRQHandler();
+extern "C" void UART8_IRQHandler();
 #endif
 //---------------------------------------------------------------------------
 
@@ -89,7 +91,7 @@ protected:
     int availableWriteCount() const;
     
 private:
-    static Usart *mUsarts[6];
+    static Usart *mUsarts[8];
     USART_TypeDef *mDev;
     IRQn_Type mIrq;
     int mBaudrate;
@@ -119,6 +121,8 @@ private:
     friend void UART4_IRQHandler();
     friend void UART5_IRQHandler();
     friend void USART6_IRQHandler();
+    friend void UART7_IRQHandler();
+    friend void UART8_IRQHandler();
     #endif
 };
 

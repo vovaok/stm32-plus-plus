@@ -63,11 +63,15 @@ void CanInterface::messageReceived(int fifoChannel)
     {
         int fidx = pendingMessageFilterIdx(fifoChannel);
         if (fmiSocketMap.count(fidx) && fmiSocketMap.at(fidx))
-            fmiSocketMap.at(fidx)->onReadyRead();
+        {
+            auto f = fmiSocketMap.at(fidx)->onReadyRead;
+            if (f) f();
+        }
     }
     else if (fifoChannel < m_sockets.size() && m_sockets[fifoChannel])
     {
-        m_sockets[fifoChannel]->onReadyRead();
+        auto f = m_sockets[fifoChannel]->onReadyRead;
+        if (f) f();
     }
 }
 
@@ -88,4 +92,10 @@ uint8_t CanInterface::dlcFromSize(uint8_t size)
     else if (size <= 48)
         return 14;
     return 15;
+}
+
+uint8_t CanInterface::dlcToSize(uint8_t dlc)
+{
+    static const uint8_t DLCtoBytes[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 12, 16, 20, 24, 32, 48, 64};
+    return DLCtoBytes[dlc];
 }

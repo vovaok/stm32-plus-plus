@@ -17,7 +17,7 @@ int8_t DRV_CANFDSPI_ReadByteArray(uint8_t chipId, uint16_t addr, uint8_t *data, 
 class CanFdSpi : public CanInterface
 {
 public:
-    CanFdSpi(uint8_t chipId, Spi *spi, Gpio::PinName chipSelect);
+    CanFdSpi(uint8_t chipId, Spi *spi, Gpio::PinName chipSelect, int spiFreq=20_M);
     static CanFdSpi *instance(uint8_t id);
     
     virtual bool hasFD() override {return true;}
@@ -32,6 +32,8 @@ public:
     virtual bool open(Device::OpenMode mode=Device::ReadWrite) override; // set to normal mode
     virtual bool close() override; // set to init mode
     virtual bool isOpen() const override;
+    
+    virtual bool setBaudrate(int nominal, int data) override;
     
     bool configureRxFifo(int fifoChannel, int depth, int maxsize);
     bool configureTxFifo(int fifoChannel, int depth, int maxsize);
@@ -68,6 +70,8 @@ private:
 //    uint8_t m_chipId;
 //    Spi *m_spi;
 //    Gpio m_cs;
+    
+    void task();
     
     ByteArray m_buffer;
     

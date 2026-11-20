@@ -26,13 +26,13 @@ void UsbConfiguration::addChild(UsbNode* node)
   
     if (node->nodeType() == UsbNode::NodeTypeInterface)
     {
-        UsbInterface* interface = dynamic_cast<UsbInterface*>(node);
+        UsbInterface* interface = static_cast<UsbInterface*>(node);
         if (interface)
             interface->setInterfaceNumber(incrementNumInterfaces());
     }
     else if (node->nodeType() == UsbNode::NodeTypeInterfaceCollection)
     {
-        UsbInterfaceCollection* collection = dynamic_cast<UsbInterfaceCollection*>(node);
+        UsbInterfaceCollection* collection = static_cast<UsbInterfaceCollection*>(node);
         if (collection)
             collection->setFirstInterfaceNumber(mDescriptor->numInterfaces());
     }

@@ -1,29 +1,26 @@
-/**
-  ******************************************************************************
-  * @file    lwipopts.h
-  * @author  MCD Application Team
-  * @version V1.0.0
-  * @date    31-October-2011
-  * @brief   lwIP Options Configuration.
-  *          This file is based on Utilities\lwip_v1.3.2\src\include\lwip\opt.h 
-  *          and contains the lwIP configuration for the STM32F4x7 demonstration.
-  ******************************************************************************
-  * @attention
-  *
-  * THE PRESENT FIRMWARE WHICH IS FOR GUIDANCE ONLY AIMS AT PROVIDING CUSTOMERS
-  * WITH CODING INFORMATION REGARDING THEIR PRODUCTS IN ORDER FOR THEM TO SAVE
-  * TIME. AS A RESULT, STMICROELECTRONICS SHALL NOT BE HELD LIABLE FOR ANY
-  * DIRECT, INDIRECT OR CONSEQUENTIAL DAMAGES WITH RESPECT TO ANY CLAIMS ARISING
-  * FROM THE CONTENT OF SUCH FIRMWARE AND/OR THE USE MADE BY CUSTOMERS OF THE
-  * CODING INFORMATION CONTAINED HEREIN IN CONNECTION WITH THEIR PRODUCTS.
-  *
-  * <h2><center>&copy; COPYRIGHT 2011 STMicroelectronics</center></h2>
-  ******************************************************************************
-  */
-
 #ifndef __LWIPOPTS_H__
 #define __LWIPOPTS_H__
 
+// -------- Used functionality ----------
+#define LWIP_ICMP               1
+#define LWIP_DHCP               0
+#define LWIP_TCP                0
+#define LWIP_UDP                1
+#define LWIP_IGMP               0
+#define LWIP_STATS              0
+
+// ------------- Used APIs ---------------
+
+// LWIP_NETCONN==1: Enable Netconn API (require to use api_lib.c)
+#define LWIP_NETCONN                    0
+
+// LWIP_SOCKET==1: Enable Socket API (require to use sockets.c)
+#define LWIP_SOCKET                     0
+
+// Enable raw API
+#define LWIP_RAW                        0
+
+// ------------ Fine tuning ---------------
 /**
  * SYS_LIGHTWEIGHT_PROT==1: if you want inter-task protection for certain
  * critical regions during buffer allocation, deallocation and memory
@@ -74,11 +71,10 @@ a lot of data that needs to be copied, this should be set high. */
 #define PBUF_POOL_SIZE          30
 
 /* PBUF_POOL_BUFSIZE: the size of each pbuf in the pbuf pool. */
-#define PBUF_POOL_BUFSIZE       500
+#define PBUF_POOL_BUFSIZE       384
 
 
 /* ---------- TCP options ---------- */
-#define LWIP_TCP                1
 #define TCP_TTL                 255
 
 /* Controls if TCP should queue segments that arrive out of
@@ -99,30 +95,17 @@ a lot of data that needs to be copied, this should be set high. */
 /* TCP receive window. */
 #define TCP_WND                 (2*TCP_MSS)
 
-
-/* ---------- ICMP options ---------- */
-#define LWIP_ICMP                       1
-
-
-/* ---------- DHCP options ---------- */
-/* Define LWIP_DHCP to 1 if you want DHCP configuration of
-   interfaces. DHCP is not implemented in lwIP 0.5.1, however, so
-   turning this on does currently not work. */
-#define LWIP_DHCP               1
-
+#if !defined(LWIP_TCP) || LWIP_TCP != 1
+    #define IP_REASSEMBLY   0
+    #define IP_FRAG 0
+#endif
 
 /* ---------- UDP options ---------- */
-#define LWIP_UDP                1
 #define UDP_TTL                 255
-
-/* ---------- IGMP options --------- */
-#define LWIP_IGMP               1    
-
 
 /* ---------- Statistics options ---------- */
 #define LWIP_STATS 0
 //#define LWIP_PROVIDE_ERRNO 0
-
 
 /*
    --------------------------------------
@@ -170,30 +153,6 @@ The STM32F4x7 allows computing and verifying the IP, UDP, TCP and ICMP checksums
   #define CHECKSUM_CHECK_TCP              1
 #endif
 
-
-/*
-   ----------------------------------------------
-   ---------- Sequential layer options ----------
-   ----------------------------------------------
-*/
-/**
- * LWIP_NETCONN==1: Enable Netconn API (require to use api_lib.c)
- */
-#define LWIP_NETCONN                    0
-
-/*
-   ------------------------------------
-   ---------- Socket options ----------
-   ------------------------------------
-*/
-/**
- * LWIP_SOCKET==1: Enable Socket API (require to use sockets.c)
- */
-#define LWIP_SOCKET                     0
-
-
-// Enable raw API
-#define LWIP_RAW                        1
 
 
 /*

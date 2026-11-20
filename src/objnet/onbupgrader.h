@@ -6,6 +6,10 @@
 #include "core/application.h"
 #endif
 
+#ifdef QT_CORE_LIB
+typedef QTimer Timer;
+#endif
+
 namespace Objnet
 {
 
@@ -46,6 +50,7 @@ private:
     int mCount, mCurBytes;
     bool mPageDone, mPageTransferred, mPageRepeat;
     uint32_t mClass;
+    int mChunkSize = 0;
     
     static string _number(int num, bool hex=false);
     void _internal_log(string) {}
@@ -67,6 +72,7 @@ public:
     ~OnbUpgrader();
     
     static bool checkClass(const void *firmware, int size, uint32_t cid);
+    void setChunkSize(int sz=0) {mChunkSize = sz;}
     
     void load(const void *firmware, int size);
     void scan(unsigned char netaddr=0);

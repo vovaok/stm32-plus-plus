@@ -95,17 +95,7 @@ void ObjnetDevice::parseObjectInfo(const ByteArray &ba)
         }
     }
 
-    if (!mAlreadyReady && isReady())
-    {
-        mAlreadyReady = true;
-        readyEvent();
-#ifdef QT_CORE_LIB
-        emit ready();
-#else 
-        if (onReady)
-            onReady(this);
-#endif
-    }
+    notifyReady();
     
     // don't request subobjects! node should send it by own means
     
@@ -125,6 +115,21 @@ void ObjnetDevice::parseObjectInfo(const ByteArray &ba)
 //            #endif
 //        }
 //    }
+}
+
+void ObjnetDevice::notifyReady()
+{
+    if (!mAlreadyReady && isReady())
+    {
+        mAlreadyReady = true;
+        readyEvent();
+#ifdef QT_CORE_LIB
+        emit ready();
+#else 
+        if (onReady)
+            onReady(this);
+#endif
+    }
 }
 
 ObjectInfo *ObjnetDevice::prepareObject(const ObjectInfo::Description &desc)
@@ -296,7 +301,7 @@ ObjectInfo *ObjnetDevice::prepareObject(const ObjectInfo::Description &desc)
         }
         else if (desc.rType == ObjectInfo::StringList)
         {
-            new (readptr) ObjectInfo::StringList_t;
+            new (readptr) StringList_t;
         }
         else if (rIsCommonType && desc.readSize == 0)
         {
@@ -418,6 +423,9 @@ void ObjnetDevice::receiveServiceObject(unsigned char oid, const ByteArray &ba)
 
       default:; // warning elimination
     }
+    
+    if (oid < 32)
+        notifyReady();
     
     #ifdef QT_CORE_LIB
     if (oid < svcObjectInfo)
@@ -751,6 +759,7 @@ _String ObjnetDevice::busTypeName() const
         case BusSwonb:      return "SWONB";
         case BusVirtual:    return "virtual";
         case BusRadio:      return "radio";
+        case BusEthernet:   return "ethernet";
         default:            return "unknown";
     }
 }

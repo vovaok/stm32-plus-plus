@@ -29,7 +29,7 @@ void Modbus485::task()
     m_buffer.resize(m_buffer.size() + sz);
     if (sz)
     {
-        m_timeout = 5; // was 2 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        m_timeout = m_ifd;
         responseUpdated();
     }
 
@@ -46,7 +46,6 @@ void Modbus485::task()
                 adu.func = m_buffer[1];
                 adu.size = m_buffer.size() - 4;
                 adu.data = m_buffer.data() + 2;
-//                parseADU(adu);
                 receiveADU(adu);
             }
         }

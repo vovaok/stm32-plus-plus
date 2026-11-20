@@ -2762,11 +2762,11 @@ int8_t DRV_CANFDSPI_BitTimeConfigureData40MHz(CANFDSPI_MODULE_ID index,
         case CAN_1000K_5M:
             // Data BR
             ciDbtcfg.bF.BRP = 0;
-            ciDbtcfg.bF.TSEG1 = 2;
-            ciDbtcfg.bF.TSEG2 = 3;
+            ciDbtcfg.bF.TSEG1 = 4; // 2
+            ciDbtcfg.bF.TSEG2 = 1; //3
             ciDbtcfg.bF.SJW = 1;
             // SSP
-            ciTdc.bF.TDCOffset = 5;
+            ciTdc.bF.TDCOffset = 6;
             ciTdc.bF.TDCValue = tdcValue;
             break;
         case CAN_500K_6M7:

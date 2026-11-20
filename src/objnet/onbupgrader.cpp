@@ -43,7 +43,7 @@ void OnbUpgrader::load(const void *firmware, int size)
     mPageTransferred = false;
     mPageRepeat = false;
 
-    logEvent("firmware size = " + _number(mSize) + " bytes");
+    logEvent("firmware size = " + _number(mSize) + " bytes\n");
 
     unsigned char s[] = "__APPINFO__";
     for (int i=0; i<=mSize-11; i++)
@@ -59,7 +59,7 @@ void OnbUpgrader::load(const void *firmware, int size)
     
     if (mAppinfoIdx < 0)
     {
-        logEvent("no app info supplied. abort");
+        logEvent("no app info supplied. abort\n");
         return;
     }
 
@@ -179,7 +179,7 @@ void OnbUpgrader::onTimer()
                 sendMessageToDevices(svcUpgradeProbe);
                 //mMaster->sendGlobalRequest(aidUpgradeProbe, true);
                 logEvent("no response, probe request...\n");
-                mTimer->setInterval(200);
+                mTimer->setInterval(50);
                 return;
             }
             else
@@ -210,15 +210,25 @@ void OnbUpgrader::onTimer()
     }
     else if (mState == sTransferPage)
     {
-        mTimer->setInterval(16);
+        mTimer->setInterval(5);
 
         int seqcnt = mPageSize >> 3;
-        int maxseqs = 128 >> 3;
+        int N = mChunkSize;
+        if (!N)
+            N = mMaster->objnetInterface()->maxFrameSize() & ~7;
+//        if (mCount + N >= mSize)
+//            N = (mSize - mCount + 7) >> 3;
+        
+        int maxseqs = std::min(16, mPageSize / N);
+        // old conf:
+        // N = 8 && maxseqs = 128 >> 3
+        
+        // test bootldrVersion here!        
         logEvent(".");
         for (int i=0; i<maxseqs; i++)
         {
-            ByteArray ba(8, '\0');
-            for (int i=0; i<8; i++)
+            ByteArray ba(N, '\0');
+            for (int i=0; i<N; i++)
             {
                 int ci = mCount + i;
                 int ai = ci - mAppinfoIdx;
@@ -239,7 +249,7 @@ void OnbUpgrader::onTimer()
     }
     else if (mState == sEndPage)
     {
-        mTimer->setInterval(200); // wait ACK
+        mTimer->setInterval(50); // wait ACK
         mPageTransferred = true;
         sendMessageToDevices(svcUpgradeProbe);
         //master->sendGlobalRequest(aidUpgradeProbe, true);
@@ -271,6 +281,9 @@ void OnbUpgrader::onMessage(const CommonMessage &msg)
     
     switch (oid)
     {
+      case svcEcho:
+        break;
+        
       case svcUpgradeAccepted:
         mDevices[addr] = false;
         logEvent("+1 ");

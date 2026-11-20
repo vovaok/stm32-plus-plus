@@ -20,18 +20,21 @@
 #define _fromString(x) (x).toStdString()
 #endif
 
+#include "callable.h"
+
 using namespace std;
 
 namespace Objnet
 {
-
-
+    
+    typedef vector<string> StringList_t;
 
 class ObjectInfo
 {
 public:
     typedef enum
     {
+        NoFlags = 0x00,
         Volatile= 0x01,
         Read    = 0x02,
         Write   = 0x04,
@@ -83,30 +86,33 @@ public:
         String = 10,  // QString B Qt, string B APMe
         StringList = 11, // QStringList | std::vector<std::string>
         Common = 12, // Common - this is (Q)ByteArray
+//        BitArray = 13, // not implemented yet!
 
         Compound = 0x80, // bits 0...6 reflect subobject count
     } Type; // KAK B Qt!!!
 
-    typedef void Void_t;
-    typedef bool Bool_t;
-    typedef int Int_t;
-    typedef unsigned int UInt_t;
-    typedef long long LongLong_t;
-    typedef unsigned long long ULongLong_t;
-    typedef double Double_t;
-    typedef long Long_t;
-    typedef short Short_t;
-    typedef char Char_t;
-    typedef unsigned long ULong_t;
-    typedef unsigned short UShort_t;
-    typedef unsigned char UChar_t;
-    typedef float Float_t;
-    typedef signed char SChar_t;
-    typedef string String_t;
-    typedef vector<string> StringList_t;
-    typedef ::QVector3D QVector3D_t;
-    typedef ::QQuaternion QQuaternion_t;
+//    typedef void Void_t;
+//    typedef bool Bool_t;
+//    typedef int Int_t;
+//    typedef unsigned int UInt_t;
+//    typedef long long LongLong_t;
+//    typedef unsigned long long ULongLong_t;
+//    typedef double Double_t;
+//    typedef long Long_t;
+//    typedef short Short_t;
+//    typedef char Char_t;
+//    typedef unsigned long ULong_t;
+//    typedef unsigned short UShort_t;
+//    typedef unsigned char UChar_t;
+//    typedef float Float_t;
+//    typedef signed char SChar_t;
+//    typedef string String_t;
+//    typedef vector<string> StringList_t;
+//    typedef ::QVector3D QVector3D_t;
+//    typedef ::QQuaternion QQuaternion_t;
 
+    
+    
     struct Description
     {
         unsigned char id;
@@ -146,18 +152,18 @@ public:
     };
 
 private:
-    void *mReadPtr;
-    void *mWritePtr;
-    int mAutoPeriod, mAutoTime; // automatic transmission period
+    void *mReadPtr = nullptr;
+    void *mWritePtr = nullptr;
+    int mAutoPeriod = 0, mAutoTime = 0; // automatic transmission period
     unsigned char mAutoReceiverAddr = 0; // address of receiver for automatic transmission
-    bool mTimedRequest; // если синхронизованный объект
+    bool mTimedRequest = 0; // если синхронизованный объект
     Description mDesc;
-    bool mIsDevice;
-    bool mValid;
+    bool mIsDevice = false;
+    bool mValid = false;
     static int mAssignId;
     uint8_t mArrayItemCount = 1;
 
-    ObjectInfo *m_parentObject;
+    ObjectInfo *m_parentObject = nullptr;
     std::vector<ObjectInfo> m_subobjects;
 
     friend class ObjnetNode;
@@ -171,24 +177,67 @@ private:
     uint8_t *nextWritePtr() const;
 
 public:
-    ObjectInfo();
+    ObjectInfo() = default;
+    ~ObjectInfo()
+    {
+        if (isInvokable())
+            delete static_cast<ICallable *>(mReadPtr);
+    }
+    
+    // запрет копирования — иначе double delete
+    ObjectInfo(const ObjectInfo&) = delete;
+    ObjectInfo& operator=(const ObjectInfo&) = delete;
+    ObjectInfo(ObjectInfo&& other) noexcept
+    {
+        swap(other);
+    }
+    
+    ObjectInfo& operator=(ObjectInfo&& other) noexcept
+    {
+        if (this != &other) {
+            ObjectInfo tmp(std::move(other));   // other → tmp
+            swap(tmp);                          // *this ↔ tmp
+        }                                       // tmp умирает → освобождает старый ресурс *this
+        return *this;
+    }
+    
+    void swap(ObjectInfo& other) noexcept
+    {
+        std::swap(mReadPtr, other.mReadPtr);
+        std::swap(mWritePtr, other.mWritePtr);
+        std::swap(mAutoPeriod, other.mAutoPeriod);
+        std::swap(mAutoTime, other.mAutoTime);
+        std::swap(mAutoReceiverAddr, other.mAutoReceiverAddr);
+        std::swap(mTimedRequest, other.mTimedRequest);
+        std::swap(mDesc, other.mDesc);
+        std::swap(mIsDevice, other.mIsDevice);
+        std::swap(mValid, other.mValid);
+        std::swap(mArrayItemCount, other.mArrayItemCount);
+        std::swap(onValueChanged, other.onValueChanged);
+        std::swap(m_subobjects, other.m_subobjects);
+        std::swap(m_parentObject, other.m_parentObject);
+        for (ObjectInfo &obj: m_subobjects)
+            obj.m_parentObject = this;
+        for (ObjectInfo &obj: other.m_subobjects)
+            obj.m_parentObject = &other;
+    }
+
 
     // vars binding:
-//#if __cplusplus > 199711L
-//    template<typename T, typename std::enable_if<!std::is_class<T>::value, bool>::type = true>
-//    ObjectInfo(string name, T &var, Flags flags=ReadWrite);
-//    template<typename T, typename std::enable_if<!std::is_class<T>::value, bool>::type = true>
-//    ObjectInfo(string name, const T &var, Flags flags=ReadOnly);
-//    template<typename Tr, typename Tw>
-//    ObjectInfo(string name, const Tr &varRead, Tw &varWrite, Flags flags=ReadWrite);
-//#else
-    template<typename T>
+    
+    // data constructor
+    template <typename T, typename = std::enable_if_t<!is_callable_v<T>>>
     ObjectInfo(string name, T &var, Flags flags=ReadWrite);
-    template<typename T>
+
+    // const data constructor
+    template <typename T, typename = std::enable_if_t<!is_callable_v<T>>>
     ObjectInfo(string name, const T &var, Flags flags=ReadOnly);
+    
+    // dual data constructor
+    /// @todo make this DEPRECATED
     template<typename Tr, typename Tw>
-    ObjectInfo(string name, const Tr &varRead, Tw &varWrite, Flags flags=ReadWrite);
-//#endif
+    [[deprecated]] ObjectInfo(string name, const Tr &varRead, Tw &varWrite, Flags flags=ReadWrite);
+
 
     // array binding:
     template<typename T, int N>
@@ -207,13 +256,9 @@ public:
     ObjectInfo &group(string name); // for substructures
     ObjectInfo &endGroup();
 
-    // methods binding:
-    template<class R>
-    ObjectInfo(string name, Closure<R(void)> event, Flags flags=Read);
-    template<class P0>
-    ObjectInfo(string name, Closure<void(P0)> event, Flags flags=Write);
-    template<class R, class P0>
-    ObjectInfo(string name, Closure<R(P0)> event, Flags flags=ReadWrite);
+    // ЕДИНСТВЕННЫЙ конструктор для колбэков:
+    template <typename F, typename = std::enable_if_t<is_callable_v<F>>>
+    ObjectInfo(std::string name, F f, Flags flags=NoFlags);
 
     // buffer binding:
     template<typename T>
@@ -261,7 +306,8 @@ public:
     inline const Description &description() {return mDesc;}
     inline uint8_t id() const {return mDesc.id;}
 
-    Closure<void(unsigned char)> onValueChanged;
+//    Closure<void(unsigned char)> onValueChanged;
+    std::function<void(uint8_t)> onValueChanged;
 
     #ifdef QT_CORE_LIB
     QVariant toVariant();
@@ -275,33 +321,33 @@ public:
     uint8_t subobjectCount() const {return m_subobjects.size();}
     ObjectInfo *parentObject() {return m_parentObject;}
 
-    template <typename T>
-    static constexpr Type typeValue() {return Common;} // by default
+    template <typename T> static constexpr Type typeValue = Common; // by default
 };
 
-#define DeclareTypeValueSpec(T) \
-    template <> constexpr ObjectInfo::Type ObjectInfo::typeValue<ObjectInfo::T##_t>() \
-    {return ObjectInfo::T;}
+#define DeclareTypeValueSpec(T, TypeValue) \
+    template <> inline constexpr ObjectInfo::Type ObjectInfo::typeValue<T> = ObjectInfo::TypeValue;
 
-DeclareTypeValueSpec(Void)
-DeclareTypeValueSpec(Bool)
-DeclareTypeValueSpec(Int)
-DeclareTypeValueSpec(UInt)
-DeclareTypeValueSpec(LongLong)
-DeclareTypeValueSpec(ULongLong)
-DeclareTypeValueSpec(Double)
-DeclareTypeValueSpec(Long)
-DeclareTypeValueSpec(Short)
-DeclareTypeValueSpec(Char)
-DeclareTypeValueSpec(ULong)
-DeclareTypeValueSpec(UShort)
-DeclareTypeValueSpec(UChar)
-DeclareTypeValueSpec(Float)
-DeclareTypeValueSpec(SChar)
-template <> constexpr ObjectInfo::Type ObjectInfo::typeValue<_String>() {return ObjectInfo::String;}
-DeclareTypeValueSpec(StringList)
-DeclareTypeValueSpec(QVector3D)
-DeclareTypeValueSpec(QQuaternion)
+DeclareTypeValueSpec(void,                  Void)
+DeclareTypeValueSpec(bool,                  Bool)
+DeclareTypeValueSpec(int,                   Int)
+DeclareTypeValueSpec(unsigned,              UInt)
+DeclareTypeValueSpec(long long,             LongLong)
+DeclareTypeValueSpec(unsigned long long,    ULongLong)
+DeclareTypeValueSpec(double,                Double)
+DeclareTypeValueSpec(long,                  Long)
+DeclareTypeValueSpec(short,                 Short)
+DeclareTypeValueSpec(char,                  Char)
+DeclareTypeValueSpec(unsigned long,         ULong)
+DeclareTypeValueSpec(unsigned short,        UShort)
+DeclareTypeValueSpec(unsigned char,         UChar)
+DeclareTypeValueSpec(float,                 Float)
+DeclareTypeValueSpec(signed char,           SChar)
+DeclareTypeValueSpec(_String,               String)
+DeclareTypeValueSpec(StringList_t,          StringList)
+DeclareTypeValueSpec(::QVector3D,           QVector3D)
+DeclareTypeValueSpec(::QQuaternion,         QQuaternion)
+
+#undef DeclareTypeValueSpec
 
 constexpr int ObjectInfo::sizeofType(ObjectInfo::Type type)
 {
@@ -325,20 +371,11 @@ constexpr int ObjectInfo::sizeofType(ObjectInfo::Type type)
     }
 }
 
-//#if __cplusplus > 199711L
-//template<typename T, typename std::enable_if<!std::is_class<T>::value, bool>::type>
-//#else
-template<typename T>
-//#endif
-ObjectInfo::ObjectInfo(string name, T &var, Flags flags) :
-    mReadPtr(0), mWritePtr(0),
-    mAutoPeriod(0), mAutoTime(0), mAutoReceiverAddr(0),
-    mIsDevice(false),
-    mValid(true),
-    m_parentObject(0L)
+template<typename T, typename>
+ObjectInfo::ObjectInfo(string name, T &var, Flags flags)
 {
     size_t sz = sizeof(T);
-    Type t = typeValue<T>();
+    Type t = typeValue<T>;
     if (flags & Read)
     {
         mReadPtr = &var;
@@ -354,26 +391,18 @@ ObjectInfo::ObjectInfo(string name, T &var, Flags flags) :
     mDesc.flags = flags;
     mDesc.name = name;
     mDesc.id = mAssignId++;
+    mValid = true;
 }
 
-template<> ObjectInfo::ObjectInfo(string name, ByteArray &var, Flags flags);
+//template<> ObjectInfo::ObjectInfo<ByteArray, void>(string name, ByteArray &var, Flags flags);
 
-//#if __cplusplus > 199711L
-//template<typename T, typename std::enable_if<!std::is_class<T>::value, bool>::type>
-//#else
-template<typename T>
-//#endif
-ObjectInfo::ObjectInfo(string name, const T &var, Flags flags) :
-    mReadPtr(0), mWritePtr(0),
-    mAutoPeriod(0), mAutoTime(0), mAutoReceiverAddr(0),
-    mIsDevice(false),
-    mValid(true),
-    m_parentObject(0L)
+template <typename T, typename>
+ObjectInfo::ObjectInfo(string name, const T &var, Flags flags)
 {
     flags = static_cast<Flags>(flags & (~Write));
     flags = static_cast<Flags>(flags & (~Save));
     size_t sz = sizeof(T);
-    Type t = typeValue<T>();
+    Type t = typeValue<T>;
     if (flags & Read)
     {
         mReadPtr = const_cast<T*>(&var);
@@ -383,43 +412,35 @@ ObjectInfo::ObjectInfo(string name, const T &var, Flags flags) :
     mDesc.flags = flags;
     mDesc.name = name;
     mDesc.id = mAssignId++;
+    mValid = true;
 }
 
 template<typename Tr, typename Tw>
-ObjectInfo::ObjectInfo(string name, const Tr &varRead, Tw &varWrite, Flags flags) :
-    mReadPtr(0), mWritePtr(0),
-    mAutoPeriod(0), mAutoTime(0), mAutoReceiverAddr(0),
-    mIsDevice(false),
-    mValid(true),
-    m_parentObject(0L)
+ObjectInfo::ObjectInfo(string name, const Tr &varRead, Tw &varWrite, Flags flags)
 {
     flags = static_cast<Flags>(flags & (~Save));
     if (flags & Read)
     {
         mReadPtr = &varRead;
         mDesc.readSize = sizeof(Tr);
-        mDesc.rType = typeValue<Tr>();
+        mDesc.rType = typeValue<Tr>;
     }
     if (flags & Write)
     {
         mWritePtr = &varWrite;
         mDesc.writeSize = sizeof(Tw);
-        mDesc.wType = typeValue<Tw>();
+        mDesc.wType = typeValue<Tw>;
     }
     mDesc.flags = flags | Dual;
     mDesc.name = name;
     mDesc.id = mAssignId++;
+    mValid = true;
 }
 
 template<typename T, int N>
-ObjectInfo::ObjectInfo(string name, T (&var)[N], Flags flags) :
-    mReadPtr(0), mWritePtr(0),
-    mAutoPeriod(0), mAutoTime(0), mAutoReceiverAddr(0),
-    mIsDevice(false),
-    mValid(true),
-    m_parentObject(0L)
+ObjectInfo::ObjectInfo(string name, T (&var)[N], Flags flags)
 {
-    Type t = typeValue<T>();
+    Type t = typeValue<T>;
     size_t sz = sizeof(T) * N;
     mArrayItemCount = N;
 //    if (sz > 255)
@@ -441,17 +462,13 @@ ObjectInfo::ObjectInfo(string name, T (&var)[N], Flags flags) :
     mDesc.flags = flags | Array;
     mDesc.name = name;
     mDesc.id = mAssignId++;
+    mValid = true;
 }
 
 template<typename T, int N>
-ObjectInfo::ObjectInfo(string name, const T (&var)[N], Flags flags) :
-    mReadPtr(0), mWritePtr(0),
-    mAutoPeriod(0), mAutoTime(0), mAutoReceiverAddr(0),
-    mIsDevice(false),
-    mValid(true),
-    m_parentObject(0L)
+ObjectInfo::ObjectInfo(string name, const T (&var)[N], Flags flags)
 {
-    Type t = typeValue<T>();
+    Type t = typeValue<T>;
     size_t sz = sizeof(T) * N;
     mArrayItemCount = N;
 //    if (sz > 255)
@@ -460,43 +477,17 @@ ObjectInfo::ObjectInfo(string name, const T (&var)[N], Flags flags) :
         sz = N;
     if (flags & Read)
     {
-        mReadPtr = &var;
+//        mReadPtr = &var;
+        mReadPtr = (void *)(&var);
         mDesc.readSize = sz;
         mDesc.rType = t;
     }
     mDesc.flags = (flags & ~(Write | Save)) | Array;
     mDesc.name = name;
     mDesc.id = mAssignId++;
+    mValid = true;
 }
 
-//#if __cplusplus > 199711L
-//template<typename T, typename std::enable_if<std::is_class<T>::value, bool>::type>
-//ObjectInfo::ObjectInfo(string name, T &var, Flags flags) :
-//    mReadPtr(0), mWritePtr(0),
-//    mAutoPeriod(0), mAutoTime(0), mAutoReceiverAddr(0),
-//    mIsDevice(false),
-//    mValid(true),
-//    m_parentObject(0L)
-//{
-//    size_t sz = sizeof(T);
-//    Type t = typeValue<T>();
-//    if (flags & Read)
-//    {
-//        mReadPtr = &var;
-//        mDesc.readSize = sz;
-//        mDesc.rType = t;
-//    }
-//    if (flags & Write)
-//    {
-//        mWritePtr = &var;
-//        mDesc.writeSize = sz;
-//        mDesc.wType = t;
-//    }
-//    mDesc.flags = flags;
-//    mDesc.name = name;
-//    mDesc.id = mAssignId++;
-//}
-//#endif
 
 template<typename T>
 ObjectInfo &ObjectInfo::field(string name)
@@ -508,8 +499,9 @@ ObjectInfo &ObjectInfo::field(string name)
     if (isArray())
         mDesc.readSize = mDesc.writeSize = mArrayItemCount;
 
-    ObjectInfo info;
-    m_subobjects.push_back(info);
+//    ObjectInfo info;
+//    m_subobjects.push_back(info);
+    m_subobjects.emplace_back();
     ObjectInfo &obj = m_subobjects.back();
     ObjectInfo *prev = nullptr;
     if (m_subobjects.size() > 1)
@@ -521,7 +513,7 @@ ObjectInfo &ObjectInfo::field(string name)
 //    obj.m_parentObject = this;
     size_t sz = sizeof(T);
 //    T var;
-    Type t = typeValue<T>();
+    Type t = typeValue<T>;
     if (t == String)
         sz = 0;
     if (mDesc.flags & Read)
@@ -573,7 +565,7 @@ ObjectInfo &ObjectInfo::field(string name)
 ////    obj.m_parentObject = this;
 //    size_t sz = sizeof(T);
 //    T var;
-//    Type t = typeValue<T>();
+//    Type t = typeValue<T>;
 //    if (t == String)
 //        sz = 0;
 //    if (mDesc.flags & Read)
@@ -603,98 +595,49 @@ ObjectInfo &ObjectInfo::field(string name)
 //    return *this;
 //}
 
-template<class R>
-ObjectInfo::ObjectInfo(string name, Closure<R(void)> event, ObjectInfo::Flags flags) :
-    mReadPtr(0), mWritePtr(0),
-    mAutoPeriod(0), mAutoTime(0), mAutoReceiverAddr(0),
-    mIsDevice(false),
-    mValid(true),
-    m_parentObject(0L)
+
+template <typename F, typename>
+ObjectInfo::ObjectInfo(std::string name, F f, Flags flags)
 {
-    mDesc.readSize = sizeof(R);
-    mDesc.writeSize = 0; // no param
+    using T = fn_traits<std::decay_t<F>>;
+    using R = typename T::R_;
+    using P = typename T::P_;
 
-    if (mDesc.readSize)
-        flags = static_cast<ObjectInfo::Flags>(flags | Read);
-
-    // mReadPtr:mWritePtr contains variable of Closure<> type, not the pointer!!!
-    *reinterpret_cast<Closure<R(void)>*>(&mReadPtr) = event;
-
-//    R var;
-    mDesc.rType = typeValue<R>(); // return type
-    mDesc.wType = Void; // param type
-    mDesc.flags = (flags | Function) & ~(Save | Write);
-    mDesc.name = name;
-    mDesc.id = mAssignId++;
-}
-
-#ifndef QT_CORE_LIB
-template<> ObjectInfo::ObjectInfo<void>(string name, Closure<void(void)> event, ObjectInfo::Flags flags);
-template<> ObjectInfo::ObjectInfo(string name, Closure<ByteArray(void)> event, ObjectInfo::Flags flags);
-template<> ObjectInfo::ObjectInfo(string name, Closure<void(ByteArray)> event, ObjectInfo::Flags flags);
-template<> ObjectInfo::ObjectInfo(string name, Closure<ByteArray(ByteArray)> event, ObjectInfo::Flags flags);
-#endif
-
-template<class P0>
-ObjectInfo::ObjectInfo(string name, Closure<void(P0)> event, ObjectInfo::Flags flags) :
-    mAutoPeriod(0), mAutoTime(0), mAutoReceiverAddr(0),
-    mIsDevice(false),
-    mValid(true),
-    m_parentObject(0L)
-{
-    mDesc.readSize = 0;
-    mDesc.writeSize = sizeof(P0); // no param
-
-    if (mDesc.writeSize)
+    if constexpr (std::is_void_v<P>)
+    {
+        mReadPtr = new Callable<R, void>(std::function<R()>(std::move(f)));
+        mDesc.writeSize = 0;
+    } 
+    else
+    {
+        mReadPtr = new Callable<R, P>(std::function<R(P)>(std::move(f)));
+        mDesc.writeSize = descSize<P>;
         flags = static_cast<ObjectInfo::Flags>(flags | Write);
-
-    // mReadPtr:mWritePtr contains variable of Closure<> type, not the pointer!!!
-    *reinterpret_cast<Closure<void(P0)>*>(&mReadPtr) = event;
-
-//    P0 param;
-    mDesc.rType = Void; // return type;
-    mDesc.wType = typeValue<P0>(); // param type
-    mDesc.flags = (flags | Function) & ~(Save | Read);
-    mDesc.name = name;
-    mDesc.id = mAssignId++;
-}
-
-template<class R, class P0>
-ObjectInfo::ObjectInfo(string name, Closure<R(P0)> event, ObjectInfo::Flags flags) :
-    mReadPtr(0), mWritePtr(0),
-    mAutoPeriod(0), mAutoTime(0), mAutoReceiverAddr(0),
-    mIsDevice(false),
-    mValid(true),
-    m_parentObject(0L)
-{
-    mDesc.readSize = sizeof(R);
-    mDesc.writeSize = sizeof(P0); // no param
-
-    if (mDesc.readSize)
+    }
+    
+    if constexpr (!std::is_void_v<R>)
+    {
+        mDesc.readSize = descSize<R>;
         flags = static_cast<ObjectInfo::Flags>(flags | Read);
-    if (mDesc.writeSize)
-        flags = static_cast<ObjectInfo::Flags>(flags | Write);
+    }
+    else
+    {
+        mDesc.readSize = 0;
+    }
 
-    // mReadPtr:mWritePtr contains variable of Closure<> type, not the pointer!!!
-    *reinterpret_cast<Closure<R(P0)>*>(&mReadPtr) = event;
+    mDesc.rType = typeValue<R>;
+    mDesc.wType = typeValue<P>;
+        
+    mDesc.flags = (flags | Function) & ~Save;
 
-//    R ret;
-//    P0 param;
-    mDesc.rType = typeValue<R>(); // return type;
-    mDesc.wType = typeValue<P0>(); // param type
-    mDesc.flags = (flags | Function) & ~(Save);
-    mDesc.name = name;
-    mDesc.id = mAssignId++;
+    mDesc.name  = std::move(name);
+    mDesc.id    = mAssignId++;
+    mValid      = true;
 }
 
 
 template<typename T>
-ObjectInfo::ObjectInfo(string name, RingBuffer<T> &buffer, Flags flags) :
-    mReadPtr(0), mWritePtr(0),
-    mAutoPeriod(0), mAutoTime(0), mAutoReceiverAddr(0),
-    mIsDevice(false),
-    mValid(true),
-    m_parentObject(0L)
+ObjectInfo::ObjectInfo(string name, RingBuffer<T> &buffer, Flags flags)
 {
     mDesc.readSize = 0;
     mDesc.writeSize = 0;
@@ -704,12 +647,13 @@ ObjectInfo::ObjectInfo(string name, RingBuffer<T> &buffer, Flags flags) :
 
 //    T var;
     if (flags & Read)
-        mDesc.rType = typeValue<T>();
+        mDesc.rType = typeValue<T>;
     if (flags & Write)
-        mDesc.wType = typeValue<T>();
+        mDesc.wType = typeValue<T>;
     mDesc.flags = (flags | Array) & ~Save;
     mDesc.name = name;
     mDesc.id = mAssignId++;
+    mValid = true;
 }
 
 

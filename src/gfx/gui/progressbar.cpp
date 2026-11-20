@@ -130,6 +130,14 @@ void ProgressBar::doPaint(Display *d)
 {
     int w = width();
     int h = height();
+    
+    switch (m_orientation)
+    {
+    case Horizontal: case HorizontalReversed: w -= m_marginEnd; break;
+    case Vertical:   case VerticalReversed:   h -= m_marginEnd; break;
+    }
+    /// @todo implement reversed battery appearance
+    
     int p = 0; // x or y
     float percent = 0;
     if (m_maximum > m_minimum)
@@ -145,11 +153,20 @@ void ProgressBar::doPaint(Display *d)
     d->setColor(m_borderColor);
     d->setBackgroundColor(m_backgroundColor);
     d->drawFillRoundRect(0, 0, w, h, 3);
+    if (m_batteryMode)
+    {
+        switch (m_orientation)
+        {
+        case Horizontal: d->drawFillRoundRect(w, h/4, m_marginEnd, h/2, 3); break;
+        case Vertical:   d->drawFillRoundRect(w/4, 0, w/2, m_marginEnd, 3); break;
+        }            
+    }
+    
     if (m_colorMap)
         d->setBackgroundColor(m_colorMap->colorAt(percent * 0.01f));
     else
         d->setBackgroundColor(m_color);
-    
+        
     switch (m_orientation)
     {
     case Horizontal:         d->fillRoundRect(1,   1,   p-1, h-2, 2); break;
@@ -180,6 +197,8 @@ int ProgressBar::map(float value)
     case Vertical:   case VerticalReversed:   sz = m_height - 2; break;
     }
     
+    sz -= m_marginEnd;
+    
     int x = static_cast<int>((value - m_minimum) * sz / (m_maximum - m_minimum)) + 1;
     
     if (x < 1)
@@ -187,4 +206,10 @@ int ProgressBar::map(float value)
     else if (x > sz)
         return sz;
     return x;
+}
+
+void ProgressBar::setBatteryMode(bool enabled)
+{   
+    m_batteryMode = enabled;
+    m_marginEnd = m_batteryMode? 6: 0;
 }

@@ -11,6 +11,12 @@
 
 #include <array>
 
+#if !defined(QT_CORE_LIB)
+    #include "core/timer.h"
+#else
+    #define Timer QTimer
+#endif
+
 namespace Objnet
 {
 
@@ -87,7 +93,7 @@ protected:
 
     void setSerial(uint32_t serial) {mSerial = serial;}
 
-    void bindSvcObject(SvcOID oid, const ObjectInfo &obj);
+    void bindSvcObject(SvcOID oid, ObjectInfo &&obj);
     
     uint32_t getTimestamp();
 
@@ -100,7 +106,7 @@ protected slots:
 public:
     ObjnetNode(ObjnetInterface *iface);
 
-#ifndef QT_CORE_LIB
+#if defined(APP_CLASS)
     void setClassId() {mClass = APP_CLASS;}
 #endif
     void setClassId(uint32_t classId) {mClass = classId;}
@@ -117,15 +123,8 @@ public:
 
     bool isConnected() const override {return mNetState > netnConnecting;}
 
-    ObjectInfo &bindObject(const ObjectInfo &info);
-    #define BindObject(obj) bindObject(ObjectInfo(#obj, obj)) // convenient macro
-    #define BindObjectEx(obj, flags) bindObject(ObjectInfo(#obj, obj, flags)) // convenient macro
-    #define BindDualObject(objRead, objWrite) bindObject(ObjectInfo(#objRead":"#objWrite, objRead, objWrite))
-    #define BindMethod(method) bindObject(ObjectInfo(#method, CLOSURE(this, &method)))
-    #define BindMethodHidden(method) bindObject(ObjectInfo(#method, CLOSURE(this, &method), ObjectInfo::Hidden))
-    #define BindMethodEx(name, object, method) bindObject(ObjectInfo(name, CLOSURE(object, method)))
-    #define BindMethodHiddenEx(name, object, method) bindObject(ObjectInfo(name, CLOSURE(object, &method), ObjectInfo::Hidden))
-    
+    ObjectInfo &bindObject(ObjectInfo &&info);
+
     template <typename T> ObjectInfo &bindVariable(string name, T &var)
     {
         return bindObject(ObjectInfo(name, var));
@@ -151,11 +150,73 @@ public:
         return bindObject(ObjectInfo(name, var, ObjectInfo::Storage));
     }
     
-//    template <class T> unsigned char bindMethod(string name, T *obj, void (T::*method)(void))
-//    {
-//        Closure<void(void)> c = CLOSURE(obj, method);
-//        return bindObject(ObjectInfo(name, c));
-//    }
+    template <class Func>
+    inline ObjectInfo &bindMethod(string name, Func f, ObjectInfo::Flags flags=ObjectInfo::NoFlags)
+    {
+        return bindObject(ObjectInfo(std::move(name), std::move(f), flags));
+    }
+    
+    // methods as data
+    template <typename Func, typename = std::enable_if_t<is_callable_v<Func>>>
+    inline ObjectInfo &bindInput(string name, Func f)
+    {
+        return bindObject(ObjectInfo(std::move(name), std::move(f), ObjectInfo::Control));
+    }
+    
+    template <typename Func, typename = std::enable_if_t<is_callable_v<Func>>>
+    inline ObjectInfo &bindOutput(string name, Func f)
+    {
+        return bindObject(ObjectInfo(std::move(name), std::move(f), ObjectInfo::Measurement));
+    }
+    
+    template <typename Func, typename = std::enable_if_t<is_callable_v<Func>>>
+    inline ObjectInfo &bindIO(string name, Func f)
+    {
+        return bindObject(ObjectInfo(std::move(name), std::move(f), ObjectInfo::Exchange));
+    }
+    
+    // bind to object method
+    template <class Obj, class R, class... Args>
+    inline ObjectInfo &bindMethod(string name, Obj *obj, R (Obj::*method)(Args...), ObjectInfo::Flags flags=ObjectInfo::NoFlags)
+    {
+        auto f = [obj, method](Args... args) -> R { return (obj->*method)(args...); };
+        return bindObject(ObjectInfo(std::move(name), std::move(f), flags));
+    }
+    
+    // bind to object const method
+    template <class Obj, class R, class... Args>
+    inline ObjectInfo &bindMethod(string name, Obj *obj, R (Obj::*method)(Args...) const, ObjectInfo::Flags flags=ObjectInfo::NoFlags)
+    {
+        auto f = [obj, method](Args... args) -> R { return (obj->*method)(args...); };
+        return bindObject(ObjectInfo(std::move(name), std::move(f), flags));
+    }
+    
+    // methods as data
+    template <class Obj, typename T>
+    inline ObjectInfo &bindInput(string name, Obj *obj, void (Obj::*method)(T))
+    {
+        return bindMethod<Obj, void, T>(std::move(name), obj, method, ObjectInfo::Control);
+    }
+    
+    template <class Obj, typename R>
+    inline ObjectInfo &bindOutput(string name, Obj *obj, R (Obj::*method)())
+    {
+        return bindMethod<Obj, R>(std::move(name), obj, method, ObjectInfo::Measurement);
+    }
+    
+    template <class Obj, typename R>
+    inline ObjectInfo &bindOutput(string name, Obj *obj, R (Obj::*method)() const)
+    {
+        return bindMethod<Obj, R>(std::move(name), obj, method, ObjectInfo::Measurement);
+    }
+    
+    template <class Obj, typename R, typename T>
+    inline ObjectInfo &bindIO(string name, Obj *obj, R (Obj::*method)(T))
+    {
+        return bindMethod<Obj, R, T>(std::move(name), obj, method, ObjectInfo::Exchange);
+    }
+    
+
 
     void sendForced(unsigned char oid);
     
@@ -168,6 +229,9 @@ public:
     //! This is convenient but slow
     void sendForced(_String name);
 
+    NotifyEvent onPolling;
+    Closure<void(uint8_t)> onServiceMessageAccepted;    
+    
 #ifdef QT_CORE_LIB
 signals:
     void polling();
@@ -175,12 +239,12 @@ signals:
     void globalMessage(unsigned char aid);
     void globalDataMessage(unsigned char aid, const QByteArray &ba);
 #else
-    NotifyEvent onPolling;
     NotifyEvent onUpgradeRequest;
     GlobalMessageEvent onGlobalMessage;
     GlobalDataMessageEvent onGlobalDataMessage;
     Closure<void(string)> onObjectValueChanged;
 #endif
+    
 };
 
 }

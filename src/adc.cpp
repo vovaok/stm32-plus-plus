@@ -55,7 +55,6 @@ Adc::Adc(int adcBase) :
     {
       case 1:
         mAdc = ADC1;
-
         RCC->APB2ENR |= RCC_APB2ENR_ADC1EN;
         mDmaChannel = Dma::ADC1_Stream4; // Dma::ADC1_Stream0
         break;
@@ -234,7 +233,7 @@ void Adc::setEnabled(bool enable)
             mDma->setCircularBuffer(mBuffer.data(), mChannelCount*mSampleCount);
             if (mCompleteEvent)
                 mDma->setTransferCompleteEvent(mCompleteEvent);
-            configDma(mDma);
+            configDma(mDma, true);
             mDma->start();
         }
     }
@@ -254,7 +253,7 @@ void Adc::setEnabled(bool enable)
 }
 //---------------------------------------------------------------------------
 
-void Adc::configDma(Dma *dma)
+void Adc::configDma(Dma *dma, bool owner)
 {
     void *address = (unsigned char*)(mMode==ModeSingle? &mAdc->DR: &ADC->CDR);
     int dataSize = mResolution==Res8bit? 1: 2;
@@ -266,6 +265,7 @@ void Adc::configDma(Dma *dma)
         delete mDma;
     }
     mDma = dma;
+    mDmaOwner = owner;
 
     // Enable the selected ADC DMA request after last transfer
     if (mMode == ModeSingle)

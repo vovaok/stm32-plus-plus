@@ -27,7 +27,8 @@ class ObjnetDevice : public QObject
 #endif
 private:
     // mask should be 0x3FF but now we have this shit for backward compatibility
-    static const uint32_t mInfoValidMask = 0x000001FF;
+    // fuck the compatibility
+    static const uint32_t mInfoValidMask = 0x000003FF;
     uint32_t mInfoValidFlags;
 
     void onObjectValueChanged(unsigned char id);
@@ -88,6 +89,8 @@ protected:
     void receiveGroupedObject(const ByteArray &ba);
     void receiveGlobalMessage(unsigned char aid);
     
+    void notifyReady();
+    
     virtual void readyEvent() {}
     virtual void disconnectEvent() {}
     
@@ -138,6 +141,8 @@ public:
     void changeBusAddress(unsigned char mac);
 
     ObjnetDevice *parentDevice() {return mParent;}
+    
+    ObjnetMaster *master() const {return mMaster;}
 
     #ifndef QT_CORE_LIB
 
@@ -149,7 +154,7 @@ public:
     bool bindVariable(_String name, T &var)
     {
         ObjectInfo &info = mObjMap[_fromString(name)];
-        ObjectInfo::Type t = ObjectInfo::typeValue<T>();
+        ObjectInfo::Type t = ObjectInfo::typeValue<T>;
         if ((t == info.mDesc.wType) || !info.mDesc.flags)
         {
             info.mWritePtr = &var;
@@ -164,7 +169,7 @@ public:
     bool bindVariable(_String name, T (&var)[N])
     {
         ObjectInfo &info = mObjMap[_fromString(name)];
-        ObjectInfo::Type t = ObjectInfo::typeValue<T>();
+        ObjectInfo::Type t = ObjectInfo::typeValue<T>;
         if ((t == info.mDesc.wType && sizeof(var) == info.mDesc.writeSize) || !info.mDesc.flags)
         {
             info.mWritePtr = &var;
@@ -179,8 +184,8 @@ public:
     bool bindVariable(_String name, Tr &rVar, Tw &wVar)
     {
         ObjectInfo &info = mObjMap[_fromString(name)];
-        ObjectInfo::Type rt = ObjectInfo::typeValue<Tr>();
-        ObjectInfo::Type wt = ObjectInfo::typeValue<Tw>();
+        ObjectInfo::Type rt = ObjectInfo::typeValue<Tr>;
+        ObjectInfo::Type wt = ObjectInfo::typeValue<Tw>;
         if ((((sizeof(rVar) == info.mDesc.readSize)) && (sizeof(wVar) == info.mDesc.writeSize)) || !info.mDesc.flags)
         {
             info.mWritePtr = &wVar;
@@ -190,19 +195,6 @@ public:
             return true;
         }
         return false;
-    }
-
-    template<class T, class P0>
-    bool bindMethod(_String name, T *objptr, void (T::*method)(P0))
-    {
-        ObjectInfo &info = mObjMap[_fromString(name)];
-        //if ((t == info.mDesc.wType) || !info.mDesc.flags)
-        //{
-            //*reinterpret_cast<Closure<void(P0)>*>(&info.mReadPtr) = detail::CreateClosure(method).Init<void (T::*)(P0)>(objptr);//CLOSURE(objptr, method);
-            //info.mDesc.wType = info.mDesc.rType = t;
-            return true;
-        //}
-        //return false;
     }
 
     void requestObject(_String name);
@@ -249,6 +241,8 @@ signals:
     GlobalMessageEvent onGlobalMessage;
 #endif
 };
+
+#undef Timer
 
 }
 

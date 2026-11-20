@@ -109,6 +109,23 @@ public:
 //        uint8_t b = (fg.b() + bg.b() * (255 - fa)) / (255);
         return Color(r, g, b, a);
     }
+    
+    static Color fromHsv(int h, int s, int v, uint8_t a=255)
+    {
+        int v255 = v * 255 / 100;              /* ???????? ?????? */
+        int p    = v255 * (100 - s) / 100;     /* ??????? ?????? */
+        int f    = (h % 60) * 255 / 60;        /* 0..255 — ???? ? ??????? */
+        int q    = p + (v255 - p) * f / 255;   /* ????????????? ????? */
+
+        switch ((h / 60) % 6) {
+            case 0:  return Color(v255, q,    p,    a);  /* R?G */
+            case 1:  return Color(q,    v255, p,    a);  /* G?R */
+            case 2:  return Color(p,    v255, q,    a);  /* G?B */
+            case 3:  return Color(p,    q,    v255, a);  /* B?G */
+            case 4:  return Color(q,    p,    v255, a);  /* B?R */
+            default: return Color(v255, p,    q,    a);  /* R?B */
+        }
+    }
 
     bool operator ==(const Color &other) const {return m_value == other.m_value;}
     bool operator !=(const Color &other) const {return !operator==(other);}

@@ -4577,7 +4577,7 @@
                 <option>
                     <name>CCAllowList</name>
                     <version>1</version>
-                    <state>00000000</state>
+                    <state>11111110</state>
                 </option>
                 <option>
                     <name>CCDebugInfo</name>
@@ -4658,7 +4658,7 @@
                 </option>
                 <option>
                     <name>CCOptLevel</name>
-                    <state>0</state>
+                    <state>3</state>
                 </option>
                 <option>
                     <name>CCOptStrategy</name>
@@ -4667,7 +4667,7 @@
                 </option>
                 <option>
                     <name>CCOptLevelSlave</name>
-                    <state>0</state>
+                    <state>3</state>
                 </option>
                 <option>
                     <name>CCPosIndRopi</name>
@@ -4744,7 +4744,7 @@
                 </option>
                 <option>
                     <name>IccRTTI2</name>
-                    <state>1</state>
+                    <state>0</state>
                 </option>
                 <option>
                     <name>OICompilerExtraOption</name>
@@ -6891,7 +6891,7 @@
                 </option>
                 <option>
                     <name>IccRTTI2</name>
-                    <state>1</state>
+                    <state>0</state>
                 </option>
                 <option>
                     <name>OICompilerExtraOption</name>
@@ -15120,7 +15120,7 @@
                 </option>
                 <option>
                     <name>OGUseCmsisDspLib</name>
-                    <state>1</state>
+                    <state>0</state>
                 </option>
                 <option>
                     <name>GRuntimeLibThreads</name>
@@ -16191,9 +16191,6 @@
                 <name>$PROJ_DIR$\lib\stm32_mw_lwip\src\core\tcp_out.c</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\lib\stm32_mw_lwip\src\core\timeouts.c</name>
-            </file>
-            <file>
                 <name>$PROJ_DIR$\lib\stm32_mw_lwip\src\core\udp.c</name>
             </file>
         </group>
@@ -16425,6 +16422,12 @@
         </file>
         <file>
             <name>$PROJ_DIR$\src\core\application.h</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\core\bitarray.cpp</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\core\bitarray.h</name>
         </file>
         <file>
             <name>$PROJ_DIR$\src\core\bytearray.cpp</name>
@@ -16693,6 +16696,12 @@
         </file>
         <file>
             <name>$PROJ_DIR$\src\device\touchpanel.h</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\device\ws2812b.cpp</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\device\ws2812b.h</name>
         </file>
         <file>
             <name>$PROJ_DIR$\src\device\xpt2046.cpp</name>
@@ -17044,6 +17053,9 @@
             <configuration>stm32f303x8</configuration>
             <configuration>stm32f030x6</configuration>
         </excluded>
+        <file>
+            <name>$PROJ_DIR$\src\objnet\callable.h</name>
+        </file>
         <file>
             <name>$PROJ_DIR$\src\objnet\canonbinterface.cpp</name>
             <excluded>
@@ -18056,6 +18068,12 @@
     </file>
     <file>
         <name>$PROJ_DIR$\src\pwmout.h</name>
+    </file>
+    <file>
+        <name>$PROJ_DIR$\src\pwmpin.cpp</name>
+    </file>
+    <file>
+        <name>$PROJ_DIR$\src\pwmpin.h</name>
     </file>
     <file>
         <name>$PROJ_DIR$\src\rcc.cpp</name>

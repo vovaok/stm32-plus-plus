@@ -7,6 +7,9 @@
 
 class CanSocket;
 
+
+#define CAN_EFF_FLAG    0x80000000U
+
 class CanInterface
 {
 public:
@@ -14,11 +17,12 @@ public:
 
     enum Flags
     {
-        StdId = 0x00,
-        ExtId = 0x01,
+        NoFlags = 0x00, // StdId and ExtId frames
+        ExtId = 0x01, // ExtId frames only
         FD    = 0x02, // CAN FD mode
         BRS   = 0x04, // bit rate switch
         RTR   = 0x08,
+        StdId = 0x10  // StdId frames only
     };
 
     virtual bool hasFD() {return false;}
@@ -38,18 +42,20 @@ public:
 
     virtual void setRxInterruptEnabled(int fifoChannel, bool enabled) {}
 
-//    virtual bool setBaudrate(int value) = 0;
+    virtual bool setBaudrate(int nominal, int data=0) {return false;}
 
 protected:
     friend class CanSocket;
 
     int acquireFifoChannel(CanSocket *socket = nullptr);
     void releaseFifoChannel(int fifoChannel);
+    uint32_t fifoChannelsMask() const {return ~m_availFifo;}
 
     // call this when new message is available
     void messageReceived(int fifoChannel);
 
     static uint8_t dlcFromSize(uint8_t size);
+    static uint8_t dlcToSize(uint8_t dlc);
 
     std::map<uint8_t, CanSocket *> fmiSocketMap; // find socket by filter index
 

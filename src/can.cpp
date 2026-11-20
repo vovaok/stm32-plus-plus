@@ -44,26 +44,8 @@ Can::Can(Gpio::Config pinRx, Gpio::Config pinTx, int baudrate) :
 //    m_can->MCR &= ~(CAN_MCR_TTCM | CAN_MCR_ABOM | CAN_MCR_AWUM | CAN_MCR_NART | CAN_MCR_RFLM | CAN_MCR_TXFP);
     m_can->MCR |= CAN_MCR_ABOM | CAN_MCR_TXFP;
 
-    int clkin = rcc().getPeriphClk(m_can);
-    int psc = 0;
-    int mod = 0;
-    int btq = 0;
-    do
-    {
-        psc++;
-        btq = (clkin / psc) / (baudrate);
-        mod = (clkin / psc) % (baudrate);
-        if (psc >= 1024)
-            THROW(Exception::OutOfRange);
-    }
-    while (btq > 25 || mod); // prescaler choosed assumpting max bit length is 25tq
-
-    int t2 = btq<=17? ((btq-1)>>1): 8; // length of T2 segment
-    int t1 = btq - 1 - t2; // length of T1 segment
-
-    --t1; --t2;
-    // sync jump width = 1tq
-    m_can->BTR = (t1 << CAN_BTR_TS1_Pos) | (t2 << CAN_BTR_TS2_Pos) | (psc - 1);
+    if (!setBaudrate(baudrate))
+        THROW(Exception::OutOfRange);
 
     if (m_can == CAN2)
     {
@@ -75,6 +57,41 @@ Can::Can(Gpio::Config pinRx, Gpio::Config pinTx, int baudrate) :
     open();
 }
 //---------------------------------------------------------------------------
+
+bool Can::setBaudrate(int nominal, int data)
+{
+    (void)data; // unused
+    
+    bool reopen = isOpen();
+    if (reopen)
+        close();
+    
+    int clkin = rcc().getPeriphClk(m_can);
+    int psc = 0;
+    int mod = 0;
+    int btq = 0;
+    do
+    {
+        psc++;
+        btq = (clkin / psc) / (nominal);
+        mod = (clkin / psc) % (nominal);
+        if (psc >= 1024)
+            return false;
+    }
+    while (btq > 25 || mod); // prescaler choosed assumpting max bit length is 25tq
+
+    int t2 = btq<=17? ((btq-1)>>1): 8; // length of T2 segment
+    int t1 = btq - 1 - t2; // length of T1 segment
+
+    --t1; --t2;
+    // sync jump width = 1tq
+    m_can->BTR = (t1 << CAN_BTR_TS1_Pos) | (t2 << CAN_BTR_TS2_Pos) | (psc - 1);
+   
+    if (reopen)
+        open();
+    
+    return true;
+}
 
 bool Can::open(Device::OpenMode mode)
 {
@@ -143,15 +160,20 @@ int Can::configureFilter(Flags flags, uint32_t id, uint32_t mask, int fifoChanne
         can->FFA1R &= ~filterBit;
 
     // set ID and mask
-    if (flags & ExtId)
-    {
-        id = (id << CAN_RI0R_EXID_Pos) | (1 << 2);
-        mask = (mask << CAN_RI0R_EXID_Pos) | (1 << 2);
-    }
-    else
+    if (flags & StdId)
     {
         id = (id << CAN_RI0R_STID_Pos) | (0 << 2);
         mask = (mask << CAN_RI0R_STID_Pos) | (1 << 2);
+    }
+    else
+    {
+        id = (id << CAN_RI0R_EXID_Pos);
+        mask = (mask << CAN_RI0R_EXID_Pos);
+        if (flags & ExtId)
+        {
+            id |= (1 << 2);
+            mask |= (1 << 2);
+        }
     }
 
     can->sFilterRegister[idx].FR1 = id;
@@ -283,10 +305,18 @@ bool Can::transmitMessage(Flags flags, uint32_t id, const uint8_t *data, uint8_t
     uint32_t rtr = 0;
     if (flags & RTR)
         rtr = CAN_TI0R_RTR;
+    
+    uint32_t ide = 0;
+    if (flags & StdId)
+        ide = 0;
+    else if (flags & ExtId)
+        ide = CAN_TI0R_IDE;
+    else if (id & CAN_EFF_FLAG)
+        ide = CAN_TI0R_IDE;
 
     // fill the mailbox
-    if (flags & ExtId)
-        mb->TIR = (id << CAN_TI0R_EXID_Pos) | CAN_TI0R_IDE | rtr;
+    if (ide)
+        mb->TIR = (id << CAN_TI0R_EXID_Pos) | ide | rtr;
     else
         mb->TIR = (id << CAN_TI0R_STID_Pos) | rtr;
     mb->TDTR = size;

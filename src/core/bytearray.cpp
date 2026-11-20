@@ -587,13 +587,35 @@ ByteArray &ByteArray::replace(char from, char to)
 }
 //---------------------------------------------------------------------------
 
+//int ByteArray::toInt() const
+//{
+//    if (!mSize)
+//        return 0; // alarm
+//    int value;
+//    sscanf(mData, "%d", &value);
+//    return value;
+//}
+
 int ByteArray::toInt() const
 {
     if (!mSize)
-        return 0; // alarm
-    int value;
-    sscanf(mData, "%d", &value);
-    return value;
+        return 0;
+    
+    const char* p = mData;
+    bool neg = false;
+    
+    while (*p == ' ' || *p == '\t' || *p == '\r' || *p == '\n') ++p;
+    
+    if (*p == '+' || *p == '-') {
+        neg = (*p == '-');
+        ++p;
+    }
+
+    int v = 0;
+    while (*p >= '0' && *p <= '9')
+        v = v * 10 + (*p++ - '0');
+
+    return neg ? -v : v;
 }
 
 int ByteArray::toInt(int base) const
