@@ -118,6 +118,7 @@ public:
     uint32_t classId() const {return mClass;}
     uint32_t serial() const {return mSerial;}
     unsigned short version() const {return mVersion;}
+    _String buildDate() const {return mBuildDate;}
     int burnCount() const {return mBurnCount;}
     unsigned char objectCount() const {return (unsigned char)mObjects.size();}
 
